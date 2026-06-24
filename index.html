@@ -388,6 +388,29 @@ input{font-family:inherit;}
 /* ==========================================================================
    MENU SCREEN — additions for menu-first flow
    ========================================================================== */
+.family-header{
+  margin-top:22px;
+  margin-bottom:12px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--grey-line);
+}
+.family-header:first-of-type{margin-top:0;}
+.family-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:16px;
+  color:var(--marble);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.family-title.signature{color:var(--gold-bright);}
+.family-sub{
+  font-size:11px;
+  color:var(--grey-warm);
+  margin-top:3px;
+}
+
 .menu-section-label{
   font-size:12px;
   letter-spacing:0.1em;
@@ -417,6 +440,107 @@ input{font-family:inherit;}
   margin-top:18px;
   padding-top:14px;
   border-top:1px solid var(--grey-line);
+}
+
+/* ==========================================================================
+   GRAVY HOOK — short punchy intro, sits above the longer education card
+   ========================================================================== */
+.hook-card{
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  border-radius:var(--radius-lg);
+  padding:16px 18px;
+  margin-bottom:12px;
+}
+.hook-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:15px;
+  color:var(--gold-bright);
+  margin-bottom:8px;
+}
+.hook-line{
+  font-size:12.5px;
+  color:var(--marble-dim);
+  line-height:1.55;
+  margin-bottom:4px;
+}
+.hook-punch{
+  font-size:13px;
+  font-weight:700;
+  color:var(--ember-bright);
+  margin-top:8px;
+  letter-spacing:0.02em;
+}
+
+/* ==========================================================================
+   PRODUCT EDUCATION SECTION — "What Makes TKG Different?"
+   ========================================================================== */
+.edu-card{
+  background:var(--marble);
+  border-radius:var(--radius-lg);
+  padding:16px 18px;
+  border-top:3px solid var(--gold);
+  margin-bottom:18px;
+}
+.edu-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:15px;
+  color:var(--charcoal);
+  margin-bottom:8px;
+}
+.edu-line{
+  font-size:12.5px;
+  color:#4A453D;
+  line-height:1.55;
+  margin-bottom:4px;
+}
+.edu-line:last-child{margin-bottom:0;}
+.edu-jain{
+  display:inline-block;
+  margin-top:8px;
+  font-size:11px;
+  font-weight:700;
+  color:var(--success);
+  background:rgba(92,138,92,0.12);
+  padding:3px 10px;
+  border-radius:10px;
+}
+
+/* ==========================================================================
+   FLOUR / DISPLAY NOTES
+   ========================================================================== */
+.flour-note{
+  font-size:11.5px;
+  color:var(--grey-warm);
+  line-height:1.5;
+  text-align:center;
+  margin-top:14px;
+  padding:10px 12px;
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  border-radius:var(--radius-sm);
+}
+
+.notes-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:14px;
+}
+.note-chip{
+  font-size:10.5px;
+  color:var(--grey-warm);
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  padding:5px 10px;
+  border-radius:14px;
+}
+.note-chip.jain{
+  color:var(--success);
+  border-color:rgba(92,138,92,0.3);
+  background:rgba(92,138,92,0.08);
 }
 
 .link-row{
@@ -807,11 +931,11 @@ input{font-family:inherit;}
         <label class="field-label" for="favoriteItemInput">Favorite Item <span class="optional-tag">Optional</span></label>
         <select class="field-input" id="favoriteItemInput">
           <option value="">Select an item…</option>
-          <option value="Classic Khichiya (Mini)">Classic Khichiya (Mini)</option>
-          <option value="Massala Khichiya (Mini)">Massala Khichiya (Mini)</option>
-          <option value="Cheese Khichiya (Mini)">Cheese Khichiya (Mini)</option>
-          <option value="Cheese Masala Khichiya (Mini)">Cheese Masala Khichiya (Mini)</option>
-          <option value="Cheesey Gravy Khichiya (Mini)">Cheesey Gravy Khichiya (Mini)</option>
+          <option value="Classic Khichiya">Classic Khichiya</option>
+          <option value="Masala Khichiya">Masala Khichiya</option>
+          <option value="Cheese Masala Khichiya">Cheese Masala Khichiya</option>
+          <option value="Signature Gravy Khichiya">Signature Gravy Khichiya</option>
+          <option value="Cheesy Signature Gravy Khichiya">Cheesy Signature Gravy Khichiya</option>
         </select>
       </div>
 
@@ -840,56 +964,109 @@ input{font-family:inherit;}
 
     <div class="menu-header">
       <div class="menu-greet">— The Khichiya Gravy —</div>
-      <h1 class="menu-title">Roasted on Coal.<br>Served with Gravy.</h1>
+      <h1 class="menu-title">Coal-Cooked Cheese Gravy.<br>Roasted Khichiya for Dipping.</h1>
     </div>
 
-    <div class="menu-section active" id="cat-specials">
-      <div class="menu-section-label">Khichiya Gravy Specials <span class="jain-tag">Jain Available</span></div>
+    <!-- Short punchy hook — sits above the longer education card -->
+    <div class="hook-card">
+      <div class="hook-title">🔥 What is TKG Gravy?</div>
+      <div class="hook-line">Our signature cheese gravy is cooked fresh over coal heat and served separately with roasted Khichiya for dipping.</div>
+      <div class="hook-punch">Not poured on top.<br>Dip. Scoop. Enjoy.</div>
+    </div>
+
+    <!-- Longer education card — explains the dish before prices appear -->
+    <div class="edu-card">
+      <div class="edu-title">What Makes TKG Different?</div>
+      <div class="edu-line">TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.</div>
+      <div class="edu-line">Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.</div>
+      <span class="edu-jain">🟢 Jain options available</span>
+    </div>
+
+    <!-- ===== FAMILY 1: TRADITIONAL COAL-ROASTED KHICHIYA ===== -->
+    <div class="family-header">
+      <div class="family-title">Coal-Roasted Khichiya</div>
+      <div class="family-sub">Classic dry-roasted snack, eaten as-is — no gravy.</div>
+    </div>
+
+    <div class="menu-section active" id="cat-traditional">
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Classic Khichiya (Mini)</div>
+          <div class="menu-item-name">Classic Khichiya</div>
+          <div class="menu-item-desc">Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.</div>
         </div>
-        <div class="menu-item-price">₹50</div>
+        <div class="menu-item-price">Mini ₹30<br>Large ₹50</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Massala Khichiya (Mini)</div>
+          <div class="menu-item-name">Masala Khichiya</div>
+          <div class="menu-item-desc">Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">₹80</div>
+        <div class="menu-item-price">Mini ₹80<br>Large ₹120</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Cheese Khichiya (Mini)</div>
+          <div class="menu-item-name">Cheese Masala Khichiya</div>
+          <div class="menu-item-desc">Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">₹100</div>
+        <div class="menu-item-price">Mini ₹100<br>Large ₹140</div>
       </div>
+    </div>
+
+    <!-- ===== FAMILY 2: SIGNATURE COAL-COOKED CHEESE GRAVY ===== -->
+    <div class="family-header">
+      <div class="family-title signature">Signature Coal-Cooked Cheese Gravy</div>
+      <div class="family-sub">Our hero product — gravy for dipping, not poured on top.</div>
+    </div>
+
+    <div class="menu-section active" id="cat-signature">
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Cheese Masala Khichiya (Mini)</div>
-        </div>
-        <div class="menu-item-price">₹120</div>
-      </div>
-      <div class="menu-item">
-        <div class="menu-item-info">
-          <div class="menu-item-name">Cheesey Gravy Khichiya (Mini)</div>
+          <div class="menu-item-name">Signature Gravy Khichiya</div>
           <span class="menu-item-tag">Bestseller</span>
+          <div class="menu-item-desc">Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">₹140</div>
+        <div class="menu-item-price">Mini ₹120<br>Large ₹160</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-name">Cheesy Signature Gravy Khichiya</div>
+          <div class="menu-item-desc">Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
+        </div>
+        <div class="menu-item-price">Mini ₹140<br>Large ₹180</div>
       </div>
 
-      <div class="menu-section-label" style="margin-top:18px;">Extra Toppings</div>
+      <div class="menu-section-label" style="margin-top:18px;">Extra (Signature Gravy items)</div>
       <div class="menu-item">
         <div class="menu-item-info">
           <div class="menu-item-name">Cheese</div>
+          <div class="menu-item-desc">Extra cheese melted into your gravy.</div>
         </div>
         <div class="menu-item-price">₹25</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
           <div class="menu-item-name">Extra Gravy</div>
+          <div class="menu-item-desc">More of the hero product — for when the Khichiya runs out first.</div>
         </div>
         <div class="menu-item-price">₹100</div>
       </div>
+    </div>
+
+    <!-- Flour communication — display only, no selector -->
+    <div class="flour-note">Maida and Whole Wheat (Gehu Atta) options available on selected items. Please inform us while ordering.</div>
+
+    <!-- Display notes — informational chips, no selection system -->
+    <div class="notes-grid">
+      <span class="note-chip jain">Jain Preparation Available</span>
+      <span class="note-chip jain">No Onion Option Available</span>
+      <span class="note-chip">Whole Wheat (Gehu Atta) on Selected Items</span>
+      <span class="note-chip">Extra Cheese Available</span>
+      <span class="note-chip">Extra Gravy Available</span>
+      <span class="note-chip">Seasonal Vegetable Variations</span>
     </div>
 
     <div class="hours-note">Open on Weekend · Evening to Late Night</div>
