@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>TKG — The Khichiya Gravy</title>
+<meta name="theme-color" content="#0B0B0C">
+<meta name="description" content="The Khichiya Gravy — menu, registration and visit tracking">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>
+/* ==========================================================================
+   TOKENS
+   White marble / Coal ember orange / Black charcoal / Warm gold
+   ========================================================================== */
+:root{
+  --charcoal:       #0B0B0C;
+  --charcoal-soft:  #161514;
+  --ember-card:     #1C1A18;
+  --marble:         #FAF7F2;
+  --marble-dim:     #EFEAE1;
+  --ember:          #E85D2C;
+  --ember-bright:   #FF7A45;
+  --ember-deep:     #B8431D;
+  --gold:           #C9A24B;
+  --gold-bright:    #E0C170;
+  --grey-warm:      #8A8278;
+  --grey-line:      #2A2724;
+  --success:        #5C8A5C;
+  --danger:         #C24545;
+
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --max-w: 430px;
+
+  --font-display: 'Charcoal-Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{
+  background:var(--charcoal);
+  color:var(--marble);
+  font-family:var(--font-body);
+  -webkit-tap-highlight-color:transparent;
+  height:100%;
+}
+body{
+  display:flex;
+  justify-content:center;
+  min-height:100vh;
+  min-height:100dvh;
+}
+button{font-family:inherit; cursor:pointer;}
+input{font-family:inherit;}
+::selection{background:var(--ember); color:var(--marble);}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+}
+
+/* ==========================================================================
+   SHELL
+   ========================================================================== */
+.shell{
+  width:100%;
+  max-width:var(--max-w);
+  min-height:100vh;
+  min-height:100dvh;
+  background:var(--charcoal);
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  background-image:
+    radial-gradient(ellipse at top, rgba(232,93,44,0.10), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+}
+
+/* ==========================================================================
+   TOP BAR — wordmark + ember status dot (signature element)
+   ========================================================================== */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px 20px 14px;
+}
+.wordmark{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:22px;
+  letter-spacing:0.06em;
+  color:var(--marble);
+  display:flex;
+  align-items:baseline;
+  gap:7px;
+}
+.wordmark span.sub{
+  font-family:var(--font-body);
+  font-weight:500;
+  font-size:10px;
+  letter-spacing:0.18em;
+  color:var(--grey-warm);
+  text-transform:uppercase;
+}
+
+.status-pill{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:11px;
+  letter-spacing:0.04em;
+  color:var(--grey-warm);
+  padding:6px 10px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--grey-line);
+}
+.ember-dot{
+  width:8px; height:8px;
+  border-radius:50%;
+  background:var(--success);
+  box-shadow:0 0 0 0 rgba(92,138,92,0.6);
+  flex-shrink:0;
+}
+.status-pill[data-state="offline"] .ember-dot{
+  background:var(--ember);
+  animation:ember-pulse 1.6s ease-in-out infinite;
+}
+.status-pill[data-state="syncing"] .ember-dot{
+  background:var(--gold);
+  animation:ember-pulse 0.9s ease-in-out infinite;
+}
+@keyframes ember-pulse{
+  0%{box-shadow:0 0 0 0 rgba(232,93,44,0.55);}
+  70%{box-shadow:0 0 0 6px rgba(232,93,44,0);}
+  100%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
+}
+
+/* ==========================================================================
+   SCREENS
+   ========================================================================== */
+.screen{
+  flex:1;
+  display:none;
+  flex-direction:column;
+  padding:0 20px 28px;
+  animation:fade-in 0.35s ease;
+}
+.screen.active{display:flex;}
+@keyframes fade-in{
+  from{opacity:0; transform:translateY(6px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* ---- Registration screen ---- */
+.hero-block{
+  margin-top:6px;
+  margin-bottom:28px;
+}
+.hero-eyebrow{
+  font-size:11px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--gold);
+  font-weight:600;
+  margin-bottom:10px;
+}
+.hero-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:30px;
+  line-height:1.15;
+  letter-spacing:-0.01em;
+  color:var(--marble);
+}
+.hero-title em{
+  color:var(--ember-bright);
+  font-style:normal;
+}
+.hero-sub{
+  margin-top:10px;
+  font-size:14px;
+  color:var(--grey-warm);
+  line-height:1.5;
+}
+
+.reg-card{
+  background:var(--marble);
+  border-radius:var(--radius-lg);
+  padding:24px 20px 22px;
+  box-shadow:0 18px 40px -12px rgba(0,0,0,0.55);
+  border-top:3px solid var(--ember);
+}
+.field-group{margin-bottom:16px;}
+.field-label{
+  display:block;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.04em;
+  color:var(--charcoal);
+  margin-bottom:7px;
+  text-transform:uppercase;
+}
+.field-input{
+  width:100%;
+  padding:14px 14px;
+  border-radius:var(--radius-md);
+  border:1.5px solid #E2DDD3;
+  background:#FFFFFF;
+  color:var(--charcoal);
+  font-size:16px;
+  outline:none;
+  transition:border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.field-input::placeholder{color:#B7AFA3;}
+.field-input:focus{
+  border-color:var(--ember);
+  box-shadow:0 0 0 3px rgba(232,93,44,0.16);
+}
+.field-input.invalid{
+  border-color:var(--danger);
+}
+.field-error{
+  font-size:12px;
+  color:var(--danger);
+  margin-top:6px;
+  display:none;
+  font-weight:500;
+}
+.field-error.show{display:block;}
+
+.btn-primary{
+  width:100%;
+  padding:16px;
+  border-radius:var(--radius-md);
+  border:none;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  color:var(--marble);
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
+  transition:transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-primary:active{transform:translateY(1px) scale(0.99); box-shadow:0 4px 10px -4px rgba(232,93,44,0.5);}
+.btn-primary:disabled{opacity:0.55; box-shadow:none;}
+
+.consent-line{
+  margin-top:14px;
+  font-size:11.5px;
+  color:var(--grey-warm);
+  text-align:center;
+  line-height:1.5;
+}
+
+.trust-row{
+  display:flex;
+  gap:10px;
+  margin-top:22px;
+}
+.trust-item{
+  flex:1;
+  text-align:center;
+  font-size:10.5px;
+  color:var(--grey-warm);
+  letter-spacing:0.03em;
+}
+.trust-item .ti-mark{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:13px;
+  color:var(--gold);
+  display:block;
+  margin-bottom:3px;
+}
+
+.owner-link{
+  margin-top:auto;
+  padding-top:24px;
+  text-align:center;
+}
+.owner-link button{
+  background:none;
+  border:none;
+  color:var(--grey-warm);
+  font-size:12px;
+  letter-spacing:0.05em;
+  text-decoration:underline;
+  text-decoration-color:var(--grey-line);
+  padding:8px;
+}
+
+/* ---- Welcome-back chip (returning customer) ---- */
+.welcome-chip{
+  display:none;
+  align-items:center;
+  gap:10px;
+  background:rgba(201,162,75,0.1);
+  border:1px solid rgba(201,162,75,0.35);
+  border-radius:var(--radius-md);
+  padding:11px 14px;
+  margin-bottom:16px;
+  font-size:13px;
+  color:var(--gold-bright);
+}
+.welcome-chip.show{display:flex;}
+.welcome-chip .wc-icon{font-size:16px;}
+
+/* ==========================================================================
+   REGISTRATION OVERLAY (bottom sheet, optional, never blocks the menu)
+   ========================================================================== */
+.overlay-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.55);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease;
+  z-index:150;
+}
+.overlay-backdrop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.reg-overlay{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translate(-50%, 100%);
+  width:100%;
+  max-width:var(--max-w);
+  max-height:88vh;
+  overflow-y:auto;
+  background:var(--charcoal);
+  border-radius:22px 22px 0 0;
+  padding:10px 20px 28px;
+  box-shadow:0 -10px 40px rgba(0,0,0,0.5);
+  transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index:160;
+  -webkit-overflow-scrolling:touch;
+}
+.reg-overlay.show{
+  transform:translate(-50%, 0);
+}
+.reg-overlay-handle{
+  width:40px;
+  height:4px;
+  border-radius:3px;
+  background:var(--grey-line);
+  margin:8px auto 16px;
+}
+
+.optional-tag{
+  font-weight:500;
+  text-transform:none;
+  letter-spacing:0;
+  color:var(--grey-warm);
+  font-size:11px;
+}
+
+.source-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.source-chip{
+  padding:9px 14px;
+  border-radius:20px;
+  border:1.5px solid #E2DDD3;
+  background:#FFFFFF;
+  color:var(--charcoal);
+  font-size:12.5px;
+  font-weight:600;
+}
+.source-chip.selected{
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
+}
+
+/* ==========================================================================
+   MENU SCREEN — additions for menu-first flow
+   ========================================================================== */
+.menu-section-label{
+  font-size:12px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--gold);
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.jain-tag{
+  font-size:9.5px;
+  letter-spacing:0.04em;
+  text-transform:none;
+  font-weight:700;
+  color:var(--success);
+  background:rgba(92,138,92,0.12);
+  padding:2px 8px;
+  border-radius:10px;
+}
+
+.hours-note{
+  text-align:center;
+  font-size:12px;
+  color:var(--grey-warm);
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid var(--grey-line);
+}
+
+.link-row{
+  display:flex;
+  gap:8px;
+  margin-top:16px;
+}
+.link-chip{
+  flex:1;
+  text-align:center;
+  padding:12px 10px;
+  border-radius:var(--radius-md);
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  color:var(--marble);
+  font-size:12.5px;
+  font-weight:600;
+  text-decoration:none;
+}
+.link-chip:active{
+  background:var(--ember);
+  border-color:var(--ember);
+}
+
+.register-cta{
+  margin-top:22px;
+  background:var(--marble);
+  border-radius:var(--radius-lg);
+  padding:18px 18px 16px;
+  border-top:3px solid var(--gold);
+}
+.register-cta-text{margin-bottom:12px;}
+.register-cta-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:16px;
+  color:var(--charcoal);
+}
+.register-cta-sub{
+  font-size:12px;
+  color:#6B6358;
+  margin-top:3px;
+}
+
+/* ==========================================================================
+   MENU SCREEN (legacy tab styles retained for compatibility)
+   ========================================================================== */
+.menu-header{
+  padding-top:4px;
+  margin-bottom:18px;
+  text-align:center;
+}
+.menu-greet{
+  font-size:13px;
+  color:var(--gold);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  font-weight:600;
+  margin-bottom:4px;
+}
+.menu-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:26px;
+  color:var(--marble);
+}
+.visit-badge{
+  display:inline-block;
+  margin-top:8px;
+  padding:4px 12px;
+  border-radius:20px;
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  font-size:11px;
+  color:var(--grey-warm);
+  font-family:var(--font-mono);
+}
+
+.menu-tabs{
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  padding-bottom:14px;
+  margin-bottom:6px;
+  scrollbar-width:none;
+}
+.menu-tabs::-webkit-scrollbar{display:none;}
+.menu-tab{
+  flex-shrink:0;
+  padding:9px 16px;
+  border-radius:20px;
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  color:var(--grey-warm);
+  font-size:12.5px;
+  font-weight:600;
+  letter-spacing:0.02em;
+  white-space:nowrap;
+  transition:all 0.15s ease;
+}
+.menu-tab.active{
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
+}
+
+.menu-section{display:none;}
+.menu-section.active{display:flex; flex-direction:column; gap:10px;}
+
+.menu-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:14px;
+  background:var(--marble);
+  border-radius:var(--radius-md);
+  padding:14px 15px;
+  border-left:3px solid var(--gold);
+}
+.menu-item-info{flex:1;}
+.menu-item-name{
+  font-size:15px;
+  font-weight:700;
+  color:var(--charcoal);
+  margin-bottom:3px;
+}
+.menu-item-desc{
+  font-size:12px;
+  color:#6B6358;
+  line-height:1.4;
+}
+.menu-item-tag{
+  display:inline-block;
+  margin-top:6px;
+  font-size:9.5px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--ember-deep);
+  background:rgba(232,93,44,0.1);
+  padding:2px 7px;
+  border-radius:4px;
+}
+.menu-item-price{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:15px;
+  color:var(--ember-deep);
+  white-space:nowrap;
+  padding-top:1px;
+}
+
+.menu-footer{
+  margin-top:24px;
+  text-align:center;
+}
+.btn-secondary{
+  background:none;
+  border:1.5px solid var(--grey-line);
+  color:var(--grey-warm);
+  padding:12px 22px;
+  border-radius:var(--radius-md);
+  font-size:13px;
+  font-weight:600;
+}
+
+/* ==========================================================================
+   OWNER DASHBOARD
+   ========================================================================== */
+.dash-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+}
+.dash-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:22px;
+  color:var(--marble);
+}
+.dash-close{
+  background:none;
+  border:1px solid var(--grey-line);
+  color:var(--grey-warm);
+  width:34px; height:34px;
+  border-radius:50%;
+  font-size:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.pin-gate{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  justify-content:center;
+  gap:16px;
+}
+.pin-gate p{
+  text-align:center;
+  color:var(--grey-warm);
+  font-size:13px;
+}
+.pin-input{
+  width:100%;
+  padding:16px;
+  border-radius:var(--radius-md);
+  border:1.5px solid var(--grey-line);
+  background:var(--ember-card);
+  color:var(--marble);
+  font-size:20px;
+  letter-spacing:0.3em;
+  text-align:center;
+  outline:none;
+}
+.pin-input:focus{border-color:var(--ember);}
+
+.stat-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:18px;
+}
+.stat-card{
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  border-radius:var(--radius-md);
+  padding:16px 14px;
+}
+.stat-card.full{grid-column:1 / -1; display:flex; justify-content:space-between; align-items:center;}
+.stat-num{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:26px;
+  color:var(--gold-bright);
+  line-height:1;
+}
+.stat-label{
+  font-size:11px;
+  color:var(--grey-warm);
+  margin-top:6px;
+  letter-spacing:0.03em;
+}
+.stat-card.full .stat-num{font-size:20px; color:var(--ember-bright);}
+
+.dash-actions{
+  display:flex;
+  gap:10px;
+  margin-bottom:18px;
+}
+.dash-actions .btn-secondary{flex:1; padding:11px;}
+
+.search-box{
+  width:100%;
+  padding:12px 14px;
+  border-radius:var(--radius-md);
+  border:1.5px solid var(--grey-line);
+  background:var(--ember-card);
+  color:var(--marble);
+  font-size:14px;
+  margin-bottom:12px;
+  outline:none;
+}
+.search-box:focus{border-color:var(--ember);}
+.search-box::placeholder{color:var(--grey-warm);}
+
+.cust-list{
+  flex:1;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  -webkit-overflow-scrolling:touch;
+}
+.cust-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  border-radius:var(--radius-sm);
+  padding:12px 13px;
+}
+.cust-info .cust-name{font-size:13.5px; font-weight:700; color:var(--marble);}
+.cust-info .cust-mobile{font-size:11.5px; color:var(--grey-warm); font-family:var(--font-mono); margin-top:2px;}
+.cust-info .cust-tags{font-size:10.5px; color:var(--gold); margin-top:3px;}
+.cust-meta{text-align:right;}
+.cust-meta .cust-visits{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--gold-bright);
+  font-weight:700;
+}
+.cust-meta .cust-last{font-size:10px; color:var(--grey-warm); margin-top:2px;}
+.cust-meta .pending-tag{
+  font-size:9px;
+  color:var(--ember-bright);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  margin-top:3px;
+}
+
+.empty-state{
+  text-align:center;
+  padding:40px 10px;
+  color:var(--grey-warm);
+  font-size:13px;
+}
+
+/* ==========================================================================
+   TOAST
+   ========================================================================== */
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--marble);
+  color:var(--charcoal);
+  padding:13px 20px;
+  border-radius:var(--radius-md);
+  font-size:13px;
+  font-weight:600;
+  box-shadow:0 12px 30px -8px rgba(0,0,0,0.5);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+  z-index:200;
+  max-width:90%;
+  text-align:center;
+  border-left:4px solid var(--ember);
+}
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* Utility */
+.hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="shell" id="shell">
+
+  <!-- ============ TOP BAR ============ -->
+  <div class="topbar">
+    <div class="wordmark">TKG <span class="sub">The Khichiya Gravy</span></div>
+    <div class="status-pill" id="statusPill" data-state="online">
+      <span class="ember-dot" id="emberDot"></span>
+      <span id="statusText">Online</span>
+    </div>
+  </div>
+
+  <!-- ============ REGISTRATION OVERLAY (optional, reachable from menu) ============ -->
+  <div class="overlay-backdrop" id="overlayBackdrop"></div>
+  <div class="reg-overlay" id="regOverlay">
+
+    <div class="reg-overlay-handle"></div>
+
+    <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
+      <div class="hero-eyebrow">Stay in the loop</div>
+      <h1 class="hero-title" style="font-size:24px;">Register &amp; Get <em>Updates.</em></h1>
+      <p class="hero-sub">Takes 10 seconds. We'll remember you next time you visit.</p>
+    </div>
+
+    <div class="welcome-chip" id="welcomeChip">
+      <span class="wc-icon">🔥</span>
+      <span id="welcomeChipText">Welcome back!</span>
+    </div>
+
+    <form class="reg-card" id="regForm" novalidate>
+      <div class="field-group">
+        <label class="field-label" for="nameInput">Your Name</label>
+        <input class="field-input" id="nameInput" type="text" placeholder="e.g. Rohan Patel" autocomplete="name" maxlength="60">
+        <div class="field-error" id="nameError">Please enter your name</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="mobileInput">Mobile Number</label>
+        <input class="field-input" id="mobileInput" type="tel" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" maxlength="10">
+        <div class="field-error" id="mobileError">Please enter a valid 10-digit number</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="favoriteItemInput">Favorite Item <span class="optional-tag">Optional</span></label>
+        <select class="field-input" id="favoriteItemInput">
+          <option value="">Select an item…</option>
+          <option value="Classic Khichiya (Mini)">Classic Khichiya (Mini)</option>
+          <option value="Massala Khichiya (Mini)">Massala Khichiya (Mini)</option>
+          <option value="Cheese Khichiya (Mini)">Cheese Khichiya (Mini)</option>
+          <option value="Cheese Masala Khichiya (Mini)">Cheese Masala Khichiya (Mini)</option>
+          <option value="Cheesey Gravy Khichiya (Mini)">Cheesey Gravy Khichiya (Mini)</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">How did you hear about us? <span class="optional-tag">Optional</span></label>
+        <div class="source-chips" id="sourceChips">
+          <button type="button" class="source-chip" data-source="Instagram">Instagram</button>
+          <button type="button" class="source-chip" data-source="Google">Google</button>
+          <button type="button" class="source-chip" data-source="Friend">Friend</button>
+          <button type="button" class="source-chip" data-source="Family">Family</button>
+          <button type="button" class="source-chip" data-source="Walk-In">Walk-In</button>
+          <button type="button" class="source-chip" data-source="Other">Other</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submitBtn">Register &amp; Get Updates</button>
+      <button type="button" class="btn-secondary" id="closeRegisterBtn" style="width:100%; margin-top:10px;">Not Now</button>
+
+      <p class="consent-line">No login. No OTP. No email. Just your name and number, saved securely.</p>
+    </form>
+
+  </div>
+
+  <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
+  <section class="screen active" id="screen-menu">
+
+    <div class="menu-header">
+      <div class="menu-greet">— The Khichiya Gravy —</div>
+      <h1 class="menu-title">Roasted on Coal.<br>Served with Gravy.</h1>
+    </div>
+
+    <div class="menu-section active" id="cat-specials">
+      <div class="menu-section-label">Khichiya Gravy Specials <span class="jain-tag">Jain Available</span></div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-name">Classic Khichiya (Mini)</div>
+        </div>
+        <div class="menu-item-price">₹50</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-name">Massala Khichiya (Mini)</div>
+        </div>
+        <div class="menu-item-price">₹80</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-name">Cheese Khichiya (Mini)</div>
+        </div>
+        <div class="menu-item-price">₹100</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-name">Cheese Masala Khichiya (Mini)</div>
+        </div>
+        <div class="menu-item-price">₹120</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-name">Cheesey Gravy Khichiya (Mini)</div>
+          <span class="menu-item-tag">Bestseller</span>
+        </div>
+        <div class="menu-item-price">₹140</div>
+      </div>
+
+      <div class="menu-section-label" style="margin-top:18px;">Extra Toppings</div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-name">Cheese</div>
+        </div>
+        <div class="menu-item-price">₹25</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-name">Extra Gravy</div>
+        </div>
+        <div class="menu-item-price">₹100</div>
+      </div>
+    </div>
+
+    <div class="hours-note">Open on Weekend · Evening to Late Night</div>
+
+    <!-- About / Instagram / Google Review — static, always visible, never gated -->
+    <div class="link-row">
+      <a class="link-chip" href="https://wa.me/919510100950" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="link-chip" id="instaLink" href="#" target="_blank" rel="noopener">Instagram</a>
+      <a class="link-chip" id="googleReviewLink" href="#" target="_blank" rel="noopener">Google Review</a>
+    </div>
+
+    <!-- Optional registration entry point — never blocks menu access -->
+    <div class="register-cta" id="registerCtaCard">
+      <div class="register-cta-text">
+        <div class="register-cta-title">Register &amp; Get Updates</div>
+        <div class="register-cta-sub">Takes 10 seconds. No login, no OTP.</div>
+      </div>
+      <button class="btn-primary register-cta-btn" id="openRegisterBtn">Register &amp; Get Updates</button>
+    </div>
+
+    <div class="owner-link">
+      <button type="button" id="openDashBtn">Owner Dashboard →</button>
+    </div>
+
+  </section>
+
+  <!-- ============ SCREEN 3: OWNER DASHBOARD ============ -->
+  <section class="screen" id="screen-dash">
+
+    <div class="dash-header">
+      <h1 class="dash-title">Owner Dashboard</h1>
+      <button class="dash-close" id="closeDashBtn">✕</button>
+    </div>
+
+    <!-- PIN gate -->
+    <div class="pin-gate" id="pinGate">
+      <p>Enter the owner PIN to continue.<br><span style="color:var(--grey-line); font-size:11px;">(Default PIN: 1234 — change inside app.js)</span></p>
+      <input class="pin-input" id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+      <button class="btn-primary" id="pinSubmitBtn">Unlock</button>
+    </div>
+
+    <!-- Dashboard content -->
+    <div id="dashContent" class="hidden" style="display:none; flex-direction:column; flex:1; min-height:0;">
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">Total Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statToday">0</div>
+          <div class="stat-label">New Today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statRepeat">0</div>
+          <div class="stat-label">Repeat Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statPending">0</div>
+          <div class="stat-label">Pending Sync</div>
+        </div>
+        <div class="stat-card full">
+          <div>
+            <div class="stat-label" style="margin-top:0;">Last synced</div>
+            <div style="font-size:12px; color:var(--marble); font-family:var(--font-mono); margin-top:3px;" id="lastSyncedAt">—</div>
+          </div>
+          <button class="btn-secondary" id="forceSyncBtn" style="padding:9px 14px; font-size:12px;">Sync Now</button>
+        </div>
+      </div>
+
+      <div class="dash-actions">
+        <button class="btn-secondary" id="exportCsvBtn">Export CSV</button>
+        <button class="btn-secondary" id="refreshDashBtn">Refresh</button>
+      </div>
+
+      <input class="search-box" id="searchInput" type="text" placeholder="Search by name or mobile number...">
+
+      <div class="cust-list" id="custList">
+        <div class="empty-state">No customers yet.</div>
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================================
+   TKG APP LOGIC
+   ============================================================================
+   Data model per customer (LocalStorage key: tkg_customers):
+   {
+     mobile: "9876543210",       // normalized, used as unique key
+     name: "Rohan Patel",
+     firstVisit: "2026-06-23T10:15:00.000Z",
+     lastVisit:  "2026-06-23T10:15:00.000Z",
+     visitCount: 1,
+     favoriteItem: "Cheesey Gravy Khichiya (Mini)", // optional, "" if skipped
+     source: "Instagram",         // optional, "" if skipped
+     reviewStatus: "",            // RESERVED for Phase 2 (Review Growth System)
+     rating: "",                  // RESERVED for Phase 2 — no UI yet
+     feedback: "",                // RESERVED for Phase 2 — no UI yet
+     pendingSync: true|false     // true until Apps Script confirms receipt
+   }
+   ============================================================================ */
+
+// ---------------------------------------------------------------------------
+// CONFIG — paste your deployed Apps Script Web App URL here.
+// See AppsScript.gs setup instructions for how to generate this.
+// ---------------------------------------------------------------------------
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS3JaYacArqWNJAM0G8FeI83RvzWBXG2bT1_pPwb8Ic2ioSiKnFPTpUUn9fteu92XLug/exec';
+const OWNER_PIN = '1234'; // change this to your own PIN
+const INSTAGRAM_URL = 'https://www.instagram.com/the.khichiyagravy/'; // production — official TKG profile
+const GOOGLE_REVIEW_URL = 'https://g.page/r/CYnAo2r-6b_zEAE/review'; // production — Google Business review link
+
+document.getElementById('instaLink').href = INSTAGRAM_URL;
+document.getElementById('googleReviewLink').href = GOOGLE_REVIEW_URL;
+
+const LS_KEY = 'tkg_customers';
+const LS_SESSION_KEY = 'tkg_current_session';
+
+// ---------------------------------------------------------------------------
+// STORAGE HELPERS
+// ---------------------------------------------------------------------------
+function loadCustomers(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Failed to read local customers', e);
+    return [];
+  }
+}
+
+function saveCustomers(list){
+  localStorage.setItem(LS_KEY, JSON.stringify(list));
+}
+
+function normalizeMobile(mobile){
+  return String(mobile || '').replace(/[^\d]/g, '').replace(/^0+/, '').slice(-10);
+}
+
+function findCustomerIndex(list, mobile){
+  const target = normalizeMobile(mobile);
+  return list.findIndex(c => normalizeMobile(c.mobile) === target);
+}
+
+function isSameDay(isoA, isoB){
+  const a = new Date(isoA), b = new Date(isoB);
+  return a.toDateString() === b.toDateString();
+}
+
+// ---------------------------------------------------------------------------
+// CHECK-IN LOGIC (LocalStorage first, instant — sync happens after)
+// ---------------------------------------------------------------------------
+function checkInCustomer(name, mobile, favoriteItem, source){
+  const list = loadCustomers();
+  const nowIso = new Date().toISOString();
+  const idx = findCustomerIndex(list, mobile);
+
+  let record;
+  let isReturning = false;
+
+  if(idx === -1){
+    record = {
+      mobile: normalizeMobile(mobile),
+      name: name,
+      firstVisit: nowIso,
+      lastVisit: nowIso,
+      visitCount: 1,
+      favoriteItem: favoriteItem || '',
+      source: source || '',
+      // Reserved for Phase 2 (Review Growth System) — no UI yet, fields kept
+      // empty so the data shape is ready before that phase begins.
+      reviewStatus: '',
+      rating: '',
+      feedback: '',
+      pendingSync: true
+    };
+    list.push(record);
+  }else{
+    record = list[idx];
+    isReturning = true;
+    record.name = name; // keep name fresh in case of correction
+    if(favoriteItem) record.favoriteItem = favoriteItem; // only overwrite if provided
+    if(source) record.source = source;
+    if(record.reviewStatus === undefined) record.reviewStatus = '';
+    if(record.rating === undefined) record.rating = '';
+    if(record.feedback === undefined) record.feedback = '';
+    if(!isSameDay(record.lastVisit, nowIso)){
+      record.visitCount = (record.visitCount || 1) + 1;
+    }
+    record.lastVisit = nowIso;
+    record.pendingSync = true;
+    list[idx] = record;
+  }
+
+  saveCustomers(list);
+
+  sessionStorage.setItem(LS_SESSION_KEY, JSON.stringify({ name: record.name, visitCount: record.visitCount, isReturning }));
+
+  attemptSync(); // fire and forget; works offline gracefully
+
+  return { record, isReturning };
+}
+
+// ---------------------------------------------------------------------------
+// SYNC ENGINE — sends pending records to Google Apps Script.
+// Retries automatically when connectivity returns (see online listener below).
+// ---------------------------------------------------------------------------
+let syncInFlight = false;
+
+async function attemptSync(){
+  if(syncInFlight) return;
+  if(!navigator.onLine) { updateStatusPill(); return; }
+  if(APP_SCRIPT_URL.includes('PASTE_YOUR')) { return; } // not configured yet
+
+  const list = loadCustomers();
+  const pending = list.filter(c => c.pendingSync);
+  if(pending.length === 0){ updateStatusPill(); return; }
+
+  syncInFlight = true;
+  setStatusState('syncing');
+
+  try{
+    const records = pending.map(c => ({
+      name: c.name,
+      mobile: c.mobile,
+      visitDate: c.lastVisit,
+      favoriteItem: c.favoriteItem || '',
+      source: c.source || ''
+    }));
+
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight on Apps Script
+      body: JSON.stringify({ action: 'sync', records: records })
+    });
+
+    if(!res.ok) throw new Error('Sync request failed: ' + res.status);
+
+    // Mark all as synced
+    const freshList = loadCustomers();
+    pending.forEach(p => {
+      const i = findCustomerIndex(freshList, p.mobile);
+      if(i !== -1) freshList[i].pendingSync = false;
+    });
+    saveCustomers(freshList);
+    localStorage.setItem('tkg_last_synced', new Date().toISOString());
+
+  }catch(err){
+    console.warn('Sync failed, will retry later:', err);
+  }finally{
+    syncInFlight = false;
+    updateStatusPill();
+    if(document.getElementById('screen-dash').classList.contains('active')){
+      renderDashboard();
+    }
+  }
+}
+
+// Retry sync the moment connectivity returns
+window.addEventListener('online', () => { showToast('Back online — syncing...'); attemptSync(); });
+window.addEventListener('offline', () => { updateStatusPill(); });
+
+// Periodic background retry every 30s in case "online" event doesn't fire reliably
+setInterval(attemptSync, 30000);
+
+// ---------------------------------------------------------------------------
+// STATUS PILL UI
+// ---------------------------------------------------------------------------
+function setStatusState(state){
+  const pill = document.getElementById('statusPill');
+  const text = document.getElementById('statusText');
+  pill.setAttribute('data-state', state);
+  if(state === 'online') text.textContent = 'Online';
+  else if(state === 'offline') text.textContent = 'Offline — saved locally';
+  else if(state === 'syncing') text.textContent = 'Syncing...';
+}
+
+function updateStatusPill(){
+  if(!navigator.onLine){
+    setStatusState('offline');
+    return;
+  }
+  const pendingCount = loadCustomers().filter(c => c.pendingSync).length;
+  setStatusState(pendingCount > 0 ? 'offline' : 'online');
+  if(pendingCount > 0){
+    document.getElementById('statusText').textContent = pendingCount + ' pending sync';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// TOAST
+// ---------------------------------------------------------------------------
+let toastTimer;
+function showToast(msg){
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+// ---------------------------------------------------------------------------
+// SCREEN NAVIGATION (Owner Dashboard is the only remaining full screen swap —
+// Menu is now the permanent default screen and is never swapped away from)
+// ---------------------------------------------------------------------------
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ---------------------------------------------------------------------------
+// REGISTRATION OVERLAY — optional, opened from the menu, never blocks it
+// ---------------------------------------------------------------------------
+const overlayBackdrop = document.getElementById('overlayBackdrop');
+const regOverlay = document.getElementById('regOverlay');
+
+function openRegisterOverlay(){
+  overlayBackdrop.classList.add('show');
+  regOverlay.classList.add('show');
+}
+
+function closeRegisterOverlay(){
+  overlayBackdrop.classList.remove('show');
+  regOverlay.classList.remove('show');
+}
+
+document.getElementById('openRegisterBtn').addEventListener('click', openRegisterOverlay);
+document.getElementById('closeRegisterBtn').addEventListener('click', closeRegisterOverlay);
+overlayBackdrop.addEventListener('click', closeRegisterOverlay);
+
+// ---------------------------------------------------------------------------
+// REGISTRATION FORM
+// ---------------------------------------------------------------------------
+const nameInput = document.getElementById('nameInput');
+const mobileInput = document.getElementById('mobileInput');
+const nameError = document.getElementById('nameError');
+const mobileError = document.getElementById('mobileError');
+const favoriteItemInput = document.getElementById('favoriteItemInput');
+const regForm = document.getElementById('regForm');
+
+let selectedSource = '';
+
+document.querySelectorAll('.source-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const alreadySelected = chip.classList.contains('selected');
+    document.querySelectorAll('.source-chip').forEach(c => c.classList.remove('selected'));
+    if(alreadySelected){
+      selectedSource = ''; // tap again to deselect — stays optional
+    }else{
+      chip.classList.add('selected');
+      selectedSource = chip.dataset.source;
+    }
+  });
+});
+
+mobileInput.addEventListener('input', () => {
+  mobileInput.value = mobileInput.value.replace(/[^\d]/g, '').slice(0, 10);
+});
+
+// Show "welcome back" chip as soon as a returning mobile number is typed
+mobileInput.addEventListener('input', () => {
+  const list = loadCustomers();
+  const idx = findCustomerIndex(list, mobileInput.value);
+  const chip = document.getElementById('welcomeChip');
+  if(mobileInput.value.length === 10 && idx !== -1){
+    const willBeSameDay = isSameDay(list[idx].lastVisit, new Date().toISOString());
+    const nextVisitCount = (list[idx].visitCount || 1) + (willBeSameDay ? 0 : 1);
+    document.getElementById('welcomeChipText').textContent =
+      'Welcome back, ' + list[idx].name.split(' ')[0] + '! This will be visit #' + nextVisitCount + '.';
+    chip.classList.add('show');
+    if(!nameInput.value) nameInput.value = list[idx].name;
+  }else{
+    chip.classList.remove('show');
+  }
+});
+
+regForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  let valid = true;
+
+  const name = nameInput.value.trim();
+  const mobile = mobileInput.value.trim();
+  const favoriteItem = favoriteItemInput.value;
+
+  if(name.length < 2){
+    nameInput.classList.add('invalid');
+    nameError.classList.add('show');
+    valid = false;
+  }else{
+    nameInput.classList.remove('invalid');
+    nameError.classList.remove('show');
+  }
+
+  if(mobile.length !== 10){
+    mobileInput.classList.add('invalid');
+    mobileError.classList.add('show');
+    valid = false;
+  }else{
+    mobileInput.classList.remove('invalid');
+    mobileError.classList.remove('show');
+  }
+
+  if(!valid) return;
+
+  const { record, isReturning } = checkInCustomer(name, mobile, favoriteItem, selectedSource);
+
+  showToast(isReturning ? 'Great to see you again, ' + record.name.split(' ')[0] + '!' : 'Welcome to TKG, ' + record.name.split(' ')[0] + '!');
+  closeRegisterOverlay();
+
+  regForm.reset();
+  document.querySelectorAll('.source-chip').forEach(c => c.classList.remove('selected'));
+  selectedSource = '';
+  document.getElementById('welcomeChip').classList.remove('show');
+});
+
+// ---------------------------------------------------------------------------
+// OWNER DASHBOARD
+// ---------------------------------------------------------------------------
+let dashUnlocked = false;
+
+document.getElementById('openDashBtn').addEventListener('click', () => {
+  showScreen('screen-dash');
+  if(dashUnlocked){
+    document.getElementById('pinGate').style.display = 'none';
+    document.getElementById('dashContent').style.display = 'flex';
+    renderDashboard();
+  }else{
+    document.getElementById('pinGate').style.display = 'flex';
+    document.getElementById('dashContent').style.display = 'none';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+});
+
+document.getElementById('closeDashBtn').addEventListener('click', () => {
+  showScreen('screen-menu');
+});
+
+document.getElementById('pinSubmitBtn').addEventListener('click', unlockDashboard);
+document.getElementById('pinInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') unlockDashboard();
+});
+
+function unlockDashboard(){
+  const val = document.getElementById('pinInput').value;
+  if(val === OWNER_PIN){
+    dashUnlocked = true;
+    document.getElementById('pinGate').style.display = 'none';
+    document.getElementById('dashContent').style.display = 'flex';
+    renderDashboard();
+  }else{
+    showToast('Incorrect PIN');
+    document.getElementById('pinInput').value = '';
+  }
+}
+
+function renderDashboard(){
+  const list = loadCustomers();
+  const todayStr = new Date().toDateString();
+
+  const total = list.length;
+  const newToday = list.filter(c => new Date(c.firstVisit).toDateString() === todayStr).length;
+  const repeat = list.filter(c => (c.visitCount || 1) > 1).length;
+  const pending = list.filter(c => c.pendingSync).length;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statToday').textContent = newToday;
+  document.getElementById('statRepeat').textContent = repeat;
+  document.getElementById('statPending').textContent = pending;
+
+  const lastSynced = localStorage.getItem('tkg_last_synced');
+  document.getElementById('lastSyncedAt').textContent = lastSynced
+    ? new Date(lastSynced).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+    : 'Never';
+
+  renderCustomerList(list);
+}
+
+function renderCustomerList(list){
+  const sorted = [...list].sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit));
+  const container = document.getElementById('custList');
+
+  if(sorted.length === 0){
+    container.innerHTML = '<div class="empty-state">No customers yet. Once guests check in, they will appear here.</div>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(c => `
+    <div class="cust-row" data-name="${escapeHtml(c.name.toLowerCase())}" data-mobile="${c.mobile}">
+      <div class="cust-info">
+        <div class="cust-name">${escapeHtml(c.name)}</div>
+        <div class="cust-mobile">${c.mobile}</div>
+        ${c.favoriteItem || c.source ? `<div class="cust-tags">${c.favoriteItem ? escapeHtml(c.favoriteItem) : ''}${c.favoriteItem && c.source ? ' · ' : ''}${c.source ? escapeHtml(c.source) : ''}</div>` : ''}
+      </div>
+      <div class="cust-meta">
+        <div class="cust-visits">${c.visitCount || 1}x</div>
+        <div class="cust-last">${new Date(c.lastVisit).toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}</div>
+        ${c.pendingSync ? '<div class="pending-tag">Pending</div>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.cust-row').forEach(row => {
+    const matches = row.dataset.name.includes(q) || row.dataset.mobile.includes(q);
+    row.style.display = matches ? 'flex' : 'none';
+  });
+});
+
+document.getElementById('refreshDashBtn').addEventListener('click', () => {
+  renderDashboard();
+  showToast('Dashboard refreshed');
+});
+
+document.getElementById('forceSyncBtn').addEventListener('click', () => {
+  if(!navigator.onLine){
+    showToast('No internet connection right now');
+    return;
+  }
+  attemptSync().then(() => showToast('Sync attempted'));
+});
+
+// ---------------------------------------------------------------------------
+// CSV EXPORT
+// ---------------------------------------------------------------------------
+document.getElementById('exportCsvBtn').addEventListener('click', () => {
+  const list = loadCustomers();
+  if(list.length === 0){
+    showToast('No data to export');
+    return;
+  }
+
+  const header = ['Name', 'Mobile', 'First Visit', 'Last Visit', 'Visit Count', 'Favorite Item', 'Source'];
+  const rows = list.map(c => [
+    c.name,
+    c.mobile,
+    new Date(c.firstVisit).toISOString(),
+    new Date(c.lastVisit).toISOString(),
+    c.visitCount || 1,
+    c.favoriteItem || '',
+    c.source || ''
+  ]);
+
+  const csvContent = [header, ...rows]
+    .map(row => row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(','))
+    .join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tkg_customers_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('CSV exported');
+});
+
+// ---------------------------------------------------------------------------
+// SERVICE WORKER REGISTRATION
+// ---------------------------------------------------------------------------
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------------------
+updateStatusPill();
+attemptSync();
+</script>
+
+</body>
+</html>
