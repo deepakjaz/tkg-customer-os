@@ -649,62 +649,98 @@ textarea.field-input{
    MENU SCREEN (legacy tab styles retained for compatibility)
    ========================================================================== */
 .menu-header{
-  padding-top:4px;
-  margin-bottom:18px;
   text-align:center;
+  padding:6px 0 24px;
 }
-.menu-greet{
-  font-size:13px;
+
+.hero-location{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 14px;
+  border-radius:999px;
+  background:rgba(201,162,75,.12);
+  border:1px solid rgba(201,162,75,.25);
   color:var(--gold);
-  letter-spacing:0.08em;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.12em;
   text-transform:uppercase;
-  font-weight:600;
-  margin-bottom:4px;
+  margin-bottom:18px;
 }
+
 .menu-title{
   font-family:var(--font-display);
+  font-size:34px;
+  line-height:1.08;
   font-weight:800;
-  font-size:26px;
+  letter-spacing:-.03em;
   color:var(--marble);
+  margin-bottom:22px;
 }
-.visit-badge{
-  display:inline-block;
-  margin-top:8px;
-  padding:4px 12px;
-  border-radius:20px;
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
-  font-size:11px;
-  color:var(--grey-warm);
-  font-family:var(--font-mono);
+
+.menu-title .ember{
+  color:var(--ember-bright);
+}
+
+.hero-thesis{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  padding:18px;
+  border-radius:18px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+  backdrop-filter:blur(10px);
+}
+
+.hero-icon{
+  font-size:34px;
+  line-height:1;
+  flex-shrink:0;
+}
+
+.hero-copy{
+  text-align:left;
+  font-size:14px;
+  line-height:1.65;
+  color:var(--marble-dim);
+}
+
+.hero-copy strong{
+  display:block;
+  color:var(--gold-bright);
+  font-size:17px;
+  margin-bottom:6px;
 }
 
 .menu-tabs{
   display:flex;
-  gap:6px;
-  overflow-x:auto;
-  padding-bottom:14px;
-  margin-bottom:6px;
-  scrollbar-width:none;
+  gap:10px;
+  margin:22px 0;
 }
-.menu-tabs::-webkit-scrollbar{display:none;}
+
 .menu-tab{
-  flex-shrink:0;
-  padding:9px 16px;
-  border-radius:20px;
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
-  color:var(--grey-warm);
-  font-size:12.5px;
-  font-weight:600;
-  letter-spacing:0.02em;
-  white-space:nowrap;
-  transition:all 0.15s ease;
+  flex:1;
+  border:none;
+  border-radius:14px;
+  padding:14px 10px;
+  background:#25211D;
+  color:#C8C2B8;
+  font-size:14px;
+  font-weight:700;
+  transition:.25s;
 }
+
 .menu-tab.active{
-  background:var(--ember);
-  border-color:var(--ember);
-  color:var(--marble);
+  background:linear-gradient(
+      135deg,
+      var(--ember),
+      var(--ember-bright)
+  );
+  color:#fff;
+  box-shadow:0 10px 24px rgba(232,93,44,.28);
 }
 
 .menu-section{display:none;}
