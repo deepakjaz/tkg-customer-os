@@ -121,6 +121,65 @@ input{font-family:inherit;}
   background:rgba(255,255,255,0.04);
   border:1px solid var(--grey-line);
 }
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.lang-btn{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-size:11.5px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  color:var(--marble-dim);
+  padding:6px 10px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--grey-line);
+}
+.lang-btn:active{background:rgba(255,255,255,0.09);}
+
+.lang-sheet{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translate(-50%, 100%);
+  width:100%;
+  max-width:var(--max-w);
+  background:var(--charcoal);
+  border-radius:22px 22px 0 0;
+  padding:10px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  box-shadow:0 -10px 40px rgba(0,0,0,0.5);
+  transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index:160;
+}
+.lang-sheet.show{transform:translate(-50%, 0);}
+.lang-sheet-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:18px;
+  color:var(--marble);
+  text-align:center;
+  margin:6px 0 16px;
+}
+.lang-option{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--ember-card);
+  border:1.5px solid var(--grey-line);
+  border-radius:var(--radius-md);
+  padding:15px 16px;
+  margin-bottom:10px;
+  color:var(--marble);
+}
+.lang-option-native{font-size:15px; font-weight:700;}
+.lang-option-check{opacity:0; color:var(--ember-bright); font-weight:800; font-size:16px;}
+.lang-option.selected{border-color:var(--ember);}
+.lang-option.selected .lang-option-check{opacity:1;}
 .ember-dot{
   width:8px; height:8px;
   border-radius:50%;
@@ -940,6 +999,77 @@ textarea.field-input{
   transform:translateX(-50%) translateY(0);
 }
 
+/* ==========================================================================
+   INSTALL PROMPT — bottom banner, dismissible, platform-aware
+   ========================================================================== */
+.install-banner{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translate(-50%, 110%);
+  width:100%;
+  max-width:var(--max-w);
+  background:var(--ember-card);
+  border-top:1px solid var(--grey-line);
+  border-radius:18px 18px 0 0;
+  padding:16px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-shadow:0 -8px 30px rgba(0,0,0,0.45);
+  transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index:140;
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
+.install-banner.show{
+  transform:translate(-50%, 0);
+}
+.install-icon{
+  width:42px; height:42px;
+  border-radius:11px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  background:var(--charcoal);
+  border:1px solid var(--grey-line);
+}
+.install-text{flex:1; min-width:0;}
+.install-title{
+  font-size:13.5px;
+  font-weight:700;
+  color:var(--marble);
+}
+.install-sub{
+  font-size:11.5px;
+  color:var(--grey-warm);
+  margin-top:2px;
+  line-height:1.4;
+}
+.install-actions{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex-shrink:0;
+}
+.install-btn{
+  padding:9px 14px;
+  border-radius:var(--radius-sm);
+  border:none;
+  background:var(--ember);
+  color:var(--marble);
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
+}
+.install-dismiss{
+  background:none;
+  border:none;
+  color:var(--grey-warm);
+  font-size:11px;
+  padding:4px 6px;
+}
+
 /* Utility */
 .hidden{display:none !important;}
 </style>
@@ -951,10 +1081,32 @@ textarea.field-input{
   <!-- ============ TOP BAR ============ -->
   <div class="topbar">
     <div class="wordmark">TKG <span class="sub">The Khichiya Gravy</span></div>
-    <div class="status-pill" id="statusPill" data-state="online">
-      <span class="ember-dot" id="emberDot"></span>
-      <span id="statusText">Online</span>
+    <div class="topbar-right">
+      <button type="button" class="lang-btn" id="langBtn" aria-label="Change language">🌐 <span id="langBtnLabel">EN</span></button>
+      <div class="status-pill" id="statusPill" data-state="online">
+        <span class="ember-dot" id="emberDot"></span>
+        <span id="statusText">Online</span>
+      </div>
     </div>
+  </div>
+
+  <!-- ============ LANGUAGE SELECTOR SHEET ============ -->
+  <div class="overlay-backdrop" id="langBackdrop"></div>
+  <div class="lang-sheet" id="langSheet">
+    <div class="reg-overlay-handle"></div>
+    <div class="lang-sheet-title" id="langSheetTitle">Choose Language</div>
+    <button type="button" class="lang-option" data-lang="en">
+      <span class="lang-option-native">English</span>
+      <span class="lang-option-check">✓</span>
+    </button>
+    <button type="button" class="lang-option" data-lang="gu">
+      <span class="lang-option-native">ગુજરાતી</span>
+      <span class="lang-option-check">✓</span>
+    </button>
+    <button type="button" class="lang-option" data-lang="hi">
+      <span class="lang-option-native">हिन्दी</span>
+      <span class="lang-option-check">✓</span>
+    </button>
   </div>
 
   <!-- ============ REGISTRATION OVERLAY (optional, reachable from menu) ============ -->
@@ -964,57 +1116,57 @@ textarea.field-input{
     <div class="reg-overlay-handle"></div>
 
     <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
-      <div class="hero-eyebrow">Stay in the loop</div>
-      <h1 class="hero-title" style="font-size:24px;">Register &amp; Get <em>Updates.</em></h1>
-      <p class="hero-sub">Takes 10 seconds. We'll remember you next time you visit.</p>
+      <div class="hero-eyebrow" data-i18n="reg.eyebrow">Stay in the loop</div>
+      <h1 class="hero-title" style="font-size:24px;" data-i18n-html="reg.title">Register &amp; Get <em>Updates.</em></h1>
+      <p class="hero-sub" data-i18n="reg.sub">Takes 10 seconds. We'll remember you next time you visit.</p>
     </div>
 
     <div class="welcome-chip" id="welcomeChip">
       <span class="wc-icon">🔥</span>
-      <span id="welcomeChipText">Welcome back!</span>
+      <span id="welcomeChipText" data-i18n="reg.welcomeBack">Welcome back!</span>
     </div>
 
     <form class="reg-card" id="regForm" novalidate>
       <div class="field-group">
-        <label class="field-label" for="nameInput">Your Name</label>
-        <input class="field-input" id="nameInput" type="text" placeholder="e.g. Rohan Patel" autocomplete="name" maxlength="60">
-        <div class="field-error" id="nameError">Please enter your name</div>
+        <label class="field-label" for="nameInput" data-i18n="reg.nameLabel">Your Name</label>
+        <input class="field-input" id="nameInput" type="text" placeholder="e.g. Rohan Patel" autocomplete="name" maxlength="60" data-i18n-placeholder="reg.namePlaceholder">
+        <div class="field-error" id="nameError" data-i18n="reg.nameError">Please enter your name</div>
       </div>
 
       <div class="field-group">
-        <label class="field-label" for="mobileInput">Mobile Number</label>
-        <input class="field-input" id="mobileInput" type="tel" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" maxlength="10">
-        <div class="field-error" id="mobileError">Please enter a valid 10-digit number</div>
+        <label class="field-label" for="mobileInput" data-i18n="reg.mobileLabel">Mobile Number</label>
+        <input class="field-input" id="mobileInput" type="tel" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" maxlength="10" data-i18n-placeholder="reg.mobilePlaceholder">
+        <div class="field-error" id="mobileError" data-i18n="reg.mobileError">Please enter a valid 10-digit number</div>
       </div>
 
       <div class="field-group">
-        <label class="field-label" for="favoriteItemInput">Favorite Item <span class="optional-tag">Optional</span></label>
+        <label class="field-label" data-i18n-html="reg.favoriteLabel">Favorite Item <span class="optional-tag">Optional</span></label>
         <select class="field-input" id="favoriteItemInput">
-          <option value="">Select an item…</option>
-          <option value="Classic Khichiya">Classic Khichiya</option>
-          <option value="Masala Khichiya">Masala Khichiya</option>
-          <option value="Cheese Masala Khichiya">Cheese Masala Khichiya</option>
-          <option value="Signature Gravy Khichiya">Signature Gravy Khichiya</option>
-          <option value="Cheesy Signature Gravy Khichiya">Cheesy Signature Gravy Khichiya</option>
+          <option value="" data-i18n="reg.selectItem">Select an item…</option>
+          <option value="Classic Khichiya" data-i18n="menu.classicKhichiya.name">Classic Khichiya</option>
+          <option value="Masala Khichiya" data-i18n="menu.masalaKhichiya.name">Masala Khichiya</option>
+          <option value="Cheese Masala Khichiya" data-i18n="menu.cheeseMasalaKhichiya.name">Cheese Masala Khichiya</option>
+          <option value="Signature Gravy Khichiya" data-i18n="menu.signatureGravy.name">Signature Gravy Khichiya</option>
+          <option value="Cheesy Signature Gravy Khichiya" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Gravy Khichiya</option>
         </select>
       </div>
 
       <div class="field-group">
-        <label class="field-label">How did you hear about us? <span class="optional-tag">Optional</span></label>
+        <label class="field-label" data-i18n-html="reg.sourceLabel">How did you hear about us? <span class="optional-tag">Optional</span></label>
         <div class="source-chips" id="sourceChips">
-          <button type="button" class="source-chip" data-source="Instagram">Instagram</button>
-          <button type="button" class="source-chip" data-source="Google">Google</button>
-          <button type="button" class="source-chip" data-source="Friend">Friend</button>
-          <button type="button" class="source-chip" data-source="Family">Family</button>
-          <button type="button" class="source-chip" data-source="Walk-In">Walk-In</button>
-          <button type="button" class="source-chip" data-source="Other">Other</button>
+          <button type="button" class="source-chip" data-source="Instagram" data-i18n="source.instagram">Instagram</button>
+          <button type="button" class="source-chip" data-source="Google" data-i18n="source.google">Google</button>
+          <button type="button" class="source-chip" data-source="Friend" data-i18n="source.friend">Friend</button>
+          <button type="button" class="source-chip" data-source="Family" data-i18n="source.family">Family</button>
+          <button type="button" class="source-chip" data-source="Walk-In" data-i18n="source.walkin">Walk-In</button>
+          <button type="button" class="source-chip" data-source="Other" data-i18n="source.other">Other</button>
         </div>
       </div>
 
-      <button type="submit" class="btn-primary" id="submitBtn">Register &amp; Get Updates</button>
-      <button type="button" class="btn-secondary" id="closeRegisterBtn" style="width:100%; margin-top:10px;">Not Now</button>
+      <button type="submit" class="btn-primary" id="submitBtn" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</button>
+      <button type="button" class="btn-secondary" id="closeRegisterBtn" style="width:100%; margin-top:10px;" data-i18n="reg.notNow">Not Now</button>
 
-      <p class="consent-line">No login. No OTP. No email. Just your name and number, saved securely.</p>
+      <p class="consent-line" data-i18n="reg.consent">No login. No OTP. No email. Just your name and number, saved securely.</p>
     </form>
 
   </div>
@@ -1026,17 +1178,17 @@ textarea.field-input{
     <div class="reg-overlay-handle"></div>
 
     <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
-      <h1 class="hero-title" style="font-size:22px;">❤️ How was your TKG experience?</h1>
+      <h1 class="hero-title" style="font-size:22px;" data-i18n="feedback.title">❤️ How was your TKG experience?</h1>
     </div>
 
     <form class="reg-card" id="feedbackForm" novalidate>
       <div class="field-group">
-        <label class="field-label" for="feedbackInput">Tell us anything <span class="optional-tag">Optional</span></label>
-        <textarea class="field-input" id="feedbackInput" maxlength="500" placeholder="Loved the smoky flavour&#10;Amazing cheese gravy&#10;Best Jain option I've tried&#10;Crispy Khichiya&#10;Great service"></textarea>
+        <label class="field-label" for="feedbackInput" data-i18n-html="feedback.label">Tell us anything <span class="optional-tag">Optional</span></label>
+        <textarea class="field-input" id="feedbackInput" maxlength="500" placeholder="Loved the smoky flavour&#10;Amazing cheese gravy&#10;Best Jain option I've tried&#10;Crispy Khichiya&#10;Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
       </div>
 
-      <button type="submit" class="btn-primary" id="feedbackSubmitBtn">Submit Feedback</button>
-      <button type="button" class="btn-secondary" id="skipFeedbackBtn" style="width:100%; margin-top:10px;">Skip</button>
+      <button type="submit" class="btn-primary" id="feedbackSubmitBtn" data-i18n="feedback.submitBtn">Submit Feedback</button>
+      <button type="button" class="btn-secondary" id="skipFeedbackBtn" style="width:100%; margin-top:10px;" data-i18n="feedback.skipBtn">Skip</button>
     </form>
 
   </div>
@@ -1049,38 +1201,38 @@ textarea.field-input{
 
     <div class="thanks-block">
       <div class="thanks-icon">❤️</div>
-      <div class="thanks-title">Thank you for visiting TKG</div>
-      <p class="thanks-sub">Your feedback helps us improve every weekend.</p>
+      <div class="thanks-title" data-i18n="thanks.title">Thank you for visiting TKG</div>
+      <p class="thanks-sub" data-i18n="thanks.sub">Your feedback helps us improve every weekend.</p>
     </div>
 
     <a class="action-card" id="thanksReviewLink" target="_blank" rel="noopener">
       <span class="ac-icon">⭐</span>
       <span class="ac-text">
-        <span class="ac-title">Leave a Google Review</span>
-        <span class="ac-sub">Support our small business.</span>
+        <span class="ac-title" data-i18n="thanks.reviewTitle">Leave a Google Review</span>
+        <span class="ac-sub" data-i18n="thanks.reviewSub">Support our small business.</span>
       </span>
-      <span class="ac-go">Open →</span>
+      <span class="ac-go" data-i18n="thanks.open">Open →</span>
     </a>
 
     <a class="action-card" id="thanksInstaLink" target="_blank" rel="noopener">
       <span class="ac-icon">📸</span>
       <span class="ac-text">
-        <span class="ac-title">Open Instagram</span>
-        <span class="ac-sub">@the.khichiyagravy — tag us in your food photos, we'd love to feature you.</span>
+        <span class="ac-title" data-i18n="thanks.instaTitle">Open Instagram</span>
+        <span class="ac-sub" data-i18n="thanks.instaSub">@the.khichiyagravy — tag us in your food photos, we'd love to feature you.</span>
       </span>
-      <span class="ac-go">Open →</span>
+      <span class="ac-go" data-i18n="thanks.open">Open →</span>
     </a>
 
     <a class="action-card" id="thanksWhatsappLink" href="https://wa.me/919510100950" target="_blank" rel="noopener">
       <span class="ac-icon">💬</span>
       <span class="ac-text">
-        <span class="ac-title">Message TKG</span>
-        <span class="ac-sub">Suggestions, photos, or direct feedback.</span>
+        <span class="ac-title" data-i18n="thanks.waTitle">Message TKG</span>
+        <span class="ac-sub" data-i18n="thanks.waSub">Suggestions, photos, or direct feedback.</span>
       </span>
-      <span class="ac-go">Open →</span>
+      <span class="ac-go" data-i18n="thanks.open">Open →</span>
     </a>
 
-    <button type="button" class="btn-secondary" id="closeThanksBtn" style="width:100%; margin-top:6px;">Close</button>
+    <button type="button" class="btn-secondary" id="closeThanksBtn" style="width:100%; margin-top:6px;" data-i18n="thanks.closeBtn">Close</button>
 
   </div>
 
@@ -1088,128 +1240,128 @@ textarea.field-input{
   <section class="screen active" id="screen-menu">
 
     <div class="menu-header">
-      <div class="menu-greet">— The Khichiya Gravy —</div>
-      <h1 class="menu-title">Coal-Cooked Cheese Gravy.<br>Roasted Khichiya for Dipping.</h1>
+      <div class="menu-greet" data-i18n="menu.greet">— The Khichiya Gravy —</div>
+      <h1 class="menu-title" data-i18n-html="menu.title">Coal-Cooked Cheese Gravy.<br>Roasted Khichiya for Dipping.</h1>
     </div>
 
     <!-- Short punchy hook — sits above the longer education card -->
     <div class="hook-card">
-      <div class="hook-title">🔥 What is TKG Gravy?</div>
-      <div class="hook-line">Our signature cheese gravy is cooked fresh over coal heat and served separately with roasted Khichiya for dipping.</div>
-      <div class="hook-punch">Not poured on top.<br>Dip. Scoop. Enjoy.</div>
+      <div class="hook-title" data-i18n="menu.hookTitle">🔥 What is TKG Gravy?</div>
+      <div class="hook-line" data-i18n="menu.hookLine">Our signature cheese gravy is cooked fresh over coal heat and served separately with roasted Khichiya for dipping.</div>
+      <div class="hook-punch" data-i18n-html="menu.hookPunch">Not poured on top.<br>Dip. Scoop. Enjoy.</div>
     </div>
 
     <!-- Longer education card — explains the dish before prices appear -->
     <div class="edu-card">
-      <div class="edu-title">What Makes TKG Different?</div>
-      <div class="edu-line">TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.</div>
-      <div class="edu-line">Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.</div>
-      <span class="edu-jain">🟢 Jain options available</span>
+      <div class="edu-title" data-i18n="menu.eduTitle">What Makes TKG Different?</div>
+      <div class="edu-line" data-i18n="menu.eduLine1">TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.</div>
+      <div class="edu-line" data-i18n="menu.eduLine2">Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.</div>
+      <span class="edu-jain" data-i18n="menu.jainAvailable">🟢 Jain options available</span>
     </div>
 
     <!-- ===== FAMILY 1: TRADITIONAL COAL-ROASTED KHICHIYA ===== -->
     <div class="family-header">
-      <div class="family-title">Coal-Roasted Khichiya</div>
-      <div class="family-sub">Classic dry-roasted snack, eaten as-is — no gravy.</div>
+      <div class="family-title" data-i18n="menu.family1Title">Coal-Roasted Khichiya</div>
+      <div class="family-sub" data-i18n="menu.family1Sub">Classic dry-roasted snack, eaten as-is — no gravy.</div>
     </div>
 
     <div class="menu-section active" id="cat-traditional">
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Classic Khichiya</div>
-          <div class="menu-item-desc">Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.</div>
+          <div class="menu-item-name" data-i18n="menu.classicKhichiya.name">Classic Khichiya</div>
+          <div class="menu-item-desc" data-i18n="menu.classicKhichiya.desc">Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.</div>
         </div>
-        <div class="menu-item-price">Mini ₹30<br>Large ₹50</div>
+        <div class="menu-item-price" data-i18n-html="menu.classicKhichiya.price">Mini ₹30<br>Large ₹50</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Masala Khichiya</div>
-          <div class="menu-item-desc">Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.</div>
-          <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
+          <div class="menu-item-name" data-i18n="menu.masalaKhichiya.name">Masala Khichiya</div>
+          <div class="menu-item-desc" data-i18n="menu.masalaKhichiya.desc">Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">Mini ₹80<br>Large ₹120</div>
+        <div class="menu-item-price" data-i18n-html="menu.masalaKhichiya.price">Mini ₹80<br>Large ₹120</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Cheese Masala Khichiya</div>
-          <div class="menu-item-desc">Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.</div>
-          <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
+          <div class="menu-item-name" data-i18n="menu.cheeseMasalaKhichiya.name">Cheese Masala Khichiya</div>
+          <div class="menu-item-desc" data-i18n="menu.cheeseMasalaKhichiya.desc">Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">Mini ₹100<br>Large ₹140</div>
+        <div class="menu-item-price" data-i18n-html="menu.cheeseMasalaKhichiya.price">Mini ₹100<br>Large ₹140</div>
       </div>
     </div>
 
     <!-- ===== FAMILY 2: SIGNATURE COAL-COOKED CHEESE GRAVY ===== -->
     <div class="family-header">
-      <div class="family-title signature">Signature Coal-Cooked Cheese Gravy</div>
-      <div class="family-sub">Our hero product — gravy for dipping, not poured on top.</div>
+      <div class="family-title signature" data-i18n="menu.family2Title">Signature Coal-Cooked Cheese Gravy</div>
+      <div class="family-sub" data-i18n="menu.family2Sub">Our hero product — gravy for dipping, not poured on top.</div>
     </div>
 
     <div class="menu-section active" id="cat-signature">
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Signature Gravy Khichiya</div>
-          <span class="menu-item-tag">Bestseller</span>
-          <div class="menu-item-desc">Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.</div>
-          <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
+          <div class="menu-item-name" data-i18n="menu.signatureGravy.name">Signature Gravy Khichiya</div>
+          <span class="menu-item-tag" data-i18n="menu.bestseller">Bestseller</span>
+          <div class="menu-item-desc" data-i18n="menu.signatureGravy.desc">Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">Mini ₹120<br>Large ₹160</div>
+        <div class="menu-item-price" data-i18n-html="menu.signatureGravy.price">Mini ₹120<br>Large ₹160</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Cheesy Signature Gravy Khichiya</div>
-          <div class="menu-item-desc">Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.</div>
-          <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
+          <div class="menu-item-name" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Gravy Khichiya</div>
+          <div class="menu-item-desc" data-i18n="menu.cheesySignatureGravy.desc">Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">Mini ₹140<br>Large ₹180</div>
+        <div class="menu-item-price" data-i18n-html="menu.cheesySignatureGravy.price">Mini ₹140<br>Large ₹180</div>
       </div>
 
-      <div class="menu-section-label" style="margin-top:18px;">Extra (Signature Gravy items)</div>
+      <div class="menu-section-label" style="margin-top:18px;" data-i18n="menu.extrasLabel">Extra (Signature Gravy items)</div>
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Cheese</div>
-          <div class="menu-item-desc">Extra cheese melted into your gravy.</div>
+          <div class="menu-item-name" data-i18n="menu.extraCheese.name">Cheese</div>
+          <div class="menu-item-desc" data-i18n="menu.extraCheese.desc">Extra cheese melted into your gravy.</div>
         </div>
         <div class="menu-item-price">₹25</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name">Extra Gravy</div>
-          <div class="menu-item-desc">More of the hero product — for when the Khichiya runs out first.</div>
+          <div class="menu-item-name" data-i18n="menu.extraGravy.name">Extra Gravy</div>
+          <div class="menu-item-desc" data-i18n="menu.extraGravy.desc">More of the hero product — for when the Khichiya runs out first.</div>
         </div>
         <div class="menu-item-price">₹100</div>
       </div>
     </div>
 
     <!-- Flour communication — display only, no selector -->
-    <div class="flour-note">Maida and Whole Wheat (Gehu Atta) options available on selected items. Please inform us while ordering.</div>
+    <div class="flour-note" data-i18n="menu.flourNote">Maida and Whole Wheat (Gehu Atta) options available on selected items. Please inform us while ordering.</div>
 
     <!-- Display notes — informational chips, no selection system -->
     <div class="notes-grid">
-      <span class="note-chip jain">Jain Preparation Available</span>
-      <span class="note-chip jain">No Onion Option Available</span>
-      <span class="note-chip">Whole Wheat (Gehu Atta) on Selected Items</span>
-      <span class="note-chip">Extra Cheese Available</span>
-      <span class="note-chip">Extra Gravy Available</span>
-      <span class="note-chip">Seasonal Vegetable Variations</span>
+      <span class="note-chip jain" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+      <span class="note-chip jain" data-i18n="menu.noOnion">No Onion Option Available</span>
+      <span class="note-chip" data-i18n="menu.wholeWheat">Whole Wheat (Gehu Atta) on Selected Items</span>
+      <span class="note-chip" data-i18n="menu.extraCheeseChip">Extra Cheese Available</span>
+      <span class="note-chip" data-i18n="menu.extraGravyChip">Extra Gravy Available</span>
+      <span class="note-chip" data-i18n="menu.seasonalVeg">Seasonal Vegetable Variations</span>
     </div>
 
-    <div class="hours-note">Open on Weekend · Evening to Late Night</div>
+    <div class="hours-note" data-i18n="menu.hours">Open on Weekend · Evening to Late Night</div>
 
     <!-- About / Instagram / Google Review — static, always visible, never gated -->
     <div class="link-row">
-      <a class="link-chip" href="https://wa.me/919510100950" target="_blank" rel="noopener">WhatsApp</a>
-      <a class="link-chip" id="instaLink" href="#" target="_blank" rel="noopener">Instagram</a>
-      <a class="link-chip" id="googleReviewLink" href="#" target="_blank" rel="noopener">Google Review</a>
+      <a class="link-chip" href="https://wa.me/919510100950" target="_blank" rel="noopener" data-i18n="menu.whatsapp">WhatsApp</a>
+      <a class="link-chip" id="instaLink" href="#" target="_blank" rel="noopener" data-i18n="menu.instagram">Instagram</a>
+      <a class="link-chip" id="googleReviewLink" href="#" target="_blank" rel="noopener" data-i18n="menu.googleReview">Google Review</a>
     </div>
 
     <!-- Optional registration entry point — never blocks menu access -->
     <div class="register-cta" id="registerCtaCard">
       <div class="register-cta-text">
-        <div class="register-cta-title">Register &amp; Get Updates</div>
-        <div class="register-cta-sub">Takes 10 seconds. No login, no OTP.</div>
+        <div class="register-cta-title" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</div>
+        <div class="register-cta-sub" data-i18n="reg.ctaSub">Takes 10 seconds. No login, no OTP.</div>
       </div>
-      <button class="btn-primary register-cta-btn" id="openRegisterBtn">Register &amp; Get Updates</button>
+      <button class="btn-primary register-cta-btn" id="openRegisterBtn" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</button>
     </div>
 
     <div class="owner-link">
@@ -1276,6 +1428,19 @@ textarea.field-input{
     </div>
 
   </section>
+
+  <!-- ============ INSTALL PROMPT BANNER — platform-aware, dismissible ============ -->
+  <div class="install-banner" id="installBanner">
+    <div class="install-icon">📱</div>
+    <div class="install-text">
+      <div class="install-title" id="installTitle">Install TKG Customer OS</div>
+      <div class="install-sub" id="installSub">Faster access from your home screen. No app store needed.</div>
+    </div>
+    <div class="install-actions" id="installActions">
+      <button type="button" class="install-btn" id="installActionBtn">Install</button>
+      <button type="button" class="install-dismiss" id="installDismissBtn" data-i18n="install.dismiss">Maybe Later</button>
+    </div>
+  </div>
 
 </div>
 
@@ -1470,10 +1635,11 @@ setInterval(attemptSync, 30000);
 function setStatusState(state){
   const pill = document.getElementById('statusPill');
   const text = document.getElementById('statusText');
+  const dict = translations[currentLang] || translations.en;
   pill.setAttribute('data-state', state);
-  if(state === 'online') text.textContent = 'Online';
-  else if(state === 'offline') text.textContent = 'Offline — saved locally';
-  else if(state === 'syncing') text.textContent = 'Syncing...';
+  if(state === 'online') text.textContent = dict.status.online;
+  else if(state === 'offline') text.textContent = dict.status.offline;
+  else if(state === 'syncing') text.textContent = dict.status.syncing;
 }
 
 function updateStatusPill(){
@@ -1484,7 +1650,8 @@ function updateStatusPill(){
   const pendingCount = loadCustomers().filter(c => c.pendingSync).length;
   setStatusState(pendingCount > 0 ? 'offline' : 'online');
   if(pendingCount > 0){
-    document.getElementById('statusText').textContent = pendingCount + ' pending sync';
+    const dict = translations[currentLang] || translations.en;
+    document.getElementById('statusText').textContent = dict.status.pendingSync(pendingCount);
   }
 }
 
@@ -1566,8 +1733,9 @@ mobileInput.addEventListener('input', () => {
   if(mobileInput.value.length === 10 && idx !== -1){
     const willBeSameDay = isSameDay(list[idx].lastVisit, new Date().toISOString());
     const nextVisitCount = (list[idx].visitCount || 1) + (willBeSameDay ? 0 : 1);
+    const dict = translations[currentLang] || translations.en;
     document.getElementById('welcomeChipText').textContent =
-      'Welcome back, ' + list[idx].name.split(' ')[0] + '! This will be visit #' + nextVisitCount + '.';
+      dict.reg.welcomeBackVisit(list[idx].name.split(' ')[0], nextVisitCount);
     chip.classList.add('show');
     if(!nameInput.value) nameInput.value = list[idx].name;
   }else{
@@ -1605,7 +1773,9 @@ regForm.addEventListener('submit', (e) => {
 
   const { record, isReturning } = checkInCustomer(name, mobile, favoriteItem, selectedSource);
 
-  showToast(isReturning ? 'Great to see you again, ' + record.name.split(' ')[0] + '!' : 'Welcome to TKG, ' + record.name.split(' ')[0] + '!');
+  const dict = translations[currentLang] || translations.en;
+  const firstName = record.name.split(' ')[0];
+  showToast(isReturning ? dict.checkin.returning(firstName) : dict.checkin.first(firstName));
   closeRegisterOverlay();
 
   regForm.reset();
@@ -1845,9 +2015,439 @@ if('serviceWorker' in navigator){
 }
 
 // ---------------------------------------------------------------------------
+// INSTALL PROMPT — platform-aware (Android real prompt, iOS manual tip)
+// Never re-shown once dismissed or once installed. Backend/customer data
+// is never touched by any of this.
+// ---------------------------------------------------------------------------
+const INSTALL_DISMISSED_KEY = 'tkg_install_dismissed';
+const installBanner = document.getElementById('installBanner');
+const installTitle = document.getElementById('installTitle');
+const installSub = document.getElementById('installSub');
+const installActionBtn = document.getElementById('installActionBtn');
+const installDismissBtn = document.getElementById('installDismissBtn');
+
+let deferredInstallEvent = null;
+
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true; // iOS Safari flag
+}
+
+function isIos(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent)
+    // iPadOS 13+ reports as Mac but has touch support
+    || (/macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+}
+
+function dismissInstallBanner(persist){
+  installBanner.classList.remove('show');
+  if(persist) localStorage.setItem(INSTALL_DISMISSED_KEY, 'true');
+}
+
+function showInstallBanner(){
+  if(isStandalone()) return; // already installed, never show
+  if(localStorage.getItem(INSTALL_DISMISSED_KEY) === 'true') return; // dismissed before
+
+  const dict = translations[currentLang] || translations.en;
+
+  if(deferredInstallEvent){
+    // Android Chrome — real installable state, one-tap action
+    installTitle.textContent = dict.install.androidTitle;
+    installSub.textContent = dict.install.androidSub;
+    installActionBtn.textContent = dict.install.androidBtn;
+    installActionBtn.classList.remove('hidden');
+    installBanner.classList.add('show');
+  }else if(isIos()){
+    // iOS Safari — no programmatic install, show manual instructions instead
+    installTitle.textContent = dict.install.iosTitle;
+    installSub.textContent = dict.install.iosSub;
+    installActionBtn.textContent = dict.install.iosBtn;
+    installActionBtn.classList.remove('hidden');
+    installBanner.classList.add('show');
+  }
+  // Any other platform/browser: beforeinstallprompt never fired, not iOS —
+  // skip entirely rather than show a dead-end button.
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); // suppress the browser's default mini-infobar
+  deferredInstallEvent = e;
+  showInstallBanner();
+});
+
+window.addEventListener('appinstalled', () => {
+  dismissInstallBanner(true);
+  deferredInstallEvent = null;
+});
+
+installActionBtn.addEventListener('click', async () => {
+  if(deferredInstallEvent){
+    dismissInstallBanner(false); // hide immediately, native dialog takes over
+    const choice = await deferredInstallEvent.userChoice;
+    deferredInstallEvent = null;
+    if(choice.outcome === 'accepted'){
+      localStorage.setItem(INSTALL_DISMISSED_KEY, 'true');
+    }
+    // If dismissed in the native dialog, banner stays gone for this session
+    // but isn't permanently dismissed — they may have just misclicked.
+  }else{
+    // iOS "Got It" — acknowledge the instructions, don't show again
+    dismissInstallBanner(true);
+  }
+});
+
+installDismissBtn.addEventListener('click', () => dismissInstallBanner(true));
+
+// Delay the iOS check slightly so it doesn't compete with the initial paint;
+// Android path fires naturally via the beforeinstallprompt event whenever
+// Chrome decides to dispatch it (no fixed timing to wait for).
+setTimeout(() => {
+  if(!deferredInstallEvent && isIos()) showInstallBanner();
+}, 1500);
+
+// ---------------------------------------------------------------------------
+// LANGUAGE / i18n — English / Gujarati / Hindi
+// UI text only. Customer data (name, mobile, feedback, etc.) is never
+// touched by this — language choice is stored separately and is purely
+// a display-layer concern. Owner Dashboard intentionally stays English.
+// ---------------------------------------------------------------------------
+const LANG_KEY = 'tkg_language';
+
+const translations = {
+  en: {
+    reg: {
+      eyebrow: 'Stay in the loop',
+      title: 'Register &amp; Get <em>Updates.</em>',
+      sub: "Takes 10 seconds. We'll remember you next time you visit.",
+      nameLabel: 'Your Name',
+      namePlaceholder: 'e.g. Rohan Patel',
+      nameError: 'Please enter your name',
+      mobileLabel: 'Mobile Number',
+      mobilePlaceholder: '10-digit mobile number',
+      mobileError: 'Please enter a valid 10-digit number',
+      favoriteLabel: 'Favorite Item <span class="optional-tag">Optional</span>',
+      selectItem: 'Select an item…',
+      sourceLabel: 'How did you hear about us? <span class="optional-tag">Optional</span>',
+      submitBtn: 'Register &amp; Get Updates',
+      notNow: 'Not Now',
+      consent: 'No login. No OTP. No email. Just your name and number, saved securely.',
+      ctaSub: 'Takes 10 seconds. No login, no OTP.',
+      welcomeBack: 'Welcome back!',
+      welcomeBackVisit: (name, n) => `Welcome back, ${name}! This will be visit #${n}.`
+    },
+    source: { instagram:'Instagram', google:'Google', friend:'Friend', family:'Family', walkin:'Walk-In', other:'Other' },
+    feedback: {
+      title: '❤️ How was your TKG experience?',
+      label: 'Tell us anything <span class="optional-tag">Optional</span>',
+      placeholder: "Loved the smoky flavour\nAmazing cheese gravy\nBest Jain option I've tried\nCrispy Khichiya\nGreat service",
+      submitBtn: 'Submit Feedback',
+      skipBtn: 'Skip'
+    },
+    thanks: {
+      title: 'Thank you for visiting TKG',
+      sub: 'Your feedback helps us improve every weekend.',
+      reviewTitle: 'Leave a Google Review',
+      reviewSub: 'Support our small business.',
+      instaTitle: 'Open Instagram',
+      instaSub: "@the.khichiyagravy — tag us in your food photos, we'd love to feature you.",
+      waTitle: 'Message TKG',
+      waSub: 'Suggestions, photos, or direct feedback.',
+      open: 'Open →',
+      closeBtn: 'Close'
+    },
+    menu: {
+      greet: '— The Khichiya Gravy —',
+      title: 'Coal-Cooked Cheese Gravy.<br>Roasted Khichiya for Dipping.',
+      hookTitle: '🔥 What is TKG Gravy?',
+      hookLine: 'Our signature cheese gravy is cooked fresh over coal heat and served separately with roasted Khichiya for dipping.',
+      hookPunch: 'Not poured on top.<br>Dip. Scoop. Enjoy.',
+      eduTitle: 'What Makes TKG Different?',
+      eduLine1: "TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.",
+      eduLine2: 'Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.',
+      jainAvailable: '🟢 Jain options available',
+      family1Title: 'Coal-Roasted Khichiya',
+      family1Sub: 'Classic dry-roasted snack, eaten as-is — no gravy.',
+      family2Title: 'Signature Coal-Cooked Cheese Gravy',
+      family2Sub: 'Our hero product — gravy for dipping, not poured on top.',
+      jainPrepAvailable: 'Jain Preparation Available',
+      bestseller: 'Bestseller',
+      extrasLabel: 'Extra (Signature Gravy items)',
+      flourNote: 'Maida and Whole Wheat (Gehu Atta) options available on selected items. Please inform us while ordering.',
+      noOnion: 'No Onion Option Available',
+      wholeWheat: 'Whole Wheat (Gehu Atta) on Selected Items',
+      extraCheeseChip: 'Extra Cheese Available',
+      extraGravyChip: 'Extra Gravy Available',
+      seasonalVeg: 'Seasonal Vegetable Variations',
+      hours: 'Open on Weekend · Evening to Late Night',
+      whatsapp: 'WhatsApp', instagram: 'Instagram', googleReview: 'Google Review',
+      classicKhichiya: { name:'Classic Khichiya', desc:'Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.', price:'Mini ₹30<br>Large ₹50' },
+      masalaKhichiya: { name:'Masala Khichiya', desc:'Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.', price:'Mini ₹80<br>Large ₹120' },
+      cheeseMasalaKhichiya: { name:'Cheese Masala Khichiya', desc:'Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.', price:'Mini ₹100<br>Large ₹140' },
+      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.', price:'Mini ₹120<br>Large ₹160' },
+      cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.', price:'Mini ₹140<br>Large ₹180' },
+      extraCheese: { name:'Cheese', desc:'Extra cheese melted into your gravy.' },
+      extraGravy: { name:'Extra Gravy', desc:'More of the hero product — for when the Khichiya runs out first.' }
+    },
+    install: {
+      androidTitle: 'Install TKG Customer OS',
+      androidSub: 'Faster access from your home screen. No app store needed.',
+      androidBtn: 'Install',
+      iosTitle: 'Add TKG to Home Screen',
+      iosSub: 'Tap the Share icon, then "Add to Home Screen."',
+      iosBtn: 'Got It',
+      dismiss: 'Maybe Later'
+    },
+    status: { online:'Online', offline:'Offline — saved locally', syncing:'Syncing...', pendingSync:(n)=>`${n} pending sync` },
+    checkin: { returning:(name)=>`Great to see you again, ${name}!`, first:(name)=>`Welcome to TKG, ${name}!` },
+    langSheetTitle: 'Choose Language'
+  },
+
+  gu: {
+    reg: {
+      eyebrow: 'જોડાયેલા રહો',
+      title: 'રજિસ્ટર કરો અને <em>અપડેટ્સ મેળવો.</em>',
+      sub: '10 સેકન્ડ લાગે છે. તમારી આગલી મુલાકાત વખતે અમે તમને યાદ રાખીશું.',
+      nameLabel: 'તમારું નામ',
+      namePlaceholder: 'દા.ત. રોહન પટેલ',
+      nameError: 'કૃપા કરી તમારું નામ લખો',
+      mobileLabel: 'મોબાઇલ નંબર',
+      mobilePlaceholder: '10-અંકનો મોબાઇલ નંબર',
+      mobileError: 'કૃપા કરી માન્ય 10-અંકનો નંબર લખો',
+      favoriteLabel: 'મનપસંદ આઇટમ <span class="optional-tag">વૈકલ્પિક</span>',
+      selectItem: 'એક આઇટમ પસંદ કરો…',
+      sourceLabel: 'તમે અમારા વિશે કેવી રીતે જાણ્યું? <span class="optional-tag">વૈકલ્પિક</span>',
+      submitBtn: 'રજિસ્ટર કરો અને અપડેટ્સ મેળવો',
+      notNow: 'હમણાં નહીં',
+      consent: 'કોઈ લોગિન નહીં. કોઈ OTP નહીં. કોઈ ઇમેઇલ નહીં. ફક્ત તમારું નામ અને નંબર, સુરક્ષિત રીતે સેવ થાય છે.',
+      ctaSub: '10 સેકન્ડ લાગે છે. કોઈ લોગિન, કોઈ OTP નહીં.',
+      welcomeBack: 'પાછા આવવા બદલ આનંદ!',
+      welcomeBackVisit: (name, n) => `${name}, પાછા આવવા બદલ આનંદ! આ તમારી મુલાકાત #${n} હશે.`
+    },
+    source: { instagram:'ઇન્સ્ટાગ્રામ', google:'ગૂગલ', friend:'મિત્ર', family:'પરિવાર', walkin:'વૉક-ઇન', other:'અન્ય' },
+    feedback: {
+      title: '❤️ TKG પર તમારો અનુભવ કેવો રહ્યો?',
+      label: 'અમને કંઈપણ જણાવો <span class="optional-tag">વૈકલ્પિક</span>',
+      placeholder: 'સ્મોકી સ્વાદ ગમ્યો\nચીઝ ગ્રેવી ઉત્તમ હતી\nજૈન ઓપ્શન સૌથી સારો લાગ્યો\nખીચિયા ક્રિસ્પી હતા\nસર્વિસ સરસ હતી',
+      submitBtn: 'ફીડબેક મોકલો',
+      skipBtn: 'સ્કિપ કરો'
+    },
+    thanks: {
+      title: 'TKG ની મુલાકાત લેવા બદલ આભાર',
+      sub: 'તમારો ફીડબેક અમને દર વીકએન્ડ સારું કરવામાં મદદ કરે છે.',
+      reviewTitle: 'ગૂગલ રિવ્યુ આપો',
+      reviewSub: 'અમારા નાના બિઝનેસને સપોર્ટ કરો.',
+      instaTitle: 'ઇન્સ્ટાગ્રામ ખોલો',
+      instaSub: '@the.khichiyagravy — તમારા ફૂડ ફોટામાં અમને ટેગ કરો, અમે તમને ફીચર કરવા ગમશે.',
+      waTitle: 'TKG ને મેસેજ કરો',
+      waSub: 'સૂચનો, ફોટા, અથવા સીધો ફીડબેક.',
+      open: 'ખોલો →',
+      closeBtn: 'બંધ કરો'
+    },
+    menu: {
+      greet: '— ધ ખીચિયા ગ્રેવી —',
+      title: 'કોલ-કૂક્ડ ચીઝ ગ્રેવી.<br>ડિપિંગ માટે રોસ્ટેડ ખીચિયા.',
+      hookTitle: '🔥 TKG ગ્રેવી શું છે?',
+      hookLine: 'અમારી સિગ્નેચર ચીઝ ગ્રેવી કોલસાની આગ પર તાજી બનાવવામાં આવે છે અને ડિપિંગ માટે રોસ્ટેડ ખીચિયા સાથે અલગથી પીરસવામાં આવે છે.',
+      hookPunch: 'ઉપર નથી રેડાતી.<br>ડિપ કરો. સ્કૂપ કરો. માણો.',
+      eduTitle: 'TKG ને અલગ શું બનાવે છે?',
+      eduLine1: 'TKG ની સિગ્નેચર ચીઝ ગ્રેવી શાકભાજી, મસાલા, જડીબુટ્ટીઓ અને દૂધનો ઉપયોગ કરીને અસલ કોલસાની આગ પર તાજી તૈયાર કરવામાં આવે છે જેથી એક રિચ સ્મોકી સ્વાદ મળે.',
+      eduLine2: 'પરંપરાગત ગ્રેવીથી વિપરીત, તે ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે અલગથી પીરસવામાં આવે છે, જેથી તમે દરેક બાઈટ તમારી રીતે માણી શકો.',
+      jainAvailable: '🟢 જૈન ઓપ્શન ઉપલબ્ધ',
+      family1Title: 'કોલ-રોસ્ટેડ ખીચિયા',
+      family1Sub: 'ક્લાસિક ડ્રાય-રોસ્ટેડ નાસ્તો, એમ જ ખાવામાં આવે છે — ગ્રેવી વગર.',
+      family2Title: 'સિગ્નેચર કોલ-કૂક્ડ ચીઝ ગ્રેવી',
+      family2Sub: 'અમારું મુખ્ય પ્રોડક્ટ — ડિપિંગ માટેની ગ્રેવી, ઉપર રેડાતી નથી.',
+      jainPrepAvailable: 'જૈન પ્રિપરેશન ઉપલબ્ધ',
+      bestseller: 'બેસ્ટસેલર',
+      extrasLabel: 'એક્સ્ટ્રા (સિગ્નેચર ગ્રેવી આઇટમ્સ)',
+      flourNote: 'મેંદો અને ઘઉંનો (ગહુ આટા) ઓપ્શન પસંદગીની આઇટમ્સ પર ઉપલબ્ધ છે. ઓર્ડર કરતી વખતે કૃપા કરી જણાવો.',
+      noOnion: 'નો-ઓનિયન ઓપ્શન ઉપલબ્ધ',
+      wholeWheat: 'પસંદગીની આઇટમ્સ પર ઘઉંનો (ગહુ આટા)',
+      extraCheeseChip: 'એક્સ્ટ્રા ચીઝ ઉપલબ્ધ',
+      extraGravyChip: 'એક્સ્ટ્રા ગ્રેવી ઉપલબ્ધ',
+      seasonalVeg: 'સીઝનલ શાકભાજી વેરિએશન',
+      hours: 'વીકએન્ડ પર ખુલ્લું · સાંજથી મોડી રાત સુધી',
+      whatsapp: 'વોટ્સએપ', instagram: 'ઇન્સ્ટાગ્રામ', googleReview: 'ગૂગલ રિવ્યુ',
+      classicKhichiya: { name:'ક્લાસિક ખીચિયા', desc:'તાજા કોલ-રોસ્ટેડ ખીચિયા, બટર અને અમારા સિગ્નેચર મસાલા સાથે તૈયાર. સિમ્પલ, ક્રિસ્પી અને પહેલી વાર આવતા મુલાકાતીઓ માટે પરફેક્ટ.', price:'મિની ₹30<br>લાર્જ ₹50' },
+      masalaKhichiya: { name:'મસાલા ખીચિયા', desc:'કોલ-રોસ્ટેડ ખીચિયા, ચટણી, તાજા શાકભાજી, ચણા દાળ, સેવ અને પરંપરાગત સ્ટ્રીટ-ફૂડ સ્વાદ સાથે લેયર કરેલા.', price:'મિની ₹80<br>લાર્જ ₹120' },
+      cheeseMasalaKhichiya: { name:'ચીઝ મસાલા ખીચિયા', desc:'અમારા પરંપરાગત મસાલા ખીચિયા પર પીગળેલું ચીઝ — વધુ રિચ અને સ્વાદિષ્ટ.', price:'મિની ₹100<br>લાર્જ ₹140' },
+      signatureGravy: { name:'સિગ્નેચર ગ્રેવી ખીચિયા', desc:'અમારી સિગ્નેચર ક્રીમી ચીઝ ગ્રેવી, શાકભાજી, મસાલા અને દૂધ સાથે અસલ કોલસાની આગ પર તાજી તૈયાર. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', price:'મિની ₹120<br>લાર્જ ₹160' },
+      cheesySignatureGravy: { name:'ચીઝી સિગ્નેચર ગ્રેવી ખીચિયા', desc:'સિગ્નેચર ગ્રેવી ખીચિયા જેવું જ, એક્સ્ટ્રા ચીઝ સાથે વધુ રિચ અને ક્રીમી અનુભવ માટે. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', price:'મિની ₹140<br>લાર્જ ₹180' },
+      extraCheese: { name:'ચીઝ', desc:'તમારી ગ્રેવીમાં વધારાનું પીગળેલું ચીઝ.' },
+      extraGravy: { name:'એક્સ્ટ્રા ગ્રેવી', desc:'મુખ્ય પ્રોડક્ટની વધુ માત્રા — જ્યારે ખીચિયા પહેલા ખલાસ થઈ જાય ત્યારે.' }
+    },
+    install: {
+      androidTitle: 'TKG Customer OS ઇન્સ્ટોલ કરો',
+      androidSub: 'હોમ સ્ક્રીન પરથી ઝડપી એક્સેસ. એપ સ્ટોરની જરૂર નથી.',
+      androidBtn: 'ઇન્સ્ટોલ કરો',
+      iosTitle: 'TKG ને હોમ સ્ક્રીન પર ઉમેરો',
+      iosSub: 'શેર આઇકન પર ટેપ કરો, પછી "Add to Home Screen" પસંદ કરો.',
+      iosBtn: 'સમજાઈ ગયું',
+      dismiss: 'પછી'
+    },
+    status: { online:'ઓનલાઇન', offline:'ઓફલાઇન — લોકલી સેવ થયું', syncing:'સિંક થઈ રહ્યું છે...', pendingSync:(n)=>`${n} પેન્ડિંગ સિંક` },
+    checkin: { returning:(name)=>`${name}, ફરી મળીને આનંદ થયો!`, first:(name)=>`${name}, TKG માં તમારું સ્વાગત છે!` },
+    langSheetTitle: 'ભાષા પસંદ કરો'
+  },
+
+  hi: {
+    reg: {
+      eyebrow: 'जुड़े रहें',
+      title: 'रजिस्टर करें और <em>अपडेट्स पाएं.</em>',
+      sub: '10 सेकंड लगते हैं. आपकी अगली विज़िट पर हम आपको याद रखेंगे.',
+      nameLabel: 'आपका नाम',
+      namePlaceholder: 'जैसे रोहन पटेल',
+      nameError: 'कृपया अपना नाम लिखें',
+      mobileLabel: 'मोबाइल नंबर',
+      mobilePlaceholder: '10 अंकों का मोबाइल नंबर',
+      mobileError: 'कृपया मान्य 10 अंकों का नंबर लिखें',
+      favoriteLabel: 'पसंदीदा आइटम <span class="optional-tag">वैकल्पिक</span>',
+      selectItem: 'एक आइटम चुनें…',
+      sourceLabel: 'आपने हमारे बारे में कैसे जाना? <span class="optional-tag">वैकल्पिक</span>',
+      submitBtn: 'रजिस्टर करें और अपडेट्स पाएं',
+      notNow: 'अभी नहीं',
+      consent: 'कोई लॉगिन नहीं. कोई OTP नहीं. कोई ईमेल नहीं. सिर्फ आपका नाम और नंबर, सुरक्षित रूप से सेव होता है.',
+      ctaSub: '10 सेकंड लगते हैं. कोई लॉगिन, कोई OTP नहीं.',
+      welcomeBack: 'वापसी पर खुशी हुई!',
+      welcomeBackVisit: (name, n) => `${name}, वापसी पर खुशी हुई! यह आपकी विज़िट #${n} होगी.`
+    },
+    source: { instagram:'इंस्टाग्राम', google:'गूगल', friend:'दोस्त', family:'परिवार', walkin:'वॉक-इन', other:'अन्य' },
+    feedback: {
+      title: '❤️ TKG पर आपका अनुभव कैसा रहा?',
+      label: 'हमें कुछ भी बताएं <span class="optional-tag">वैकल्पिक</span>',
+      placeholder: 'स्मोकी स्वाद बहुत पसंद आया\nचीज़ ग्रेवी बेहतरीन थी\nसबसे अच्छा जैन ऑप्शन\nखिचिया क्रिस्पी थे\nसर्विस बहुत अच्छी थी',
+      submitBtn: 'फीडबैक भेजें',
+      skipBtn: 'स्किप करें'
+    },
+    thanks: {
+      title: 'TKG आने के लिए धन्यवाद',
+      sub: 'आपका फीडबैक हर वीकेंड हमें बेहतर बनाने में मदद करता है.',
+      reviewTitle: 'गूगल रिव्यू दें',
+      reviewSub: 'हमारे छोटे बिज़नेस को सपोर्ट करें.',
+      instaTitle: 'इंस्टाग्राम खोलें',
+      instaSub: '@the.khichiyagravy — अपनी फूड फोटोज़ में हमें टैग करें, हमें आपको फीचर करना पसंद होगा.',
+      waTitle: 'TKG को मैसेज करें',
+      waSub: 'सुझाव, फोटो, या सीधा फीडबैक.',
+      open: 'खोलें →',
+      closeBtn: 'बंद करें'
+    },
+    menu: {
+      greet: '— द खिचिया ग्रेवी —',
+      title: 'कोल-कुक्ड चीज़ ग्रेवी.<br>डिपिंग के लिए रोस्टेड खिचिया.',
+      hookTitle: '🔥 TKG ग्रेवी क्या है?',
+      hookLine: 'हमारी सिग्नेचर चीज़ ग्रेवी कोयले की आग पर ताज़ा बनाई जाती है और डिपिंग के लिए रोस्टेड खिचिया के साथ अलग से सर्व की जाती है.',
+      hookPunch: 'ऊपर से नहीं डाली जाती.<br>डिप करें. स्कूप करें. एंजॉय करें.',
+      eduTitle: 'TKG को अलग क्या बनाता है?',
+      eduLine1: 'TKG की सिग्नेचर चीज़ ग्रेवी सब्ज़ियों, मसालों, जड़ी-बूटियों और दूध का उपयोग करके असली कोयले की आग पर ताज़ा तैयार की जाती है, जिससे एक भरपूर स्मोकी स्वाद मिलता है.',
+      eduLine2: 'पारंपरिक ग्रेवी के विपरीत, यह डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ अलग से सर्व की जाती है, जिससे आप हर बाइट अपने तरीके से एंजॉय कर सकते हैं.',
+      jainAvailable: '🟢 जैन ऑप्शन उपलब्ध',
+      family1Title: 'कोल-रोस्टेड खिचिया',
+      family1Sub: 'क्लासिक ड्राय-रोस्टेड स्नैक, वैसे ही खाया जाता है — बिना ग्रेवी.',
+      family2Title: 'सिग्नेचर कोल-कुक्ड चीज़ ग्रेवी',
+      family2Sub: 'हमारा मुख्य प्रोडक्ट — डिपिंग के लिए ग्रेवी, ऊपर से नहीं डाली जाती.',
+      jainPrepAvailable: 'जैन तैयारी उपलब्ध',
+      bestseller: 'बेस्टसेलर',
+      extrasLabel: 'एक्स्ट्रा (सिग्नेचर ग्रेवी आइटम्स)',
+      flourNote: 'मैदा और गेहूं के आटे का ऑप्शन चुनी हुई आइटम्स पर उपलब्ध है. ऑर्डर करते समय कृपया बताएं.',
+      noOnion: 'नो-ओनियन ऑप्शन उपलब्ध',
+      wholeWheat: 'चुनी हुई आइटम्स पर गेहूं का आटा',
+      extraCheeseChip: 'एक्स्ट्रा चीज़ उपलब्ध',
+      extraGravyChip: 'एक्स्ट्रा ग्रेवी उपलब्ध',
+      seasonalVeg: 'सीज़नल सब्ज़ी वेरिएशन',
+      hours: 'वीकेंड पर खुला · शाम से देर रात तक',
+      whatsapp: 'व्हाट्सएप', instagram: 'इंस्टाग्राम', googleReview: 'गूगल रिव्यू',
+      classicKhichiya: { name:'क्लासिक खिचिया', desc:'ताज़े कोल-रोस्टेड खिचिया, बटर और हमारे सिग्नेचर मसाले के साथ तैयार. सिंपल, क्रिस्पी और पहली बार आने वालों के लिए परफेक्ट.', price:'मिनी ₹30<br>लार्ज ₹50' },
+      masalaKhichiya: { name:'मसाला खिचिया', desc:'कोल-रोस्टेड खिचिया, चटनी, ताज़ी सब्ज़ियों, चना दाल, सेव और पारंपरिक स्ट्रीट-फूड स्वाद के साथ लेयर्ड.', price:'मिनी ₹80<br>लार्ज ₹120' },
+      cheeseMasalaKhichiya: { name:'चीज़ मसाला खिचिया', desc:'हमारे पारंपरिक मसाला खिचिया पर पिघला हुआ चीज़ — ज़्यादा भरपूर और स्वादिष्ट.', price:'मिनी ₹100<br>लार्ज ₹140' },
+      signatureGravy: { name:'सिग्नेचर ग्रेवी खिचिया', desc:'हमारी सिग्नेचर क्रीमी चीज़ ग्रेवी, सब्ज़ियों, मसालों और दूध के साथ असली कोयले की आग पर ताज़ा तैयार. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', price:'मिनी ₹120<br>लार्ज ₹160' },
+      cheesySignatureGravy: { name:'चीज़ी सिग्नेचर ग्रेवी खिचिया', desc:'सिग्नेचर ग्रेवी खिचिया जैसा ही, एक्स्ट्रा चीज़ के साथ और भी भरपूर और क्रीमी अनुभव के लिए. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', price:'मिनी ₹140<br>लार्ज ₹180' },
+      extraCheese: { name:'चीज़', desc:'आपकी ग्रेवी में एक्स्ट्रा पिघला हुआ चीज़.' },
+      extraGravy: { name:'एक्स्ट्रा ग्रेवी', desc:'मुख्य प्रोडक्ट की ज़्यादा मात्रा — जब खिचिया पहले खत्म हो जाए तब के लिए.' }
+    },
+    install: {
+      androidTitle: 'TKG Customer OS इंस्टॉल करें',
+      androidSub: 'होम स्क्रीन से तेज़ एक्सेस. ऐप स्टोर की ज़रूरत नहीं.',
+      androidBtn: 'इंस्टॉल करें',
+      iosTitle: 'TKG को होम स्क्रीन पर जोड़ें',
+      iosSub: 'शेयर आइकन पर टैप करें, फिर "Add to Home Screen" चुनें.',
+      iosBtn: 'समझ गया',
+      dismiss: 'बाद में'
+    },
+    status: { online:'ऑनलाइन', offline:'ऑफलाइन — लोकली सेव हुआ', syncing:'सिंक हो रहा है...', pendingSync:(n)=>`${n} पेंडिंग सिंक` },
+    checkin: { returning:(name)=>`${name}, वापस देखकर खुशी हुई!`, first:(name)=>`${name}, TKG में आपका स्वागत है!` },
+    langSheetTitle: 'भाषा चुनें'
+  }
+};
+
+let currentLang = localStorage.getItem(LANG_KEY) || 'en';
+
+function getNested(obj, path){
+  return path.split('.').reduce((o, k) => (o && o[k] !== undefined) ? o[k] : undefined, obj);
+}
+
+function applyTranslations(){
+  const dict = translations[currentLang] || translations.en;
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const val = getNested(dict, el.dataset.i18n);
+    if(typeof val === 'string') el.textContent = val;
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const val = getNested(dict, el.dataset.i18nHtml);
+    if(typeof val === 'string') el.innerHTML = val;
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const val = getNested(dict, el.dataset.i18nPlaceholder);
+    if(typeof val === 'string') el.setAttribute('placeholder', val);
+  });
+
+  document.getElementById('langSheetTitle').textContent = dict.langSheetTitle;
+  document.getElementById('langBtnLabel').textContent = currentLang.toUpperCase();
+
+  // Re-apply current status pill state in the new language without
+  // disturbing actual online/offline/syncing logic.
+  updateStatusPill();
+}
+
+function setLanguage(lang){
+  if(!translations[lang]) return;
+  currentLang = lang;
+  localStorage.setItem(LANG_KEY, lang);
+  applyTranslations();
+  document.querySelectorAll('.lang-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.lang === lang);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// LANGUAGE SELECTOR SHEET — open/close/select
+// ---------------------------------------------------------------------------
+const langBackdrop = document.getElementById('langBackdrop');
+const langSheet = document.getElementById('langSheet');
+
+document.getElementById('langBtn').addEventListener('click', () => {
+  langBackdrop.classList.add('show');
+  langSheet.classList.add('show');
+});
+function closeLangSheet(){
+  langBackdrop.classList.remove('show');
+  langSheet.classList.remove('show');
+}
+langBackdrop.addEventListener('click', closeLangSheet);
+document.querySelectorAll('.lang-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    setLanguage(opt.dataset.lang);
+    closeLangSheet();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // INIT
 // ---------------------------------------------------------------------------
-updateStatusPill();
+document.querySelectorAll('.lang-option').forEach(opt => {
+  opt.classList.toggle('selected', opt.dataset.lang === currentLang);
+});
+applyTranslations();
 attemptSync();
 </script>
 
