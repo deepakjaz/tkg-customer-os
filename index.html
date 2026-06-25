@@ -537,37 +537,38 @@ textarea.field-input{
    PRODUCT EDUCATION SECTION — "What Makes TKG Different?"
    ========================================================================== */
 .edu-card{
-  background:linear-gradient(180deg,#FFFDF9,#F7F2EA);
-  border:1px solid #E9DDCB;
-  border-left:5px solid var(--gold);
-  border-radius:20px;
-  padding:22px;
-  margin-bottom:22px;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
+    background:#FFFDF9;
+    border-radius:18px;
+    border:1px solid #E8DDCB;
+    overflow:hidden;
+    margin-bottom:18px;
 }
-.edu-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:15px;
-  color:var(--charcoal);
-  margin-bottom:8px;
+
+.edu-toggle{
+    width:100%;
+    border:none;
+    background:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px;
+    font-size:16px;
+    font-weight:800;
+    color:#151515;
 }
-.edu-line{
-  font-size:12.5px;
-  color:#4A453D;
-  line-height:1.55;
-  margin-bottom:4px;
+
+.edu-arrow{
+    font-size:22px;
+    color:var(--ember);
 }
-.edu-line:last-child{margin-bottom:0;}
-.edu-jain{
-  display:inline-block;
-  margin-top:8px;
-  font-size:11px;
-  font-weight:700;
-  color:var(--success);
-  background:rgba(92,138,92,0.12);
-  padding:3px 10px;
-  border-radius:10px;
+
+.edu-content{
+    display:none;
+    padding:0 18px 18px;
+}
+
+.edu-card.open .edu-content{
+    display:block;
 }
 
 /* ==========================================================================
@@ -1259,25 +1260,38 @@ font-size:28px;
         Why Everyone Talks About TKG Gravy
     </div>
 
-    <div class="edu-line">
-        Slow-cooked over real coal using fresh vegetables, herbs, spices,
-        milk and cheese for a naturally smoky flavour.
-    </div>
+   <div class="edu-card collapsed" id="dynamicExplain">
 
-    <div class="edu-line">
-        <strong>Served separately.</strong>
-        Your Khichiya stays crispy while every bite is dipped into hot,
-        creamy gravy.
-    </div>
+    <button class="edu-toggle" id="eduToggle">
 
-    <div class="edu-line">
-        It's a different way to enjoy Khichiya —
-        and that's what makes TKG special.
-    </div>
+        <span>🔥 Why Everyone Talks About TKG</span>
 
-    <span class="edu-jain">
-        🟢 Jain Preparation Available
-    </span>
+        <span class="edu-arrow">+</span>
+
+    </button>
+
+    <div class="edu-content">
+
+        <div class="edu-line">
+            Slow-cooked over real coal using fresh vegetables, herbs, spices,
+            milk and cheese for a naturally smoky flavour.
+        </div>
+
+        <div class="edu-line">
+            <strong>Served separately.</strong>
+            Your Khichiya stays crispy while every bite is dipped into hot,
+            creamy gravy.
+        </div>
+
+        <div class="edu-line">
+            That's what makes TKG different.
+        </div>
+
+        <span class="edu-jain">
+            🟢 Jain Preparation Available
+        </span>
+
+    </div>
 
 </div>
     <!-- ===== FAMILY 1: TRADITIONAL COAL-ROASTED KHICHIYA ===== -->
@@ -1532,7 +1546,18 @@ const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS3JaYacArqWNJA
 const OWNER_PIN = '1234'; // change this to your own PIN
 const INSTAGRAM_URL = 'https://www.instagram.com/the.khichiyagravy/'; // production — official TKG profile
 const GOOGLE_REVIEW_URL = 'https://g.page/r/CYnAo2r-6b_zEAE/review'; // production — Google Business review link
+const eduToggle=document.getElementById("eduToggle");
 
+const dynamicExplain=document.getElementById("dynamicExplain");
+
+eduToggle.addEventListener("click",()=>{
+
+dynamicExplain.classList.toggle("open");
+
+eduToggle.querySelector(".edu-arrow").textContent =
+dynamicExplain.classList.contains("open") ? "−" : "+";
+
+});
 document.getElementById('instaLink').href = INSTAGRAM_URL;
 document.getElementById('googleReviewLink').href = GOOGLE_REVIEW_URL;
 
