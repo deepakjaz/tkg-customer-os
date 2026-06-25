@@ -763,26 +763,66 @@ textarea.field-input{
 .menu-section.active{display:flex; flex-direction:column; gap:10px;}
 
 .menu-item{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:14px;
-  background:var(--marble);
-  border-radius:var(--radius-md);
-  padding:14px 15px;
-  border-left:3px solid var(--gold);
+
+background:#fffdf9;
+
+border:1px solid #E8DDCB;
+
+border-radius:18px;
+
+padding:18px;
+
+margin-bottom:14px;
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:flex-start;
+
+gap:18px;
+
+transition:.25s;
+
+box-shadow:
+0 8px 18px rgba(0,0,0,.05);
+
 }
+
+.menu-item:hover{
+
+transform:translateY(-2px);
+
+box-shadow:
+0 16px 28px rgba(0,0,0,.12);
+
+}
+   
 .menu-item-info{flex:1;}
 .menu-item-name{
-  font-size:15px;
-  font-weight:700;
-  color:var(--charcoal);
-  margin-bottom:3px;
+
+font-size:20px;
+
+font-weight:800;
+
+line-height:1.2;
+
+color:#151515;
+
+margin-bottom:8px;
+
 }
+   
 .menu-item-desc{
-  font-size:12px;
-  color:#6B6358;
-  line-height:1.4;
+
+font-size:13px;
+
+line-height:1.6;
+
+color:#666;
+
+margin-top:6px;
+
 }
 .menu-item-tag{
   display:inline-block;
@@ -797,12 +837,33 @@ textarea.field-input{
   border-radius:4px;
 }
 .menu-item-price{
-  font-family:var(--font-mono);
-  font-weight:700;
-  font-size:15px;
-  color:var(--ember-deep);
-  white-space:nowrap;
-  padding-top:1px;
+
+display:flex;
+
+flex-direction:column;
+
+align-items:flex-end;
+
+font-family:inherit;
+
+font-weight:800;
+
+line-height:1.2;
+
+white-space:nowrap;
+
+min-width:88px;
+
+font-size:15px;
+
+color:#E85D2C;
+
+}
+
+.menu-item-price strong{
+
+font-size:28px;
+
 }
 
 .menu-footer{
@@ -1266,7 +1327,17 @@ textarea.field-input{
           <div class="menu-item-desc">Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.</div>
           <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">Mini ₹120<br>Large ₹160</div>
+        <div class="menu-item-price">
+
+<div>Mini</div>
+
+<strong>₹120</strong>
+
+<div style="margin-top:10px;">Large</div>
+
+<strong>₹160</strong>
+
+</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
@@ -1274,7 +1345,17 @@ textarea.field-input{
           <div class="menu-item-desc">Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.</div>
           <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">Mini ₹140<br>Large ₹180</div>
+        <div class="menu-item-price">
+
+<div>Mini</div>
+
+<strong>₹140</strong>
+
+<div style="margin-top:10px;">Large</div>
+
+<strong>₹180</strong>
+
+</div>
       </div>
 
       <div class="menu-section-label" style="margin-top:18px;">Extra (Signature Gravy items)</div>
