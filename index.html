@@ -537,38 +537,35 @@ textarea.field-input{
    PRODUCT EDUCATION SECTION — "What Makes TKG Different?"
    ========================================================================== */
 .edu-card{
-    background:#FFFDF9;
-    border-radius:18px;
-    border:1px solid #E8DDCB;
-    overflow:hidden;
-    margin-bottom:18px;
+  background:var(--marble);
+  border-radius:var(--radius-lg);
+  padding:16px 18px;
+  border-top:3px solid var(--gold);
+  margin-bottom:18px;
 }
-
-.edu-toggle{
-    width:100%;
-    border:none;
-    background:none;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:18px;
-    font-size:16px;
-    font-weight:800;
-    color:#151515;
+.edu-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:15px;
+  color:var(--charcoal);
+  margin-bottom:8px;
 }
-
-.edu-arrow{
-    font-size:22px;
-    color:var(--ember);
+.edu-line{
+  font-size:12.5px;
+  color:#4A453D;
+  line-height:1.55;
+  margin-bottom:4px;
 }
-
-.edu-content{
-    display:none;
-    padding:0 18px 18px;
-}
-
-.edu-card.open .edu-content{
-    display:block;
+.edu-line:last-child{margin-bottom:0;}
+.edu-jain{
+  display:inline-block;
+  margin-top:8px;
+  font-size:11px;
+  font-weight:700;
+  color:var(--success);
+  background:rgba(92,138,92,0.12);
+  padding:3px 10px;
+  border-radius:10px;
 }
 
 /* ==========================================================================
@@ -652,177 +649,88 @@ textarea.field-input{
    MENU SCREEN (legacy tab styles retained for compatibility)
    ========================================================================== */
 .menu-header{
-    text-align:center;
-    padding:6px 0 12px;
-}
-
-.hero-location{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:6px 14px;
-  border-radius:999px;
-  background:rgba(201,162,75,.12);
-  border:1px solid rgba(201,162,75,.25);
-  color:var(--gold);
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  margin-bottom:12px;
-}
-
-.menu-title{
-    font-family:var(--font-display);
-    font-size:42px;
-    line-height:1.02;
-    font-weight:900;
-    letter-spacing:-0.04em;
-    color:var(--marble);
-    margin-bottom:16px;
-}
-
-.menu-title .ember{
-  color:var(--ember-bright);
-}
-
-.hero-thesis{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:14px;
-    padding:14px 18px;
-    border-radius:16px;
-    background:rgba(255,255,255,.03);
-    border:1px solid rgba(255,255,255,.06);
-}
-
-.hero-icon{
-  font-size:34px;
-  line-height:1;
-  flex-shrink:0;
-}
-
-.hero-copy{
+  padding-top:4px;
+  margin-bottom:18px;
   text-align:center;
-  color:var(--marble-dim);
-  line-height:1.55;
 }
-
-.hero-copy strong{
-  display:block;
-  font-size:18px;
-  font-weight:800;
-  color:var(--gold-bright);
-  margin-bottom:8px;
-}
-
-.hero-copy .hero-mid{
-  display:block;
-  font-size:16px;
-  font-weight:700;
-  color:var(--marble);
-  margin-bottom:8px;
-}
-
-.hero-copy .hero-small{
-  display:block;
+.menu-greet{
   font-size:13px;
+  color:var(--gold);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  font-weight:600;
+  margin-bottom:4px;
+}
+.menu-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:26px;
+  color:var(--marble);
+}
+.visit-badge{
+  display:inline-block;
+  margin-top:8px;
+  padding:4px 12px;
+  border-radius:20px;
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  font-size:11px;
   color:var(--grey-warm);
+  font-family:var(--font-mono);
 }
 
 .menu-tabs{
   display:flex;
-  gap:10px;
-  margin:16px 0 22px;
+  gap:6px;
+  overflow-x:auto;
+  padding-bottom:14px;
+  margin-bottom:6px;
+  scrollbar-width:none;
 }
-
+.menu-tabs::-webkit-scrollbar{display:none;}
 .menu-tab{
-  flex:1;
-  border:none;
-  border-radius:14px;
-  padding:14px 10px;
-  background:#25211D;
-  color:#C8C2B8;
-  font-size:14px;
-  font-weight:700;
-  transition:.25s;
+  flex-shrink:0;
+  padding:9px 16px;
+  border-radius:20px;
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  color:var(--grey-warm);
+  font-size:12.5px;
+  font-weight:600;
+  letter-spacing:0.02em;
+  white-space:nowrap;
+  transition:all 0.15s ease;
 }
-
 .menu-tab.active{
-  background:linear-gradient(
-      135deg,
-      var(--ember),
-      var(--ember-bright)
-  );
-  color:#fff;
-  box-shadow:0 10px 24px rgba(232,93,44,.28);
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
 }
 
 .menu-section{display:none;}
 .menu-section.active{display:flex; flex-direction:column; gap:10px;}
 
 .menu-item{
-
-background:#fffdf9;
-
-border:1px solid #E8DDCB;
-
-border-radius:18px;
-
-padding:18px;
-
-margin-bottom:14px;
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:flex-start;
-
-gap:18px;
-
-transition:.25s;
-
-box-shadow:
-0 8px 18px rgba(0,0,0,.05);
-
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:14px;
+  background:var(--marble);
+  border-radius:var(--radius-md);
+  padding:14px 15px;
+  border-left:3px solid var(--gold);
 }
-
-.menu-item:hover{
-
-transform:translateY(-2px);
-
-box-shadow:
-0 16px 28px rgba(0,0,0,.12);
-
-}
-   
 .menu-item-info{flex:1;}
 .menu-item-name{
-
-font-size:20px;
-
-font-weight:800;
-
-line-height:1.2;
-
-color:#151515;
-
-margin-bottom:8px;
-
+  font-size:15px;
+  font-weight:700;
+  color:var(--charcoal);
+  margin-bottom:3px;
 }
-   
 .menu-item-desc{
-
-font-size:13px;
-
-line-height:1.6;
-
-color:#666;
-
-margin-top:6px;
-
+  font-size:12px;
+  color:#6B6358;
+  line-height:1.4;
 }
 .menu-item-tag{
   display:inline-block;
@@ -837,33 +745,12 @@ margin-top:6px;
   border-radius:4px;
 }
 .menu-item-price{
-
-display:flex;
-
-flex-direction:column;
-
-align-items:flex-end;
-
-font-family:inherit;
-
-font-weight:800;
-
-line-height:1.2;
-
-white-space:nowrap;
-
-min-width:88px;
-
-font-size:15px;
-
-color:#E85D2C;
-
-}
-
-.menu-item-price strong{
-
-font-size:28px;
-
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:15px;
+  color:var(--ember-deep);
+  white-space:nowrap;
+  padding-top:1px;
 }
 
 .menu-footer{
@@ -1201,94 +1088,25 @@ font-size:28px;
   <section class="screen active" id="screen-menu">
 
     <div class="menu-header">
-
-    <div class="hero-location">
-        SURAT • VESU • COAL-FIRED SINCE DAY ONE
+      <div class="menu-greet">— The Khichiya Gravy —</div>
+      <h1 class="menu-title">Coal-Cooked Cheese Gravy.<br>Roasted Khichiya for Dipping.</h1>
     </div>
 
-    <h1 class="menu-title">
-    Coal-Cooked<br>
-    <span class="ember">Cheesy Gravy</span><br>
-    Khichiya for Dipping
-</h1>
-
-    <div class="hero-thesis">
-
-    <div class="hero-icon">🥣</div>
-
- <div class="hero-copy">
-
-    <strong>The gravy is the hero.</strong>
-
-    <span class="hero-mid">
-        Khichiya is the dipper.
-    </span>
-
-    <span class="hero-small">
-        Served separately, exactly the way it's is meant to be enjoyed.
-    </span>
-
-</div>
-
-</div>
-
+    <!-- Short punchy hook — sits above the longer education card -->
+    <div class="hook-card">
+      <div class="hook-title">🔥 What is TKG Gravy?</div>
+      <div class="hook-line">Our signature cheese gravy is cooked fresh over coal heat and served separately with roasted Khichiya for dipping.</div>
+      <div class="hook-punch">Not poured on top.<br>Dip. Scoop. Enjoy.</div>
     </div>
 
-</div>
-
-
-<div class="menu-tabs">
-
-    <button class="menu-tab active" id="tabSignature">
-
-        ⭐ Signature Gravy
-
-    </button>
-
-    <button class="menu-tab" id="tabTraditional">
-
-        🔥 Traditional
-
-    </button>
-
-</div>
-
-
-
-   <div class="edu-card collapsed" id="dynamicExplain">
-
-    <button class="edu-toggle" id="eduToggle">
-
-        <span>🔥 Why Everyone Talks About TKG</span>
-
-        <span class="edu-arrow">+</span>
-
-    </button>
-
-    <div class="edu-content">
-
-        <div class="edu-line">
-            Slow-cooked over real coal using fresh vegetables, herbs, spices,
-            milk and cheese for a naturally smoky flavour.
-        </div>
-
-        <div class="edu-line">
-            <strong>Served separately.</strong>
-            Your Khichiya stays crispy while every bite is dipped into hot,
-            creamy gravy.
-        </div>
-
-        <div class="edu-line">
-            That's what makes TKG different.
-        </div>
-
-        <span class="edu-jain">
-            🟢 Jain Preparation Available
-        </span>
-
+    <!-- Longer education card — explains the dish before prices appear -->
+    <div class="edu-card">
+      <div class="edu-title">What Makes TKG Different?</div>
+      <div class="edu-line">TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.</div>
+      <div class="edu-line">Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.</div>
+      <span class="edu-jain">🟢 Jain options available</span>
     </div>
 
-</div>
     <!-- ===== FAMILY 1: TRADITIONAL COAL-ROASTED KHICHIYA ===== -->
     <div class="family-header">
       <div class="family-title">Coal-Roasted Khichiya</div>
@@ -1301,17 +1119,7 @@ font-size:28px;
           <div class="menu-item-name">Classic Khichiya</div>
           <div class="menu-item-desc">Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.</div>
         </div>
-        <div class="menu-item-price">
-
-<div>Mini</div>
-
-<strong>₹30</strong>
-
-<div style="margin-top:10px;">Large</div>
-
-<strong>₹500</strong>
-
-</div>
+        <div class="menu-item-price">Mini ₹30<br>Large ₹50</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
@@ -1319,17 +1127,7 @@ font-size:28px;
           <div class="menu-item-desc">Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.</div>
           <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">
-
-<div>Mini</div>
-
-<strong>₹80</strong>
-
-<div style="margin-top:10px;">Large</div>
-
-<strong>₹120</strong>
-
-</div>
+        <div class="menu-item-price">Mini ₹80<br>Large ₹120</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
@@ -1337,17 +1135,7 @@ font-size:28px;
           <div class="menu-item-desc">Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.</div>
           <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">
-
-<div>Mini</div>
-
-<strong>₹100</strong>
-
-<div style="margin-top:10px;">Large</div>
-
-<strong>₹140</strong>
-
-</div>
+        <div class="menu-item-price">Mini ₹100<br>Large ₹140</div>
       </div>
     </div>
 
@@ -1365,17 +1153,7 @@ font-size:28px;
           <div class="menu-item-desc">Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.</div>
           <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">
-
-<div>Mini</div>
-
-<strong>₹120</strong>
-
-<div style="margin-top:10px;">Large</div>
-
-<strong>₹160</strong>
-
-</div>
+        <div class="menu-item-price">Mini ₹120<br>Large ₹160</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
@@ -1383,17 +1161,7 @@ font-size:28px;
           <div class="menu-item-desc">Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.</div>
           <span class="menu-item-tag jain-tag" style="margin-top:6px;">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price">
-
-<div>Mini</div>
-
-<strong>₹140</strong>
-
-<div style="margin-top:10px;">Large</div>
-
-<strong>₹180</strong>
-
-</div>
+        <div class="menu-item-price">Mini ₹140<br>Large ₹180</div>
       </div>
 
       <div class="menu-section-label" style="margin-top:18px;">Extra (Signature Gravy items)</div>
@@ -1541,18 +1309,7 @@ const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS3JaYacArqWNJA
 const OWNER_PIN = '1234'; // change this to your own PIN
 const INSTAGRAM_URL = 'https://www.instagram.com/the.khichiyagravy/'; // production — official TKG profile
 const GOOGLE_REVIEW_URL = 'https://g.page/r/CYnAo2r-6b_zEAE/review'; // production — Google Business review link
-const eduToggle=document.getElementById("eduToggle");
 
-const dynamicExplain=document.getElementById("dynamicExplain");
-
-eduToggle.addEventListener("click",()=>{
-
-dynamicExplain.classList.toggle("open");
-
-eduToggle.querySelector(".edu-arrow").textContent =
-dynamicExplain.classList.contains("open") ? "−" : "+";
-
-});
 document.getElementById('instaLink').href = INSTAGRAM_URL;
 document.getElementById('googleReviewLink').href = GOOGLE_REVIEW_URL;
 
