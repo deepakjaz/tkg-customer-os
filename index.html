@@ -235,6 +235,66 @@ input{font-family:inherit;}
 }
 .field-error.show{display:block;}
 
+textarea.field-input{
+  min-height:96px;
+  resize:vertical;
+  font-family:inherit;
+  line-height:1.5;
+}
+
+/* ==========================================================================
+   FEEDBACK OVERLAY — post check-in, optional, never blocks the menu
+   ========================================================================== */
+.thanks-block{
+  text-align:center;
+  padding:6px 0 18px;
+}
+.thanks-icon{font-size:34px; margin-bottom:8px;}
+.thanks-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:20px;
+  color:var(--marble);
+}
+.thanks-sub{
+  font-size:13px;
+  color:var(--grey-warm);
+  margin-top:6px;
+  line-height:1.5;
+}
+
+.action-card{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#FFFFFF;
+  border:1.5px solid #E2DDD3;
+  border-radius:var(--radius-md);
+  padding:14px;
+  margin-bottom:10px;
+  text-decoration:none;
+}
+.action-card .ac-icon{font-size:22px; flex-shrink:0;}
+.action-card .ac-text{flex:1; min-width:0;}
+.action-card .ac-title{
+  font-size:13.5px;
+  font-weight:700;
+  color:var(--charcoal);
+}
+.action-card .ac-sub{
+  font-size:11px;
+  color:var(--grey-warm);
+  margin-top:2px;
+  line-height:1.4;
+}
+.action-card .ac-go{
+  font-size:11px;
+  font-weight:700;
+  color:var(--ember);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
 .btn-primary{
   width:100%;
   padding:16px;
@@ -959,6 +1019,71 @@ input{font-family:inherit;}
 
   </div>
 
+  <!-- ============ FEEDBACK OVERLAY — shown right after check-in, optional ============ -->
+  <div class="overlay-backdrop" id="feedbackBackdrop"></div>
+  <div class="reg-overlay" id="feedbackOverlay">
+
+    <div class="reg-overlay-handle"></div>
+
+    <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
+      <h1 class="hero-title" style="font-size:22px;">❤️ How was your TKG experience?</h1>
+    </div>
+
+    <form class="reg-card" id="feedbackForm" novalidate>
+      <div class="field-group">
+        <label class="field-label" for="feedbackInput">Tell us anything <span class="optional-tag">Optional</span></label>
+        <textarea class="field-input" id="feedbackInput" maxlength="500" placeholder="Loved the smoky flavour&#10;Amazing cheese gravy&#10;Best Jain option I've tried&#10;Crispy Khichiya&#10;Great service"></textarea>
+      </div>
+
+      <button type="submit" class="btn-primary" id="feedbackSubmitBtn">Submit Feedback</button>
+      <button type="button" class="btn-secondary" id="skipFeedbackBtn" style="width:100%; margin-top:10px;">Skip</button>
+    </form>
+
+  </div>
+
+  <!-- ============ THANK YOU + OPTIONAL ACTIONS OVERLAY ============ -->
+  <div class="overlay-backdrop" id="thanksBackdrop"></div>
+  <div class="reg-overlay" id="thanksOverlay">
+
+    <div class="reg-overlay-handle"></div>
+
+    <div class="thanks-block">
+      <div class="thanks-icon">❤️</div>
+      <div class="thanks-title">Thank you for visiting TKG</div>
+      <p class="thanks-sub">Your feedback helps us improve every weekend.</p>
+    </div>
+
+    <a class="action-card" id="thanksReviewLink" target="_blank" rel="noopener">
+      <span class="ac-icon">⭐</span>
+      <span class="ac-text">
+        <span class="ac-title">Leave a Google Review</span>
+        <span class="ac-sub">Support our small business.</span>
+      </span>
+      <span class="ac-go">Open →</span>
+    </a>
+
+    <a class="action-card" id="thanksInstaLink" target="_blank" rel="noopener">
+      <span class="ac-icon">📸</span>
+      <span class="ac-text">
+        <span class="ac-title">Open Instagram</span>
+        <span class="ac-sub">@the.khichiyagravy — tag us in your food photos, we'd love to feature you.</span>
+      </span>
+      <span class="ac-go">Open →</span>
+    </a>
+
+    <a class="action-card" id="thanksWhatsappLink" href="https://wa.me/919510100950" target="_blank" rel="noopener">
+      <span class="ac-icon">💬</span>
+      <span class="ac-text">
+        <span class="ac-title">Message TKG</span>
+        <span class="ac-sub">Suggestions, photos, or direct feedback.</span>
+      </span>
+      <span class="ac-go">Open →</span>
+    </a>
+
+    <button type="button" class="btn-secondary" id="closeThanksBtn" style="width:100%; margin-top:6px;">Close</button>
+
+  </div>
+
   <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
   <section class="screen active" id="screen-menu">
 
@@ -1300,7 +1425,8 @@ async function attemptSync(){
       mobile: c.mobile,
       visitDate: c.lastVisit,
       favoriteItem: c.favoriteItem || '',
-      source: c.source || ''
+      source: c.source || '',
+      feedback: c.feedback || ''
     }));
 
     const res = await fetch(APP_SCRIPT_URL, {
@@ -1486,7 +1612,75 @@ regForm.addEventListener('submit', (e) => {
   document.querySelectorAll('.source-chip').forEach(c => c.classList.remove('selected'));
   selectedSource = '';
   document.getElementById('welcomeChip').classList.remove('show');
+
+  // Hand off to the feedback overlay — optional, never forced. Stored for
+  // the feedback/skip handlers below to know which customer to update.
+  lastCheckedInMobile = record.mobile;
+  setTimeout(openFeedbackOverlay, 350); // brief pause so the toast is visible first
 });
+
+// ---------------------------------------------------------------------------
+// FEEDBACK OVERLAY — optional, shown right after check-in
+// ---------------------------------------------------------------------------
+let lastCheckedInMobile = '';
+const feedbackBackdrop = document.getElementById('feedbackBackdrop');
+const feedbackOverlay = document.getElementById('feedbackOverlay');
+const feedbackForm = document.getElementById('feedbackForm');
+const feedbackInput = document.getElementById('feedbackInput');
+
+function openFeedbackOverlay(){
+  feedbackInput.value = '';
+  feedbackBackdrop.classList.add('show');
+  feedbackOverlay.classList.add('show');
+}
+function closeFeedbackOverlay(){
+  feedbackBackdrop.classList.remove('show');
+  feedbackOverlay.classList.remove('show');
+}
+feedbackBackdrop.addEventListener('click', closeFeedbackOverlay);
+
+function saveFeedback(text){
+  if(!lastCheckedInMobile) return;
+  const list = loadCustomers();
+  const idx = findCustomerIndex(list, lastCheckedInMobile);
+  if(idx !== -1){
+    list[idx].feedback = text.trim();
+    list[idx].pendingSync = true;
+    saveCustomers(list);
+    attemptSync();
+  }
+}
+
+feedbackForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  saveFeedback(feedbackInput.value);
+  closeFeedbackOverlay();
+  openThanksOverlay();
+});
+
+document.getElementById('skipFeedbackBtn').addEventListener('click', () => {
+  closeFeedbackOverlay();
+  openThanksOverlay();
+});
+
+// ---------------------------------------------------------------------------
+// THANK YOU + OPTIONAL ACTIONS OVERLAY — every action is skippable
+// ---------------------------------------------------------------------------
+const thanksBackdrop = document.getElementById('thanksBackdrop');
+const thanksOverlay = document.getElementById('thanksOverlay');
+
+function openThanksOverlay(){
+  document.getElementById('thanksReviewLink').href = GOOGLE_REVIEW_URL;
+  document.getElementById('thanksInstaLink').href = INSTAGRAM_URL;
+  thanksBackdrop.classList.add('show');
+  thanksOverlay.classList.add('show');
+}
+function closeThanksOverlay(){
+  thanksBackdrop.classList.remove('show');
+  thanksOverlay.classList.remove('show');
+}
+thanksBackdrop.addEventListener('click', closeThanksOverlay);
+document.getElementById('closeThanksBtn').addEventListener('click', closeThanksOverlay);
 
 // ---------------------------------------------------------------------------
 // OWNER DASHBOARD
