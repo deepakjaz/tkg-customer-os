@@ -2358,6 +2358,7 @@ window.addEventListener('appinstalled', () => {
 installActionBtn.addEventListener('click', async () => {
   if(deferredInstallEvent){
     dismissInstallBanner(false); // hide immediately, native dialog takes over
+    deferredInstallEvent.prompt(); // actually trigger the native install dialog
     const choice = await deferredInstallEvent.userChoice;
     deferredInstallEvent = null;
     if(choice.outcome === 'accepted'){
