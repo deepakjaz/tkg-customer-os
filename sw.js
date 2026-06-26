@@ -6,7 +6,7 @@
    itself does not talk to Google Sheets.
    ========================================================================== */
 
-const CACHE_NAME = 'tkg-cache-v1';
+const CACHE_NAME = 'tkg-cache-v2';
 const APP_SHELL = [
   './',
   './index.html',
