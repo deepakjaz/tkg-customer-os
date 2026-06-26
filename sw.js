@@ -6,7 +6,19 @@
    itself does not talk to Google Sheets.
    ========================================================================== */
 
-const CACHE_NAME = 'tkg-cache-v2';
+// ---------------------------------------------------------------------------
+// CACHE VERSION
+// Active development: bump BUILD_VERSION on every deploy that changes
+// index.html, manifest.json, or this file, so the browser always detects
+// the service worker as "new" and the old cache is purged automatically
+// (see the activate handler below). Use a timestamp — date + time is
+// enough resolution for one deploy at a time and needs no build tooling.
+//
+// Once V1 stabilizes, switch this back to a deliberate version tied to a
+// release tag (e.g. 'tkg-cache-v3') instead of bumping on every save.
+// ---------------------------------------------------------------------------
+const BUILD_VERSION = '2026-06-26.1'; // <-- update this on every deploy
+const CACHE_NAME = `tkg-cache-${BUILD_VERSION}`;
 const APP_SHELL = [
   './',
   './index.html',
