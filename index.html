@@ -17,18 +17,20 @@
    White marble / Coal ember orange / Black charcoal / Warm gold
    ========================================================================== */
 :root{
-  --charcoal:       #0B0B0C;
-  --charcoal-soft:  #161514;
-  --ember-card:     #1C1A18;
+  --charcoal:       #0E0C0B;
+  --charcoal-soft:  #1A1614;
+  --ember-card:     #211C19;
+  --ember-card-top: #261F1B;
   --marble:         #FAF7F2;
   --marble-dim:     #EFEAE1;
+  --marble-warm:    #FBF4EA;
   --ember:          #E85D2C;
   --ember-bright:   #FF7A45;
   --ember-deep:     #B8431D;
   --gold:           #C9A24B;
   --gold-bright:    #E0C170;
   --grey-warm:      #8A8278;
-  --grey-line:      #2A2724;
+  --grey-line:      #332C26;
   --success:        #5C8A5C;
   --danger:         #C24545;
 
@@ -77,8 +79,36 @@ input{font-family:inherit;}
   display:flex;
   flex-direction:column;
   background-image:
-    radial-gradient(ellipse at top, rgba(232,93,44,0.10), transparent 55%),
+    radial-gradient(ellipse 120% 50% at 50% 0%, rgba(232,93,44,0.09), transparent 60%),
+    radial-gradient(ellipse 90% 60% at 8% 100%, rgba(184,67,29,0.07), transparent 65%),
+    linear-gradient(115deg, transparent 22%, rgba(232,93,44,0.025) 23%, transparent 24%),
+    linear-gradient(68deg, transparent 41%, rgba(255,255,255,0.018) 41.5%, transparent 42.5%),
+    linear-gradient(155deg, transparent 65%, rgba(232,93,44,0.02) 66%, transparent 67.5%),
     repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  background-attachment:fixed, fixed, fixed, fixed, fixed, local;
+}
+
+/* Ambient ember effect — one extremely subtle breathing glow, low enough
+   opacity that it reads as atmosphere, not animation. Pure CSS, no assets,
+   GPU-cheap (opacity only), and disabled automatically under
+   prefers-reduced-motion via the global rule above. */
+.shell::before{
+  content:'';
+  position:fixed;
+  left:50%;
+  bottom:-10%;
+  transform:translateX(-50%);
+  width:140%;
+  max-width:600px;
+  height:45%;
+  background:radial-gradient(ellipse at center, rgba(232,93,44,0.10), transparent 70%);
+  pointer-events:none;
+  z-index:0;
+  animation:ember-breathe 7s ease-in-out infinite;
+}
+@keyframes ember-breathe{
+  0%, 100%{opacity:0.55;}
+  50%{opacity:1;}
 }
 
 /* ==========================================================================
@@ -133,13 +163,21 @@ input{font-family:inherit;}
   font-size:11.5px;
   font-weight:700;
   letter-spacing:0.02em;
-  color:var(--marble-dim);
-  padding:6px 10px;
+  color:var(--marble-warm);
+  padding:6px 11px;
   border-radius:20px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid var(--grey-line);
+  background:rgba(232,93,44,0.07);
+  border:1px solid rgba(232,93,44,0.28);
+  transition:background 0.15s ease, border-color 0.15s ease;
 }
-.lang-btn:active{background:rgba(255,255,255,0.09);}
+.lang-btn:active{background:rgba(232,93,44,0.14);}
+.lang-btn.attention{animation:lang-btn-attention 2.2s ease-in-out 1;}
+@keyframes lang-btn-attention{
+  0%, 100%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
+  25%{box-shadow:0 0 0 5px rgba(232,93,44,0.16);}
+  50%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
+  75%{box-shadow:0 0 0 5px rgba(232,93,44,0.1);}
+}
 
 .lang-sheet{
   position:fixed;
@@ -250,10 +288,13 @@ input{font-family:inherit;}
 }
 
 .reg-card{
-  background:var(--marble);
+  background:var(--marble-warm);
   border-radius:var(--radius-lg);
   padding:24px 20px 22px;
-  box-shadow:0 18px 40px -12px rgba(0,0,0,0.55);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.2),
+    0 18px 40px -12px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.4) inset;
   border-top:3px solid var(--ember);
 }
 .field-group{margin-bottom:16px;}
@@ -574,6 +615,40 @@ textarea.field-input{
 }
 .info-btn:active{background:rgba(255,255,255,0.1);}
 
+/* Story strip — compact 3-step visual explainer beneath the hero statement.
+   Left-aligned to match the rest of the hero (not centered like the
+   Gemini reference) so it sits naturally above the menu tabs. */
+.hero-story-strip{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:14px;
+  padding:10px 12px;
+  background:rgba(255,255,255,0.025);
+  border:1px solid var(--grey-line);
+  border-radius:var(--radius-md);
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.hero-story-strip::-webkit-scrollbar{display:none;}
+.hero-story-strip .story-step{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  color:var(--marble-dim);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.hero-story-strip .story-step .step-icon{font-size:13px; line-height:1;}
+.hero-story-strip .story-arrow{
+  color:var(--grey-line);
+  font-size:11px;
+  flex-shrink:0;
+}
+
 /* ==========================================================================
    CATEGORY TABS — real switching, Signature default, no page reload
    ========================================================================== */
@@ -593,27 +668,29 @@ textarea.field-input{
   font-weight:700;
   letter-spacing:0.01em;
   text-align:center;
-  transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
 }
 .menu-tab.active{
   background:var(--ember);
   border-color:var(--ember);
   color:var(--marble);
+  box-shadow:0 4px 12px -4px rgba(232,93,44,0.4);
 }
+.menu-tab:active{transform:scale(0.97);}
 
 /* ==========================================================================
-   MENU SECTIONS — fade transition on category switch
+   MENU SECTIONS — gentle slide+fade on category switch
    ========================================================================== */
 .menu-section{display:none;}
 .menu-section.active{
   display:flex;
   flex-direction:column;
   gap:10px;
-  animation:menu-fade 0.15s ease;
+  animation:menu-fade 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes menu-fade{
-  from{opacity:0;}
-  to{opacity:1;}
+  from{opacity:0; transform:translateY(5px);}
+  to{opacity:1; transform:translateY(0);}
 }
 
 .menu-section-label{
@@ -738,10 +815,14 @@ textarea.field-input{
 
 .register-cta{
   margin-top:22px;
-  background:var(--marble);
+  background:var(--marble-warm);
   border-radius:var(--radius-lg);
   padding:18px 18px 16px;
   border-top:3px solid var(--gold);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.16),
+    0 6px 16px -8px rgba(0,0,0,0.3),
+    0 0 0 1px rgba(255,255,255,0.4) inset;
 }
 .register-cta-text{margin-bottom:12px;}
 .register-cta-title{
@@ -764,13 +845,23 @@ textarea.field-input{
   justify-content:space-between;
   align-items:flex-start;
   gap:12px;
-  background:var(--marble);
+  background:var(--marble-warm);
+  border:1px solid rgba(0,0,0,0.04);
   border-radius:var(--radius-lg);
   padding:16px;
-  box-shadow:0 4px 16px -6px rgba(0,0,0,0.3);
-  transition:transform 0.1s ease;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.18),
+    0 8px 20px -10px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(255,255,255,0.4) inset;
+  transition:transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease;
 }
-.menu-item:active{transform:scale(0.98);}
+.menu-item:active{
+  transform:scale(0.985);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.16),
+    0 4px 10px -6px rgba(0,0,0,0.3),
+    0 0 0 1px rgba(255,255,255,0.4) inset;
+}
 .menu-item-info{flex:1; min-width:0;}
 .menu-item-top{
   display:flex;
@@ -1259,6 +1350,16 @@ textarea.field-input{
         </div>
         <button type="button" class="info-btn" id="openInfoBtn" aria-label="About TKG">ⓘ</button>
       </div>
+
+      <!-- Compact story strip — visual 3-step explainer, reuses existing
+           hero.line* translation keys so it works in EN/GU/HI for free -->
+      <div class="hero-story-strip" aria-hidden="true">
+        <div class="story-step"><span class="step-icon">🔥</span><span data-i18n="hero.lineCoal">Coal-Cooked</span></div>
+        <span class="story-arrow">→</span>
+        <div class="story-step"><span class="step-icon">🧀</span><span data-i18n="hero.lineGravy">Cheesy Gravy</span></div>
+        <span class="story-arrow">→</span>
+        <div class="story-step"><span class="step-icon">🥣</span><span data-i18n="hero.lineKhichiya">Khichiya for Dipping</span></div>
+      </div>
     </div>
 
     <!-- ============ CATEGORY TABS — Signature default, instant switch ============ -->
@@ -1514,7 +1615,11 @@ function loadCustomers(){
 }
 
 function saveCustomers(list){
-  localStorage.setItem(LS_KEY, JSON.stringify(list));
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify(list));
+  }catch(e){
+    console.error('Failed to save local customers', e);
+  }
 }
 
 function normalizeMobile(mobile){
@@ -1957,7 +2062,8 @@ function renderDashboard(){
   document.getElementById('statRepeat').textContent = repeat;
   document.getElementById('statPending').textContent = pending;
 
-  const lastSynced = localStorage.getItem('tkg_last_synced');
+  let lastSynced = null;
+  try{ lastSynced = localStorage.getItem('tkg_last_synced'); }catch(e){}
   document.getElementById('lastSyncedAt').textContent = lastSynced
     ? new Date(lastSynced).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
     : 'Never';
@@ -2091,12 +2197,16 @@ function isIos(){
 
 function dismissInstallBanner(persist){
   installBanner.classList.remove('show');
-  if(persist) localStorage.setItem(INSTALL_DISMISSED_KEY, 'true');
+  if(persist){
+    try{ localStorage.setItem(INSTALL_DISMISSED_KEY, 'true'); }catch(e){}
+  }
 }
 
 function showInstallBanner(){
   if(isStandalone()) return; // already installed, never show
-  if(localStorage.getItem(INSTALL_DISMISSED_KEY) === 'true') return; // dismissed before
+  let dismissed = false;
+  try{ dismissed = localStorage.getItem(INSTALL_DISMISSED_KEY) === 'true'; }catch(e){}
+  if(dismissed) return; // dismissed before
 
   const dict = translations[currentLang] || translations.en;
 
@@ -2136,7 +2246,7 @@ installActionBtn.addEventListener('click', async () => {
     const choice = await deferredInstallEvent.userChoice;
     deferredInstallEvent = null;
     if(choice.outcome === 'accepted'){
-      localStorage.setItem(INSTALL_DISMISSED_KEY, 'true');
+      try{ localStorage.setItem(INSTALL_DISMISSED_KEY, 'true'); }catch(e){}
     }
     // If dismissed in the native dialog, banner stays gone for this session
     // but isn't permanently dismissed — they may have just misclicked.
@@ -2438,7 +2548,8 @@ const translations = {
   }
 };
 
-let currentLang = localStorage.getItem(LANG_KEY) || 'en';
+let currentLang = 'en';
+try{ currentLang = localStorage.getItem(LANG_KEY) || 'en'; }catch(e){}
 
 function getNested(obj, path){
   return path.split('.').reduce((o, k) => (o && o[k] !== undefined) ? o[k] : undefined, obj);
@@ -2471,7 +2582,7 @@ function applyTranslations(){
 function setLanguage(lang){
   if(!translations[lang]) return;
   currentLang = lang;
-  localStorage.setItem(LANG_KEY, lang);
+  try{ localStorage.setItem(LANG_KEY, lang); }catch(e){}
   applyTranslations();
   document.querySelectorAll('.lang-option').forEach(opt => {
     opt.classList.toggle('selected', opt.dataset.lang === lang);
@@ -2487,6 +2598,7 @@ const langSheet = document.getElementById('langSheet');
 document.getElementById('langBtn').addEventListener('click', () => {
   langBackdrop.classList.add('show');
   langSheet.classList.add('show');
+  clearLangBtnAttention();
 });
 function closeLangSheet(){
   langBackdrop.classList.remove('show');
@@ -2499,6 +2611,28 @@ document.querySelectorAll('.lang-option').forEach(opt => {
     closeLangSheet();
   });
 });
+
+// One-time discoverability pulse on the language button — fires once per
+// device, never again after the button is noticed or used. Purely visual,
+// never touches language/customer data.
+const LANG_ATTENTION_KEY = 'tkg_lang_attention_seen';
+function clearLangBtnAttention(){
+  const btn = document.getElementById('langBtn');
+  if(btn) btn.classList.remove('attention');
+  try{ localStorage.setItem(LANG_ATTENTION_KEY, 'true'); }catch(e){}
+}
+try{
+  if(!localStorage.getItem(LANG_ATTENTION_KEY)){
+    setTimeout(() => {
+      const btn = document.getElementById('langBtn');
+      if(btn) btn.classList.add('attention');
+      setTimeout(clearLangBtnAttention, 2400); // matches animation duration
+    }, 900); // let the initial paint settle first
+  }
+}catch(e){
+  // localStorage unavailable (e.g. strict private browsing) — skip the
+  // attention cue silently, button still works normally either way.
+}
 
 // ---------------------------------------------------------------------------
 // INIT
