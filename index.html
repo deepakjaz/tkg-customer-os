@@ -505,42 +505,126 @@ textarea.field-input{
 }
 
 /* ==========================================================================
-   MENU SCREEN — additions for menu-first flow
+   APP HERO — short, scan-in-seconds, replaces the old stacked-cards hero
    ========================================================================== */
-.family-header{
-  margin-top:22px;
-  margin-bottom:12px;
-  padding-bottom:8px;
-  border-bottom:1px solid var(--grey-line);
+.app-hero{
+  padding-top:2px;
+  margin-bottom:16px;
 }
-.family-header:first-of-type{margin-top:0;}
-.family-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:16px;
-  color:var(--marble);
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.family-title.signature{color:var(--gold-bright);}
-.family-sub{
-  font-size:11px;
-  color:var(--grey-warm);
-  margin-top:3px;
-}
-
-.menu-section-label{
-  font-size:12px;
+.app-hero-location{
+  font-size:11.5px;
   letter-spacing:0.1em;
   text-transform:uppercase;
-  font-weight:700;
-  color:var(--gold);
+  color:var(--grey-warm);
+  font-weight:600;
   margin-bottom:10px;
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:5px;
 }
+.app-hero-headline{
+  font-family:var(--font-display);
+  font-weight:800;
+  line-height:1.04;
+  letter-spacing:-0.01em;
+}
+.app-hero-headline .line-coal{
+  display:block;
+  font-size:21px;
+  color:var(--marble-dim);
+}
+.app-hero-headline .line-gravy{
+  display:block;
+  font-size:42px;
+  color:var(--ember-bright);
+  margin:2px 0;
+}
+.app-hero-headline .line-khichiya{
+  display:block;
+  font-size:17px;
+  font-weight:600;
+  color:var(--grey-warm);
+}
+.app-hero-statement{
+  margin-top:12px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--gold-bright);
+  letter-spacing:0.01em;
+}
+.app-hero-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.info-btn{
+  flex-shrink:0;
+  width:32px; height:32px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--grey-line);
+  color:var(--grey-warm);
+  font-size:14px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:2px;
+}
+.info-btn:active{background:rgba(255,255,255,0.1);}
+
+/* ==========================================================================
+   CATEGORY TABS — real switching, Signature default, no page reload
+   ========================================================================== */
+.menu-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+}
+.menu-tab{
+  flex:1;
+  padding:11px 10px;
+  border-radius:var(--radius-md);
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  color:var(--grey-warm);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.01em;
+  text-align:center;
+  transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.menu-tab.active{
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
+}
+
+/* ==========================================================================
+   MENU SECTIONS — fade transition on category switch
+   ========================================================================== */
+.menu-section{display:none;}
+.menu-section.active{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  animation:menu-fade 0.15s ease;
+}
+@keyframes menu-fade{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+
+.menu-section-label{
+  font-size:11.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--gold);
+  margin:6px 0 2px;
+}
+
 .jain-tag{
   font-size:9.5px;
   letter-spacing:0.04em;
@@ -562,104 +646,72 @@ textarea.field-input{
 }
 
 /* ==========================================================================
-   GRAVY HOOK — short punchy intro, sits above the longer education card
+   INFO SHEET — education content, tucked behind the info button
    ========================================================================== */
-.hook-card{
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
-  border-radius:var(--radius-lg);
-  padding:16px 18px;
-  margin-bottom:12px;
-}
-.hook-title{
+.info-sheet-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:15px;
-  color:var(--gold-bright);
-  margin-bottom:8px;
+  font-size:19px;
+  color:var(--marble);
+  margin-bottom:12px;
 }
-.hook-line{
-  font-size:12.5px;
+.info-sheet-line{
+  font-size:13px;
   color:var(--marble-dim);
-  line-height:1.55;
-  margin-bottom:4px;
+  line-height:1.6;
+  margin-bottom:10px;
 }
-.hook-punch{
+.info-sheet-line:last-of-type{margin-bottom:0;}
+.info-sheet-punch{
+  margin-top:14px;
+  padding:12px 14px;
+  background:rgba(232,93,44,0.08);
+  border:1px solid rgba(232,93,44,0.25);
+  border-radius:var(--radius-md);
   font-size:13px;
   font-weight:700;
   color:var(--ember-bright);
-  margin-top:8px;
-  letter-spacing:0.02em;
+  text-align:center;
 }
-
-/* ==========================================================================
-   PRODUCT EDUCATION SECTION — "What Makes TKG Different?"
-   ========================================================================== */
-.edu-card{
-  background:var(--marble);
-  border-radius:var(--radius-lg);
-  padding:16px 18px;
-  border-top:3px solid var(--gold);
-  margin-bottom:18px;
-}
-.edu-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:15px;
-  color:var(--charcoal);
-  margin-bottom:8px;
-}
-.edu-line{
-  font-size:12.5px;
-  color:#4A453D;
-  line-height:1.55;
-  margin-bottom:4px;
-}
-.edu-line:last-child{margin-bottom:0;}
-.edu-jain{
+.info-sheet-jain{
   display:inline-block;
-  margin-top:8px;
-  font-size:11px;
+  margin-top:14px;
+  font-size:11.5px;
   font-weight:700;
   color:var(--success);
   background:rgba(92,138,92,0.12);
-  padding:3px 10px;
+  padding:4px 11px;
   border-radius:10px;
 }
 
 /* ==========================================================================
-   FLOUR / DISPLAY NOTES
+   EXTRAS — compact chip row, replaces flour-note + notes-grid paragraphs
    ========================================================================== */
-.flour-note{
-  font-size:11.5px;
-  color:var(--grey-warm);
-  line-height:1.5;
-  text-align:center;
-  margin-top:14px;
-  padding:10px 12px;
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
-  border-radius:var(--radius-sm);
-}
-
-.notes-grid{
+.extras-row{
   display:flex;
   flex-wrap:wrap;
   gap:7px;
-  margin-top:14px;
+  margin-top:16px;
 }
-.note-chip{
-  font-size:10.5px;
+.extra-chip{
+  font-size:11px;
+  font-weight:600;
   color:var(--grey-warm);
   background:var(--ember-card);
   border:1px solid var(--grey-line);
-  padding:5px 10px;
+  padding:6px 12px;
   border-radius:14px;
 }
-.note-chip.jain{
+.extra-chip.jain{
   color:var(--success);
   border-color:rgba(92,138,92,0.3);
   background:rgba(92,138,92,0.08);
+}
+.extra-chip .extra-chip-price{
+  font-family:var(--font-mono);
+  font-weight:700;
+  margin-left:4px;
+  color:var(--gold-bright);
 }
 
 .link-row{
@@ -705,97 +757,43 @@ textarea.field-input{
 }
 
 /* ==========================================================================
-   MENU SCREEN (legacy tab styles retained for compatibility)
+   PREMIUM MENU CARDS — rounded, soft shadow, name+price scannable at a glance
    ========================================================================== */
-.menu-header{
-  padding-top:4px;
-  margin-bottom:18px;
-  text-align:center;
-}
-.menu-greet{
-  font-size:13px;
-  color:var(--gold);
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  font-weight:600;
-  margin-bottom:4px;
-}
-.menu-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:26px;
-  color:var(--marble);
-}
-.visit-badge{
-  display:inline-block;
-  margin-top:8px;
-  padding:4px 12px;
-  border-radius:20px;
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
-  font-size:11px;
-  color:var(--grey-warm);
-  font-family:var(--font-mono);
-}
-
-.menu-tabs{
-  display:flex;
-  gap:6px;
-  overflow-x:auto;
-  padding-bottom:14px;
-  margin-bottom:6px;
-  scrollbar-width:none;
-}
-.menu-tabs::-webkit-scrollbar{display:none;}
-.menu-tab{
-  flex-shrink:0;
-  padding:9px 16px;
-  border-radius:20px;
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
-  color:var(--grey-warm);
-  font-size:12.5px;
-  font-weight:600;
-  letter-spacing:0.02em;
-  white-space:nowrap;
-  transition:all 0.15s ease;
-}
-.menu-tab.active{
-  background:var(--ember);
-  border-color:var(--ember);
-  color:var(--marble);
-}
-
-.menu-section{display:none;}
-.menu-section.active{display:flex; flex-direction:column; gap:10px;}
-
 .menu-item{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
-  gap:14px;
+  gap:12px;
   background:var(--marble);
-  border-radius:var(--radius-md);
-  padding:14px 15px;
-  border-left:3px solid var(--gold);
+  border-radius:var(--radius-lg);
+  padding:16px;
+  box-shadow:0 4px 16px -6px rgba(0,0,0,0.3);
+  transition:transform 0.1s ease;
 }
-.menu-item-info{flex:1;}
+.menu-item:active{transform:scale(0.98);}
+.menu-item-info{flex:1; min-width:0;}
+.menu-item-top{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+}
 .menu-item-name{
-  font-size:15px;
-  font-weight:700;
+  font-size:15.5px;
+  font-weight:800;
   color:var(--charcoal);
-  margin-bottom:3px;
+  letter-spacing:-0.01em;
 }
 .menu-item-desc{
-  font-size:12px;
-  color:#6B6358;
-  line-height:1.4;
+  font-size:11.5px;
+  color:#8A8278;
+  line-height:1.35;
+  margin-top:3px;
 }
 .menu-item-tag{
   display:inline-block;
-  margin-top:6px;
-  font-size:9.5px;
-  letter-spacing:0.06em;
+  font-size:9px;
+  letter-spacing:0.05em;
   text-transform:uppercase;
   font-weight:700;
   color:var(--ember-deep);
@@ -806,10 +804,18 @@ textarea.field-input{
 .menu-item-price{
   font-family:var(--font-mono);
   font-weight:700;
-  font-size:15px;
+  font-size:14px;
   color:var(--ember-deep);
   white-space:nowrap;
-  padding-top:1px;
+  text-align:right;
+  flex-shrink:0;
+}
+.menu-item-price .price-large{
+  display:block;
+  font-size:11px;
+  color:var(--grey-warm);
+  font-weight:600;
+  margin-top:1px;
 }
 
 .menu-footer{
@@ -1239,111 +1245,112 @@ textarea.field-input{
   <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
   <section class="screen active" id="screen-menu">
 
-    <div class="menu-header">
-      <div class="menu-greet" data-i18n="menu.greet">— The Khichiya Gravy —</div>
-      <h1 class="menu-title" data-i18n-html="menu.title">Coal-Cooked Cheese Gravy.<br>Roasted Khichiya for Dipping.</h1>
-    </div>
-
-    <!-- Short punchy hook — sits above the longer education card -->
-    <div class="hook-card">
-      <div class="hook-title" data-i18n="menu.hookTitle">🔥 What is TKG Gravy?</div>
-      <div class="hook-line" data-i18n="menu.hookLine">Our signature cheese gravy is cooked fresh over coal heat and served separately with roasted Khichiya for dipping.</div>
-      <div class="hook-punch" data-i18n-html="menu.hookPunch">Not poured on top.<br>Dip. Scoop. Enjoy.</div>
-    </div>
-
-    <!-- Longer education card — explains the dish before prices appear -->
-    <div class="edu-card">
-      <div class="edu-title" data-i18n="menu.eduTitle">What Makes TKG Different?</div>
-      <div class="edu-line" data-i18n="menu.eduLine1">TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.</div>
-      <div class="edu-line" data-i18n="menu.eduLine2">Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.</div>
-      <span class="edu-jain" data-i18n="menu.jainAvailable">🟢 Jain options available</span>
-    </div>
-
-    <!-- ===== FAMILY 1: TRADITIONAL COAL-ROASTED KHICHIYA ===== -->
-    <div class="family-header">
-      <div class="family-title" data-i18n="menu.family1Title">Coal-Roasted Khichiya</div>
-      <div class="family-sub" data-i18n="menu.family1Sub">Classic dry-roasted snack, eaten as-is — no gravy.</div>
-    </div>
-
-    <div class="menu-section active" id="cat-traditional">
-      <div class="menu-item">
-        <div class="menu-item-info">
-          <div class="menu-item-name" data-i18n="menu.classicKhichiya.name">Classic Khichiya</div>
-          <div class="menu-item-desc" data-i18n="menu.classicKhichiya.desc">Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.</div>
+    <!-- ============ HERO — short, scannable in seconds ============ -->
+    <div class="app-hero">
+      <div class="app-hero-row">
+        <div style="flex:1; min-width:0;">
+          <div class="app-hero-location" data-i18n="menu.hours">📍 Open on Weekend · Evening to Late Night</div>
+          <h1 class="app-hero-headline">
+            <span class="line-coal" data-i18n="hero.lineCoal">Coal-Cooked</span>
+            <span class="line-gravy" data-i18n="hero.lineGravy">Cheesy Gravy</span>
+            <span class="line-khichiya" data-i18n="hero.lineKhichiya">Khichiya for Dipping</span>
+          </h1>
+          <div class="app-hero-statement" data-i18n="hero.statement">🔥 The Gravy is the Hero</div>
         </div>
-        <div class="menu-item-price" data-i18n-html="menu.classicKhichiya.price">Mini ₹30<br>Large ₹50</div>
-      </div>
-      <div class="menu-item">
-        <div class="menu-item-info">
-          <div class="menu-item-name" data-i18n="menu.masalaKhichiya.name">Masala Khichiya</div>
-          <div class="menu-item-desc" data-i18n="menu.masalaKhichiya.desc">Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.</div>
-          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
-        </div>
-        <div class="menu-item-price" data-i18n-html="menu.masalaKhichiya.price">Mini ₹80<br>Large ₹120</div>
-      </div>
-      <div class="menu-item">
-        <div class="menu-item-info">
-          <div class="menu-item-name" data-i18n="menu.cheeseMasalaKhichiya.name">Cheese Masala Khichiya</div>
-          <div class="menu-item-desc" data-i18n="menu.cheeseMasalaKhichiya.desc">Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.</div>
-          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
-        </div>
-        <div class="menu-item-price" data-i18n-html="menu.cheeseMasalaKhichiya.price">Mini ₹100<br>Large ₹140</div>
+        <button type="button" class="info-btn" id="openInfoBtn" aria-label="About TKG">ⓘ</button>
       </div>
     </div>
 
-    <!-- ===== FAMILY 2: SIGNATURE COAL-COOKED CHEESE GRAVY ===== -->
-    <div class="family-header">
-      <div class="family-title signature" data-i18n="menu.family2Title">Signature Coal-Cooked Cheese Gravy</div>
-      <div class="family-sub" data-i18n="menu.family2Sub">Our hero product — gravy for dipping, not poured on top.</div>
+    <!-- ============ CATEGORY TABS — Signature default, instant switch ============ -->
+    <div class="menu-tabs" id="menuTabs">
+      <button type="button" class="menu-tab active" data-cat="signature" data-i18n="menu.family2TitleShort">Signature</button>
+      <button type="button" class="menu-tab" data-cat="traditional" data-i18n="menu.family1TitleShort">Traditional</button>
     </div>
 
+    <!-- ===== SIGNATURE (default) ===== -->
     <div class="menu-section active" id="cat-signature">
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name" data-i18n="menu.signatureGravy.name">Signature Gravy Khichiya</div>
-          <span class="menu-item-tag" data-i18n="menu.bestseller">Bestseller</span>
-          <div class="menu-item-desc" data-i18n="menu.signatureGravy.desc">Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.</div>
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.signatureGravy.name">Signature Gravy Khichiya</span>
+            <span class="menu-item-tag" data-i18n="menu.bestseller">Bestseller</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.signatureGravy.descShort">Creamy coal-cooked cheese gravy, served for dipping.</div>
           <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price" data-i18n-html="menu.signatureGravy.price">Mini ₹120<br>Large ₹160</div>
+        <div class="menu-item-price"><span data-i18n="menu.priceMini">Mini ₹120</span><span class="price-large" data-i18n="menu.signatureGravy.priceLarge">Large ₹160</span></div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Gravy Khichiya</div>
-          <div class="menu-item-desc" data-i18n="menu.cheesySignatureGravy.desc">Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.</div>
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Gravy Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.cheesySignatureGravy.descShort">Extra cheese, even richer and creamier.</div>
           <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
         </div>
-        <div class="menu-item-price" data-i18n-html="menu.cheesySignatureGravy.price">Mini ₹140<br>Large ₹180</div>
+        <div class="menu-item-price"><span data-i18n="menu.cheesySignatureGravy.priceMini">Mini ₹140</span><span class="price-large" data-i18n="menu.cheesySignatureGravy.priceLarge">Large ₹180</span></div>
       </div>
 
-      <div class="menu-section-label" style="margin-top:18px;" data-i18n="menu.extrasLabel">Extra (Signature Gravy items)</div>
+      <div class="menu-section-label" data-i18n="menu.extrasLabel">Extra (Signature Gravy items)</div>
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name" data-i18n="menu.extraCheese.name">Cheese</div>
-          <div class="menu-item-desc" data-i18n="menu.extraCheese.desc">Extra cheese melted into your gravy.</div>
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.extraCheese.name">Cheese</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.extraCheese.descShort">Extra cheese melted in.</div>
         </div>
         <div class="menu-item-price">₹25</div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
-          <div class="menu-item-name" data-i18n="menu.extraGravy.name">Extra Gravy</div>
-          <div class="menu-item-desc" data-i18n="menu.extraGravy.desc">More of the hero product — for when the Khichiya runs out first.</div>
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.extraGravy.name">Extra Gravy</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.extraGravy.descShort">More of the hero product.</div>
         </div>
         <div class="menu-item-price">₹100</div>
       </div>
     </div>
 
-    <!-- Flour communication — display only, no selector -->
-    <div class="flour-note" data-i18n="menu.flourNote">Maida and Whole Wheat (Gehu Atta) options available on selected items. Please inform us while ordering.</div>
+    <!-- ===== TRADITIONAL ===== -->
+    <div class="menu-section" id="cat-traditional">
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.classicKhichiya.name">Classic Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.classicKhichiya.descShort">Butter and our signature spice blend.</div>
+        </div>
+        <div class="menu-item-price"><span data-i18n="menu.priceMini">Mini ₹30</span><span class="price-large" data-i18n="menu.classicKhichiya.priceLarge">Large ₹50</span></div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.masalaKhichiya.name">Masala Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.masalaKhichiya.descShort">Chutney, fresh veg, chana dal, sev.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+        </div>
+        <div class="menu-item-price"><span data-i18n="menu.masalaKhichiya.priceMini">Mini ₹80</span><span class="price-large" data-i18n="menu.masalaKhichiya.priceLarge">Large ₹120</span></div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.cheeseMasalaKhichiya.name">Cheese Masala Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.cheeseMasalaKhichiya.descShort">Masala Khichiya topped with melted cheese.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+        </div>
+        <div class="menu-item-price"><span data-i18n="menu.cheeseMasalaKhichiya.priceMini">Mini ₹100</span><span class="price-large" data-i18n="menu.cheeseMasalaKhichiya.priceLarge">Large ₹140</span></div>
+      </div>
+    </div>
 
-    <!-- Display notes — informational chips, no selection system -->
-    <div class="notes-grid">
-      <span class="note-chip jain" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
-      <span class="note-chip jain" data-i18n="menu.noOnion">No Onion Option Available</span>
-      <span class="note-chip" data-i18n="menu.wholeWheat">Whole Wheat (Gehu Atta) on Selected Items</span>
-      <span class="note-chip" data-i18n="menu.extraCheeseChip">Extra Cheese Available</span>
-      <span class="note-chip" data-i18n="menu.extraGravyChip">Extra Gravy Available</span>
-      <span class="note-chip" data-i18n="menu.seasonalVeg">Seasonal Vegetable Variations</span>
+    <!-- ===== EXTRAS — compact chip row ===== -->
+    <div class="extras-row">
+      <span class="extra-chip jain" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+      <span class="extra-chip jain" data-i18n="menu.noOnion">No Onion Option</span>
+      <span class="extra-chip" data-i18n="menu.wholeWheat">Whole Wheat (Gehu Atta)</span>
+      <span class="extra-chip" data-i18n="menu.seasonalVeg">Seasonal Vegetable Variations</span>
     </div>
 
     <div class="hours-note" data-i18n="menu.hours">Open on Weekend · Evening to Late Night</div>
@@ -1369,6 +1376,18 @@ textarea.field-input{
     </div>
 
   </section>
+
+  <!-- ============ INFO SHEET — education content, behind the ⓘ button ============ -->
+  <div class="overlay-backdrop" id="infoBackdrop"></div>
+  <div class="reg-overlay" id="infoSheet">
+    <div class="reg-overlay-handle"></div>
+    <div class="info-sheet-title" data-i18n="menu.eduTitle">What Makes TKG Different?</div>
+    <div class="info-sheet-line" data-i18n="menu.eduLine1">TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.</div>
+    <div class="info-sheet-line" data-i18n="menu.eduLine2">Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.</div>
+    <div class="info-sheet-punch" data-i18n-html="menu.hookPunch">Not poured on top.<br>Dip. Scoop. Enjoy.</div>
+    <span class="info-sheet-jain" data-i18n="menu.jainAvailable">🟢 Jain options available</span>
+    <button type="button" class="btn-secondary" id="closeInfoBtn" style="width:100%; margin-top:18px;" data-i18n="thanks.closeBtn">Close</button>
+  </div>
 
   <!-- ============ SCREEN 3: OWNER DASHBOARD ============ -->
   <section class="screen" id="screen-dash">
@@ -1675,6 +1694,37 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
+
+// ---------------------------------------------------------------------------
+// CATEGORY TABS — Signature default, instant switch, no page reload
+// ---------------------------------------------------------------------------
+document.querySelectorAll('.menu-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if(tab.classList.contains('active')) return; // already showing this category
+    document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('cat-' + tab.dataset.cat).classList.add('active');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// INFO SHEET — education content, tucked behind the ⓘ button
+// ---------------------------------------------------------------------------
+const infoBackdrop = document.getElementById('infoBackdrop');
+const infoSheet = document.getElementById('infoSheet');
+
+function openInfoSheet(){
+  infoBackdrop.classList.add('show');
+  infoSheet.classList.add('show');
+}
+function closeInfoSheet(){
+  infoBackdrop.classList.remove('show');
+  infoSheet.classList.remove('show');
+}
+document.getElementById('openInfoBtn').addEventListener('click', openInfoSheet);
+document.getElementById('closeInfoBtn').addEventListener('click', closeInfoSheet);
+infoBackdrop.addEventListener('click', closeInfoSheet);
 
 // ---------------------------------------------------------------------------
 // REGISTRATION OVERLAY — optional, opened from the menu, never blocks it
@@ -2115,6 +2165,12 @@ const LANG_KEY = 'tkg_language';
 
 const translations = {
   en: {
+    hero: {
+      lineCoal: 'Coal-Cooked',
+      lineGravy: 'Cheesy Gravy',
+      lineKhichiya: 'Khichiya for Dipping',
+      statement: '🔥 The Gravy is the Hero'
+    },
     reg: {
       eyebrow: 'Stay in the loop',
       title: 'Register &amp; Get <em>Updates.</em>',
@@ -2156,10 +2212,7 @@ const translations = {
       closeBtn: 'Close'
     },
     menu: {
-      greet: '— The Khichiya Gravy —',
       title: 'Coal-Cooked Cheese Gravy.<br>Roasted Khichiya for Dipping.',
-      hookTitle: '🔥 What is TKG Gravy?',
-      hookLine: 'Our signature cheese gravy is cooked fresh over coal heat and served separately with roasted Khichiya for dipping.',
       hookPunch: 'Not poured on top.<br>Dip. Scoop. Enjoy.',
       eduTitle: 'What Makes TKG Different?',
       eduLine1: "TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.",
@@ -2167,26 +2220,26 @@ const translations = {
       jainAvailable: '🟢 Jain options available',
       family1Title: 'Coal-Roasted Khichiya',
       family1Sub: 'Classic dry-roasted snack, eaten as-is — no gravy.',
+      family1TitleShort: 'Traditional',
       family2Title: 'Signature Coal-Cooked Cheese Gravy',
       family2Sub: 'Our hero product — gravy for dipping, not poured on top.',
+      family2TitleShort: 'Signature',
       jainPrepAvailable: 'Jain Preparation Available',
       bestseller: 'Bestseller',
       extrasLabel: 'Extra (Signature Gravy items)',
-      flourNote: 'Maida and Whole Wheat (Gehu Atta) options available on selected items. Please inform us while ordering.',
       noOnion: 'No Onion Option Available',
       wholeWheat: 'Whole Wheat (Gehu Atta) on Selected Items',
-      extraCheeseChip: 'Extra Cheese Available',
-      extraGravyChip: 'Extra Gravy Available',
       seasonalVeg: 'Seasonal Vegetable Variations',
-      hours: 'Open on Weekend · Evening to Late Night',
+      hours: '📍 Open on Weekend · Evening to Late Night',
+      priceMini: 'Mini ₹30',
       whatsapp: 'WhatsApp', instagram: 'Instagram', googleReview: 'Google Review',
-      classicKhichiya: { name:'Classic Khichiya', desc:'Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.', price:'Mini ₹30<br>Large ₹50' },
-      masalaKhichiya: { name:'Masala Khichiya', desc:'Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.', price:'Mini ₹80<br>Large ₹120' },
-      cheeseMasalaKhichiya: { name:'Cheese Masala Khichiya', desc:'Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.', price:'Mini ₹100<br>Large ₹140' },
-      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.', price:'Mini ₹120<br>Large ₹160' },
-      cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.', price:'Mini ₹140<br>Large ₹180' },
-      extraCheese: { name:'Cheese', desc:'Extra cheese melted into your gravy.' },
-      extraGravy: { name:'Extra Gravy', desc:'More of the hero product — for when the Khichiya runs out first.' }
+      classicKhichiya: { name:'Classic Khichiya', desc:'Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.', descShort:'Butter and our signature spice blend.', price:'Mini ₹30<br>Large ₹50', priceLarge:'Large ₹50' },
+      masalaKhichiya: { name:'Masala Khichiya', desc:'Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.', descShort:'Chutney, fresh veg, chana dal, sev.', price:'Mini ₹80<br>Large ₹120', priceMini:'Mini ₹80', priceLarge:'Large ₹120' },
+      cheeseMasalaKhichiya: { name:'Cheese Masala Khichiya', desc:'Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.', descShort:'Masala Khichiya topped with melted cheese.', price:'Mini ₹100<br>Large ₹140', priceMini:'Mini ₹100', priceLarge:'Large ₹140' },
+      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.', descShort:'Creamy coal-cooked cheese gravy, served for dipping.', price:'Mini ₹120<br>Large ₹160', priceLarge:'Large ₹160' },
+      cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.', descShort:'Extra cheese, even richer and creamier.', price:'Mini ₹140<br>Large ₹180', priceMini:'Mini ₹140', priceLarge:'Large ₹180' },
+      extraCheese: { name:'Cheese', desc:'Extra cheese melted into your gravy.', descShort:'Extra cheese melted in.' },
+      extraGravy: { name:'Extra Gravy', desc:'More of the hero product — for when the Khichiya runs out first.', descShort:'More of the hero product.' }
     },
     install: {
       androidTitle: 'Install TKG Customer OS',
@@ -2203,6 +2256,12 @@ const translations = {
   },
 
   gu: {
+    hero: {
+      lineCoal: 'કોલ-કૂક્ડ',
+      lineGravy: 'ચીઝી ગ્રેવી',
+      lineKhichiya: 'ડિપિંગ માટે ખીચિયા',
+      statement: '🔥 ગ્રેવી જ હીરો છે'
+    },
     reg: {
       eyebrow: 'જોડાયેલા રહો',
       title: 'રજિસ્ટર કરો અને <em>અપડેટ્સ મેળવો.</em>',
@@ -2244,10 +2303,7 @@ const translations = {
       closeBtn: 'બંધ કરો'
     },
     menu: {
-      greet: '— ધ ખીચિયા ગ્રેવી —',
       title: 'કોલ-કૂક્ડ ચીઝ ગ્રેવી.<br>ડિપિંગ માટે રોસ્ટેડ ખીચિયા.',
-      hookTitle: '🔥 TKG ગ્રેવી શું છે?',
-      hookLine: 'અમારી સિગ્નેચર ચીઝ ગ્રેવી કોલસાની આગ પર તાજી બનાવવામાં આવે છે અને ડિપિંગ માટે રોસ્ટેડ ખીચિયા સાથે અલગથી પીરસવામાં આવે છે.',
       hookPunch: 'ઉપર નથી રેડાતી.<br>ડિપ કરો. સ્કૂપ કરો. માણો.',
       eduTitle: 'TKG ને અલગ શું બનાવે છે?',
       eduLine1: 'TKG ની સિગ્નેચર ચીઝ ગ્રેવી શાકભાજી, મસાલા, જડીબુટ્ટીઓ અને દૂધનો ઉપયોગ કરીને અસલ કોલસાની આગ પર તાજી તૈયાર કરવામાં આવે છે જેથી એક રિચ સ્મોકી સ્વાદ મળે.',
@@ -2255,26 +2311,26 @@ const translations = {
       jainAvailable: '🟢 જૈન ઓપ્શન ઉપલબ્ધ',
       family1Title: 'કોલ-રોસ્ટેડ ખીચિયા',
       family1Sub: 'ક્લાસિક ડ્રાય-રોસ્ટેડ નાસ્તો, એમ જ ખાવામાં આવે છે — ગ્રેવી વગર.',
+      family1TitleShort: 'ટ્રેડિશનલ',
       family2Title: 'સિગ્નેચર કોલ-કૂક્ડ ચીઝ ગ્રેવી',
       family2Sub: 'અમારું મુખ્ય પ્રોડક્ટ — ડિપિંગ માટેની ગ્રેવી, ઉપર રેડાતી નથી.',
+      family2TitleShort: 'સિગ્નેચર',
       jainPrepAvailable: 'જૈન પ્રિપરેશન ઉપલબ્ધ',
       bestseller: 'બેસ્ટસેલર',
       extrasLabel: 'એક્સ્ટ્રા (સિગ્નેચર ગ્રેવી આઇટમ્સ)',
-      flourNote: 'મેંદો અને ઘઉંનો (ગહુ આટા) ઓપ્શન પસંદગીની આઇટમ્સ પર ઉપલબ્ધ છે. ઓર્ડર કરતી વખતે કૃપા કરી જણાવો.',
       noOnion: 'નો-ઓનિયન ઓપ્શન ઉપલબ્ધ',
       wholeWheat: 'પસંદગીની આઇટમ્સ પર ઘઉંનો (ગહુ આટા)',
-      extraCheeseChip: 'એક્સ્ટ્રા ચીઝ ઉપલબ્ધ',
-      extraGravyChip: 'એક્સ્ટ્રા ગ્રેવી ઉપલબ્ધ',
       seasonalVeg: 'સીઝનલ શાકભાજી વેરિએશન',
-      hours: 'વીકએન્ડ પર ખુલ્લું · સાંજથી મોડી રાત સુધી',
+      hours: '📍 વીકએન્ડ પર ખુલ્લું · સાંજથી મોડી રાત સુધી',
+      priceMini: 'મિની ₹30',
       whatsapp: 'વોટ્સએપ', instagram: 'ઇન્સ્ટાગ્રામ', googleReview: 'ગૂગલ રિવ્યુ',
-      classicKhichiya: { name:'ક્લાસિક ખીચિયા', desc:'તાજા કોલ-રોસ્ટેડ ખીચિયા, બટર અને અમારા સિગ્નેચર મસાલા સાથે તૈયાર. સિમ્પલ, ક્રિસ્પી અને પહેલી વાર આવતા મુલાકાતીઓ માટે પરફેક્ટ.', price:'મિની ₹30<br>લાર્જ ₹50' },
-      masalaKhichiya: { name:'મસાલા ખીચિયા', desc:'કોલ-રોસ્ટેડ ખીચિયા, ચટણી, તાજા શાકભાજી, ચણા દાળ, સેવ અને પરંપરાગત સ્ટ્રીટ-ફૂડ સ્વાદ સાથે લેયર કરેલા.', price:'મિની ₹80<br>લાર્જ ₹120' },
-      cheeseMasalaKhichiya: { name:'ચીઝ મસાલા ખીચિયા', desc:'અમારા પરંપરાગત મસાલા ખીચિયા પર પીગળેલું ચીઝ — વધુ રિચ અને સ્વાદિષ્ટ.', price:'મિની ₹100<br>લાર્જ ₹140' },
-      signatureGravy: { name:'સિગ્નેચર ગ્રેવી ખીચિયા', desc:'અમારી સિગ્નેચર ક્રીમી ચીઝ ગ્રેવી, શાકભાજી, મસાલા અને દૂધ સાથે અસલ કોલસાની આગ પર તાજી તૈયાર. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', price:'મિની ₹120<br>લાર્જ ₹160' },
-      cheesySignatureGravy: { name:'ચીઝી સિગ્નેચર ગ્રેવી ખીચિયા', desc:'સિગ્નેચર ગ્રેવી ખીચિયા જેવું જ, એક્સ્ટ્રા ચીઝ સાથે વધુ રિચ અને ક્રીમી અનુભવ માટે. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', price:'મિની ₹140<br>લાર્જ ₹180' },
-      extraCheese: { name:'ચીઝ', desc:'તમારી ગ્રેવીમાં વધારાનું પીગળેલું ચીઝ.' },
-      extraGravy: { name:'એક્સ્ટ્રા ગ્રેવી', desc:'મુખ્ય પ્રોડક્ટની વધુ માત્રા — જ્યારે ખીચિયા પહેલા ખલાસ થઈ જાય ત્યારે.' }
+      classicKhichiya: { name:'ક્લાસિક ખીચિયા', desc:'તાજા કોલ-રોસ્ટેડ ખીચિયા, બટર અને અમારા સિગ્નેચર મસાલા સાથે તૈયાર. સિમ્પલ, ક્રિસ્પી અને પહેલી વાર આવતા મુલાકાતીઓ માટે પરફેક્ટ.', descShort:'બટર અને અમારા સિગ્નેચર મસાલા સાથે.', price:'મિની ₹30<br>લાર્જ ₹50', priceLarge:'લાર્જ ₹50' },
+      masalaKhichiya: { name:'મસાલા ખીચિયા', desc:'કોલ-રોસ્ટેડ ખીચિયા, ચટણી, તાજા શાકભાજી, ચણા દાળ, સેવ અને પરંપરાગત સ્ટ્રીટ-ફૂડ સ્વાદ સાથે લેયર કરેલા.', descShort:'ચટણી, તાજા શાકભાજી, ચણા દાળ, સેવ.', price:'મિની ₹80<br>લાર્જ ₹120', priceMini:'મિની ₹80', priceLarge:'લાર્જ ₹120' },
+      cheeseMasalaKhichiya: { name:'ચીઝ મસાલા ખીચિયા', desc:'અમારા પરંપરાગત મસાલા ખીચિયા પર પીગળેલું ચીઝ — વધુ રિચ અને સ્વાદિષ્ટ.', descShort:'મસાલા ખીચિયા પર પીગળેલું ચીઝ.', price:'મિની ₹100<br>લાર્જ ₹140', priceMini:'મિની ₹100', priceLarge:'લાર્જ ₹140' },
+      signatureGravy: { name:'સિગ્નેચર ગ્રેવી ખીચિયા', desc:'અમારી સિગ્નેચર ક્રીમી ચીઝ ગ્રેવી, શાકભાજી, મસાલા અને દૂધ સાથે અસલ કોલસાની આગ પર તાજી તૈયાર. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', descShort:'ક્રીમી કોલ-કૂક્ડ ચીઝ ગ્રેવી, ડિપિંગ માટે પીરસવામાં આવે છે.', price:'મિની ₹120<br>લાર્જ ₹160', priceLarge:'લાર્જ ₹160' },
+      cheesySignatureGravy: { name:'ચીઝી સિગ્નેચર ગ્રેવી ખીચિયા', desc:'સિગ્નેચર ગ્રેવી ખીચિયા જેવું જ, એક્સ્ટ્રા ચીઝ સાથે વધુ રિચ અને ક્રીમી અનુભવ માટે. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', descShort:'એક્સ્ટ્રા ચીઝ સાથે, વધુ રિચ અને ક્રીમી.', price:'મિની ₹140<br>લાર્જ ₹180', priceMini:'મિની ₹140', priceLarge:'લાર્જ ₹180' },
+      extraCheese: { name:'ચીઝ', desc:'તમારી ગ્રેવીમાં વધારાનું પીગળેલું ચીઝ.', descShort:'વધારાનું પીગળેલું ચીઝ.' },
+      extraGravy: { name:'એક્સ્ટ્રા ગ્રેવી', desc:'મુખ્ય પ્રોડક્ટની વધુ માત્રા — જ્યારે ખીચિયા પહેલા ખલાસ થઈ જાય ત્યારે.', descShort:'મુખ્ય પ્રોડક્ટની વધુ માત્રા.' }
     },
     install: {
       androidTitle: 'TKG Customer OS ઇન્સ્ટોલ કરો',
@@ -2291,6 +2347,12 @@ const translations = {
   },
 
   hi: {
+    hero: {
+      lineCoal: 'कोल-कुक्ड',
+      lineGravy: 'चीज़ी ग्रेवी',
+      lineKhichiya: 'डिपिंग के लिए खिचिया',
+      statement: '🔥 ग्रेवी ही हीरो है'
+    },
     reg: {
       eyebrow: 'जुड़े रहें',
       title: 'रजिस्टर करें और <em>अपडेट्स पाएं.</em>',
@@ -2332,10 +2394,7 @@ const translations = {
       closeBtn: 'बंद करें'
     },
     menu: {
-      greet: '— द खिचिया ग्रेवी —',
       title: 'कोल-कुक्ड चीज़ ग्रेवी.<br>डिपिंग के लिए रोस्टेड खिचिया.',
-      hookTitle: '🔥 TKG ग्रेवी क्या है?',
-      hookLine: 'हमारी सिग्नेचर चीज़ ग्रेवी कोयले की आग पर ताज़ा बनाई जाती है और डिपिंग के लिए रोस्टेड खिचिया के साथ अलग से सर्व की जाती है.',
       hookPunch: 'ऊपर से नहीं डाली जाती.<br>डिप करें. स्कूप करें. एंजॉय करें.',
       eduTitle: 'TKG को अलग क्या बनाता है?',
       eduLine1: 'TKG की सिग्नेचर चीज़ ग्रेवी सब्ज़ियों, मसालों, जड़ी-बूटियों और दूध का उपयोग करके असली कोयले की आग पर ताज़ा तैयार की जाती है, जिससे एक भरपूर स्मोकी स्वाद मिलता है.',
@@ -2343,26 +2402,26 @@ const translations = {
       jainAvailable: '🟢 जैन ऑप्शन उपलब्ध',
       family1Title: 'कोल-रोस्टेड खिचिया',
       family1Sub: 'क्लासिक ड्राय-रोस्टेड स्नैक, वैसे ही खाया जाता है — बिना ग्रेवी.',
+      family1TitleShort: 'ट्रेडिशनल',
       family2Title: 'सिग्नेचर कोल-कुक्ड चीज़ ग्रेवी',
       family2Sub: 'हमारा मुख्य प्रोडक्ट — डिपिंग के लिए ग्रेवी, ऊपर से नहीं डाली जाती.',
+      family2TitleShort: 'सिग्नेचर',
       jainPrepAvailable: 'जैन तैयारी उपलब्ध',
       bestseller: 'बेस्टसेलर',
       extrasLabel: 'एक्स्ट्रा (सिग्नेचर ग्रेवी आइटम्स)',
-      flourNote: 'मैदा और गेहूं के आटे का ऑप्शन चुनी हुई आइटम्स पर उपलब्ध है. ऑर्डर करते समय कृपया बताएं.',
       noOnion: 'नो-ओनियन ऑप्शन उपलब्ध',
       wholeWheat: 'चुनी हुई आइटम्स पर गेहूं का आटा',
-      extraCheeseChip: 'एक्स्ट्रा चीज़ उपलब्ध',
-      extraGravyChip: 'एक्स्ट्रा ग्रेवी उपलब्ध',
       seasonalVeg: 'सीज़नल सब्ज़ी वेरिएशन',
-      hours: 'वीकेंड पर खुला · शाम से देर रात तक',
+      hours: '📍 वीकेंड पर खुला · शाम से देर रात तक',
+      priceMini: 'मिनी ₹30',
       whatsapp: 'व्हाट्सएप', instagram: 'इंस्टाग्राम', googleReview: 'गूगल रिव्यू',
-      classicKhichiya: { name:'क्लासिक खिचिया', desc:'ताज़े कोल-रोस्टेड खिचिया, बटर और हमारे सिग्नेचर मसाले के साथ तैयार. सिंपल, क्रिस्पी और पहली बार आने वालों के लिए परफेक्ट.', price:'मिनी ₹30<br>लार्ज ₹50' },
-      masalaKhichiya: { name:'मसाला खिचिया', desc:'कोल-रोस्टेड खिचिया, चटनी, ताज़ी सब्ज़ियों, चना दाल, सेव और पारंपरिक स्ट्रीट-फूड स्वाद के साथ लेयर्ड.', price:'मिनी ₹80<br>लार्ज ₹120' },
-      cheeseMasalaKhichiya: { name:'चीज़ मसाला खिचिया', desc:'हमारे पारंपरिक मसाला खिचिया पर पिघला हुआ चीज़ — ज़्यादा भरपूर और स्वादिष्ट.', price:'मिनी ₹100<br>लार्ज ₹140' },
-      signatureGravy: { name:'सिग्नेचर ग्रेवी खिचिया', desc:'हमारी सिग्नेचर क्रीमी चीज़ ग्रेवी, सब्ज़ियों, मसालों और दूध के साथ असली कोयले की आग पर ताज़ा तैयार. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', price:'मिनी ₹120<br>लार्ज ₹160' },
-      cheesySignatureGravy: { name:'चीज़ी सिग्नेचर ग्रेवी खिचिया', desc:'सिग्नेचर ग्रेवी खिचिया जैसा ही, एक्स्ट्रा चीज़ के साथ और भी भरपूर और क्रीमी अनुभव के लिए. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', price:'मिनी ₹140<br>लार्ज ₹180' },
-      extraCheese: { name:'चीज़', desc:'आपकी ग्रेवी में एक्स्ट्रा पिघला हुआ चीज़.' },
-      extraGravy: { name:'एक्स्ट्रा ग्रेवी', desc:'मुख्य प्रोडक्ट की ज़्यादा मात्रा — जब खिचिया पहले खत्म हो जाए तब के लिए.' }
+      classicKhichiya: { name:'क्लासिक खिचिया', desc:'ताज़े कोल-रोस्टेड खिचिया, बटर और हमारे सिग्नेचर मसाले के साथ तैयार. सिंपल, क्रिस्पी और पहली बार आने वालों के लिए परफेक्ट.', descShort:'बटर और हमारे सिग्नेचर मसाले के साथ.', price:'मिनी ₹30<br>लार्ज ₹50', priceLarge:'लार्ज ₹50' },
+      masalaKhichiya: { name:'मसाला खिचिया', desc:'कोल-रोस्टेड खिचिया, चटनी, ताज़ी सब्ज़ियों, चना दाल, सेव और पारंपरिक स्ट्रीट-फूड स्वाद के साथ लेयर्ड.', descShort:'चटनी, ताज़ी सब्ज़ियाँ, चना दाल, सेव.', price:'मिनी ₹80<br>लार्ज ₹120', priceMini:'मिनी ₹80', priceLarge:'लार्ज ₹120' },
+      cheeseMasalaKhichiya: { name:'चीज़ मसाला खिचिया', desc:'हमारे पारंपरिक मसाला खिचिया पर पिघला हुआ चीज़ — ज़्यादा भरपूर और स्वादिष्ट.', descShort:'मसाला खिचिया पर पिघला हुआ चीज़.', price:'मिनी ₹100<br>लार्ज ₹140', priceMini:'मिनी ₹100', priceLarge:'लार्ज ₹140' },
+      signatureGravy: { name:'सिग्नेचर ग्रेवी खिचिया', desc:'हमारी सिग्नेचर क्रीमी चीज़ ग्रेवी, सब्ज़ियों, मसालों और दूध के साथ असली कोयले की आग पर ताज़ा तैयार. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', descShort:'क्रीमी कोल-कुक्ड चीज़ ग्रेवी, डिपिंग के लिए सर्व की जाती है.', price:'मिनी ₹120<br>लार्ज ₹160', priceLarge:'लार्ज ₹160' },
+      cheesySignatureGravy: { name:'चीज़ी सिग्नेचर ग्रेवी खिचिया', desc:'सिग्नेचर ग्रेवी खिचिया जैसा ही, एक्स्ट्रा चीज़ के साथ और भी भरपूर और क्रीमी अनुभव के लिए. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', descShort:'एक्स्ट्रा चीज़ के साथ, और भी भरपूर और क्रीमी.', price:'मिनी ₹140<br>लार्ज ₹180', priceMini:'मिनी ₹140', priceLarge:'लार्ज ₹180' },
+      extraCheese: { name:'चीज़', desc:'आपकी ग्रेवी में एक्स्ट्रा पिघला हुआ चीज़.', descShort:'एक्स्ट्रा पिघला हुआ चीज़.' },
+      extraGravy: { name:'एक्स्ट्रा ग्रेवी', desc:'मुख्य प्रोडक्ट की ज़्यादा मात्रा — जब खिचिया पहले खत्म हो जाए तब के लिए.', descShort:'मुख्य प्रोडक्ट की ज़्यादा मात्रा.' }
     },
     install: {
       androidTitle: 'TKG Customer OS इंस्टॉल करें',
