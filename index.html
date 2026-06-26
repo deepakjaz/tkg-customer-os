@@ -17,22 +17,42 @@
    White marble / Coal ember orange / Black charcoal / Warm gold
    ========================================================================== */
 :root{
-  --charcoal:       #0E0C0B;
-  --charcoal-soft:  #1A1614;
-  --ember-card:     #211C19;
-  --ember-card-top: #261F1B;
+  /* ---- DARK PALETTE \u2014 used by the Owner Dashboard (#screen-dash).
+     Re-calibrated to the TKG logo's own charcoal (sampled directly from
+     the logo file: a warm red-brown black, not a neutral grey-black). ---- */
+  --charcoal:       #160F0C;
+  --charcoal-soft:  #221813;
+  --ember-card:     #2A1E17;
+  --ember-card-top: #32241B;
   --marble:         #FAF7F2;
   --marble-dim:     #EFEAE1;
   --marble-warm:    #FBF4EA;
+  --grey-line:      #3D2E24;
+
+  /* ---- LIGHT PALETTE — the customer-facing shell, cards, sheets.
+     White/warm-ivory marble base, charcoal text, ember reserved for
+     small accents per direction: "subtle, charcoal does the heavy lifting." ---- */
+  --stone-base:      #F4F1EC;   /* shell background base, warm off-white */
+  --stone-card:      #FFFFFF;   /* cards sit a shade lighter than the shell */
+  --stone-card-alt:  #FBF9F5;   /* secondary card tone for subtle layering */
+  --stone-vein:      #C7BFB2;   /* marble crack-vein color, warm grey */
+  --stone-vein-soft: #DCD5C8;
+  --stone-line:      #E3DDD2;   /* hairline borders on light surfaces */
+  --ink:             #1C1815;   /* primary text \u2014 near-black, warm */
+  --ink-soft:        #6B6256;   /* secondary text, warm grey-brown */
+  --ink-faint:       #9C9286;   /* tertiary text, placeholders */
+
+  /* ---- ACCENTS \u2014 shared by both palettes, used sparingly on light ---- */
   --ember:          #E85D2C;
   --ember-bright:   #FF7A45;
   --ember-deep:     #B8431D;
+  --ember-glow:     #FAC646;   /* sampled from the TKG logo halo \u2014 warm gold-amber */
   --gold:           #C9A24B;
   --gold-bright:    #E0C170;
+  --gold-deep:      #8F7430;   /* new \u2014 readable gold-on-white for text */
   --grey-warm:      #8A8278;
-  --grey-line:      #332C26;
-  --success:        #5C8A5C;
-  --danger:         #C24545;
+  --success:        #4C7A4C;   /* slightly deepened for readability on white */
+  --danger:         #B5392F;   /* slightly deepened for readability on white */
 
   --radius-lg: 18px;
   --radius-md: 12px;
@@ -46,8 +66,8 @@
 
 *{box-sizing:border-box; margin:0; padding:0;}
 html,body{
-  background:var(--charcoal);
-  color:var(--marble);
+  background:var(--stone-base);
+  color:var(--ink);
   font-family:var(--font-body);
   -webkit-tap-highlight-color:transparent;
   height:100%;
@@ -67,47 +87,60 @@ input{font-family:inherit;}
 }
 
 /* ==========================================================================
-   SHELL
+   SHELL — white/warm-ivory marble, inspired by the stall counter.
+   Built entirely from CSS gradients: no image asset, no HTTP request,
+   scales cleanly at any density. Charcoal vein lines at varied angles
+   (not repeating, so it doesn't look like a pattern) plus two small
+   "fracture point" convergences echo the photographed reference.
    ========================================================================== */
 .shell{
   width:100%;
   max-width:var(--max-w);
   min-height:100vh;
   min-height:100dvh;
-  background:var(--charcoal);
+  background:var(--stone-base);
   position:relative;
   display:flex;
   flex-direction:column;
   background-image:
-    radial-gradient(ellipse 120% 50% at 50% 0%, rgba(232,93,44,0.09), transparent 60%),
-    radial-gradient(ellipse 90% 60% at 8% 100%, rgba(184,67,29,0.07), transparent 65%),
-    linear-gradient(115deg, transparent 22%, rgba(232,93,44,0.025) 23%, transparent 24%),
-    linear-gradient(68deg, transparent 41%, rgba(255,255,255,0.018) 41.5%, transparent 42.5%),
-    linear-gradient(155deg, transparent 65%, rgba(232,93,44,0.02) 66%, transparent 67.5%),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
-  background-attachment:fixed, fixed, fixed, fixed, fixed, local;
+    /* warm gold pooling, top \u2014 sampled from the TKG logo's coal-ring halo */
+    radial-gradient(ellipse 110% 40% at 50% 0%, rgba(250,198,70,0.07), transparent 60%),
+    /* fracture-point convergences \u2014 small darker clusters where veins meet */
+    radial-gradient(ellipse 18% 10% at 78% 14%, rgba(120,108,92,0.16), transparent 70%),
+    radial-gradient(ellipse 14% 8% at 14% 62%, rgba(120,108,92,0.13), transparent 70%),
+    /* branching crack veins \u2014 varied angles so they read as organic, not a repeating pattern */
+    linear-gradient(124deg, transparent 11%, rgba(124,112,96,0.10) 11.4%, transparent 12%),
+    linear-gradient(124deg, transparent 11.6%, rgba(124,112,96,0.07) 12%, transparent 12.6%),
+    linear-gradient(82deg, transparent 31%, rgba(124,112,96,0.09) 31.4%, transparent 32%),
+    linear-gradient(96deg, transparent 47%, rgba(124,112,96,0.08) 47.3%, transparent 47.9%),
+    linear-gradient(151deg, transparent 58%, rgba(124,112,96,0.10) 58.4%, transparent 59%),
+    linear-gradient(67deg, transparent 69%, rgba(124,112,96,0.08) 69.4%, transparent 70%),
+    linear-gradient(140deg, transparent 84%, rgba(124,112,96,0.09) 84.4%, transparent 85%),
+    /* fine paper-like grain, very low opacity */
+    repeating-linear-gradient(0deg, rgba(28,24,21,0.01) 0px, rgba(28,24,21,0.01) 1px, transparent 1px, transparent 3px);
+  background-attachment:fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, local;
 }
 
-/* Ambient ember effect — one extremely subtle breathing glow, low enough
-   opacity that it reads as atmosphere, not animation. Pure CSS, no assets,
-   GPU-cheap (opacity only), and disabled automatically under
-   prefers-reduced-motion via the global rule above. */
+/* Ambient warmth — a soft gold-amber glow low in the shell, matched to
+   the TKG logo's halo color, evoking light pooling near a coal grill
+   against the white stone. Opacity-only animation (GPU-cheap), disabled
+   automatically under prefers-reduced-motion. */
 .shell::before{
   content:'';
   position:fixed;
   left:50%;
-  bottom:-10%;
+  bottom:-6%;
   transform:translateX(-50%);
   width:140%;
   max-width:600px;
-  height:45%;
-  background:radial-gradient(ellipse at center, rgba(232,93,44,0.10), transparent 70%);
+  height:38%;
+  background:radial-gradient(ellipse at center, rgba(250,198,70,0.06), transparent 72%);
   pointer-events:none;
   z-index:0;
   animation:ember-breathe 7s ease-in-out infinite;
 }
 @keyframes ember-breathe{
-  0%, 100%{opacity:0.55;}
+  0%, 100%{opacity:0.5;}
   50%{opacity:1;}
 }
 
@@ -125,7 +158,7 @@ input{font-family:inherit;}
   font-weight:800;
   font-size:22px;
   letter-spacing:0.06em;
-  color:var(--marble);
+  color:var(--ink);
   display:flex;
   align-items:baseline;
   gap:7px;
@@ -135,7 +168,7 @@ input{font-family:inherit;}
   font-weight:500;
   font-size:10px;
   letter-spacing:0.18em;
-  color:var(--grey-warm);
+  color:var(--ink-soft);
   text-transform:uppercase;
 }
 
@@ -145,11 +178,11 @@ input{font-family:inherit;}
   gap:7px;
   font-size:11px;
   letter-spacing:0.04em;
-  color:var(--grey-warm);
+  color:var(--ink-soft);
   padding:6px 10px;
   border-radius:20px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid var(--grey-line);
+  background:rgba(28,24,21,0.035);
+  border:1px solid var(--stone-line);
 }
 .topbar-right{
   display:flex;
@@ -163,7 +196,7 @@ input{font-family:inherit;}
   font-size:11.5px;
   font-weight:700;
   letter-spacing:0.02em;
-  color:var(--marble-warm);
+  color:var(--ember-deep);
   padding:6px 11px;
   border-radius:20px;
   background:rgba(232,93,44,0.07);
@@ -186,10 +219,10 @@ input{font-family:inherit;}
   transform:translate(-50%, 100%);
   width:100%;
   max-width:var(--max-w);
-  background:var(--charcoal);
+  background:var(--stone-base);
   border-radius:22px 22px 0 0;
   padding:10px 20px calc(24px + env(safe-area-inset-bottom, 0px));
-  box-shadow:0 -10px 40px rgba(0,0,0,0.5);
+  box-shadow:0 -10px 40px rgba(28,24,21,0.18);
   transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   z-index:160;
 }
@@ -198,7 +231,7 @@ input{font-family:inherit;}
   font-family:var(--font-display);
   font-weight:800;
   font-size:18px;
-  color:var(--marble);
+  color:var(--ink);
   text-align:center;
   margin:6px 0 16px;
 }
@@ -207,15 +240,16 @@ input{font-family:inherit;}
   display:flex;
   align-items:center;
   justify-content:space-between;
-  background:var(--ember-card);
-  border:1.5px solid var(--grey-line);
+  background:var(--stone-card);
+  border:1.5px solid var(--stone-line);
   border-radius:var(--radius-md);
   padding:15px 16px;
   margin-bottom:10px;
-  color:var(--marble);
+  color:var(--ink);
+  box-shadow:0 1px 2px rgba(28,24,21,0.06);
 }
 .lang-option-native{font-size:15px; font-weight:700;}
-.lang-option-check{opacity:0; color:var(--ember-bright); font-weight:800; font-size:16px;}
+.lang-option-check{opacity:0; color:var(--ember); font-weight:800; font-size:16px;}
 .lang-option.selected{border-color:var(--ember);}
 .lang-option.selected .lang-option-check{opacity:1;}
 .ember-dot{
@@ -274,27 +308,27 @@ input{font-family:inherit;}
   font-size:30px;
   line-height:1.15;
   letter-spacing:-0.01em;
-  color:var(--marble);
+  color:var(--ink);
 }
 .hero-title em{
-  color:var(--ember-bright);
+  color:var(--ember);
   font-style:normal;
 }
 .hero-sub{
   margin-top:10px;
   font-size:14px;
-  color:var(--grey-warm);
+  color:var(--ink-soft);
   line-height:1.5;
 }
 
 .reg-card{
-  background:var(--marble-warm);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
   border-radius:var(--radius-lg);
   padding:24px 20px 22px;
   box-shadow:
-    0 1px 2px rgba(0,0,0,0.2),
-    0 18px 40px -12px rgba(0,0,0,0.5),
-    0 0 0 1px rgba(255,255,255,0.4) inset;
+    0 1px 2px rgba(28,24,21,0.06),
+    0 10px 28px -12px rgba(28,24,21,0.16);
   border-top:3px solid var(--ember);
 }
 .field-group{margin-bottom:16px;}
@@ -303,7 +337,7 @@ input{font-family:inherit;}
   font-size:12px;
   font-weight:700;
   letter-spacing:0.04em;
-  color:var(--charcoal);
+  color:var(--ink);
   margin-bottom:7px;
   text-transform:uppercase;
 }
@@ -313,7 +347,7 @@ input{font-family:inherit;}
   border-radius:var(--radius-md);
   border:1.5px solid #E2DDD3;
   background:#FFFFFF;
-  color:var(--charcoal);
+  color:var(--ink);
   font-size:16px;
   outline:none;
   transition:border-color 0.15s ease, box-shadow 0.15s ease;
@@ -354,11 +388,11 @@ textarea.field-input{
   font-family:var(--font-display);
   font-weight:800;
   font-size:20px;
-  color:var(--marble);
+  color:var(--ink);
 }
 .thanks-sub{
   font-size:13px;
-  color:var(--grey-warm);
+  color:var(--ink-soft);
   margin-top:6px;
   line-height:1.5;
 }
@@ -379,7 +413,7 @@ textarea.field-input{
 .action-card .ac-title{
   font-size:13.5px;
   font-weight:700;
-  color:var(--charcoal);
+  color:var(--ink);
 }
 .action-card .ac-sub{
   font-size:11px;
@@ -467,7 +501,7 @@ textarea.field-input{
   padding:11px 14px;
   margin-bottom:16px;
   font-size:13px;
-  color:var(--gold-bright);
+  color:var(--gold-deep);
 }
 .welcome-chip.show{display:flex;}
 .welcome-chip .wc-icon{font-size:16px;}
@@ -478,7 +512,7 @@ textarea.field-input{
 .overlay-backdrop{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.55);
+  background:rgba(28,24,21,0.45);
   opacity:0;
   pointer-events:none;
   transition:opacity 0.25s ease;
@@ -498,10 +532,10 @@ textarea.field-input{
   max-width:var(--max-w);
   max-height:88vh;
   overflow-y:auto;
-  background:var(--charcoal);
+  background:var(--stone-base);
   border-radius:22px 22px 0 0;
   padding:10px 20px 28px;
-  box-shadow:0 -10px 40px rgba(0,0,0,0.5);
+  box-shadow:0 -10px 40px rgba(28,24,21,0.22);
   transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   z-index:160;
   -webkit-overflow-scrolling:touch;
@@ -535,7 +569,7 @@ textarea.field-input{
   border-radius:20px;
   border:1.5px solid #E2DDD3;
   background:#FFFFFF;
-  color:var(--charcoal);
+  color:var(--ink);
   font-size:12.5px;
   font-weight:600;
 }
@@ -550,7 +584,7 @@ textarea.field-input{
    ========================================================================== */
 .app-hero{
   padding-top:2px;
-  margin-bottom:16px;
+  margin-bottom:14px;
 }
 .app-hero-location{
   font-size:11.5px;
@@ -558,7 +592,7 @@ textarea.field-input{
   text-transform:uppercase;
   color:var(--grey-warm);
   font-weight:600;
-  margin-bottom:10px;
+  margin-bottom:8px;
   display:flex;
   align-items:center;
   gap:5px;
@@ -572,26 +606,19 @@ textarea.field-input{
 .app-hero-headline .line-coal{
   display:block;
   font-size:21px;
-  color:var(--marble-dim);
+  color:var(--ink-soft);
 }
 .app-hero-headline .line-gravy{
   display:block;
   font-size:42px;
-  color:var(--ember-bright);
+  color:var(--ember-deep);
   margin:2px 0;
 }
 .app-hero-headline .line-khichiya{
   display:block;
   font-size:17px;
   font-weight:600;
-  color:var(--grey-warm);
-}
-.app-hero-statement{
-  margin-top:12px;
-  font-size:13px;
-  font-weight:600;
-  color:var(--gold-bright);
-  letter-spacing:0.01em;
+  color:var(--ink-soft);
 }
 .app-hero-row{
   display:flex;
@@ -603,9 +630,9 @@ textarea.field-input{
   flex-shrink:0;
   width:32px; height:32px;
   border-radius:50%;
-  background:rgba(255,255,255,0.05);
-  border:1px solid var(--grey-line);
-  color:var(--grey-warm);
+  background:rgba(28,24,21,0.035);
+  border:1px solid var(--stone-line);
+  color:var(--ink-soft);
   font-size:14px;
   font-weight:700;
   display:flex;
@@ -613,22 +640,31 @@ textarea.field-input{
   justify-content:center;
   margin-top:2px;
 }
-.info-btn:active{background:rgba(255,255,255,0.1);}
+.info-btn:active{background:rgba(28,24,21,0.07);}
 
-/* Story strip — compact 3-step visual explainer beneath the hero statement.
-   Left-aligned to match the rest of the hero (not centered like the
-   Gemini reference) so it sits naturally above the menu tabs. */
+/* Story strip — compact 3-step visual explainer directly beneath the
+   headline. Carries the "Gravy is the Hero" punch as its lead-in label
+   instead of repeating it as a separate line, so the hero reads in two
+   beats (headline, then story) instead of three. */
+.hero-story-label{
+  font-size:11px;
+  font-weight:700;
+  color:var(--gold-deep);
+  margin-top:10px;
+  margin-bottom:6px;
+  letter-spacing:0.01em;
+}
 .hero-story-strip{
   display:flex;
   align-items:center;
   gap:6px;
-  margin-top:14px;
   padding:10px 12px;
-  background:rgba(255,255,255,0.025);
-  border:1px solid var(--grey-line);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
   border-radius:var(--radius-md);
   overflow-x:auto;
   scrollbar-width:none;
+  box-shadow:0 1px 2px rgba(28,24,21,0.05);
 }
 .hero-story-strip::-webkit-scrollbar{display:none;}
 .hero-story-strip .story-step{
@@ -638,16 +674,65 @@ textarea.field-input{
   font-size:10.5px;
   font-weight:700;
   letter-spacing:0.02em;
-  color:var(--marble-dim);
+  color:var(--ink-soft);
   white-space:nowrap;
   flex-shrink:0;
 }
 .hero-story-strip .story-step .step-icon{font-size:13px; line-height:1;}
 .hero-story-strip .story-arrow{
-  color:var(--grey-line);
+  color:var(--stone-vein);
   font-size:11px;
   flex-shrink:0;
 }
+
+/* ==========================================================================
+   EXPANDABLE EXPLAINER — "What is TKG Signature Gravy?"
+   Collapsed by default; expands in place (no overlay) so first-time
+   visitors can satisfy curiosity without leaving the menu screen.
+   Reuses the same menu.edu* / menu.hookPunch translation keys as the
+   info sheet, so there is one source of truth for the copy.
+   ========================================================================== */
+.explainer{
+  margin-bottom:16px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  box-shadow:0 1px 2px rgba(28,24,21,0.04);
+  overflow:hidden;
+}
+.explainer-toggle{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:13px 14px;
+  background:none;
+  border:none;
+  text-align:left;
+  font-size:13.5px;
+  font-weight:700;
+  color:var(--ink);
+}
+.explainer-toggle .et-icon{font-size:16px; flex-shrink:0;}
+.explainer-toggle .et-label{flex:1; min-width:0;}
+.explainer-toggle .et-chevron{
+  flex-shrink:0;
+  color:var(--ink-soft);
+  font-size:12px;
+  transition:transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.explainer.open .explainer-toggle .et-chevron{transform:rotate(180deg);}
+.explainer-body{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.explainer.open .explainer-body{max-height:340px;}
+.explainer-body-inner{
+  padding:0 14px 16px;
+}
+.explainer-body-inner .info-sheet-line{font-size:12.5px;}
+.explainer-body-inner .info-sheet-punch{margin-top:10px;}
 
 /* ==========================================================================
    CATEGORY TABS — real switching, Signature default, no page reload
@@ -661,13 +746,14 @@ textarea.field-input{
   flex:1;
   padding:11px 10px;
   border-radius:var(--radius-md);
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
-  color:var(--grey-warm);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  color:var(--ink-soft);
   font-size:13px;
   font-weight:700;
   letter-spacing:0.01em;
   text-align:center;
+  box-shadow:0 1px 2px rgba(28,24,21,0.04);
   transition:background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
 }
 .menu-tab.active{
@@ -716,10 +802,10 @@ textarea.field-input{
 .hours-note{
   text-align:center;
   font-size:12px;
-  color:var(--grey-warm);
+  color:var(--ink-soft);
   margin-top:18px;
   padding-top:14px;
-  border-top:1px solid var(--grey-line);
+  border-top:1px solid var(--stone-line);
 }
 
 /* ==========================================================================
@@ -729,12 +815,12 @@ textarea.field-input{
   font-family:var(--font-display);
   font-weight:800;
   font-size:19px;
-  color:var(--marble);
+  color:var(--ink);
   margin-bottom:12px;
 }
 .info-sheet-line{
   font-size:13px;
-  color:var(--marble-dim);
+  color:var(--ink-soft);
   line-height:1.6;
   margin-bottom:10px;
 }
@@ -742,12 +828,12 @@ textarea.field-input{
 .info-sheet-punch{
   margin-top:14px;
   padding:12px 14px;
-  background:rgba(232,93,44,0.08);
-  border:1px solid rgba(232,93,44,0.25);
+  background:rgba(232,93,44,0.07);
+  border:1px solid rgba(232,93,44,0.22);
   border-radius:var(--radius-md);
   font-size:13px;
   font-weight:700;
-  color:var(--ember-bright);
+  color:var(--ember-deep);
   text-align:center;
 }
 .info-sheet-jain{
@@ -773,22 +859,22 @@ textarea.field-input{
 .extra-chip{
   font-size:11px;
   font-weight:600;
-  color:var(--grey-warm);
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
+  color:var(--ink-soft);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
   padding:6px 12px;
   border-radius:14px;
 }
 .extra-chip.jain{
   color:var(--success);
-  border-color:rgba(92,138,92,0.3);
-  background:rgba(92,138,92,0.08);
+  border-color:rgba(76,122,76,0.3);
+  background:rgba(76,122,76,0.07);
 }
 .extra-chip .extra-chip-price{
   font-family:var(--font-mono);
   font-weight:700;
   margin-left:4px;
-  color:var(--gold-bright);
+  color:var(--gold-deep);
 }
 
 .link-row{
@@ -801,39 +887,42 @@ textarea.field-input{
   text-align:center;
   padding:12px 10px;
   border-radius:var(--radius-md);
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
-  color:var(--marble);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  color:var(--ink);
   font-size:12.5px;
   font-weight:600;
   text-decoration:none;
+  box-shadow:0 1px 2px rgba(28,24,21,0.05);
+  transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 .link-chip:active{
   background:var(--ember);
   border-color:var(--ember);
+  color:var(--marble);
 }
 
 .register-cta{
   margin-top:22px;
-  background:var(--marble-warm);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
   border-radius:var(--radius-lg);
   padding:18px 18px 16px;
   border-top:3px solid var(--gold);
   box-shadow:
-    0 1px 2px rgba(0,0,0,0.16),
-    0 6px 16px -8px rgba(0,0,0,0.3),
-    0 0 0 1px rgba(255,255,255,0.4) inset;
+    0 1px 2px rgba(28,24,21,0.05),
+    0 6px 16px -8px rgba(28,24,21,0.12);
 }
 .register-cta-text{margin-bottom:12px;}
 .register-cta-title{
   font-family:var(--font-display);
   font-weight:800;
   font-size:16px;
-  color:var(--charcoal);
+  color:var(--ink);
 }
 .register-cta-sub{
   font-size:12px;
-  color:#6B6358;
+  color:var(--ink-soft);
   margin-top:3px;
 }
 
@@ -845,22 +934,20 @@ textarea.field-input{
   justify-content:space-between;
   align-items:flex-start;
   gap:12px;
-  background:var(--marble-warm);
-  border:1px solid rgba(0,0,0,0.04);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
   border-radius:var(--radius-lg);
   padding:16px;
   box-shadow:
-    0 1px 2px rgba(0,0,0,0.18),
-    0 8px 20px -10px rgba(0,0,0,0.35),
-    0 0 0 1px rgba(255,255,255,0.4) inset;
+    0 1px 2px rgba(28,24,21,0.06),
+    0 8px 20px -10px rgba(28,24,21,0.14);
   transition:transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease;
 }
 .menu-item:active{
   transform:scale(0.985);
   box-shadow:
-    0 1px 2px rgba(0,0,0,0.16),
-    0 4px 10px -6px rgba(0,0,0,0.3),
-    0 0 0 1px rgba(255,255,255,0.4) inset;
+    0 1px 2px rgba(28,24,21,0.05),
+    0 4px 10px -6px rgba(28,24,21,0.12);
 }
 .menu-item-info{flex:1; min-width:0;}
 .menu-item-top{
@@ -872,7 +959,7 @@ textarea.field-input{
 .menu-item-name{
   font-size:15.5px;
   font-weight:800;
-  color:var(--charcoal);
+  color:var(--ink);
   letter-spacing:-0.01em;
 }
 .menu-item-desc{
@@ -1082,7 +1169,7 @@ textarea.field-input{
   border-radius:var(--radius-md);
   font-size:13px;
   font-weight:600;
-  box-shadow:0 12px 30px -8px rgba(0,0,0,0.5);
+  box-shadow:0 12px 30px -8px rgba(28,24,21,0.35), 0 2px 8px rgba(28,24,21,0.12);
   opacity:0;
   pointer-events:none;
   transition:opacity 0.25s ease, transform 0.25s ease;
@@ -1106,11 +1193,11 @@ textarea.field-input{
   transform:translate(-50%, 110%);
   width:100%;
   max-width:var(--max-w);
-  background:var(--ember-card);
-  border-top:1px solid var(--grey-line);
+  background:var(--stone-card);
+  border-top:1px solid var(--stone-line);
   border-radius:18px 18px 0 0;
   padding:16px 18px calc(16px + env(safe-area-inset-bottom, 0px));
-  box-shadow:0 -8px 30px rgba(0,0,0,0.45);
+  box-shadow:0 -8px 30px rgba(28,24,21,0.18);
   transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   z-index:140;
   display:flex;
@@ -1128,18 +1215,18 @@ textarea.field-input{
   align-items:center;
   justify-content:center;
   font-size:20px;
-  background:var(--charcoal);
-  border:1px solid var(--grey-line);
+  background:var(--stone-base);
+  border:1px solid var(--stone-line);
 }
 .install-text{flex:1; min-width:0;}
 .install-title{
   font-size:13.5px;
   font-weight:700;
-  color:var(--marble);
+  color:var(--ink);
 }
 .install-sub{
   font-size:11.5px;
-  color:var(--grey-warm);
+  color:var(--ink-soft);
   margin-top:2px;
   line-height:1.4;
 }
@@ -1162,7 +1249,7 @@ textarea.field-input{
 .install-dismiss{
   background:none;
   border:none;
-  color:var(--grey-warm);
+  color:var(--ink-soft);
   font-size:11px;
   padding:4px 6px;
 }
@@ -1346,19 +1433,37 @@ textarea.field-input{
             <span class="line-gravy" data-i18n="hero.lineGravy">Cheesy Gravy</span>
             <span class="line-khichiya" data-i18n="hero.lineKhichiya">Khichiya for Dipping</span>
           </h1>
-          <div class="app-hero-statement" data-i18n="hero.statement">🔥 The Gravy is the Hero</div>
         </div>
         <button type="button" class="info-btn" id="openInfoBtn" aria-label="About TKG">ⓘ</button>
       </div>
 
       <!-- Compact story strip — visual 3-step explainer, reuses existing
-           hero.line* translation keys so it works in EN/GU/HI for free -->
+           hero.line* translation keys so it works in EN/GU/HI for free.
+           The label above carries the old standalone statement line's
+           message, so the hero now reads in two beats, not three. -->
+      <div class="hero-story-label" data-i18n="hero.statement">🔥 The Gravy is the Hero</div>
       <div class="hero-story-strip" aria-hidden="true">
         <div class="story-step"><span class="step-icon">🔥</span><span data-i18n="hero.lineCoal">Coal-Cooked</span></div>
         <span class="story-arrow">→</span>
         <div class="story-step"><span class="step-icon">🧀</span><span data-i18n="hero.lineGravy">Cheesy Gravy</span></div>
         <span class="story-arrow">→</span>
         <div class="story-step"><span class="step-icon">🥣</span><span data-i18n="hero.lineKhichiya">Khichiya for Dipping</span></div>
+      </div>
+    </div>
+
+    <!-- ============ EXPANDABLE EXPLAINER — collapsed by default ============ -->
+    <div class="explainer" id="explainer">
+      <button type="button" class="explainer-toggle" id="explainerToggle" aria-expanded="false">
+        <span class="et-icon">❓</span>
+        <span class="et-label" data-i18n="menu.explainerToggle">What is TKG Signature Gravy?</span>
+        <span class="et-chevron">▾</span>
+      </button>
+      <div class="explainer-body" id="explainerBody">
+        <div class="explainer-body-inner">
+          <div class="info-sheet-line" data-i18n="menu.eduLine1">TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.</div>
+          <div class="info-sheet-line" data-i18n="menu.eduLine2">Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.</div>
+          <div class="info-sheet-punch" data-i18n-html="menu.hookPunch">Not poured on top.<br>Dip. Scoop. Enjoy.</div>
+        </div>
       </div>
     </div>
 
@@ -1830,6 +1935,16 @@ function closeInfoSheet(){
 document.getElementById('openInfoBtn').addEventListener('click', openInfoSheet);
 document.getElementById('closeInfoBtn').addEventListener('click', closeInfoSheet);
 infoBackdrop.addEventListener('click', closeInfoSheet);
+
+// ---------------------------------------------------------------------------
+// EXPANDABLE EXPLAINER — "What is TKG Signature Gravy?" inline on the menu
+// ---------------------------------------------------------------------------
+const explainer = document.getElementById('explainer');
+const explainerToggle = document.getElementById('explainerToggle');
+explainerToggle.addEventListener('click', () => {
+  const isOpen = explainer.classList.toggle('open');
+  explainerToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+});
 
 // ---------------------------------------------------------------------------
 // REGISTRATION OVERLAY — optional, opened from the menu, never blocks it
@@ -2325,6 +2440,7 @@ const translations = {
       title: 'Coal-Cooked Cheese Gravy.<br>Roasted Khichiya for Dipping.',
       hookPunch: 'Not poured on top.<br>Dip. Scoop. Enjoy.',
       eduTitle: 'What Makes TKG Different?',
+      explainerToggle: 'What is TKG Signature Gravy?',
       eduLine1: "TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.",
       eduLine2: 'Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.',
       jainAvailable: '🟢 Jain options available',
@@ -2416,6 +2532,7 @@ const translations = {
       title: 'કોલ-કૂક્ડ ચીઝ ગ્રેવી.<br>ડિપિંગ માટે રોસ્ટેડ ખીચિયા.',
       hookPunch: 'ઉપર નથી રેડાતી.<br>ડિપ કરો. સ્કૂપ કરો. માણો.',
       eduTitle: 'TKG ને અલગ શું બનાવે છે?',
+      explainerToggle: 'TKG સિગ્નેચર ગ્રેવી શું છે?',
       eduLine1: 'TKG ની સિગ્નેચર ચીઝ ગ્રેવી શાકભાજી, મસાલા, જડીબુટ્ટીઓ અને દૂધનો ઉપયોગ કરીને અસલ કોલસાની આગ પર તાજી તૈયાર કરવામાં આવે છે જેથી એક રિચ સ્મોકી સ્વાદ મળે.',
       eduLine2: 'પરંપરાગત ગ્રેવીથી વિપરીત, તે ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે અલગથી પીરસવામાં આવે છે, જેથી તમે દરેક બાઈટ તમારી રીતે માણી શકો.',
       jainAvailable: '🟢 જૈન ઓપ્શન ઉપલબ્ધ',
@@ -2507,6 +2624,7 @@ const translations = {
       title: 'कोल-कुक्ड चीज़ ग्रेवी.<br>डिपिंग के लिए रोस्टेड खिचिया.',
       hookPunch: 'ऊपर से नहीं डाली जाती.<br>डिप करें. स्कूप करें. एंजॉय करें.',
       eduTitle: 'TKG को अलग क्या बनाता है?',
+      explainerToggle: 'TKG सिग्नेचर ग्रेवी क्या है?',
       eduLine1: 'TKG की सिग्नेचर चीज़ ग्रेवी सब्ज़ियों, मसालों, जड़ी-बूटियों और दूध का उपयोग करके असली कोयले की आग पर ताज़ा तैयार की जाती है, जिससे एक भरपूर स्मोकी स्वाद मिलता है.',
       eduLine2: 'पारंपरिक ग्रेवी के विपरीत, यह डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ अलग से सर्व की जाती है, जिससे आप हर बाइट अपने तरीके से एंजॉय कर सकते हैं.',
       jainAvailable: '🟢 जैन ऑप्शन उपलब्ध',
