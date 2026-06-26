@@ -2283,6 +2283,29 @@ if('serviceWorker' in navigator){
       console.warn('Service worker registration failed:', err);
     });
   });
+
+  // Auto-refresh once a new service worker version takes control, so
+  // customers see updates on their next normal reload instead of having
+  // to manually clear cookies/site data. Guarded with `refreshing` so a
+  // reload can never trigger this twice (which would otherwise loop).
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(refreshing) return;
+    refreshing = true;
+    // Don't yank the page out from under someone mid-registration or
+    // mid-feedback — wait until that overlay closes, then reload.
+    const isFormOpen = () =>
+      regOverlay.classList.contains('show') || feedbackOverlay.classList.contains('show');
+    if(isFormOpen()){
+      const waitAndReload = () => {
+        if(!isFormOpen()) location.reload();
+        else setTimeout(waitAndReload, 1000);
+      };
+      waitAndReload();
+    }else{
+      location.reload();
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------
