@@ -1576,20 +1576,20 @@ textarea.field-input{
       <div class="menu-item">
         <div class="menu-item-info">
           <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.extraKhichiya.name">Extra Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.extraKhichiya.descShort">One more coal-roasted Khichiya.</div>
+        </div>
+        <div class="menu-item-price"><span data-i18n="menu.extraKhichiya.priceMini">Mini ₹50</span><span class="price-large" data-i18n="menu.extraKhichiya.priceLarge">Large ₹60</span></div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-top">
             <span class="menu-item-name" data-i18n="menu.extraGravy.name">Extra Gravy</span>
           </div>
           <div class="menu-item-desc" data-i18n="menu.extraGravy.descShort">More of the hero product.</div>
         </div>
         <div class="menu-item-price">₹100</div>
-      </div>
-      <div class="menu-item">
-        <div class="menu-item-info">
-          <div class="menu-item-top">
-            <span class="menu-item-name" data-i18n="menu.extraKhichiya.name">Extra Khichiya</span>
-          </div>
-          <div class="menu-item-desc" data-i18n="menu.extraKhichiya.descShort">One more coal-roasted Khichiya.</div>
-        </div>
-        <div class="menu-item-price"><span class="price-large" data-i18n="menu.extraKhichiya.price">Large ₹60</span></div>
       </div>
     </div>
 
@@ -2612,7 +2612,7 @@ const translations = {
       cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.', descShort:'Extra cheese, even richer and creamier.', price:'Mini ₹160<br>Large ₹200', priceMini:'Mini ₹160', priceLarge:'Large ₹200' },
       extraCheese: { name:'Cheese', desc:'Extra cheese melted into your gravy.', descShort:'Extra cheese melted in.' },
       extraGravy: { name:'Extra Gravy', desc:'More of the hero product — for when the Khichiya runs out first.', descShort:'More of the hero product.' },
-      extraKhichiya: { name:'Extra Khichiya', desc:'An extra coal-roasted Khichiya — for when the gravy outlasts the first one.', descShort:'One more coal-roasted Khichiya.', price:'Large ₹60' }
+      extraKhichiya: { name:'Extra Khichiya', desc:'An extra coal-roasted Khichiya — for when the gravy outlasts the first one.', descShort:'One more coal-roasted Khichiya.', priceMini:'Mini ₹50', priceLarge:'Large ₹60' }
     },
     install: {
       androidTitle: 'Install TKG Customer OS',
@@ -2710,7 +2710,7 @@ const translations = {
       cheesySignatureGravy: { name:'ચીઝી સિગ્નેચર ગ્રેવી ખીચિયા', desc:'સિગ્નેચર ગ્રેવી ખીચિયા જેવું જ, એક્સ્ટ્રા ચીઝ સાથે વધુ રિચ અને ક્રીમી અનુભવ માટે. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', descShort:'એક્સ્ટ્રા ચીઝ સાથે, વધુ રિચ અને ક્રીમી.', price:'મિની ₹160<br>લાર્જ ₹200', priceMini:'મિની ₹160', priceLarge:'લાર્જ ₹200' },
       extraCheese: { name:'ચીઝ', desc:'તમારી ગ્રેવીમાં વધારાનું પીગળેલું ચીઝ.', descShort:'વધારાનું પીગળેલું ચીઝ.' },
       extraGravy: { name:'એક્સ્ટ્રા ગ્રેવી', desc:'મુખ્ય પ્રોડક્ટની વધુ માત્રા — જ્યારે ખીચિયા પહેલા ખલાસ થઈ જાય ત્યારે.', descShort:'મુખ્ય પ્રોડક્ટની વધુ માત્રા.' },
-      extraKhichiya: { name:'એક્સ્ટ્રા ખીચિયા', desc:'એક વધારાનું કોલ-રોસ્ટેડ ખીચિયા — જ્યારે ગ્રેવી પહેલા ખીચિયા કરતાં વધુ ટકે ત્યારે.', descShort:'એક વધારાનું કોલ-રોસ્ટેડ ખીચિયા.', price:'લાર્જ ₹60' }
+      extraKhichiya: { name:'એક્સ્ટ્રા ખીચિયા', desc:'એક વધારાનું કોલ-રોસ્ટેડ ખીચિયા — જ્યારે ગ્રેવી પહેલા ખીચિયા કરતાં વધુ ટકે ત્યારે.', descShort:'એક વધારાનું કોલ-રોસ્ટેડ ખીચિયા.', priceMini:'મિની ₹50', priceLarge:'લાર્જ ₹60' }
     },
     install: {
       androidTitle: 'TKG Customer OS ઇન્સ્ટોલ કરો',
@@ -2808,7 +2808,7 @@ const translations = {
       cheesySignatureGravy: { name:'चीज़ी सिग्नेचर ग्रेवी खिचिया', desc:'सिग्नेचर ग्रेवी खिचिया जैसा ही, एक्स्ट्रा चीज़ के साथ और भी भरपूर और क्रीमी अनुभव के लिए. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', descShort:'एक्स्ट्रा चीज़ के साथ, और भी भरपूर और क्रीमी.', price:'मिनी ₹160<br>लार्ज ₹200', priceMini:'मिनी ₹160', priceLarge:'लार्ज ₹200' },
       extraCheese: { name:'चीज़', desc:'आपकी ग्रेवी में एक्स्ट्रा पिघला हुआ चीज़.', descShort:'एक्स्ट्रा पिघला हुआ चीज़.' },
       extraGravy: { name:'एक्स्ट्रा ग्रेवी', desc:'मुख्य प्रोडक्ट की ज़्यादा मात्रा — जब खिचिया पहले खत्म हो जाए तब के लिए.', descShort:'मुख्य प्रोडक्ट की ज़्यादा मात्रा.' },
-      extraKhichiya: { name:'एक्स्ट्रा खिचिया', desc:'एक एक्स्ट्रा कोल-रोस्टेड खिचिया — जब ग्रेवी पहले खिचिया से ज़्यादा चले तब के लिए.', descShort:'एक और कोल-रोस्टेड खिचिया.', price:'लार्ज ₹60' }
+      extraKhichiya: { name:'एक्स्ट्रा खिचिया', desc:'एक एक्स्ट्रा कोल-रोस्टेड खिचिया — जब ग्रेवी पहले खिचिया से ज़्यादा चले तब के लिए.', descShort:'एक और कोल-रोस्टेड खिचिया.', priceMini:'मिनी ₹50', priceLarge:'लार्ज ₹60' }
     },
     install: {
       androidTitle: 'TKG Customer OS इंस्टॉल करें',
