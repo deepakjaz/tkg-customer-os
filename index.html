@@ -590,19 +590,45 @@ textarea.field-input{
   padding-top:2px;
   margin-bottom:14px;
 }
-.app-hero-location{
+.app-hero-meta{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:8px;
+}
+.app-hero-hours{
   font-size:11.5px;
-  letter-spacing:0.1em;
+  letter-spacing:0.08em;
   text-transform:uppercase;
   color:var(--grey-warm);
   font-weight:600;
-  margin-bottom:8px;
+}
+.directions-link{
   display:flex;
   align-items:center;
-  gap:5px;
-  text-decoration:none;
+  gap:4px;
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--ember-deep);
+  text-decoration:underline;
+  text-decoration-color:rgba(184,67,29,0.4);
+  text-underline-offset:2px;
+  padding:3px 9px 3px 7px;
+  border-radius:20px;
+  background:rgba(232,93,44,0.08);
+  border:1px solid rgba(232,93,44,0.25);
 }
-.app-hero-location:active{color:var(--ember-deep);}
+.directions-link .dl-icon{width:12px; height:12px; flex-shrink:0;}
+.directions-link:active{background:rgba(232,93,44,0.16);}
+.directions-link.attention{animation:directions-bounce 1.8s ease-in-out 1;}
+@keyframes directions-bounce{
+  0%, 100%{transform:translateY(0);}
+  20%{transform:translateY(-3px);}
+  35%{transform:translateY(0);}
+  50%{transform:translateY(-2px);}
+  65%{transform:translateY(0);}
+}
 .app-hero-headline{
   font-family:var(--font-display);
   font-weight:800;
@@ -805,17 +831,33 @@ textarea.field-input{
   border-radius:10px;
 }
 
-.hours-note{
-  display:block;
-  text-align:center;
-  font-size:12px;
-  color:var(--ink-soft);
+.footer-meta{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:10px;
   margin-top:18px;
   padding-top:14px;
   border-top:1px solid var(--stone-line);
+}
+.hours-note{
+  font-size:12px;
+  color:var(--ink-soft);
+}
+.phone-note{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  margin-top:8px;
+  font-size:12.5px;
+  font-weight:700;
+  color:var(--ink);
   text-decoration:none;
 }
-.hours-note:active{color:var(--ember-deep);}
+.phone-note .pn-icon{width:13px; height:13px; color:var(--ember-deep); flex-shrink:0;}
+.phone-note:active{color:var(--ember-deep);}
 
 /* ==========================================================================
    INFO SHEET — education content, tucked behind the info button
@@ -1445,7 +1487,13 @@ textarea.field-input{
     <div class="app-hero">
       <div class="app-hero-row">
         <div style="flex:1; min-width:0;">
-          <a class="app-hero-location" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener" data-i18n="menu.hours">📍 Open on Weekend · Evening to Late Night</a>
+          <div class="app-hero-meta">
+            <span class="app-hero-hours" data-i18n="menu.hours">Open on Weekend · Evening to Late Night</span>
+            <a class="directions-link" id="directionsLink" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
+              <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+              <span data-i18n="menu.getDirections">Get Directions</span>
+            </a>
+          </div>
           <h1 class="app-hero-headline">
             <span class="line-coal" data-i18n="hero.lineCoal">Coal-Cooked</span>
             <span class="line-gravy" data-i18n="hero.lineGravy">Cheesy Gravy</span>
@@ -1534,6 +1582,15 @@ textarea.field-input{
         </div>
         <div class="menu-item-price">₹100</div>
       </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.extraKhichiya.name">Extra Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.extraKhichiya.descShort">One more coal-roasted Khichiya.</div>
+        </div>
+        <div class="menu-item-price"><span class="price-large" data-i18n="menu.extraKhichiya.price">Large ₹60</span></div>
+      </div>
     </div>
 
     <!-- ===== TRADITIONAL ===== -->
@@ -1545,7 +1602,7 @@ textarea.field-input{
           </div>
           <div class="menu-item-desc" data-i18n="menu.classicKhichiya.descShort">Butter and our signature spice blend.</div>
         </div>
-        <div class="menu-item-price"><span data-i18n="menu.priceMini">Mini ₹50</span><span class="price-large" data-i18n="menu.classicKhichiya.priceLarge">Large ₹80</span></div>
+        <div class="menu-item-price"><span data-i18n="menu.priceMini">Mini ₹50</span><span class="price-large" data-i18n="menu.classicKhichiya.priceLarge">Large ₹60</span></div>
       </div>
       <div class="menu-item">
         <div class="menu-item-info">
@@ -1577,7 +1634,18 @@ textarea.field-input{
       <span class="extra-chip" data-i18n="menu.seasonalVeg">Seasonal Vegetable Variations</span>
     </div>
 
-    <a class="hours-note" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener" data-i18n="menu.hours">Open on Weekend · Evening to Late Night</a>
+    <div class="footer-meta">
+      <span class="hours-note" data-i18n="menu.hours">Open on Weekend · Evening to Late Night</span>
+      <a class="directions-link" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
+        <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        <span data-i18n="menu.getDirections">Get Directions</span>
+      </a>
+    </div>
+
+    <a class="phone-note" href="tel:+919510100950">
+      <svg class="pn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      <span data-i18n="menu.callUs">+91 95101 00950</span>
+    </a>
 
     <!-- About / Instagram / Google Review — static, always visible, never gated -->
     <div class="link-row">
@@ -2532,16 +2600,19 @@ const translations = {
       noOnion: 'No Onion Option Available',
       wholeWheat: 'Whole Wheat (Gehu Atta) on Selected Items',
       seasonalVeg: 'Seasonal Vegetable Variations',
-      hours: '📍 Open on Weekend · Evening to Late Night',
-      priceMini: 'Mini ₹30',
+      hours: 'Open on Weekend · Evening to Late Night',
+      getDirections: 'Get Directions',
+      callUs: '+91 95101 00950',
+      priceMini: 'Mini ₹50',
       whatsapp: 'WhatsApp', instagram: 'Instagram', googleReview: 'Google Review',
-      classicKhichiya: { name:'Classic Khichiya', desc:'Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.', descShort:'Butter and our signature spice blend.', price:'Mini ₹30<br>Large ₹50', priceLarge:'Large ₹50' },
+      classicKhichiya: { name:'Classic Khichiya', desc:'Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.', descShort:'Butter and our signature spice blend.', price:'Mini ₹50<br>Large ₹60', priceLarge:'Large ₹60' },
       masalaKhichiya: { name:'Masala Khichiya', desc:'Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.', descShort:'Chutney, fresh veg, chana dal, sev.', price:'Mini ₹80<br>Large ₹120', priceMini:'Mini ₹80', priceLarge:'Large ₹120' },
       cheeseMasalaKhichiya: { name:'Cheese Masala Khichiya', desc:'Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.', descShort:'Masala Khichiya topped with melted cheese.', price:'Mini ₹100<br>Large ₹140', priceMini:'Mini ₹100', priceLarge:'Large ₹140' },
-      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.', descShort:'Creamy coal-cooked cheese gravy, served for dipping.', price:'Mini ₹120<br>Large ₹160', priceLarge:'Large ₹160' },
-      cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.', descShort:'Extra cheese, even richer and creamier.', price:'Mini ₹140<br>Large ₹180', priceMini:'Mini ₹140', priceLarge:'Large ₹180' },
+      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.', descShort:'Creamy coal-cooked cheese gravy, served for dipping.', price:'Mini ₹140<br>Large ₹180', priceMini:'Mini ₹140', priceLarge:'Large ₹180' },
+      cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.', descShort:'Extra cheese, even richer and creamier.', price:'Mini ₹160<br>Large ₹200', priceMini:'Mini ₹160', priceLarge:'Large ₹200' },
       extraCheese: { name:'Cheese', desc:'Extra cheese melted into your gravy.', descShort:'Extra cheese melted in.' },
-      extraGravy: { name:'Extra Gravy', desc:'More of the hero product — for when the Khichiya runs out first.', descShort:'More of the hero product.' }
+      extraGravy: { name:'Extra Gravy', desc:'More of the hero product — for when the Khichiya runs out first.', descShort:'More of the hero product.' },
+      extraKhichiya: { name:'Extra Khichiya', desc:'An extra coal-roasted Khichiya — for when the gravy outlasts the first one.', descShort:'One more coal-roasted Khichiya.', price:'Large ₹60' }
     },
     install: {
       androidTitle: 'Install TKG Customer OS',
@@ -2627,16 +2698,19 @@ const translations = {
       noOnion: 'નો-ઓનિયન ઓપ્શન ઉપલબ્ધ',
       wholeWheat: 'પસંદગીની આઇટમ્સ પર ઘઉંનો (ગહુ આટા)',
       seasonalVeg: 'સીઝનલ શાકભાજી વેરિએશન',
-      hours: '📍 વીકએન્ડ પર ખુલ્લું · સાંજથી મોડી રાત સુધી',
-      priceMini: 'મિની ₹30',
+      hours: 'વીકએન્ડ પર ખુલ્લું · સાંજથી મોડી રાત સુધી',
+      getDirections: 'દિશા જુઓ',
+      callUs: '+91 95101 00950',
+      priceMini: 'મિની ₹50',
       whatsapp: 'વોટ્સએપ', instagram: 'ઇન્સ્ટાગ્રામ', googleReview: 'ગૂગલ રિવ્યુ',
-      classicKhichiya: { name:'ક્લાસિક ખીચિયા', desc:'તાજા કોલ-રોસ્ટેડ ખીચિયા, બટર અને અમારા સિગ્નેચર મસાલા સાથે તૈયાર. સિમ્પલ, ક્રિસ્પી અને પહેલી વાર આવતા મુલાકાતીઓ માટે પરફેક્ટ.', descShort:'બટર અને અમારા સિગ્નેચર મસાલા સાથે.', price:'મિની ₹30<br>લાર્જ ₹50', priceLarge:'લાર્જ ₹50' },
+      classicKhichiya: { name:'ક્લાસિક ખીચિયા', desc:'તાજા કોલ-રોસ્ટેડ ખીચિયા, બટર અને અમારા સિગ્નેચર મસાલા સાથે તૈયાર. સિમ્પલ, ક્રિસ્પી અને પહેલી વાર આવતા મુલાકાતીઓ માટે પરફેક્ટ.', descShort:'બટર અને અમારા સિગ્નેચર મસાલા સાથે.', price:'મિની ₹50<br>લાર્જ ₹60', priceLarge:'લાર્જ ₹60' },
       masalaKhichiya: { name:'મસાલા ખીચિયા', desc:'કોલ-રોસ્ટેડ ખીચિયા, ચટણી, તાજા શાકભાજી, ચણા દાળ, સેવ અને પરંપરાગત સ્ટ્રીટ-ફૂડ સ્વાદ સાથે લેયર કરેલા.', descShort:'ચટણી, તાજા શાકભાજી, ચણા દાળ, સેવ.', price:'મિની ₹80<br>લાર્જ ₹120', priceMini:'મિની ₹80', priceLarge:'લાર્જ ₹120' },
       cheeseMasalaKhichiya: { name:'ચીઝ મસાલા ખીચિયા', desc:'અમારા પરંપરાગત મસાલા ખીચિયા પર પીગળેલું ચીઝ — વધુ રિચ અને સ્વાદિષ્ટ.', descShort:'મસાલા ખીચિયા પર પીગળેલું ચીઝ.', price:'મિની ₹100<br>લાર્જ ₹140', priceMini:'મિની ₹100', priceLarge:'લાર્જ ₹140' },
-      signatureGravy: { name:'સિગ્નેચર ગ્રેવી ખીચિયા', desc:'અમારી સિગ્નેચર ક્રીમી ચીઝ ગ્રેવી, શાકભાજી, મસાલા અને દૂધ સાથે અસલ કોલસાની આગ પર તાજી તૈયાર. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', descShort:'ક્રીમી કોલ-કૂક્ડ ચીઝ ગ્રેવી, ડિપિંગ માટે પીરસવામાં આવે છે.', price:'મિની ₹120<br>લાર્જ ₹160', priceLarge:'લાર્જ ₹160' },
-      cheesySignatureGravy: { name:'ચીઝી સિગ્નેચર ગ્રેવી ખીચિયા', desc:'સિગ્નેચર ગ્રેવી ખીચિયા જેવું જ, એક્સ્ટ્રા ચીઝ સાથે વધુ રિચ અને ક્રીમી અનુભવ માટે. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', descShort:'એક્સ્ટ્રા ચીઝ સાથે, વધુ રિચ અને ક્રીમી.', price:'મિની ₹140<br>લાર્જ ₹180', priceMini:'મિની ₹140', priceLarge:'લાર્જ ₹180' },
+      signatureGravy: { name:'સિગ્નેચર ગ્રેવી ખીચિયા', desc:'અમારી સિગ્નેચર ક્રીમી ચીઝ ગ્રેવી, શાકભાજી, મસાલા અને દૂધ સાથે અસલ કોલસાની આગ પર તાજી તૈયાર. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', descShort:'ક્રીમી કોલ-કૂક્ડ ચીઝ ગ્રેવી, ડિપિંગ માટે પીરસવામાં આવે છે.', price:'મિની ₹140<br>લાર્જ ₹180', priceMini:'મિની ₹140', priceLarge:'લાર્જ ₹180' },
+      cheesySignatureGravy: { name:'ચીઝી સિગ્નેચર ગ્રેવી ખીચિયા', desc:'સિગ્નેચર ગ્રેવી ખીચિયા જેવું જ, એક્સ્ટ્રા ચીઝ સાથે વધુ રિચ અને ક્રીમી અનુભવ માટે. ડિપિંગ માટે કોલ-રોસ્ટેડ ખીચિયા સાથે પીરસવામાં આવે છે.', descShort:'એક્સ્ટ્રા ચીઝ સાથે, વધુ રિચ અને ક્રીમી.', price:'મિની ₹160<br>લાર્જ ₹200', priceMini:'મિની ₹160', priceLarge:'લાર્જ ₹200' },
       extraCheese: { name:'ચીઝ', desc:'તમારી ગ્રેવીમાં વધારાનું પીગળેલું ચીઝ.', descShort:'વધારાનું પીગળેલું ચીઝ.' },
-      extraGravy: { name:'એક્સ્ટ્રા ગ્રેવી', desc:'મુખ્ય પ્રોડક્ટની વધુ માત્રા — જ્યારે ખીચિયા પહેલા ખલાસ થઈ જાય ત્યારે.', descShort:'મુખ્ય પ્રોડક્ટની વધુ માત્રા.' }
+      extraGravy: { name:'એક્સ્ટ્રા ગ્રેવી', desc:'મુખ્ય પ્રોડક્ટની વધુ માત્રા — જ્યારે ખીચિયા પહેલા ખલાસ થઈ જાય ત્યારે.', descShort:'મુખ્ય પ્રોડક્ટની વધુ માત્રા.' },
+      extraKhichiya: { name:'એક્સ્ટ્રા ખીચિયા', desc:'એક વધારાનું કોલ-રોસ્ટેડ ખીચિયા — જ્યારે ગ્રેવી પહેલા ખીચિયા કરતાં વધુ ટકે ત્યારે.', descShort:'એક વધારાનું કોલ-રોસ્ટેડ ખીચિયા.', price:'લાર્જ ₹60' }
     },
     install: {
       androidTitle: 'TKG Customer OS ઇન્સ્ટોલ કરો',
@@ -2722,16 +2796,19 @@ const translations = {
       noOnion: 'नो-ओनियन ऑप्शन उपलब्ध',
       wholeWheat: 'चुनी हुई आइटम्स पर गेहूं का आटा',
       seasonalVeg: 'सीज़नल सब्ज़ी वेरिएशन',
-      hours: '📍 वीकेंड पर खुला · शाम से देर रात तक',
-      priceMini: 'मिनी ₹30',
+      hours: 'वीकेंड पर खुला · शाम से देर रात तक',
+      getDirections: 'दिशा देखें',
+      callUs: '+91 95101 00950',
+      priceMini: 'मिनी ₹50',
       whatsapp: 'व्हाट्सएप', instagram: 'इंस्टाग्राम', googleReview: 'गूगल रिव्यू',
-      classicKhichiya: { name:'क्लासिक खिचिया', desc:'ताज़े कोल-रोस्टेड खिचिया, बटर और हमारे सिग्नेचर मसाले के साथ तैयार. सिंपल, क्रिस्पी और पहली बार आने वालों के लिए परफेक्ट.', descShort:'बटर और हमारे सिग्नेचर मसाले के साथ.', price:'मिनी ₹30<br>लार्ज ₹50', priceLarge:'लार्ज ₹50' },
+      classicKhichiya: { name:'क्लासिक खिचिया', desc:'ताज़े कोल-रोस्टेड खिचिया, बटर और हमारे सिग्नेचर मसाले के साथ तैयार. सिंपल, क्रिस्पी और पहली बार आने वालों के लिए परफेक्ट.', descShort:'बटर और हमारे सिग्नेचर मसाले के साथ.', price:'मिनी ₹50<br>लार्ज ₹60', priceLarge:'लार्ज ₹60' },
       masalaKhichiya: { name:'मसाला खिचिया', desc:'कोल-रोस्टेड खिचिया, चटनी, ताज़ी सब्ज़ियों, चना दाल, सेव और पारंपरिक स्ट्रीट-फूड स्वाद के साथ लेयर्ड.', descShort:'चटनी, ताज़ी सब्ज़ियाँ, चना दाल, सेव.', price:'मिनी ₹80<br>लार्ज ₹120', priceMini:'मिनी ₹80', priceLarge:'लार्ज ₹120' },
       cheeseMasalaKhichiya: { name:'चीज़ मसाला खिचिया', desc:'हमारे पारंपरिक मसाला खिचिया पर पिघला हुआ चीज़ — ज़्यादा भरपूर और स्वादिष्ट.', descShort:'मसाला खिचिया पर पिघला हुआ चीज़.', price:'मिनी ₹100<br>लार्ज ₹140', priceMini:'मिनी ₹100', priceLarge:'लार्ज ₹140' },
-      signatureGravy: { name:'सिग्नेचर ग्रेवी खिचिया', desc:'हमारी सिग्नेचर क्रीमी चीज़ ग्रेवी, सब्ज़ियों, मसालों और दूध के साथ असली कोयले की आग पर ताज़ा तैयार. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', descShort:'क्रीमी कोल-कुक्ड चीज़ ग्रेवी, डिपिंग के लिए सर्व की जाती है.', price:'मिनी ₹120<br>लार्ज ₹160', priceLarge:'लार्ज ₹160' },
-      cheesySignatureGravy: { name:'चीज़ी सिग्नेचर ग्रेवी खिचिया', desc:'सिग्नेचर ग्रेवी खिचिया जैसा ही, एक्स्ट्रा चीज़ के साथ और भी भरपूर और क्रीमी अनुभव के लिए. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', descShort:'एक्स्ट्रा चीज़ के साथ, और भी भरपूर और क्रीमी.', price:'मिनी ₹140<br>लार्ज ₹180', priceMini:'मिनी ₹140', priceLarge:'लार्ज ₹180' },
+      signatureGravy: { name:'सिग्नेचर ग्रेवी खिचिया', desc:'हमारी सिग्नेचर क्रीमी चीज़ ग्रेवी, सब्ज़ियों, मसालों और दूध के साथ असली कोयले की आग पर ताज़ा तैयार. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', descShort:'क्रीमी कोल-कुक्ड चीज़ ग्रेवी, डिपिंग के लिए सर्व की जाती है.', price:'मिनी ₹140<br>लार्ज ₹180', priceMini:'मिनी ₹140', priceLarge:'लार्ज ₹180' },
+      cheesySignatureGravy: { name:'चीज़ी सिग्नेचर ग्रेवी खिचिया', desc:'सिग्नेचर ग्रेवी खिचिया जैसा ही, एक्स्ट्रा चीज़ के साथ और भी भरपूर और क्रीमी अनुभव के लिए. डिपिंग के लिए कोल-रोस्टेड खिचिया के साथ सर्व की जाती है.', descShort:'एक्स्ट्रा चीज़ के साथ, और भी भरपूर और क्रीमी.', price:'मिनी ₹160<br>लार्ज ₹200', priceMini:'मिनी ₹160', priceLarge:'लार्ज ₹200' },
       extraCheese: { name:'चीज़', desc:'आपकी ग्रेवी में एक्स्ट्रा पिघला हुआ चीज़.', descShort:'एक्स्ट्रा पिघला हुआ चीज़.' },
-      extraGravy: { name:'एक्स्ट्रा ग्रेवी', desc:'मुख्य प्रोडक्ट की ज़्यादा मात्रा — जब खिचिया पहले खत्म हो जाए तब के लिए.', descShort:'मुख्य प्रोडक्ट की ज़्यादा मात्रा.' }
+      extraGravy: { name:'एक्स्ट्रा ग्रेवी', desc:'मुख्य प्रोडक्ट की ज़्यादा मात्रा — जब खिचिया पहले खत्म हो जाए तब के लिए.', descShort:'मुख्य प्रोडक्ट की ज़्यादा मात्रा.' },
+      extraKhichiya: { name:'एक्स्ट्रा खिचिया', desc:'एक एक्स्ट्रा कोल-रोस्टेड खिचिया — जब ग्रेवी पहले खिचिया से ज़्यादा चले तब के लिए.', descShort:'एक और कोल-रोस्टेड खिचिया.', price:'लार्ज ₹60' }
     },
     install: {
       androidTitle: 'TKG Customer OS इंस्टॉल करें',
@@ -2833,6 +2910,29 @@ try{
   // localStorage unavailable (e.g. strict private browsing) — skip the
   // attention cue silently, button still works normally either way.
 }
+
+// Same one-time discoverability pulse for the "Get Directions" link —
+// staggered later than the language pulse so the two don't compete for
+// attention on first load. Fires once per device, never again.
+const DIRECTIONS_ATTENTION_KEY = 'tkg_directions_attention_seen';
+function clearDirectionsAttention(){
+  const link = document.getElementById('directionsLink');
+  if(link) link.classList.remove('attention');
+  try{ localStorage.setItem(DIRECTIONS_ATTENTION_KEY, 'true'); }catch(e){}
+}
+try{
+  if(!localStorage.getItem(DIRECTIONS_ATTENTION_KEY)){
+    setTimeout(() => {
+      const link = document.getElementById('directionsLink');
+      if(link) link.classList.add('attention');
+      setTimeout(clearDirectionsAttention, 1800); // matches animation duration
+    }, 1600); // staggered after the lang-button pulse
+  }
+}catch(e){
+  // localStorage unavailable — skip the attention cue silently, link
+  // still works normally either way.
+}
+document.getElementById('directionsLink')?.addEventListener('click', clearDirectionsAttention);
 
 // ---------------------------------------------------------------------------
 // INIT
