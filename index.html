@@ -401,12 +401,16 @@ textarea.field-input{
   display:flex;
   align-items:center;
   gap:12px;
+  width:100%;
   background:#FFFFFF;
   border:1.5px solid #E2DDD3;
   border-radius:var(--radius-md);
   padding:14px;
   margin-bottom:10px;
   text-decoration:none;
+  text-align:left;
+  font-family:inherit;
+  cursor:pointer;
 }
 .action-card .ac-icon{font-size:22px; flex-shrink:0;}
 .action-card .ac-text{flex:1; min-width:0;}
@@ -596,7 +600,9 @@ textarea.field-input{
   display:flex;
   align-items:center;
   gap:5px;
+  text-decoration:none;
 }
+.app-hero-location:active{color:var(--ember-deep);}
 .app-hero-headline{
   font-family:var(--font-display);
   font-weight:800;
@@ -800,13 +806,16 @@ textarea.field-input{
 }
 
 .hours-note{
+  display:block;
   text-align:center;
   font-size:12px;
   color:var(--ink-soft);
   margin-top:18px;
   padding-top:14px;
   border-top:1px solid var(--stone-line);
+  text-decoration:none;
 }
+.hours-note:active{color:var(--ember-deep);}
 
 /* ==========================================================================
    INFO SHEET — education content, tucked behind the info button
@@ -1389,6 +1398,15 @@ textarea.field-input{
       <p class="thanks-sub" data-i18n="thanks.sub">Your feedback helps us improve every weekend.</p>
     </div>
 
+    <button type="button" class="action-card hidden" id="copyReviewCard">
+      <span class="ac-icon">📋</span>
+      <span class="ac-text">
+        <span class="ac-title" id="copyReviewTitle" data-i18n="thanks.copyTitle">Copy My Review</span>
+        <span class="ac-sub" data-i18n="thanks.copySub">Paste it into Google, Instagram, or anywhere below.</span>
+      </span>
+      <span class="ac-go" data-i18n="thanks.copyAction">Copy</span>
+    </button>
+
     <a class="action-card" id="thanksReviewLink" target="_blank" rel="noopener">
       <span class="ac-icon">⭐</span>
       <span class="ac-text">
@@ -1427,7 +1445,7 @@ textarea.field-input{
     <div class="app-hero">
       <div class="app-hero-row">
         <div style="flex:1; min-width:0;">
-          <div class="app-hero-location" data-i18n="menu.hours">📍 Open on Weekend · Evening to Late Night</div>
+          <a class="app-hero-location" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener" data-i18n="menu.hours">📍 Open on Weekend · Evening to Late Night</a>
           <h1 class="app-hero-headline">
             <span class="line-coal" data-i18n="hero.lineCoal">Coal-Cooked</span>
             <span class="line-gravy" data-i18n="hero.lineGravy">Cheesy Gravy</span>
@@ -1559,7 +1577,7 @@ textarea.field-input{
       <span class="extra-chip" data-i18n="menu.seasonalVeg">Seasonal Vegetable Variations</span>
     </div>
 
-    <div class="hours-note" data-i18n="menu.hours">Open on Weekend · Evening to Late Night</div>
+    <a class="hours-note" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener" data-i18n="menu.hours">Open on Weekend · Evening to Late Night</a>
 
     <!-- About / Instagram / Google Review — static, always visible, never gated -->
     <div class="link-row">
@@ -2093,14 +2111,15 @@ function saveFeedback(text){
 
 feedbackForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  saveFeedback(feedbackInput.value);
+  const text = feedbackInput.value.trim();
+  saveFeedback(text);
   closeFeedbackOverlay();
-  openThanksOverlay();
+  openThanksOverlay(text);
 });
 
 document.getElementById('skipFeedbackBtn').addEventListener('click', () => {
   closeFeedbackOverlay();
-  openThanksOverlay();
+  openThanksOverlay('');
 });
 
 // ---------------------------------------------------------------------------
@@ -2108,8 +2127,14 @@ document.getElementById('skipFeedbackBtn').addEventListener('click', () => {
 // ---------------------------------------------------------------------------
 const thanksBackdrop = document.getElementById('thanksBackdrop');
 const thanksOverlay = document.getElementById('thanksOverlay');
+const copyReviewCard = document.getElementById('copyReviewCard');
+let lastSubmittedFeedback = '';
 
-function openThanksOverlay(){
+function openThanksOverlay(feedbackText){
+  lastSubmittedFeedback = feedbackText || '';
+  // Only offer the copy shortcut if they actually wrote something —
+  // nothing to paste anywhere if they skipped feedback entirely.
+  copyReviewCard.classList.toggle('hidden', !lastSubmittedFeedback);
   document.getElementById('thanksReviewLink').href = GOOGLE_REVIEW_URL;
   document.getElementById('thanksInstaLink').href = INSTAGRAM_URL;
   thanksBackdrop.classList.add('show');
@@ -2121,6 +2146,30 @@ function closeThanksOverlay(){
 }
 thanksBackdrop.addEventListener('click', closeThanksOverlay);
 document.getElementById('closeThanksBtn').addEventListener('click', closeThanksOverlay);
+
+copyReviewCard.addEventListener('click', async () => {
+  if(!lastSubmittedFeedback) return;
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(lastSubmittedFeedback);
+    }else{
+      // Fallback for older browsers / non-secure contexts where the
+      // Clipboard API isn't available — temporary offscreen textarea
+      // + the legacy execCommand copy path.
+      const ta = document.createElement('textarea');
+      ta.value = lastSubmittedFeedback;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showToast('Review copied — paste it anywhere 👍');
+  }catch(e){
+    showToast('Could not copy — please select the text manually');
+  }
+});
 
 // ---------------------------------------------------------------------------
 // OWNER DASHBOARD
@@ -2451,6 +2500,9 @@ const translations = {
     thanks: {
       title: 'Thank you for visiting TKG',
       sub: 'Your feedback helps us improve every weekend.',
+      copyTitle: 'Copy My Review',
+      copySub: 'Paste it into Google, Instagram, or anywhere below.',
+      copyAction: 'Copy',
       reviewTitle: 'Leave a Google Review',
       reviewSub: 'Support our small business.',
       instaTitle: 'Open Instagram',
@@ -2543,6 +2595,9 @@ const translations = {
     thanks: {
       title: 'TKG ની મુલાકાત લેવા બદલ આભાર',
       sub: 'તમારો ફીડબેક અમને દર વીકએન્ડ સારું કરવામાં મદદ કરે છે.',
+      copyTitle: 'મારો રિવ્યુ કોપી કરો',
+      copySub: 'તેને ગૂગલ, ઇન્સ્ટાગ્રામ અથવા નીચે ગમે ત્યાં પેસ્ટ કરો.',
+      copyAction: 'કોપી',
       reviewTitle: 'ગૂગલ રિવ્યુ આપો',
       reviewSub: 'અમારા નાના બિઝનેસને સપોર્ટ કરો.',
       instaTitle: 'ઇન્સ્ટાગ્રામ ખોલો',
@@ -2635,6 +2690,9 @@ const translations = {
     thanks: {
       title: 'TKG आने के लिए धन्यवाद',
       sub: 'आपका फीडबैक हर वीकेंड हमें बेहतर बनाने में मदद करता है.',
+      copyTitle: 'मेरा रिव्यू कॉपी करें',
+      copySub: 'इसे गूगल, इंस्टाग्राम या नीचे कहीं भी पेस्ट करें.',
+      copyAction: 'कॉपी',
       reviewTitle: 'गूगल रिव्यू दें',
       reviewSub: 'हमारे छोटे बिज़नेस को सपोर्ट करें.',
       instaTitle: 'इंस्टाग्राम खोलें',
