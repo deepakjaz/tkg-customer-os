@@ -1000,6 +1000,23 @@ textarea.field-input{
     0 1px 2px rgba(28,24,21,0.05),
     0 4px 10px -6px rgba(28,24,21,0.12);
 }
+.menu-item-thumb{
+  width:56px;
+  height:56px;
+  flex-shrink:0;
+  border-radius:var(--radius-sm);
+  background:var(--stone-base);
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.menu-item-thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
 .menu-item-info{flex:1; min-width:0;}
 .menu-item-top{
   display:flex;
@@ -1542,6 +1559,9 @@ textarea.field-input{
     <!-- ===== SIGNATURE (default) ===== -->
     <div class="menu-section active" id="cat-signature">
       <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/signature-gravy.webp" width="56" height="56" alt="Signature Gravy Khichiya" loading="lazy" decoding="async">
+        </div>
         <div class="menu-item-info">
           <div class="menu-item-top">
             <span class="menu-item-name" data-i18n="menu.signatureGravy.name">Signature Gravy Khichiya</span>
@@ -1553,6 +1573,9 @@ textarea.field-input{
         <div class="menu-item-price"><span data-i18n="menu.signatureGravy.priceMini">Mini ₹140</span><span class="price-large" data-i18n="menu.signatureGravy.priceLarge">Large ₹180</span></div>
       </div>
       <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/cheesy-signature.webp" width="56" height="56" alt="Cheesy Signature Gravy Khichiya" loading="lazy" decoding="async">
+        </div>
         <div class="menu-item-info">
           <div class="menu-item-top">
             <span class="menu-item-name" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Gravy Khichiya</span>
@@ -1596,6 +1619,9 @@ textarea.field-input{
     <!-- ===== TRADITIONAL ===== -->
     <div class="menu-section" id="cat-traditional">
       <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/classic-khichiya.webp" width="56" height="56" alt="Classic Khichiya" loading="lazy" decoding="async">
+        </div>
         <div class="menu-item-info">
           <div class="menu-item-top">
             <span class="menu-item-name" data-i18n="menu.classicKhichiya.name">Classic Khichiya</span>
@@ -1605,6 +1631,9 @@ textarea.field-input{
         <div class="menu-item-price"><span data-i18n="menu.priceMini">Mini ₹50</span><span class="price-large" data-i18n="menu.classicKhichiya.priceLarge">Large ₹60</span></div>
       </div>
       <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/masala-khichiya.webp" width="56" height="56" alt="Masala Khichiya" loading="lazy" decoding="async">
+        </div>
         <div class="menu-item-info">
           <div class="menu-item-top">
             <span class="menu-item-name" data-i18n="menu.masalaKhichiya.name">Masala Khichiya</span>
@@ -1615,6 +1644,9 @@ textarea.field-input{
         <div class="menu-item-price"><span data-i18n="menu.masalaKhichiya.priceMini">Mini ₹80</span><span class="price-large" data-i18n="menu.masalaKhichiya.priceLarge">Large ₹120</span></div>
       </div>
       <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/cheese-masala.webp" width="56" height="56" alt="Cheese Masala Khichiya" loading="lazy" decoding="async">
+        </div>
         <div class="menu-item-info">
           <div class="menu-item-top">
             <span class="menu-item-name" data-i18n="menu.cheeseMasalaKhichiya.name">Cheese Masala Khichiya</span>
