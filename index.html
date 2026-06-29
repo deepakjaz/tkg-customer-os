@@ -17,7 +17,7 @@
    White marble / Coal ember orange / Black charcoal / Warm gold
    ========================================================================== */
 :root{
-  /* ---- DARK PALETTE — used by the Owner Dashboard (#screen-dash).
+  /* ---- DARK PALETTE \u2014 used by the Owner Dashboard (#screen-dash).
      Re-calibrated to the TKG logo's own charcoal (sampled directly from
      the logo file: a warm red-brown black, not a neutral grey-black). ---- */
   --charcoal:       #160F0C;
@@ -38,18 +38,18 @@
   --stone-vein:      #C7BFB2;   /* marble crack-vein color, warm grey */
   --stone-vein-soft: #DCD5C8;
   --stone-line:      #E3DDD2;   /* hairline borders on light surfaces */
-  --ink:             #1C1815;   /* primary text — near-black, warm */
+  --ink:             #1C1815;   /* primary text \u2014 near-black, warm */
   --ink-soft:        #6B6256;   /* secondary text, warm grey-brown */
   --ink-faint:       #9C9286;   /* tertiary text, placeholders */
 
-  /* ---- ACCENTS — shared by both palettes, used sparingly on light ---- */
+  /* ---- ACCENTS \u2014 shared by both palettes, used sparingly on light ---- */
   --ember:          #E85D2C;
   --ember-bright:   #FF7A45;
   --ember-deep:     #B8431D;
-  --ember-glow:     #FAC646;   /* sampled from the TKG logo halo — warm gold-amber */
+  --ember-glow:     #FAC646;   /* sampled from the TKG logo halo \u2014 warm gold-amber */
   --gold:           #C9A24B;
   --gold-bright:    #E0C170;
-  --gold-deep:      #8F7430;   /* new — readable gold-on-white for text */
+  --gold-deep:      #8F7430;   /* new \u2014 readable gold-on-white for text */
   --grey-warm:      #8A8278;
   --success:        #4C7A4C;   /* slightly deepened for readability on white */
   --danger:         #B5392F;   /* slightly deepened for readability on white */
@@ -103,12 +103,12 @@ input{font-family:inherit;}
   display:flex;
   flex-direction:column;
   background-image:
-    /* warm gold pooling, top — sampled from the TKG logo's coal-ring halo */
+    /* warm gold pooling, top \u2014 sampled from the TKG logo's coal-ring halo */
     radial-gradient(ellipse 110% 40% at 50% 0%, rgba(250,198,70,0.07), transparent 60%),
-    /* fracture-point convergences — small darker clusters where veins meet */
+    /* fracture-point convergences \u2014 small darker clusters where veins meet */
     radial-gradient(ellipse 18% 10% at 78% 14%, rgba(120,108,92,0.16), transparent 70%),
     radial-gradient(ellipse 14% 8% at 14% 62%, rgba(120,108,92,0.13), transparent 70%),
-    /* branching crack veins — varied angles so they read as organic, not a repeating pattern */
+    /* branching crack veins \u2014 varied angles so they read as organic, not a repeating pattern */
     linear-gradient(124deg, transparent 11%, rgba(124,112,96,0.10) 11.4%, transparent 12%),
     linear-gradient(124deg, transparent 11.6%, rgba(124,112,96,0.07) 12%, transparent 12.6%),
     linear-gradient(82deg, transparent 31%, rgba(124,112,96,0.09) 31.4%, transparent 32%),
@@ -449,18 +449,6 @@ textarea.field-input{
 .btn-primary:active{transform:translateY(1px) scale(0.99); box-shadow:0 4px 10px -4px rgba(232,93,44,0.5);}
 .btn-primary:disabled{opacity:0.55; box-shadow:none;}
 
-.btn-secondary{
-  width:100%;
-  padding:14px;
-  border-radius:var(--radius-md);
-  border:1px solid var(--grey-dark);
-  background:transparent;
-  color:var(--grey-warm);
-  font-size:14px;
-  font-weight:600;
-}
-.btn-secondary:active{background:rgba(255,255,255,0.02);}
-
 .consent-line{
   margin-top:14px;
   font-size:11.5px;
@@ -506,7 +494,7 @@ textarea.field-input{
   padding:8px;
 }
 
-/* ---- Welcome-back chip ---- */
+/* ---- Welcome-back chip (returning customer) ---- */
 .welcome-chip{
   display:none;
   align-items:center;
@@ -517,18 +505,18 @@ textarea.field-input{
   padding:11px 14px;
   margin-bottom:16px;
   font-size:13px;
-  color:var(--gold-bright);
+  color:var(--gold-deep);
 }
 .welcome-chip.show{display:flex;}
 .welcome-chip .wc-icon{font-size:16px;}
 
 /* ==========================================================================
-   REGISTRATION OVERLAY (bottom sheet)
+   REGISTRATION OVERLAY (bottom sheet, optional, never blocks the menu)
    ========================================================================== */
 .overlay-backdrop{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.55);
+  background:rgba(28,24,21,0.45);
   opacity:0;
   pointer-events:none;
   transition:opacity 0.25s ease;
@@ -548,10 +536,10 @@ textarea.field-input{
   max-width:var(--max-w);
   max-height:88vh;
   overflow-y:auto;
-  background:var(--charcoal);
+  background:var(--stone-base);
   border-radius:22px 22px 0 0;
   padding:10px 20px 28px;
-  box-shadow:0 -10px 40px rgba(0,0,0,0.5);
+  box-shadow:0 -10px 40px rgba(28,24,21,0.22);
   transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   z-index:160;
   -webkit-overflow-scrolling:touch;
@@ -596,7 +584,7 @@ textarea.field-input{
 }
 
 /* ==========================================================================
-   APP HERO — short, scan-in-seconds
+   APP HERO — short, scan-in-seconds, replaces the old stacked-cards hero
    ========================================================================== */
 .app-hero{
   padding-top:2px;
@@ -686,6 +674,10 @@ textarea.field-input{
 }
 .info-btn:active{background:rgba(28,24,21,0.07);}
 
+/* Story strip — compact 3-step visual explainer directly beneath the
+   headline. Carries the "Gravy is the Hero" punch as its lead-in label
+   instead of repeating it as a separate line, so the hero reads in two
+   beats (headline, then story) instead of three. */
 .hero-story-label{
   font-size:11px;
   font-weight:700;
@@ -726,7 +718,11 @@ textarea.field-input{
 }
 
 /* ==========================================================================
-   EXPANDABLE EXPLAINER
+   EXPANDABLE EXPLAINER — "What is TKG Signature Gravy?"
+   Collapsed by default; expands in place (no overlay) so first-time
+   visitors can satisfy curiosity without leaving the menu screen.
+   Reuses the same menu.edu* / menu.hookPunch translation keys as the
+   info sheet, so there is one source of truth for the copy.
    ========================================================================== */
 .explainer{
   margin-bottom:16px;
@@ -771,7 +767,7 @@ textarea.field-input{
 .explainer-body-inner .info-sheet-punch{margin-top:10px;}
 
 /* ==========================================================================
-   CATEGORY TABS
+   CATEGORY TABS — real switching, Signature default, no page reload
    ========================================================================== */
 .menu-tabs{
   display:flex;
@@ -801,7 +797,7 @@ textarea.field-input{
 .menu-tab:active{transform:scale(0.97);}
 
 /* ==========================================================================
-   MENU SECTIONS
+   MENU SECTIONS — gentle slide+fade on category switch
    ========================================================================== */
 .menu-section{display:none;}
 .menu-section.active{
@@ -864,7 +860,7 @@ textarea.field-input{
 .phone-note:active{color:var(--ember-deep);}
 
 /* ==========================================================================
-   INFO SHEET
+   INFO SHEET — education content, tucked behind the info button
    ========================================================================== */
 .info-sheet-title{
   font-family:var(--font-display);
@@ -903,7 +899,7 @@ textarea.field-input{
 }
 
 /* ==========================================================================
-   EXTRAS
+   EXTRAS — compact chip row, replaces flour-note + notes-grid paragraphs
    ========================================================================== */
 .extras-row{
   display:flex;
@@ -982,7 +978,7 @@ textarea.field-input{
 }
 
 /* ==========================================================================
-   PREMIUM MENU CARDS
+   PREMIUM MENU CARDS — rounded, soft shadow, name+price scannable at a glance
    ========================================================================== */
 .menu-item{
   display:flex;
@@ -1239,7 +1235,7 @@ textarea.field-input{
 }
 
 /* ==========================================================================
-   INSTALL PROMPT
+   INSTALL PROMPT — bottom banner, dismissible, platform-aware
    ========================================================================== */
 .install-banner{
   position:fixed;
@@ -1317,6 +1313,7 @@ textarea.field-input{
 
 <div class="shell" id="shell">
 
+  <!-- ============ TOP BAR ============ -->
   <div class="topbar">
     <div class="wordmark">TKG <span class="sub">The Khichiya Gravy</span></div>
     <div class="topbar-right">
@@ -1328,6 +1325,7 @@ textarea.field-input{
     </div>
   </div>
 
+  <!-- ============ LANGUAGE SELECTOR SHEET ============ -->
   <div class="overlay-backdrop" id="langBackdrop"></div>
   <div class="lang-sheet" id="langSheet">
     <div class="reg-overlay-handle"></div>
@@ -1346,6 +1344,7 @@ textarea.field-input{
     </button>
   </div>
 
+  <!-- ============ REGISTRATION OVERLAY (optional, reachable from menu) ============ -->
   <div class="overlay-backdrop" id="overlayBackdrop"></div>
   <div class="reg-overlay" id="regOverlay">
 
@@ -1353,7 +1352,7 @@ textarea.field-input{
 
     <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
       <div class="hero-eyebrow" data-i18n="reg.eyebrow">Stay in the loop</div>
-      <h1 class="hero-title" style="font-size:24px;" data-i18n-html="reg.title">Register & Get <em>Updates.</em></h1>
+      <h1 class="hero-title" style="font-size:24px;" data-i18n-html="reg.title">Register &amp; Get <em>Updates.</em></h1>
       <p class="hero-sub" data-i18n="reg.sub">Takes 10 seconds. We'll remember you next time you visit.</p>
     </div>
 
@@ -1399,7 +1398,7 @@ textarea.field-input{
         </div>
       </div>
 
-      <button type="submit" class="btn-primary" id="submitBtn" data-i18n-html="reg.submitBtn">Register & Get Updates</button>
+      <button type="submit" class="btn-primary" id="submitBtn" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</button>
       <button type="button" class="btn-secondary" id="closeRegisterBtn" style="width:100%; margin-top:10px;" data-i18n="reg.notNow">Not Now</button>
 
       <p class="consent-line" data-i18n="reg.consent">No login. No OTP. No email. Just your name and number, saved securely.</p>
@@ -1407,6 +1406,7 @@ textarea.field-input{
 
   </div>
 
+  <!-- ============ FEEDBACK OVERLAY — shown right after check-in, optional ============ -->
   <div class="overlay-backdrop" id="feedbackBackdrop"></div>
   <div class="reg-overlay" id="feedbackOverlay">
 
@@ -1419,11 +1419,7 @@ textarea.field-input{
     <form class="reg-card" id="feedbackForm" novalidate>
       <div class="field-group">
         <label class="field-label" for="feedbackInput" data-i18n-html="feedback.label">Tell us anything <span class="optional-tag">Optional</span></label>
-        <textarea class="field-input" id="feedbackInput" maxlength="500" placeholder="Loved the smoky flavour
-Amazing cheese gravy
-Best Jain option I've tried
-Crispy Khichiya
-Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
+        <textarea class="field-input" id="feedbackInput" maxlength="500" placeholder="Loved the smoky flavour&#10;Amazing cheese gravy&#10;Best Jain option I've tried&#10;Crispy Khichiya&#10;Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
       </div>
 
       <button type="submit" class="btn-primary" id="feedbackSubmitBtn" data-i18n="feedback.submitBtn">Submit Feedback</button>
@@ -1432,6 +1428,7 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
 
   </div>
 
+  <!-- ============ THANK YOU + OPTIONAL ACTIONS OVERLAY ============ -->
   <div class="overlay-backdrop" id="thanksBackdrop"></div>
   <div class="reg-overlay" id="thanksOverlay">
 
@@ -1483,14 +1480,16 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
 
   </div>
 
+  <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
   <section class="screen active" id="screen-menu">
 
+    <!-- ============ HERO — short, scannable in seconds ============ -->
     <div class="app-hero">
       <div class="app-hero-row">
         <div style="flex:1; min-width:0;">
           <div class="app-hero-meta">
             <span class="app-hero-hours" data-i18n="menu.hours">Open on Weekend · Evening to Late Night</span>
-            <a class="directions-link" id="directionsLink" href="https://g.page/r/CYnAo2r-6b_zEAE" target="_blank" rel="noopener">
+            <a class="directions-link" id="directionsLink" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
               <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
               <span data-i18n="menu.getDirections">Get Directions</span>
             </a>
@@ -1504,6 +1503,10 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
         <button type="button" class="info-btn" id="openInfoBtn" aria-label="About TKG">ⓘ</button>
       </div>
 
+      <!-- Compact story strip — visual 3-step explainer, reuses existing
+           hero.line* translation keys so it works in EN/GU/HI for free.
+           The label above carries the old standalone statement line's
+           message, so the hero now reads in two beats, not three. -->
       <div class="hero-story-label" data-i18n="hero.statement">🔥 The Gravy is the Hero</div>
       <div class="hero-story-strip" aria-hidden="true">
         <div class="story-step"><span class="step-icon">🔥</span><span data-i18n="hero.lineCoal">Coal-Cooked</span></div>
@@ -1514,6 +1517,7 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
       </div>
     </div>
 
+    <!-- ============ EXPANDABLE EXPLAINER — collapsed by default ============ -->
     <div class="explainer" id="explainer">
       <button type="button" class="explainer-toggle" id="explainerToggle" aria-expanded="false">
         <span class="et-icon">❓</span>
@@ -1529,11 +1533,13 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
       </div>
     </div>
 
+    <!-- ============ CATEGORY TABS — Signature default, instant switch ============ -->
     <div class="menu-tabs" id="menuTabs">
       <button type="button" class="menu-tab active" data-cat="signature" data-i18n="menu.family2TitleShort">Signature</button>
       <button type="button" class="menu-tab" data-cat="traditional" data-i18n="menu.family1TitleShort">Traditional</button>
     </div>
 
+    <!-- ===== SIGNATURE (default) ===== -->
     <div class="menu-section active" id="cat-signature">
       <div class="menu-item">
         <div class="menu-item-info">
@@ -1587,6 +1593,7 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
       </div>
     </div>
 
+    <!-- ===== TRADITIONAL ===== -->
     <div class="menu-section" id="cat-traditional">
       <div class="menu-item">
         <div class="menu-item-info">
@@ -1619,6 +1626,7 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
       </div>
     </div>
 
+    <!-- ===== EXTRAS — compact chip row ===== -->
     <div class="extras-row">
       <span class="extra-chip jain" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
       <span class="extra-chip jain" data-i18n="menu.noOnion">No Onion Option</span>
@@ -1628,7 +1636,7 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
 
     <div class="footer-meta">
       <span class="hours-note" data-i18n="menu.hours">Open on Weekend · Evening to Late Night</span>
-      <a class="directions-link" href="https://g.page/r/CYnAo2r-6b_zEAE" target="_blank" rel="noopener">
+      <a class="directions-link" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
         <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
         <span data-i18n="menu.getDirections">Get Directions</span>
       </a>
@@ -1639,18 +1647,20 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
       <span data-i18n="menu.callUs">+91 95101 00950</span>
     </a>
 
+    <!-- About / Instagram / Google Review — static, always visible, never gated -->
     <div class="link-row">
       <a class="link-chip" href="https://wa.me/919510100950" target="_blank" rel="noopener" data-i18n="menu.whatsapp">WhatsApp</a>
       <a class="link-chip" id="instaLink" href="#" target="_blank" rel="noopener" data-i18n="menu.instagram">Instagram</a>
       <a class="link-chip" id="googleReviewLink" href="#" target="_blank" rel="noopener" data-i18n="menu.googleReview">Google Review</a>
     </div>
 
+    <!-- Optional registration entry point — never blocks menu access -->
     <div class="register-cta" id="registerCtaCard">
       <div class="register-cta-text">
-        <div class="register-cta-title" data-i18n-html="reg.submitBtn">Register & Get Updates</div>
+        <div class="register-cta-title" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</div>
         <div class="register-cta-sub" data-i18n="reg.ctaSub">Takes 10 seconds. No login, no OTP.</div>
       </div>
-      <button class="btn-primary register-cta-btn" id="openRegisterBtn" data-i18n-html="reg.submitBtn">Register & Get Updates</button>
+      <button class="btn-primary register-cta-btn" id="openRegisterBtn" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</button>
     </div>
 
     <div class="owner-link">
@@ -1659,6 +1669,7 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
 
   </section>
 
+  <!-- ============ INFO SHEET — education content, behind the ⓘ button ============ -->
   <div class="overlay-backdrop" id="infoBackdrop"></div>
   <div class="reg-overlay" id="infoSheet">
     <div class="reg-overlay-handle"></div>
@@ -1670,6 +1681,7 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
     <button type="button" class="btn-secondary" id="closeInfoBtn" style="width:100%; margin-top:18px;" data-i18n="thanks.closeBtn">Close</button>
   </div>
 
+  <!-- ============ SCREEN 3: OWNER DASHBOARD ============ -->
   <section class="screen" id="screen-dash">
 
     <div class="dash-header">
@@ -1677,12 +1689,14 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
       <button class="dash-close" id="closeDashBtn">✕</button>
     </div>
 
+    <!-- PIN gate -->
     <div class="pin-gate" id="pinGate">
       <p>Enter the owner PIN to continue.<br><span style="color:var(--grey-line); font-size:11px;">(Default PIN: 1234 — change inside app.js)</span></p>
       <input class="pin-input" id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
       <button class="btn-primary" id="pinSubmitBtn">Unlock</button>
     </div>
 
+    <!-- Dashboard content -->
     <div id="dashContent" class="hidden" style="display:none; flex-direction:column; flex:1; min-height:0;">
 
       <div class="stat-grid">
@@ -1719,13 +1733,14 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
       <input class="search-box" id="searchInput" type="text" placeholder="Search by name or mobile number...">
 
       <div class="cust-list" id="custList">
-        <div class="empty-state">No customers yet. Once guests check in, they will appear here.</div>
+        <div class="empty-state">No customers yet.</div>
       </div>
 
     </div>
 
   </section>
 
+  <!-- ============ INSTALL PROMPT BANNER — platform-aware, dismissible ============ -->
   <div class="install-banner" id="installBanner">
     <div class="install-icon">📱</div>
     <div class="install-text">
@@ -1745,12 +1760,31 @@ Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
 <script>
 /* ============================================================================
    TKG APP LOGIC
+   ============================================================================
+   Data model per customer (LocalStorage key: tkg_customers):
+   {
+     mobile: "9876543210",       // normalized, used as unique key
+     name: "Rohan Patel",
+     firstVisit: "2026-06-23T10:15:00.000Z",
+     lastVisit:  "2026-06-23T10:15:00.000Z",
+     visitCount: 1,
+     favoriteItem: "Cheesey Gravy Khichiya (Mini)", // optional, "" if skipped
+     source: "Instagram",         // optional, "" if skipped
+     reviewStatus: "",            // RESERVED for Phase 2 (Review Growth System)
+     rating: "",                  // RESERVED for Phase 2 — no UI yet
+     feedback: "",                // RESERVED for Phase 2 — no UI yet
+     pendingSync: true|false     // true until Apps Script confirms receipt
+   }
    ============================================================================ */
 
+// ---------------------------------------------------------------------------
+// CONFIG — paste your deployed Apps Script Web App URL here.
+// See AppsScript.gs setup instructions for how to generate this.
+// ---------------------------------------------------------------------------
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS3JaYacArqWNJAM0G8FeI83RvzWBXG2bT1_pPwb8Ic2ioSiKnFPTpUUn9fteu92XLug/exec';
-const OWNER_PIN = '1234'; 
-const INSTAGRAM_URL = 'https://www.instagram.com/the.khichiyagravy/'; 
-const GOOGLE_REVIEW_URL = 'https://g.page/r/CYnAo2r-6b_zEAE/review'; 
+const OWNER_PIN = '1234'; // change this to your own PIN
+const INSTAGRAM_URL = 'https://www.instagram.com/the.khichiyagravy/'; // production — official TKG profile
+const GOOGLE_REVIEW_URL = 'https://g.page/r/CYnAo2r-6b_zEAE/review'; // production — Google Business review link
 
 document.getElementById('instaLink').href = INSTAGRAM_URL;
 document.getElementById('googleReviewLink').href = GOOGLE_REVIEW_URL;
@@ -1758,6 +1792,9 @@ document.getElementById('googleReviewLink').href = GOOGLE_REVIEW_URL;
 const LS_KEY = 'tkg_customers';
 const LS_SESSION_KEY = 'tkg_current_session';
 
+// ---------------------------------------------------------------------------
+// STORAGE HELPERS
+// ---------------------------------------------------------------------------
 function loadCustomers(){
   try{
     const raw = localStorage.getItem(LS_KEY);
@@ -1790,6 +1827,9 @@ function isSameDay(isoA, isoB){
   return a.toDateString() === b.toDateString();
 }
 
+// ---------------------------------------------------------------------------
+// CHECK-IN LOGIC (LocalStorage first, instant — sync happens after)
+// ---------------------------------------------------------------------------
 function checkInCustomer(name, mobile, favoriteItem, source){
   const list = loadCustomers();
   const nowIso = new Date().toISOString();
@@ -1807,6 +1847,8 @@ function checkInCustomer(name, mobile, favoriteItem, source){
       visitCount: 1,
       favoriteItem: favoriteItem || '',
       source: source || '',
+      // Reserved for Phase 2 (Review Growth System) — no UI yet, fields kept
+      // empty so the data shape is ready before that phase begins.
       reviewStatus: '',
       rating: '',
       feedback: '',
@@ -1816,8 +1858,8 @@ function checkInCustomer(name, mobile, favoriteItem, source){
   }else{
     record = list[idx];
     isReturning = true;
-    record.name = name; 
-    if(favoriteItem) record.favoriteItem = favoriteItem; 
+    record.name = name; // keep name fresh in case of correction
+    if(favoriteItem) record.favoriteItem = favoriteItem; // only overwrite if provided
     if(source) record.source = source;
     if(record.reviewStatus === undefined) record.reviewStatus = '';
     if(record.rating === undefined) record.rating = '';
@@ -1831,17 +1873,24 @@ function checkInCustomer(name, mobile, favoriteItem, source){
   }
 
   saveCustomers(list);
+
   sessionStorage.setItem(LS_SESSION_KEY, JSON.stringify({ name: record.name, visitCount: record.visitCount, isReturning }));
-  attemptSync(); 
+
+  attemptSync(); // fire and forget; works offline gracefully
+
   return { record, isReturning };
 }
 
+// ---------------------------------------------------------------------------
+// SYNC ENGINE — sends pending records to Google Apps Script.
+// Retries automatically when connectivity returns (see online listener below).
+// ---------------------------------------------------------------------------
 let syncInFlight = false;
 
 async function attemptSync(){
   if(syncInFlight) return;
   if(!navigator.onLine) { updateStatusPill(); return; }
-  if(APP_SCRIPT_URL.includes('PASTE_YOUR')) { return; } 
+  if(APP_SCRIPT_URL.includes('PASTE_YOUR')) { return; } // not configured yet
 
   const list = loadCustomers();
   const pending = list.filter(c => c.pendingSync);
@@ -1862,12 +1911,13 @@ async function attemptSync(){
 
     const res = await fetch(APP_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight on Apps Script
       body: JSON.stringify({ action: 'sync', records: records })
     });
 
     if(!res.ok) throw new Error('Sync request failed: ' + res.status);
 
+    // Mark all as synced
     const freshList = loadCustomers();
     pending.forEach(p => {
       const i = findCustomerIndex(freshList, p.mobile);
@@ -1887,10 +1937,16 @@ async function attemptSync(){
   }
 }
 
+// Retry sync the moment connectivity returns
 window.addEventListener('online', () => { showToast('Back online — syncing...'); attemptSync(); });
 window.addEventListener('offline', () => { updateStatusPill(); });
+
+// Periodic background retry every 30s in case "online" event doesn't fire reliably
 setInterval(attemptSync, 30000);
 
+// ---------------------------------------------------------------------------
+// STATUS PILL UI
+// ---------------------------------------------------------------------------
 function setStatusState(state){
   const pill = document.getElementById('statusPill');
   const text = document.getElementById('statusText');
@@ -1914,6 +1970,9 @@ function updateStatusPill(){
   }
 }
 
+// ---------------------------------------------------------------------------
+// TOAST
+// ---------------------------------------------------------------------------
 let toastTimer;
 function showToast(msg){
   const toast = document.getElementById('toast');
@@ -1923,14 +1982,21 @@ function showToast(msg){
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
 }
 
+// ---------------------------------------------------------------------------
+// SCREEN NAVIGATION (Owner Dashboard is the only remaining full screen swap —
+// Menu is now the permanent default screen and is never swapped away from)
+// ---------------------------------------------------------------------------
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
+// ---------------------------------------------------------------------------
+// CATEGORY TABS — Signature default, instant switch, no page reload
+// ---------------------------------------------------------------------------
 document.querySelectorAll('.menu-tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    if(tab.classList.contains('active')) return; 
+    if(tab.classList.contains('active')) return; // already showing this category
     document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
@@ -1938,6 +2004,9 @@ document.querySelectorAll('.menu-tab').forEach(tab => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// INFO SHEET — education content, tucked behind the ⓘ button
+// ---------------------------------------------------------------------------
 const infoBackdrop = document.getElementById('infoBackdrop');
 const infoSheet = document.getElementById('infoSheet');
 
@@ -1953,6 +2022,9 @@ document.getElementById('openInfoBtn').addEventListener('click', openInfoSheet);
 document.getElementById('closeInfoBtn').addEventListener('click', closeInfoSheet);
 infoBackdrop.addEventListener('click', closeInfoSheet);
 
+// ---------------------------------------------------------------------------
+// EXPANDABLE EXPLAINER — "What is TKG Signature Gravy?" inline on the menu
+// ---------------------------------------------------------------------------
 const explainer = document.getElementById('explainer');
 const explainerToggle = document.getElementById('explainerToggle');
 explainerToggle.addEventListener('click', () => {
@@ -1960,6 +2032,9 @@ explainerToggle.addEventListener('click', () => {
   explainerToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 });
 
+// ---------------------------------------------------------------------------
+// REGISTRATION OVERLAY — optional, opened from the menu, never blocks it
+// ---------------------------------------------------------------------------
 const overlayBackdrop = document.getElementById('overlayBackdrop');
 const regOverlay = document.getElementById('regOverlay');
 
@@ -1977,6 +2052,9 @@ document.getElementById('openRegisterBtn').addEventListener('click', openRegiste
 document.getElementById('closeRegisterBtn').addEventListener('click', closeRegisterOverlay);
 overlayBackdrop.addEventListener('click', closeRegisterOverlay);
 
+// ---------------------------------------------------------------------------
+// REGISTRATION FORM
+// ---------------------------------------------------------------------------
 const nameInput = document.getElementById('nameInput');
 const mobileInput = document.getElementById('mobileInput');
 const nameError = document.getElementById('nameError');
@@ -1991,7 +2069,7 @@ document.querySelectorAll('.source-chip').forEach(chip => {
     const alreadySelected = chip.classList.contains('selected');
     document.querySelectorAll('.source-chip').forEach(c => c.classList.remove('selected'));
     if(alreadySelected){
-      selectedSource = ''; 
+      selectedSource = ''; // tap again to deselect — stays optional
     }else{
       chip.classList.add('selected');
       selectedSource = chip.dataset.source;
@@ -2003,6 +2081,7 @@ mobileInput.addEventListener('input', () => {
   mobileInput.value = mobileInput.value.replace(/[^\d]/g, '').slice(0, 10);
 });
 
+// Show "welcome back" chip as soon as a returning mobile number is typed
 mobileInput.addEventListener('input', () => {
   const list = loadCustomers();
   const idx = findCustomerIndex(list, mobileInput.value);
@@ -2060,10 +2139,15 @@ regForm.addEventListener('submit', (e) => {
   selectedSource = '';
   document.getElementById('welcomeChip').classList.remove('show');
 
+  // Hand off to the feedback overlay — optional, never forced. Stored for
+  // the feedback/skip handlers below to know which customer to update.
   lastCheckedInMobile = record.mobile;
-  setTimeout(openFeedbackOverlay, 350); 
+  setTimeout(openFeedbackOverlay, 350); // brief pause so the toast is visible first
 });
 
+// ---------------------------------------------------------------------------
+// FEEDBACK OVERLAY — optional, shown right after check-in
+// ---------------------------------------------------------------------------
 let lastCheckedInMobile = '';
 const feedbackBackdrop = document.getElementById('feedbackBackdrop');
 const feedbackOverlay = document.getElementById('feedbackOverlay');
@@ -2106,6 +2190,9 @@ document.getElementById('skipFeedbackBtn').addEventListener('click', () => {
   openThanksOverlay('');
 });
 
+// ---------------------------------------------------------------------------
+// THANK YOU + OPTIONAL ACTIONS OVERLAY — every action is skippable
+// ---------------------------------------------------------------------------
 const thanksBackdrop = document.getElementById('thanksBackdrop');
 const thanksOverlay = document.getElementById('thanksOverlay');
 const copyReviewCard = document.getElementById('copyReviewCard');
@@ -2113,6 +2200,8 @@ let lastSubmittedFeedback = '';
 
 function openThanksOverlay(feedbackText){
   lastSubmittedFeedback = feedbackText || '';
+  // Only offer the copy shortcut if they actually wrote something —
+  // nothing to paste anywhere if they skipped feedback entirely.
   copyReviewCard.classList.toggle('hidden', !lastSubmittedFeedback);
   document.getElementById('thanksReviewLink').href = GOOGLE_REVIEW_URL;
   document.getElementById('thanksInstaLink').href = INSTAGRAM_URL;
@@ -2132,6 +2221,9 @@ copyReviewCard.addEventListener('click', async () => {
     if(navigator.clipboard && navigator.clipboard.writeText){
       await navigator.clipboard.writeText(lastSubmittedFeedback);
     }else{
+      // Fallback for older browsers / non-secure contexts where the
+      // Clipboard API isn't available — temporary offscreen textarea
+      // + the legacy execCommand copy path.
       const ta = document.createElement('textarea');
       ta.value = lastSubmittedFeedback;
       ta.style.position = 'fixed';
@@ -2147,6 +2239,9 @@ copyReviewCard.addEventListener('click', async () => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// OWNER DASHBOARD
+// ---------------------------------------------------------------------------
 let dashUnlocked = false;
 
 document.getElementById('openDashBtn').addEventListener('click', () => {
@@ -2258,6 +2353,9 @@ document.getElementById('forceSyncBtn').addEventListener('click', () => {
   attemptSync().then(() => showToast('Sync attempted'));
 });
 
+// ---------------------------------------------------------------------------
+// CSV EXPORT
+// ---------------------------------------------------------------------------
 document.getElementById('exportCsvBtn').addEventListener('click', () => {
   const list = loadCustomers();
   if(list.length === 0){
@@ -2293,6 +2391,9 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
   showToast('CSV exported');
 });
 
+// ---------------------------------------------------------------------------
+// SERVICE WORKER REGISTRATION
+// ---------------------------------------------------------------------------
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(err => {
@@ -2300,10 +2401,16 @@ if('serviceWorker' in navigator){
     });
   });
 
+  // Auto-refresh once a new service worker version takes control, so
+  // customers see updates on their next normal reload instead of having
+  // to manually clear cookies/site data. Guarded with `refreshing` so a
+  // reload can never trigger this twice (which would otherwise loop).
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if(refreshing) return;
     refreshing = true;
+    // Don't yank the page out from under someone mid-registration or
+    // mid-feedback — wait until that overlay closes, then reload.
     const isFormOpen = () =>
       regOverlay.classList.contains('show') || feedbackOverlay.classList.contains('show');
     if(isFormOpen()){
@@ -2318,6 +2425,11 @@ if('serviceWorker' in navigator){
   });
 }
 
+// ---------------------------------------------------------------------------
+// INSTALL PROMPT — platform-aware (Android real prompt, iOS manual tip)
+// Never re-shown once dismissed or once installed. Backend/customer data
+// is never touched by any of this.
+// ---------------------------------------------------------------------------
 const INSTALL_DISMISSED_KEY = 'tkg_install_dismissed';
 const installBanner = document.getElementById('installBanner');
 const installTitle = document.getElementById('installTitle');
@@ -2329,11 +2441,12 @@ let deferredInstallEvent = null;
 
 function isStandalone(){
   return window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone === true; 
+    || window.navigator.standalone === true; // iOS Safari flag
 }
 
 function isIos(){
   return /iphone|ipad|ipod/i.test(navigator.userAgent)
+    // iPadOS 13+ reports as Mac but has touch support
     || (/macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 }
 
@@ -2345,30 +2458,34 @@ function dismissInstallBanner(persist){
 }
 
 function showInstallBanner(){
-  if(isStandalone()) return; 
+  if(isStandalone()) return; // already installed, never show
   let dismissed = false;
   try{ dismissed = localStorage.getItem(INSTALL_DISMISSED_KEY) === 'true'; }catch(e){}
-  if(dismissed) return; 
+  if(dismissed) return; // dismissed before
 
   const dict = translations[currentLang] || translations.en;
 
   if(deferredInstallEvent){
+    // Android Chrome — real installable state, one-tap action
     installTitle.textContent = dict.install.androidTitle;
     installSub.textContent = dict.install.androidSub;
     installActionBtn.textContent = dict.install.androidBtn;
     installActionBtn.classList.remove('hidden');
     installBanner.classList.add('show');
   }else if(isIos()){
+    // iOS Safari — no programmatic install, show manual instructions instead
     installTitle.textContent = dict.install.iosTitle;
     installSub.textContent = dict.install.iosSub;
     installActionBtn.textContent = dict.install.iosBtn;
     installActionBtn.classList.remove('hidden');
     installBanner.classList.add('show');
   }
+  // Any other platform/browser: beforeinstallprompt never fired, not iOS —
+  // skip entirely rather than show a dead-end button.
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault(); 
+  e.preventDefault(); // suppress the browser's default mini-infobar
   deferredInstallEvent = e;
   showInstallBanner();
 });
@@ -2380,27 +2497,36 @@ window.addEventListener('appinstalled', () => {
 
 installActionBtn.addEventListener('click', async () => {
   if(deferredInstallEvent){
-    dismissInstallBanner(false); 
-    deferredInstallEvent.prompt(); 
+    dismissInstallBanner(false); // hide immediately, native dialog takes over
+    deferredInstallEvent.prompt(); // actually trigger the native install dialog
     const choice = await deferredInstallEvent.userChoice;
     deferredInstallEvent = null;
     if(choice.outcome === 'accepted'){
       try{ localStorage.setItem(INSTALL_DISMISSED_KEY, 'true'); }catch(e){}
     }
+    // If dismissed in the native dialog, banner stays gone for this session
+    // but isn't permanently dismissed — they may have just misclicked.
   }else{
+    // iOS "Got It" — acknowledge the instructions, don't show again
     dismissInstallBanner(true);
   }
 });
 
 installDismissBtn.addEventListener('click', () => dismissInstallBanner(true));
 
+// Delay the iOS check slightly so it doesn't compete with the initial paint;
+// Android path fires naturally via the beforeinstallprompt event whenever
+// Chrome decides to dispatch it (no fixed timing to wait for).
 setTimeout(() => {
   if(!deferredInstallEvent && isIos()) showInstallBanner();
 }, 1500);
 
-// ============================================================================
+// ---------------------------------------------------------------------------
 // LANGUAGE / i18n — English / Gujarati / Hindi
-// ============================================================================
+// UI text only. Customer data (name, mobile, feedback, etc.) is never
+// touched by this — language choice is stored separately and is purely
+// a display-layer concern. Owner Dashboard intentionally stays English.
+// ---------------------------------------------------------------------------
 const LANG_KEY = 'tkg_language';
 
 const translations = {
@@ -2413,7 +2539,7 @@ const translations = {
     },
     reg: {
       eyebrow: 'Stay in the loop',
-      title: 'Register & Get <em>Updates.</em>',
+      title: 'Register &amp; Get <em>Updates.</em>',
       sub: "Takes 10 seconds. We'll remember you next time you visit.",
       nameLabel: 'Your Name',
       namePlaceholder: 'e.g. Rohan Patel',
@@ -2424,7 +2550,7 @@ const translations = {
       favoriteLabel: 'Favorite Item <span class="optional-tag">Optional</span>',
       selectItem: 'Select an item…',
       sourceLabel: 'How did you hear about us? <span class="optional-tag">Optional</span>',
-      submitBtn: 'Register & Get Updates',
+      submitBtn: 'Register &amp; Get Updates',
       notNow: 'Not Now',
       consent: 'No login. No OTP. No email. Just your name and number, saved securely.',
       ctaSub: 'Takes 10 seconds. No login, no OTP.',
@@ -2482,7 +2608,7 @@ const translations = {
       classicKhichiya: { name:'Classic Khichiya', desc:'Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.', descShort:'Butter and our signature spice blend.', price:'Mini ₹50<br>Large ₹60', priceLarge:'Large ₹60' },
       masalaKhichiya: { name:'Masala Khichiya', desc:'Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.', descShort:'Chutney, fresh veg, chana dal, sev.', price:'Mini ₹80<br>Large ₹120', priceMini:'Mini ₹80', priceLarge:'Large ₹120' },
       cheeseMasalaKhichiya: { name:'Cheese Masala Khichiya', desc:'Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.', descShort:'Masala Khichiya topped with melted cheese.', price:'Mini ₹100<br>Large ₹140', priceMini:'Mini ₹100', priceLarge:'Large ₹140' },
-      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.', descShort:'Creamy coal-cooked cheese gravy, server for dipping.', price:'Mini ₹140<br>Large ₹180', priceMini:'Mini ₹140', priceLarge:'Large ₹180' },
+      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.', descShort:'Creamy coal-cooked cheese gravy, served for dipping.', price:'Mini ₹140<br>Large ₹180', priceMini:'Mini ₹140', priceLarge:'Large ₹180' },
       cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.', descShort:'Extra cheese, even richer and creamier.', price:'Mini ₹160<br>Large ₹200', priceMini:'Mini ₹160', priceLarge:'Large ₹200' },
       extraCheese: { name:'Cheese', desc:'Extra cheese melted into your gravy.', descShort:'Extra cheese melted in.' },
       extraGravy: { name:'Extra Gravy', desc:'More of the hero product — for when the Khichiya runs out first.', descShort:'More of the hero product.' },
@@ -2724,6 +2850,8 @@ function applyTranslations(){
   document.getElementById('langSheetTitle').textContent = dict.langSheetTitle;
   document.getElementById('langBtnLabel').textContent = currentLang.toUpperCase();
 
+  // Re-apply current status pill state in the new language without
+  // disturbing actual online/offline/syncing logic.
   updateStatusPill();
 }
 
@@ -2737,6 +2865,9 @@ function setLanguage(lang){
   });
 }
 
+// ---------------------------------------------------------------------------
+// LANGUAGE SELECTOR SHEET — open/close/select
+// ---------------------------------------------------------------------------
 const langBackdrop = document.getElementById('langBackdrop');
 const langSheet = document.getElementById('langSheet');
 
@@ -2757,6 +2888,9 @@ document.querySelectorAll('.lang-option').forEach(opt => {
   });
 });
 
+// One-time discoverability pulse on the language button — fires once per
+// device, never again after the button is noticed or used. Purely visual,
+// never touches language/customer data.
 const LANG_ATTENTION_KEY = 'tkg_lang_attention_seen';
 function clearLangBtnAttention(){
   const btn = document.getElementById('langBtn');
@@ -2768,11 +2902,17 @@ try{
     setTimeout(() => {
       const btn = document.getElementById('langBtn');
       if(btn) btn.classList.add('attention');
-      setTimeout(clearLangBtnAttention, 2400); 
-    }, 900); 
+      setTimeout(clearLangBtnAttention, 2400); // matches animation duration
+    }, 900); // let the initial paint settle first
   }
-}catch(e){}
+}catch(e){
+  // localStorage unavailable (e.g. strict private browsing) — skip the
+  // attention cue silently, button still works normally either way.
+}
 
+// Same one-time discoverability pulse for the "Get Directions" link —
+// staggered later than the language pulse so the two don't compete for
+// attention on first load. Fires once per device, never again.
 const DIRECTIONS_ATTENTION_KEY = 'tkg_directions_attention_seen';
 function clearDirectionsAttention(){
   const link = document.getElementById('directionsLink');
@@ -2784,12 +2924,18 @@ try{
     setTimeout(() => {
       const link = document.getElementById('directionsLink');
       if(link) link.classList.add('attention');
-      setTimeout(clearDirectionsAttention, 1800); 
-    }, 1600); 
+      setTimeout(clearDirectionsAttention, 1800); // matches animation duration
+    }, 1600); // staggered after the lang-button pulse
   }
-}catch(e){}
+}catch(e){
+  // localStorage unavailable — skip the attention cue silently, link
+  // still works normally either way.
+}
 document.getElementById('directionsLink')?.addEventListener('click', clearDirectionsAttention);
 
+// ---------------------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------------------
 document.querySelectorAll('.lang-option').forEach(opt => {
   opt.classList.toggle('selected', opt.dataset.lang === currentLang);
 });
