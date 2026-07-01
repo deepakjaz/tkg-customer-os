@@ -584,6 +584,106 @@ textarea.field-input{
 }
 
 /* ==========================================================================
+   GENERIC CONTENT SHEET — reusable bottom sheet for any content-registry-
+   driven block (Reviews now; FAQ / Weekend Special / Featured Products /
+   Announcements later). Built on the existing .reg-overlay bottom-sheet
+   pattern — only the inner layout classes below are new.
+   ========================================================================== */
+.content-sheet{
+  max-height:82vh;
+  display:flex;
+  flex-direction:column;
+}
+.content-sheet-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:19px;
+  color:var(--ink);
+  margin-bottom:14px;
+}
+.content-sheet-body{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.cs-review-card{
+  background:var(--stone-card-alt);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  padding:13px 14px;
+  margin-bottom:10px;
+}
+.cs-review-top{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:7px;
+}
+.cs-review-avatar{
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
+  color:var(--marble);
+  font-size:11px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.cs-review-author{
+  flex:1;
+  min-width:0;
+  font-size:12.5px;
+  font-weight:700;
+  color:var(--ink);
+}
+.cs-review-stars{
+  font-size:10.5px;
+  color:var(--gold-deep);
+  letter-spacing:1px;
+  flex-shrink:0;
+}
+.cs-review-quote{
+  font-size:13.5px;
+  line-height:1.5;
+  color:var(--ink);
+}
+
+.content-sheet-footer{
+  margin-top:6px;
+  padding-top:14px;
+  border-top:1px solid var(--stone-line);
+  text-align:center;
+}
+.content-sheet-footer.hidden{display:none;}
+.cs-footer-stars{
+  font-size:16px;
+  color:var(--gold-deep);
+  letter-spacing:2px;
+  margin-bottom:6px;
+}
+.cs-footer-heading{
+  font-size:14px;
+  font-weight:700;
+  color:var(--ink);
+  margin-bottom:12px;
+}
+.cs-footer-btn{
+  display:inline-block;
+  width:100%;
+  text-align:center;
+  text-decoration:none;
+  padding:14px;
+  border-radius:var(--radius-md);
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  color:var(--marble);
+  font-size:14.5px;
+  font-weight:700;
+  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
+}
+
+/* ==========================================================================
    APP HERO — short, scan-in-seconds, replaces the old stacked-cards hero
    ========================================================================== */
 .app-hero{
@@ -715,6 +815,99 @@ textarea.field-input{
   color:var(--stone-vein);
   font-size:11px;
   flex-shrink:0;
+}
+
+/* ==========================================================================
+   REVIEW HERO CARD — Instagram-Stories-style single review, auto-rotating.
+   Highest trust-building element on the menu screen. Data-driven from
+   contentRegistry.featuredReviews — see script section. Uses only existing
+   design tokens so it matches the rest of the shell with no new palette.
+   ========================================================================== */
+.review-hero{
+  margin-bottom:16px;
+  cursor:pointer;
+}
+.review-hero-bars{
+  display:flex;
+  gap:4px;
+  margin-bottom:8px;
+}
+.review-hero-bars .rh-bar{
+  flex:1;
+  height:2.5px;
+  border-radius:2px;
+  background:rgba(28,24,21,0.12);
+  overflow:hidden;
+}
+.review-hero-bars .rh-bar-fill{
+  display:block;
+  height:100%;
+  width:0%;
+  background:var(--ember);
+  border-radius:2px;
+}
+.review-hero-bars .rh-bar.done .rh-bar-fill{width:100%; transition:none;}
+.review-hero-bars .rh-bar.active .rh-bar-fill{width:100%; transition:width 5.5s linear;}
+
+.review-hero-card{
+  background:var(--stone-card);
+  border:1.5px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  padding:16px 18px 14px;
+  box-shadow:0 10px 26px -14px rgba(28,24,21,0.28);
+  transition:opacity 0.25s ease;
+}
+.review-hero-card.rh-fade{opacity:0;}
+
+.review-hero-top{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-bottom:10px;
+}
+.review-hero-avatar{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
+  color:var(--marble);
+  font-size:12px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.review-hero-author{
+  flex:1;
+  min-width:0;
+  font-size:13px;
+  font-weight:700;
+  color:var(--ink);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.review-hero-stars{
+  font-size:11px;
+  color:var(--gold-deep);
+  letter-spacing:1px;
+  flex-shrink:0;
+}
+.review-hero-quote{
+  font-size:14.5px;
+  line-height:1.5;
+  color:var(--ink);
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.review-hero-tap-hint{
+  margin-top:10px;
+  font-size:11px;
+  font-weight:700;
+  color:var(--ember-deep);
 }
 
 /* ==========================================================================
@@ -1497,6 +1690,21 @@ textarea.field-input{
 
   </div>
 
+  <!-- ============ GENERIC CONTENT SHEET ============
+       Reusable bottom sheet for any content-registry-driven block.
+       Used by Review Hero Card (Phase A). Later phases (FAQ, Weekend
+       Special, Featured Products, Announcements) reuse this exact
+       markup/CSS/JS — only the data passed to openContentSheet() changes.
+       ============================================================== -->
+  <div class="overlay-backdrop" id="contentSheetBackdrop"></div>
+  <div class="reg-overlay content-sheet" id="contentSheet">
+    <div class="reg-overlay-handle"></div>
+    <div class="content-sheet-title" id="contentSheetTitle"></div>
+    <div class="content-sheet-body" id="contentSheetBody"></div>
+    <div class="content-sheet-footer hidden" id="contentSheetFooter"></div>
+    <button type="button" class="btn-secondary" id="closeContentSheetBtn" style="width:100%; margin-top:14px;" data-i18n="thanks.closeBtn">Close</button>
+  </div>
+
   <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
   <section class="screen active" id="screen-menu">
 
@@ -1531,6 +1739,23 @@ textarea.field-input{
         <div class="story-step"><span class="step-icon">🧀</span><span data-i18n="hero.lineGravy">Cheesy Gravy</span></div>
         <span class="story-arrow">→</span>
         <div class="story-step"><span class="step-icon">🥣</span><span data-i18n="hero.lineKhichiya">Khichiya for Dipping</span></div>
+      </div>
+    </div>
+
+    <!-- ============ REVIEW HERO CARD — Instagram-Stories-style, single
+         review at a time, auto-rotating. Fully data-driven from
+         contentRegistry.featuredReviews (see script section below).
+         Tapping anywhere opens the Customer Stories content sheet. ===== -->
+    <div class="review-hero" id="reviewHero" role="button" tabindex="0" aria-label="View customer reviews">
+      <div class="review-hero-bars" id="reviewHeroBars"></div>
+      <div class="review-hero-card" id="reviewHeroCard">
+        <div class="review-hero-top">
+          <span class="review-hero-avatar" id="reviewHeroAvatar"></span>
+          <span class="review-hero-author" id="reviewHeroAuthor"></span>
+          <span class="review-hero-stars" id="reviewHeroStars"></span>
+        </div>
+        <div class="review-hero-quote" id="reviewHeroQuote"></div>
+        <div class="review-hero-tap-hint" data-i18n="reviews.viewMore">Tap to read more reviews</div>
       </div>
     </div>
 
@@ -1821,6 +2046,65 @@ const GOOGLE_REVIEW_URL = 'https://g.page/r/CYnAo2r-6b_zEAE/review'; // producti
 document.getElementById('instaLink').href = INSTAGRAM_URL;
 document.getElementById('googleReviewLink').href = GOOGLE_REVIEW_URL;
 
+// ---------------------------------------------------------------------------
+// CONTENT REGISTRY — Content OS ⇄ Customer OS data contract
+// ---------------------------------------------------------------------------
+// This object is the ONLY boundary between Customer OS (this app, presentation
+// only) and Content OS (a future editing/admin layer). Every content-driven
+// UI block below (Review Hero Card now; Featured Products, Weekend Special,
+// FAQ, Polls, Announcements in later phases) reads from this object and
+// NEVER writes back into it. The flow is strictly one-directional:
+//
+//     contentRegistry (data)  →  renderer function  →  DOM (UI)
+//
+// Content OS will eventually replace or hydrate this object's contents
+// (locally or from a remote source) without requiring any change to the
+// renderer functions or markup that consume it. Keep new content types as
+// new keys on this same object — do not create separate standalone arrays.
+//
+// NOTE: featuredReviews below is SAMPLE/PLACEHOLDER data for development —
+// replace with real customer reviews before this ships to production.
+// Reviews are intentionally NOT translated (see quoteText) — authenticity
+// over localization. Only surrounding UI chrome uses the translations system.
+// ---------------------------------------------------------------------------
+const contentRegistry = {
+  featuredReviews: [
+    {
+      id: 'rev-001',
+      quoteText: 'Best khichiya in Surat, hands down. The cheese gravy is unreal.',
+      authorName: 'Rohan P.',
+      rating: 5,
+      source: 'Google'
+    },
+    {
+      id: 'rev-002',
+      quoteText: 'સિગ્નેચર ગ્રેવી ટ્રાય કરવી જ જોઈએ. બહુ જ સ્વાદિષ્ટ છે!',
+      authorName: 'Priya S.',
+      rating: 5,
+      source: 'Google'
+    },
+    {
+      id: 'rev-003',
+      quoteText: 'हर वीकेंड यहाँ आना अब रूटीन बन गया है। जैन ऑप्शन भी बढ़िया है।',
+      authorName: 'Amit K.',
+      rating: 5,
+      source: 'Instagram'
+    },
+    {
+      id: 'rev-004',
+      quoteText: 'Coal-cooked flavour you can actually taste. Worth the wait on weekends.',
+      authorName: 'Sneha M.',
+      rating: 5,
+      source: 'Google'
+    }
+  ],
+  featuredProducts: [],   // reserved — Phase B
+  weekendSpecial: [],     // reserved — Phase F
+  faq: [],                // reserved — Phase E
+  polls: [],               // reserved — Phase D
+  announcements: []        // reserved — future
+};
+
 const LS_KEY = 'tkg_customers';
 const LS_SESSION_KEY = 'tkg_current_session';
 
@@ -2053,6 +2337,150 @@ function closeInfoSheet(){
 document.getElementById('openInfoBtn').addEventListener('click', openInfoSheet);
 document.getElementById('closeInfoBtn').addEventListener('click', closeInfoSheet);
 infoBackdrop.addEventListener('click', closeInfoSheet);
+
+// ---------------------------------------------------------------------------
+// GENERIC CONTENT SHEET — reusable bottom sheet driven entirely by data
+// passed in. Reviews (Phase A) is the first consumer; FAQ / Weekend Special /
+// Featured Products / Announcements (later phases) reuse this unchanged —
+// only the { title, items, renderItem, footerHtml } arguments differ.
+// ---------------------------------------------------------------------------
+const contentSheetBackdrop = document.getElementById('contentSheetBackdrop');
+const contentSheet = document.getElementById('contentSheet');
+const contentSheetTitle = document.getElementById('contentSheetTitle');
+const contentSheetBody = document.getElementById('contentSheetBody');
+const contentSheetFooter = document.getElementById('contentSheetFooter');
+
+function openContentSheet({ title, items, renderItem, footerHtml }){
+  contentSheetTitle.textContent = title || '';
+  contentSheetBody.innerHTML = (items || []).map(renderItem).join('');
+  if(footerHtml){
+    contentSheetFooter.innerHTML = footerHtml;
+    contentSheetFooter.classList.remove('hidden');
+  }else{
+    contentSheetFooter.innerHTML = '';
+    contentSheetFooter.classList.add('hidden');
+  }
+  contentSheetBackdrop.classList.add('show');
+  contentSheet.classList.add('show');
+}
+function closeContentSheet(){
+  contentSheetBackdrop.classList.remove('show');
+  contentSheet.classList.remove('show');
+}
+contentSheetBackdrop.addEventListener('click', closeContentSheet);
+document.getElementById('closeContentSheetBtn').addEventListener('click', closeContentSheet);
+
+// ---------------------------------------------------------------------------
+// REVIEW HERO CARD — Instagram-Stories-style, single review at a time,
+// auto-rotating every 5.5s. Fully data-driven from
+// contentRegistry.featuredReviews. Tapping anywhere opens the Customer
+// Stories content sheet (all reviews + Google Review CTA). Review quote
+// text is shown exactly as written — never run through the translation
+// system; only surrounding UI chrome (tap hint, sheet title, CTA) is
+// translated.
+// ---------------------------------------------------------------------------
+const REVIEW_HERO_INTERVAL_MS = 5500;
+let reviewHeroIndex = 0;
+let reviewHeroTimer = null;
+
+function getInitials(name){
+  return String(name || '').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+}
+
+function renderReviewHeroCard(index){
+  const r = contentRegistry.featuredReviews[index];
+  if(!r) return;
+  document.getElementById('reviewHeroAvatar').textContent = getInitials(r.authorName);
+  document.getElementById('reviewHeroAuthor').textContent = r.authorName;
+  document.getElementById('reviewHeroStars').textContent = '★'.repeat(r.rating || 5);
+  document.getElementById('reviewHeroQuote').textContent = r.quoteText;
+}
+
+function renderReviewHeroBars(activeIndex, total){
+  const barsEl = document.getElementById('reviewHeroBars');
+  barsEl.innerHTML = '';
+  for(let i = 0; i < total; i++){
+    const bar = document.createElement('span');
+    bar.className = 'rh-bar' + (i < activeIndex ? ' done' : '');
+    const fill = document.createElement('span');
+    fill.className = 'rh-bar-fill';
+    bar.appendChild(fill);
+    barsEl.appendChild(bar);
+  }
+  // Trigger the active bar's fill transition on the next frame — starting
+  // it in the same paint as adding the element would just jump to 100%.
+  requestAnimationFrame(() => {
+    const activeBar = barsEl.children[activeIndex];
+    if(activeBar) activeBar.classList.add('active');
+  });
+}
+
+function showReviewHeroSlide(index){
+  const card = document.getElementById('reviewHeroCard');
+  card.classList.add('rh-fade');
+  setTimeout(() => {
+    renderReviewHeroCard(index);
+    card.classList.remove('rh-fade');
+  }, 220);
+  renderReviewHeroBars(index, contentRegistry.featuredReviews.length);
+}
+
+function advanceReviewHero(){
+  const total = contentRegistry.featuredReviews.length;
+  if(total === 0) return;
+  reviewHeroIndex = (reviewHeroIndex + 1) % total;
+  showReviewHeroSlide(reviewHeroIndex);
+}
+
+function startReviewHeroRotation(){
+  const reviewHeroEl = document.getElementById('reviewHero');
+  const total = contentRegistry.featuredReviews.length;
+  if(total === 0){
+    // Graceful degrade — no reviews in the registry yet, hide the whole
+    // component instead of showing an empty card.
+    if(reviewHeroEl) reviewHeroEl.style.display = 'none';
+    return;
+  }
+  reviewHeroIndex = 0;
+  renderReviewHeroCard(0);
+  renderReviewHeroBars(0, total);
+  if(reviewHeroTimer) clearInterval(reviewHeroTimer);
+  reviewHeroTimer = setInterval(advanceReviewHero, REVIEW_HERO_INTERVAL_MS);
+}
+
+function openCustomerStoriesSheet(){
+  const dict = translations[currentLang] || translations.en;
+  const footerHtml =
+    '<div class="cs-footer-stars">★★★★★</div>' +
+    '<div class="cs-footer-heading">' + escapeHtml(dict.reviews.ctaHeading) + '</div>' +
+    '<a class="cs-footer-btn" href="' + GOOGLE_REVIEW_URL + '" target="_blank" rel="noopener">' + escapeHtml(dict.reviews.ctaButton) + '</a>';
+
+  openContentSheet({
+    title: dict.reviews.sheetTitle,
+    items: contentRegistry.featuredReviews,
+    renderItem: (r) =>
+      '<div class="cs-review-card">' +
+        '<div class="cs-review-top">' +
+          '<span class="cs-review-avatar">' + escapeHtml(getInitials(r.authorName)) + '</span>' +
+          '<span class="cs-review-author">' + escapeHtml(r.authorName) + '</span>' +
+          '<span class="cs-review-stars">' + '★'.repeat(r.rating || 5) + '</span>' +
+        '</div>' +
+        '<div class="cs-review-quote">' + escapeHtml(r.quoteText) + '</div>' +
+      '</div>',
+    footerHtml: footerHtml
+  });
+}
+
+const reviewHeroEl = document.getElementById('reviewHero');
+reviewHeroEl.addEventListener('click', openCustomerStoriesSheet);
+reviewHeroEl.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();
+    openCustomerStoriesSheet();
+  }
+});
+
+startReviewHeroRotation();
 
 // ---------------------------------------------------------------------------
 // EXPANDABLE EXPLAINER — "What is TKG Signature Gravy?" inline on the menu
@@ -2657,6 +3085,12 @@ const translations = {
     },
     status: { online:'Online', offline:'Offline — saved locally', syncing:'Syncing...', pendingSync:(n)=>`${n} pending sync` },
     checkin: { returning:(name)=>`Great to see you again, ${name}!`, first:(name)=>`Welcome to TKG, ${name}!` },
+    reviews: {
+      sheetTitle: 'Loved by Customers',
+      viewMore: 'Tap to read more reviews',
+      ctaHeading: 'Love your experience?',
+      ctaButton: 'Leave us a Google Review'
+    },
     langSheetTitle: 'Choose Language'
   },
 
@@ -2754,6 +3188,12 @@ const translations = {
       dismiss: 'પછીથી'
     },
     status: { online:'ઓનલાઇન', offline:'ઓફલાઇન — ફોનમાં સેવ થયું છે', syncing:'સિંક થાય છે...', pendingSync:(n)=>`${n} અપડેટ્સ સિંક થવાના બાકી` },
+    reviews: {
+      sheetTitle: 'ગ્રાહકોનો પ્રેમ',
+      viewMore: 'વધુ રિવ્યુ વાંચવા ટૅપ કરો',
+      ctaHeading: 'તમારો અનુભવ ગમ્યો?',
+      ctaButton: 'અમને Google Review આપો'
+    },
     langSheetTitle: 'ભાષા પસંદ કરો'
   },
 
@@ -2852,6 +3292,12 @@ const translations = {
     },
     status: { online:'ऑनलाइन', offline:'ऑफलाइन — फोन में सेव है', syncing:'सिंक हो रहा है...', pendingSync:(n)=>`${n} अपडेट्स सिंक होना बाकी` },
     checkin: { returning:(name)=>`${name}, वापस देखकर खुशी हुई!`, first:(name)=>`${name}, TKG में आपका स्वागत है!` },
+    reviews: {
+      sheetTitle: 'ग्राहकों का प्यार',
+      viewMore: 'और रिव्यू पढ़ने के लिए टैप करें',
+      ctaHeading: 'आपका अनुभव अच्छा रहा?',
+      ctaButton: 'हमें Google Review दें'
+    },
     langSheetTitle: 'भाषा चुनें'
   }
 };
