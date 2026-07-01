@@ -605,6 +605,12 @@ textarea.field-input{
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
 }
+.cs-empty-state{
+  padding:30px 10px;
+  text-align:center;
+  font-size:13.5px;
+  color:var(--ink-soft);
+}
 .cs-review-card{
   background:var(--stone-card-alt);
   border:1px solid var(--stone-line);
@@ -820,8 +826,8 @@ textarea.field-input{
 /* ==========================================================================
    REVIEW HERO CARD — Instagram-Stories-style single review, auto-rotating.
    Highest trust-building element on the menu screen. Data-driven from
-   contentRegistry.featuredReviews — see script section. Uses only existing
-   design tokens so it matches the rest of the shell with no new palette.
+   contentRegistry.featuredReviews via renderContent() — see script section.
+   Uses only existing design tokens so it matches the rest of the shell.
    ========================================================================== */
 .review-hero{
   margin-bottom:16px;
@@ -1744,8 +1750,8 @@ textarea.field-input{
 
     <!-- ============ REVIEW HERO CARD — Instagram-Stories-style, single
          review at a time, auto-rotating. Fully data-driven from
-         contentRegistry.featuredReviews (see script section below).
-         Tapping anywhere opens the Customer Stories content sheet. ===== -->
+         contentRegistry.featuredReviews via renderContent() (see script
+         section below). Tapping anywhere opens the Customer Stories sheet. ===== -->
     <div class="review-hero" id="reviewHero" role="button" tabindex="0" aria-label="View customer reviews">
       <div class="review-hero-bars" id="reviewHeroBars"></div>
       <div class="review-hero-card" id="reviewHeroCard">
@@ -2049,18 +2055,34 @@ document.getElementById('googleReviewLink').href = GOOGLE_REVIEW_URL;
 // ---------------------------------------------------------------------------
 // CONTENT REGISTRY — Content OS ⇄ Customer OS data contract
 // ---------------------------------------------------------------------------
-// This object is the ONLY boundary between Customer OS (this app, presentation
-// only) and Content OS (a future editing/admin layer). Every content-driven
-// UI block below (Review Hero Card now; Featured Products, Weekend Special,
-// FAQ, Polls, Announcements in later phases) reads from this object and
-// NEVER writes back into it. The flow is strictly one-directional:
+// This object is the data source of truth for all content-driven UI blocks
+// (Review Hero Card now; mustTry, weekendSpecials, faq, polls,
+// educationalPosts, announcements in later phases). Content OS will
+// eventually replace or hydrate this object's contents (locally or from a
+// remote source) without requiring any change to Customer OS.
 //
-//     contentRegistry (data)  →  renderer function  →  DOM (UI)
+// IMPORTANT: Customer OS components must NEVER read this object directly.
+// They must go through renderContent(type) below. That is the actual
+// contract boundary — the registry is data, renderContent() is the
+// presentation-layer gate in front of it:
 //
-// Content OS will eventually replace or hydrate this object's contents
-// (locally or from a remote source) without requiring any change to the
-// renderer functions or markup that consume it. Keep new content types as
-// new keys on this same object — do not create separate standalone arrays.
+//     contentRegistry (data)  →  renderContent(type)  →  UI component
+//
+// Every item in every array shares this minimal envelope, regardless of
+// content type, so renderContent() can filter/sort generically without
+// needing to know what a "review" or "FAQ" is:
+//   id         — unique string
+//   status     — 'draft' | 'testing' | 'active' | 'archived' (only 'active'
+//                is ever shown to customers — mirrors the Draft/Testing/
+//                Active/Archived vocabulary already used elsewhere)
+//   order      — number, lower shows first; undefined sorts last
+//   startDate  — ISO string or null; item hidden before this date if set
+//   endDate    — ISO string or null; item hidden after this date if set
+//   ...plus type-specific fields (quoteText/authorName for a review, etc.)
+//
+// NOTE on translation: left intentionally unresolved for Version 1.2 — see
+// renderContent() comment below. Do not add per-item translation handling
+// here yet; that's a Content OS-era decision, not a Phase A/B one.
 //
 // NOTE: featuredReviews below is SAMPLE/PLACEHOLDER data for development —
 // replace with real customer reviews before this ships to production.
@@ -2070,40 +2092,70 @@ document.getElementById('googleReviewLink').href = GOOGLE_REVIEW_URL;
 const contentRegistry = {
   featuredReviews: [
     {
-      id: 'rev-001',
+      id: 'rev-001', status: 'active', order: 1, startDate: null, endDate: null,
       quoteText: 'Best khichiya in Surat, hands down. The cheese gravy is unreal.',
       authorName: 'Rohan P.',
       rating: 5,
       source: 'Google'
     },
     {
-      id: 'rev-002',
+      id: 'rev-002', status: 'active', order: 2, startDate: null, endDate: null,
       quoteText: 'સિગ્નેચર ગ્રેવી ટ્રાય કરવી જ જોઈએ. બહુ જ સ્વાદિષ્ટ છે!',
       authorName: 'Priya S.',
       rating: 5,
       source: 'Google'
     },
     {
-      id: 'rev-003',
+      id: 'rev-003', status: 'active', order: 3, startDate: null, endDate: null,
       quoteText: 'हर वीकेंड यहाँ आना अब रूटीन बन गया है। जैन ऑप्शन भी बढ़िया है।',
       authorName: 'Amit K.',
       rating: 5,
       source: 'Instagram'
     },
     {
-      id: 'rev-004',
+      id: 'rev-004', status: 'active', order: 4, startDate: null, endDate: null,
       quoteText: 'Coal-cooked flavour you can actually taste. Worth the wait on weekends.',
       authorName: 'Sneha M.',
       rating: 5,
       source: 'Google'
     }
   ],
-  featuredProducts: [],   // reserved — Phase B
-  weekendSpecial: [],     // reserved — Phase F
+  mustTry: [],            // reserved — Phase B
+  weekendSpecials: [],    // reserved — Phase F
   faq: [],                // reserved — Phase E
   polls: [],               // reserved — Phase D
+  educationalPosts: [],    // reserved — future
   announcements: []        // reserved — future
 };
+
+// ---------------------------------------------------------------------------
+// RENDER LAYER — the only sanctioned way to read contentRegistry.
+// ---------------------------------------------------------------------------
+// Customer OS components call renderContent(type) and get back a ready-to-
+// display array: active items only, respecting startDate/endDate, sorted by
+// order. They never touch contentRegistry directly. This means Content OS
+// can later replace contentRegistry's contents (add items, retire items,
+// reorder, schedule) and nothing in Customer OS's rendering code has to
+// change — only this one function's inputs change, never its callers.
+//
+// Translation is deliberately NOT handled here yet. For Version 1.2, content
+// items render exactly as authored (same approach as featuredReviews).
+// Multilingual content items are a Content OS-era problem, to be solved once
+// the renderer layer has been in production and we know its real shape —
+// not speculatively designed now.
+// ---------------------------------------------------------------------------
+function renderContent(type){
+  const items = contentRegistry[type] || [];
+  const now = new Date();
+  return items
+    .filter(item => (item.status || 'active') === 'active')
+    .filter(item => {
+      if(item.startDate && now < new Date(item.startDate)) return false;
+      if(item.endDate && now > new Date(item.endDate)) return false;
+      return true;
+    })
+    .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+}
 
 const LS_KEY = 'tkg_customers';
 const LS_SESSION_KEY = 'tkg_current_session';
@@ -2340,9 +2392,10 @@ infoBackdrop.addEventListener('click', closeInfoSheet);
 
 // ---------------------------------------------------------------------------
 // GENERIC CONTENT SHEET — reusable bottom sheet driven entirely by data
-// passed in. Reviews (Phase A) is the first consumer; FAQ / Weekend Special /
-// Featured Products / Announcements (later phases) reuse this unchanged —
-// only the { title, items, renderItem, footerHtml } arguments differ.
+// passed in. Reviews (Phase A) is the first consumer; mustTry / weekendSpecials
+// / faq / polls / educationalPosts / announcements (later phases) reuse this
+// unchanged — only the { title, items, renderItem, footerHtml } arguments
+// differ. No new overlay should ever be built alongside this one.
 // ---------------------------------------------------------------------------
 const contentSheetBackdrop = document.getElementById('contentSheetBackdrop');
 const contentSheet = document.getElementById('contentSheet');
@@ -2351,8 +2404,13 @@ const contentSheetBody = document.getElementById('contentSheetBody');
 const contentSheetFooter = document.getElementById('contentSheetFooter');
 
 function openContentSheet({ title, items, renderItem, footerHtml }){
+  const dict = translations[currentLang] || translations.en;
   contentSheetTitle.textContent = title || '';
-  contentSheetBody.innerHTML = (items || []).map(renderItem).join('');
+  if(!items || items.length === 0){
+    contentSheetBody.innerHTML = '<div class="cs-empty-state">' + escapeHtml(dict.contentSheet.empty) + '</div>';
+  }else{
+    contentSheetBody.innerHTML = items.map(renderItem).join('');
+  }
   if(footerHtml){
     contentSheetFooter.innerHTML = footerHtml;
     contentSheetFooter.classList.remove('hidden');
@@ -2370,10 +2428,20 @@ function closeContentSheet(){
 contentSheetBackdrop.addEventListener('click', closeContentSheet);
 document.getElementById('closeContentSheetBtn').addEventListener('click', closeContentSheet);
 
+// Shared CTA-footer builder for the Content Sheet's optional footer slot.
+// Any future content type (Reviews now; possibly Weekend Specials or
+// Announcements later) that wants a closing call-to-action reuses this
+// instead of hand-building the footer HTML again.
+function buildCtaFooter({ heading, buttonText, href, showStars = false }){
+  return (showStars ? '<div class="cs-footer-stars">★★★★★</div>' : '') +
+    '<div class="cs-footer-heading">' + escapeHtml(heading) + '</div>' +
+    '<a class="cs-footer-btn" href="' + href + '" target="_blank" rel="noopener">' + escapeHtml(buttonText) + '</a>';
+}
+
 // ---------------------------------------------------------------------------
 // REVIEW HERO CARD — Instagram-Stories-style, single review at a time,
 // auto-rotating every 5.5s. Fully data-driven from
-// contentRegistry.featuredReviews. Tapping anywhere opens the Customer
+// contentRegistry.featuredReviews via renderContent(). Tapping anywhere opens the Customer
 // Stories content sheet (all reviews + Google Review CTA). Review quote
 // text is shown exactly as written — never run through the translation
 // system; only surrounding UI chrome (tap hint, sheet title, CTA) is
@@ -2388,7 +2456,7 @@ function getInitials(name){
 }
 
 function renderReviewHeroCard(index){
-  const r = contentRegistry.featuredReviews[index];
+  const r = renderContent('featuredReviews')[index];
   if(!r) return;
   document.getElementById('reviewHeroAvatar').textContent = getInitials(r.authorName);
   document.getElementById('reviewHeroAuthor').textContent = r.authorName;
@@ -2422,11 +2490,11 @@ function showReviewHeroSlide(index){
     renderReviewHeroCard(index);
     card.classList.remove('rh-fade');
   }, 220);
-  renderReviewHeroBars(index, contentRegistry.featuredReviews.length);
+  renderReviewHeroBars(index, renderContent('featuredReviews').length);
 }
 
 function advanceReviewHero(){
-  const total = contentRegistry.featuredReviews.length;
+  const total = renderContent('featuredReviews').length;
   if(total === 0) return;
   reviewHeroIndex = (reviewHeroIndex + 1) % total;
   showReviewHeroSlide(reviewHeroIndex);
@@ -2434,9 +2502,9 @@ function advanceReviewHero(){
 
 function startReviewHeroRotation(){
   const reviewHeroEl = document.getElementById('reviewHero');
-  const total = contentRegistry.featuredReviews.length;
+  const total = renderContent('featuredReviews').length;
   if(total === 0){
-    // Graceful degrade — no reviews in the registry yet, hide the whole
+    // Graceful degrade — no active reviews in the registry, hide the whole
     // component instead of showing an empty card.
     if(reviewHeroEl) reviewHeroEl.style.display = 'none';
     return;
@@ -2450,14 +2518,16 @@ function startReviewHeroRotation(){
 
 function openCustomerStoriesSheet(){
   const dict = translations[currentLang] || translations.en;
-  const footerHtml =
-    '<div class="cs-footer-stars">★★★★★</div>' +
-    '<div class="cs-footer-heading">' + escapeHtml(dict.reviews.ctaHeading) + '</div>' +
-    '<a class="cs-footer-btn" href="' + GOOGLE_REVIEW_URL + '" target="_blank" rel="noopener">' + escapeHtml(dict.reviews.ctaButton) + '</a>';
+  const footerHtml = buildCtaFooter({
+    heading: dict.reviews.ctaHeading,
+    buttonText: dict.reviews.ctaButton,
+    href: GOOGLE_REVIEW_URL,
+    showStars: true
+  });
 
   openContentSheet({
     title: dict.reviews.sheetTitle,
-    items: contentRegistry.featuredReviews,
+    items: renderContent('featuredReviews'),
     renderItem: (r) =>
       '<div class="cs-review-card">' +
         '<div class="cs-review-top">' +
@@ -3091,6 +3161,9 @@ const translations = {
       ctaHeading: 'Love your experience?',
       ctaButton: 'Leave us a Google Review'
     },
+    contentSheet: {
+      empty: 'Nothing here yet — check back soon.'
+    },
     langSheetTitle: 'Choose Language'
   },
 
@@ -3193,6 +3266,9 @@ const translations = {
       viewMore: 'વધુ રિવ્યુ વાંચવા ટૅપ કરો',
       ctaHeading: 'તમારો અનુભવ ગમ્યો?',
       ctaButton: 'અમને Google Review આપો'
+    },
+    contentSheet: {
+      empty: 'હજુ કંઈ નથી — થોડી વારમાં ફરી જુઓ.'
     },
     langSheetTitle: 'ભાષા પસંદ કરો'
   },
@@ -3297,6 +3373,9 @@ const translations = {
       viewMore: 'और रिव्यू पढ़ने के लिए टैप करें',
       ctaHeading: 'आपका अनुभव अच्छा रहा?',
       ctaButton: 'हमें Google Review दें'
+    },
+    contentSheet: {
+      empty: 'अभी यहाँ कुछ नहीं है — थोड़ी देर में फिर देखें.'
     },
     langSheetTitle: 'भाषा चुनें'
   }
