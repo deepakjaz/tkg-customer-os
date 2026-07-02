@@ -2506,6 +2506,17 @@ async function attemptJourneyEventSync(){
 
     if(!res.ok) throw new Error('Journey event sync failed: ' + res.status);
 
+    // Don't just trust HTTP 200 — an Apps Script deployment that doesn't
+    // yet recognize action:'journeyEvent' (e.g. not redeployed after this
+    // feature was added) still responds 200 OK via its generic fallback,
+    // which would otherwise get silently treated as a successful sync even
+    // though no row was ever written. Only a response carrying a numeric
+    // `recorded` count is proof the journeyEvent branch actually ran.
+    const data = await res.json();
+    if(data.status !== 'ok' || typeof data.recorded !== 'number'){
+      throw new Error('Journey event sync: unexpected response — Apps Script may need redeploying');
+    }
+
     // Mark the ones we just sent as synced — matched by timestamp, which is
     // effectively unique here since only one event is ever created per tap.
     const freshEvents = loadJourneyEvents();
