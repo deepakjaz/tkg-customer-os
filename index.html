@@ -289,6 +289,66 @@ input{font-family:inherit;}
   to{opacity:1; transform:translateY(0);}
 }
 
+/* ---- Customer Journey (Screen 1) — first interaction, offline-only.
+   Reuses .screen / showScreen() as-is. No new UI-switching mechanism. ---- */
+.journey-intro{
+  margin-top:32px;
+  margin-bottom:28px;
+  text-align:center;
+}
+.journey-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:22px;
+  color:var(--ink);
+  margin-bottom:8px;
+}
+.journey-subtitle{
+  font-size:14px;
+  color:var(--ink-soft);
+}
+.journey-options{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.journey-option{
+  width:100%;
+  text-align:left;
+  padding:18px 20px;
+  border-radius:var(--radius-lg);
+  border:1px solid var(--stone-line);
+  background:var(--stone-card);
+  font-size:16px;
+  font-weight:600;
+  color:var(--ink);
+  box-shadow:0 2px 8px -4px rgba(28,24,21,0.08);
+  transition:transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.journey-option:active{
+  transform:translateY(1px) scale(0.99);
+  border-color:var(--ember);
+  box-shadow:0 1px 4px -2px rgba(28,24,21,0.1);
+}
+
+/* Subtle, non-intrusive affordance to revisit the Customer Journey choice —
+   styled to match .owner-link exactly (same weight, same "quiet utility
+   link" treatment) so it never competes visually with primary content. */
+.change-journey-link{
+  text-align:center;
+  padding-top:8px;
+}
+.change-journey-link button{
+  background:none;
+  border:none;
+  color:var(--grey-warm);
+  font-size:12px;
+  letter-spacing:0.05em;
+  text-decoration:underline;
+  text-decoration-color:var(--grey-line);
+  padding:8px;
+}
+
 /* ---- Registration screen ---- */
 .hero-block{
   margin-top:6px;
@@ -1711,8 +1771,26 @@ textarea.field-input{
     <button type="button" class="btn-secondary" id="closeContentSheetBtn" style="width:100%; margin-top:14px;" data-i18n="thanks.closeBtn">Close</button>
   </div>
 
+  <!-- ============ SCREEN 1: CUSTOMER JOURNEY — permanent core feature,
+       independent of any campaign. Always the first interaction on a
+       fresh device. Choice is stored locally (tkg_journey — separate key
+       from tkg_customers) and remembered, so returning devices skip
+       straight to Screen 2 filtered to their path. Offline only: no
+       Apps Script, no backend, no Google Sheet involved. ============ -->
+  <section class="screen active" id="screen-journey">
+    <div class="journey-intro">
+      <div class="journey-title" data-i18n="journey.title">👋 Welcome to TKG</div>
+      <div class="journey-subtitle" data-i18n="journey.subtitle">How can we help you today?</div>
+    </div>
+    <div class="journey-options">
+      <button type="button" class="journey-option" data-choice="atTKG" data-i18n="journey.atTKG">🟢 I'm at TKG</button>
+      <button type="button" class="journey-option" data-choice="planning" data-i18n="journey.planning">🟡 Planning my visit</button>
+      <button type="button" class="journey-option" data-choice="exploring" data-i18n="journey.exploring">⚪ Just exploring</button>
+    </div>
+  </section>
+
   <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
-  <section class="screen active" id="screen-menu">
+  <section class="screen" id="screen-menu">
 
     <!-- ============ HERO — short, scannable in seconds ============ -->
     <div class="app-hero">
@@ -1766,7 +1844,7 @@ textarea.field-input{
     </div>
 
     <!-- ============ EXPANDABLE EXPLAINER — collapsed by default ============ -->
-    <div class="explainer" id="explainer">
+    <div class="explainer" id="explainer" data-journey="exploring">
       <button type="button" class="explainer-toggle" id="explainerToggle" aria-expanded="false">
         <span class="et-icon">❓</span>
         <span class="et-label" data-i18n="menu.explainerToggle">What is TKG Signature Gravy?</span>
@@ -1781,6 +1859,11 @@ textarea.field-input{
       </div>
     </div>
 
+    <!-- ============ MENU (tabs + items + extras) — grouped under one
+         data-journey gate since the journey spec lists "Menu" as a single
+         unit for the planning/exploring paths. Internal tab-switching IDs/
+         JS are untouched; this is purely a visibility wrapper. ============ -->
+    <div id="menuJourneySection">
     <!-- ============ CATEGORY TABS — Signature default, instant switch ============ -->
     <div class="menu-tabs" id="menuTabs">
       <button type="button" class="menu-tab active" data-cat="signature" data-i18n="menu.family2TitleShort">Signature</button>
@@ -1896,8 +1979,9 @@ textarea.field-input{
       <span class="extra-chip" data-i18n="menu.wholeWheat">Whole Wheat (Gehu Atta)</span>
       <span class="extra-chip" data-i18n="menu.seasonalVeg">Seasonal Vegetable Variations</span>
     </div>
+    </div><!-- /#menuJourneySection -->
 
-    <div class="footer-meta">
+    <div class="footer-meta" data-journey="planning">
       <span class="hours-note" data-i18n="menu.hours">Opens Fri/Sat/Sun · Evening to Late Night</span>
       <a class="directions-link" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
         <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
@@ -1913,17 +1997,21 @@ textarea.field-input{
     <!-- About / Instagram / Google Review — static, always visible, never gated -->
     <div class="link-row">
       <a class="link-chip" href="https://wa.me/919510100950" target="_blank" rel="noopener" data-i18n="menu.whatsapp">WhatsApp</a>
-      <a class="link-chip" id="instaLink" href="#" target="_blank" rel="noopener" data-i18n="menu.instagram">Instagram</a>
-      <a class="link-chip" id="googleReviewLink" href="#" target="_blank" rel="noopener" data-i18n="menu.googleReview">Google Review</a>
+      <a class="link-chip" id="instaLink" href="#" target="_blank" rel="noopener" data-i18n="menu.instagram" data-journey="planning,exploring">Instagram</a>
+      <a class="link-chip" id="googleReviewLink" href="#" target="_blank" rel="noopener" data-i18n="menu.googleReview" data-journey="atTKG">Google Review</a>
     </div>
 
     <!-- Optional registration entry point — never blocks menu access -->
-    <div class="register-cta" id="registerCtaCard">
+    <div class="register-cta" id="registerCtaCard" data-journey="atTKG">
       <div class="register-cta-text">
         <div class="register-cta-title" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</div>
         <div class="register-cta-sub" data-i18n="reg.ctaSub">Takes 10 seconds. No login, no OTP.</div>
       </div>
       <button class="btn-primary register-cta-btn" id="openRegisterBtn" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</button>
+    </div>
+
+    <div class="change-journey-link">
+      <button type="button" id="changeJourneyBtn" data-i18n="journey.changeLink">Change</button>
     </div>
 
     <div class="owner-link">
@@ -1986,6 +2074,18 @@ textarea.field-input{
           </div>
           <button class="btn-secondary" id="forceSyncBtn" style="padding:9px 14px; font-size:12px;">Sync Now</button>
         </div>
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div class="stat-label" style="margin-top:0;">Customer Journey</div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟢 At TKG</span><span id="statJourneyAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟡 Planning</span><span id="statJourneyPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>⚪ Exploring</span><span id="statJourneyExploring">0</span>
+          </div>
+        </div>
       </div>
 
       <div class="dash-actions">
@@ -2028,6 +2128,15 @@ textarea.field-input{
    {
      mobile: "9876543210",       // normalized, used as unique key
      name: "Rohan Patel",
+     journey: "atTKG",           // 'atTKG' | 'planning' | 'exploring' | ''
+                                  // — captured from the Customer Journey
+                                  // choice (localStorage: tkg_journey) at
+                                  // the moment of check-in. Business intent
+                                  // signal, refreshed on every check-in to
+                                  // reflect the customer's latest choice.
+                                  // '' if the customer registered before
+                                  // this field existed, or a stored journey
+                                  // wasn't available at check-in time.
      firstVisit: "2026-06-23T10:15:00.000Z",
      lastVisit:  "2026-06-23T10:15:00.000Z",
      visitCount: 1,
@@ -2202,6 +2311,10 @@ function checkInCustomer(name, mobile, favoriteItem, source){
   const list = loadCustomers();
   const nowIso = new Date().toISOString();
   const idx = findCustomerIndex(list, mobile);
+  // Business-intent capture: reuses the same tkg_journey value already
+  // stored for UI routing. Only registered customers get this recorded —
+  // an unregistered visitor's journey stays local/UI-only, never synced.
+  const journey = getStoredJourney() || '';
 
   let record;
   let isReturning = false;
@@ -2210,6 +2323,7 @@ function checkInCustomer(name, mobile, favoriteItem, source){
     record = {
       mobile: normalizeMobile(mobile),
       name: name,
+      journey: journey,
       firstVisit: nowIso,
       lastVisit: nowIso,
       visitCount: 1,
@@ -2227,6 +2341,8 @@ function checkInCustomer(name, mobile, favoriteItem, source){
     record = list[idx];
     isReturning = true;
     record.name = name; // keep name fresh in case of correction
+    if(journey) record.journey = journey; // refresh to the latest known intent
+    else if(record.journey === undefined) record.journey = '';
     if(favoriteItem) record.favoriteItem = favoriteItem; // only overwrite if provided
     if(source) record.source = source;
     if(record.reviewStatus === undefined) record.reviewStatus = '';
@@ -2268,9 +2384,16 @@ async function attemptSync(){
   setStatusState('syncing');
 
   try{
+    // The `journey` field below is now understood by AppsScript.gs (Journey
+    // column, position H) — but that only takes effect once the updated
+    // .gs is pasted into Apps Script and re-deployed as a new version on
+    // Deepak's side. Until that redeploy happens, the currently-live Apps
+    // Script (pre-Journey-column version) will simply ignore this field —
+    // sync of every other field keeps working exactly as before either way.
     const records = pending.map(c => ({
       name: c.name,
       mobile: c.mobile,
+      journey: c.journey || '',
       visitDate: c.lastVisit,
       favoriteItem: c.favoriteItem || '',
       source: c.source || '',
@@ -2358,6 +2481,62 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
+
+// ---------------------------------------------------------------------------
+// CUSTOMER JOURNEY — permanent core feature, independent of any campaign.
+// Always the first interaction on a fresh device. Reuses showScreen()/
+// .screen exactly as-is (Screen 1 in the numbering gap) — no new
+// UI-switching mechanism. Offline only: no Apps Script, no backend, no
+// Google Sheet. Stored choice lives in its own key, separate from
+// tkg_customers, and is remembered so returning devices skip straight to
+// the menu, pre-filtered to their path.
+// ---------------------------------------------------------------------------
+const JOURNEY_KEY = 'tkg_journey';
+const JOURNEY_VALUES = ['atTKG', 'planning', 'exploring'];
+
+function getStoredJourney(){
+  try{
+    const v = localStorage.getItem(JOURNEY_KEY);
+    return JOURNEY_VALUES.includes(v) ? v : null;
+  }catch(e){
+    return null;
+  }
+}
+
+// The one genuinely new piece of logic Customer Journey needs: every
+// existing section tagged data-journey is shown/hidden by matching the
+// active journey against its (comma-separated) allow-list. Elements with
+// no data-journey attribute are never touched — they keep behaving exactly
+// as their own existing CSS/JS already governs (hero, phone-note,
+// WhatsApp chip, owner-link, etc. are intentionally ungated).
+function applyJourneyVisibility(journey){
+  document.querySelectorAll('[data-journey]').forEach(el => {
+    const allowed = el.dataset.journey.split(',').map(s => s.trim());
+    el.style.display = allowed.includes(journey) ? '' : 'none';
+  });
+}
+
+function selectJourney(journey){
+  if(!JOURNEY_VALUES.includes(journey)) return;
+  try{ localStorage.setItem(JOURNEY_KEY, journey); }catch(e){}
+  applyJourneyVisibility(journey);
+  showScreen('screen-menu');
+}
+
+document.querySelectorAll('.journey-option').forEach(btn => {
+  btn.addEventListener('click', () => selectJourney(btn.dataset.choice));
+});
+
+// Subtle, non-intrusive affordance — lets a customer revisit their choice
+// without clearing browser storage. Re-picking simply overwrites tkg_journey.
+document.getElementById('changeJourneyBtn').addEventListener('click', () => {
+  showScreen('screen-journey');
+});
+
+// The initial-screen decision (and first-time language sheet auto-open) runs
+// at the very end of this script — see CUSTOMER JOURNEY: INITIAL SCREEN
+// near the bottom — so it can safely use langBackdrop/langSheet/LANG_KEY,
+// which are declared further down in this same file.
 
 // ---------------------------------------------------------------------------
 // CATEGORY TABS — Signature default, instant switch, no page reload
@@ -2824,6 +3003,13 @@ function renderDashboard(){
   document.getElementById('statRepeat').textContent = repeat;
   document.getElementById('statPending').textContent = pending;
 
+  // Customer Journey summary — registered customers only (list is always
+  // just tkg_customers). Anyone who never registered has no record here,
+  // by design — their journey choice stays local/UI-only, never counted.
+  document.getElementById('statJourneyAtTKG').textContent = list.filter(c => c.journey === 'atTKG').length;
+  document.getElementById('statJourneyPlanning').textContent = list.filter(c => c.journey === 'planning').length;
+  document.getElementById('statJourneyExploring').textContent = list.filter(c => c.journey === 'exploring').length;
+
   let lastSynced = null;
   try{ lastSynced = localStorage.getItem('tkg_last_synced'); }catch(e){}
   document.getElementById('lastSyncedAt').textContent = lastSynced
@@ -2893,10 +3079,11 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
     return;
   }
 
-  const header = ['Name', 'Mobile', 'First Visit', 'Last Visit', 'Visit Count', 'Favorite Item', 'Source'];
+  const header = ['Name', 'Mobile', 'Journey', 'First Visit', 'Last Visit', 'Visit Count', 'Favorite Item', 'Source'];
   const rows = list.map(c => [
     c.name,
     c.mobile,
+    c.journey || '',
     new Date(c.firstVisit).toISOString(),
     new Date(c.lastVisit).toISOString(),
     c.visitCount || 1,
@@ -3164,6 +3351,14 @@ const translations = {
     contentSheet: {
       empty: 'Nothing here yet — check back soon.'
     },
+    journey: {
+      title: '👋 Welcome to TKG',
+      subtitle: 'How can we help you today?',
+      atTKG: "🟢 I'm at TKG",
+      planning: '🟡 Planning my visit',
+      exploring: '⚪ Just exploring',
+      changeLink: 'Change'
+    },
     langSheetTitle: 'Choose Language'
   },
 
@@ -3269,6 +3464,14 @@ const translations = {
     },
     contentSheet: {
       empty: 'હજુ કંઈ નથી — થોડી વારમાં ફરી જુઓ.'
+    },
+    journey: {
+      title: '👋 TKG માં આપનું સ્વાગત છે',
+      subtitle: 'આજે અમે તમારી કેવી રીતે મદદ કરી શકીએ?',
+      atTKG: '🟢 હું TKG પર છું',
+      planning: '🟡 મારી મુલાકાતનું આયોજન કરી રહ્યો છું',
+      exploring: '⚪ ફક્ત જોઈ રહ્યો છું',
+      changeLink: 'બદલો'
     },
     langSheetTitle: 'ભાષા પસંદ કરો'
   },
@@ -3377,6 +3580,14 @@ const translations = {
     contentSheet: {
       empty: 'अभी यहाँ कुछ नहीं है — थोड़ी देर में फिर देखें.'
     },
+    journey: {
+      title: '👋 TKG में आपका स्वागत है',
+      subtitle: 'आज हम आपकी कैसे मदद कर सकते हैं?',
+      atTKG: '🟢 मैं TKG पर हूँ',
+      planning: '🟡 अपनी विजिट प्लान कर रहा हूँ',
+      exploring: '⚪ बस देख रहा हूँ',
+      changeLink: 'बदलें'
+    },
     langSheetTitle: 'भाषा चुनें'
   }
 };
@@ -3428,11 +3639,12 @@ function setLanguage(lang){
 const langBackdrop = document.getElementById('langBackdrop');
 const langSheet = document.getElementById('langSheet');
 
-document.getElementById('langBtn').addEventListener('click', () => {
+function openLangSheet(){
   langBackdrop.classList.add('show');
   langSheet.classList.add('show');
   clearLangBtnAttention();
-});
+}
+document.getElementById('langBtn').addEventListener('click', openLangSheet);
 function closeLangSheet(){
   langBackdrop.classList.remove('show');
   langSheet.classList.remove('show');
@@ -3498,6 +3710,31 @@ document.querySelectorAll('.lang-option').forEach(opt => {
 });
 applyTranslations();
 attemptSync();
+
+// ---------------------------------------------------------------------------
+// CUSTOMER JOURNEY — INITIAL SCREEN (runs last, after langBackdrop/langSheet/
+// LANG_KEY/translations are all initialized above).
+//
+// Returning device (journey already stored): skip straight to the menu,
+// filtered to that path — no language prompt, nothing reused or duplicated.
+//
+// First-time device (no journey stored yet): stay on the Customer Journey
+// screen (already the default-active screen in the markup) and, only if no
+// language has been saved either, auto-open the existing Language Bottom
+// Sheet on top of it via openLangSheet() — the exact same function/markup
+// the language button uses. No new selector, no new popup. Selecting a
+// language closes the sheet automatically (existing .lang-option handler
+// above); the Customer Journey screen is simply what was underneath it.
+// ---------------------------------------------------------------------------
+const storedJourney = getStoredJourney();
+if(storedJourney){
+  applyJourneyVisibility(storedJourney);
+  showScreen('screen-menu');
+}else{
+  let hasStoredLanguage = false;
+  try{ hasStoredLanguage = !!localStorage.getItem(LANG_KEY); }catch(e){}
+  if(!hasStoredLanguage) openLangSheet();
+}
 </script>
 
 </body>
