@@ -2086,6 +2086,18 @@ textarea.field-input{
             <span>⚪ Exploring</span><span id="statJourneyExploring">0</span>
           </div>
         </div>
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div class="stat-label" style="margin-top:0;">Journey Analytics (Today)</div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟢 At TKG</span><span id="statJourneyEventsAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟡 Planning</span><span id="statJourneyEventsPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>⚪ Exploring</span><span id="statJourneyEventsExploring">0</span>
+          </div>
+        </div>
       </div>
 
       <div class="dash-actions">
@@ -2428,12 +2440,98 @@ async function attemptSync(){
   }
 }
 
+// ---------------------------------------------------------------------------
+// JOURNEY ANALYTICS — anonymous event log, completely independent of the
+// customer record system above. No name, no mobile, no link to tkg_customers
+// or to any specific person — just "someone picked atTKG at this moment".
+// Recorded the instant a Customer Journey choice is made (see selectJourney
+// below), regardless of whether that person ever registers.
+//
+// Local shape (LocalStorage key: tkg_journey_events), a plain array —
+// events are appended forever and never deleted locally (same convention as
+// tkg_customers), so the Owner Dashboard can count "today" from local
+// history even after an event has already synced:
+//   { journey: 'atTKG' | 'planning' | 'exploring', ts: "ISO string",
+//     pendingSync: true|false }
+// ---------------------------------------------------------------------------
+const JOURNEY_EVENTS_KEY = 'tkg_journey_events';
+
+function loadJourneyEvents(){
+  try{
+    const raw = localStorage.getItem(JOURNEY_EVENTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Failed to read local journey events', e);
+    return [];
+  }
+}
+
+function saveJourneyEvents(list){
+  try{
+    localStorage.setItem(JOURNEY_EVENTS_KEY, JSON.stringify(list));
+  }catch(e){
+    console.error('Failed to save local journey events', e);
+  }
+}
+
+function recordJourneyEvent(journey){
+  const events = loadJourneyEvents();
+  events.push({ journey: journey, ts: new Date().toISOString(), pendingSync: true });
+  saveJourneyEvents(events);
+  attemptJourneyEventSync(); // fire and forget; works offline gracefully
+}
+
+let journeyEventSyncInFlight = false;
+
+async function attemptJourneyEventSync(){
+  if(journeyEventSyncInFlight) return;
+  if(!navigator.onLine) return;
+  if(APP_SCRIPT_URL.includes('PASTE_YOUR')) return; // not configured yet
+
+  const events = loadJourneyEvents();
+  const pending = events.filter(e => e.pendingSync);
+  if(pending.length === 0) return;
+
+  journeyEventSyncInFlight = true;
+
+  try{
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'journeyEvent',
+        events: pending.map(e => ({ journey: e.journey, ts: e.ts }))
+      })
+    });
+
+    if(!res.ok) throw new Error('Journey event sync failed: ' + res.status);
+
+    // Mark the ones we just sent as synced — matched by timestamp, which is
+    // effectively unique here since only one event is ever created per tap.
+    const freshEvents = loadJourneyEvents();
+    const sentTimestamps = new Set(pending.map(e => e.ts));
+    freshEvents.forEach(e => {
+      if(e.pendingSync && sentTimestamps.has(e.ts)) e.pendingSync = false;
+    });
+    saveJourneyEvents(freshEvents);
+
+  }catch(err){
+    console.warn('Journey event sync failed, will retry later:', err);
+  }finally{
+    journeyEventSyncInFlight = false;
+    if(document.getElementById('screen-dash').classList.contains('active')){
+      renderDashboard();
+    }
+  }
+}
+
 // Retry sync the moment connectivity returns
-window.addEventListener('online', () => { showToast('Back online — syncing...'); attemptSync(); });
+window.addEventListener('online', () => { showToast('Back online — syncing...'); attemptSync(); attemptJourneyEventSync(); });
 window.addEventListener('offline', () => { updateStatusPill(); });
 
 // Periodic background retry every 30s in case "online" event doesn't fire reliably
 setInterval(attemptSync, 30000);
+setInterval(attemptJourneyEventSync, 30000);
 
 // ---------------------------------------------------------------------------
 // STATUS PILL UI
@@ -2519,6 +2617,7 @@ function applyJourneyVisibility(journey){
 function selectJourney(journey){
   if(!JOURNEY_VALUES.includes(journey)) return;
   try{ localStorage.setItem(JOURNEY_KEY, journey); }catch(e){}
+  recordJourneyEvent(journey); // anonymous analytics — independent of tkg_journey/tkg_customers
   applyJourneyVisibility(journey);
   showScreen('screen-menu');
 }
@@ -3009,6 +3108,14 @@ function renderDashboard(){
   document.getElementById('statJourneyAtTKG').textContent = list.filter(c => c.journey === 'atTKG').length;
   document.getElementById('statJourneyPlanning').textContent = list.filter(c => c.journey === 'planning').length;
   document.getElementById('statJourneyExploring').textContent = list.filter(c => c.journey === 'exploring').length;
+
+  // Journey Analytics (Today) — anonymous event log (tkg_journey_events),
+  // completely separate from the customer list above. Counts every
+  // selection made today on this device, registered or not.
+  const todaysEvents = loadJourneyEvents().filter(e => new Date(e.ts).toDateString() === todayStr);
+  document.getElementById('statJourneyEventsAtTKG').textContent = todaysEvents.filter(e => e.journey === 'atTKG').length;
+  document.getElementById('statJourneyEventsPlanning').textContent = todaysEvents.filter(e => e.journey === 'planning').length;
+  document.getElementById('statJourneyEventsExploring').textContent = todaysEvents.filter(e => e.journey === 'exploring').length;
 
   let lastSynced = null;
   try{ lastSynced = localStorage.getItem('tkg_last_synced'); }catch(e){}
