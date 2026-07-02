@@ -2165,7 +2165,7 @@ textarea.field-input{
 // CONFIG — paste your deployed Apps Script Web App URL here.
 // See AppsScript.gs setup instructions for how to generate this.
 // ---------------------------------------------------------------------------
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwnuF8qRjFV7I31Q1kSJJNqdar2R_z5pzGG1QqBotfpuSFHk__5BPVdnEnaj-rTizKGNw/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS3JaYacArqWNJAM0G8FeI83RvzWBXG2bT1_pPwb8Ic2ioSiKnFPTpUUn9fteu92XLug/exec';
 const OWNER_PIN = '1234'; // change this to your own PIN
 const INSTAGRAM_URL = 'https://www.instagram.com/the.khichiyagravy/'; // production — official TKG profile
 const GOOGLE_REVIEW_URL = 'https://g.page/r/CYnAo2r-6b_zEAE/review'; // production — Google Business review link
@@ -2514,7 +2514,10 @@ async function attemptJourneyEventSync(){
     // `recorded` count is proof the journeyEvent branch actually ran.
     const data = await res.json();
     if(data.status !== 'ok' || typeof data.recorded !== 'number'){
-      throw new Error('Journey event sync: unexpected response — Apps Script may need redeploying');
+      // Include the actual response so a shape mismatch is diagnosable from
+      // the console alone next time — no more guessing whether Apps Script
+      // is stale, mid-paste, or throwing.
+      throw new Error('Journey event sync: unexpected response — ' + JSON.stringify(data));
     }
 
     // Mark the ones we just sent as synced — matched by timestamp, which is
