@@ -2514,7 +2514,10 @@ async function attemptJourneyEventSync(){
     // `recorded` count is proof the journeyEvent branch actually ran.
     const data = await res.json();
     if(data.status !== 'ok' || typeof data.recorded !== 'number'){
-      throw new Error('Journey event sync: unexpected response — Apps Script may need redeploying');
+      // Include the actual response so a shape mismatch is diagnosable from
+      // the console alone next time — no more guessing whether Apps Script
+      // is stale, mid-paste, or throwing.
+      throw new Error('Journey event sync: unexpected response — ' + JSON.stringify(data));
     }
 
     // Mark the ones we just sent as synced — matched by timestamp, which is
