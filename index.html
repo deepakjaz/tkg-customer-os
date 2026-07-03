@@ -2586,11 +2586,37 @@ function saveJourneyEvents(list){
   }
 }
 
+// Location Capture — requests browser Geolocation immediately after any
+// Journey selection, and attaches it to the same Journey Analytics event.
+// Uses the standard browser permission dialog only (no custom popup). If
+// permission is denied, unavailable, or times out, the journey event is
+// still recorded without location — this never blocks the customer flow.
+function requestJourneyLocation(callback){
+  if(!navigator.geolocation){ callback(null); return; }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => callback({
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+      accuracy: pos.coords.accuracy
+    }),
+    () => callback(null), // denied / unavailable / timed out — degrade gracefully
+    { timeout: 5000, maximumAge: 60000 }
+  );
+}
+
 function recordJourneyEvent(journey){
-  const events = loadJourneyEvents();
-  events.push({ journey: journey, ts: new Date().toISOString(), pendingSync: true });
-  saveJourneyEvents(events);
-  attemptJourneyEventSync(); // fire and forget; works offline gracefully
+  requestJourneyLocation((loc) => {
+    const events = loadJourneyEvents();
+    const event = { journey: journey, ts: new Date().toISOString(), pendingSync: true };
+    if(loc){
+      event.latitude = loc.latitude;
+      event.longitude = loc.longitude;
+      event.accuracy = loc.accuracy;
+    }
+    events.push(event);
+    saveJourneyEvents(events);
+    attemptJourneyEventSync(); // fire and forget; works offline gracefully
+  });
 }
 
 let journeyEventSyncInFlight = false;
@@ -2612,7 +2638,7 @@ async function attemptJourneyEventSync(){
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'journeyEvent',
-        events: pending.map(e => ({ journey: e.journey, ts: e.ts }))
+        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy }))
       })
     });
 
@@ -3423,10 +3449,12 @@ document.getElementById('openDashBtn').addEventListener('click', () => {
   showScreen('screen-dash');
   if(dashUnlocked){
     document.getElementById('pinGate').style.display = 'none';
+    document.getElementById('dashContent').classList.remove('hidden');
     document.getElementById('dashContent').style.display = 'flex';
     renderDashboard();
   }else{
     document.getElementById('pinGate').style.display = 'flex';
+    document.getElementById('dashContent').classList.add('hidden');
     document.getElementById('dashContent').style.display = 'none';
     document.getElementById('pinInput').value = '';
     document.getElementById('pinInput').focus();
@@ -3447,6 +3475,7 @@ function unlockDashboard(){
   if(val === OWNER_PIN){
     dashUnlocked = true;
     document.getElementById('pinGate').style.display = 'none';
+    document.getElementById('dashContent').classList.remove('hidden');
     document.getElementById('dashContent').style.display = 'flex';
     renderDashboard();
   }else{
@@ -3839,7 +3868,7 @@ const translations = {
       atTKG: "🟢 I'm at the stall right now",
       planning: "🟡 I'm planning to visit soon",
       exploring: '⚪ Just having a look around',
-      changeLink: 'Change'
+      changeLink: 'Life happens 😄 You can change your status anytime.'
     },
     // Sprint 2.0 — Taste Discovery Engine. New namespace, additive only.
     taste: {
@@ -3971,7 +4000,7 @@ const translations = {
       atTKG: '🟢 હું અત્યારે સ્ટોલ પર જ ઉભો છું',
       planning: '🟡 બસ રસ્તામાં જ છું, હમણાં આવીશ',
       exploring: '⚪ બસ એમ જ મેનૂ જોઈ રહ્યો છું',
-      changeLink: 'બદલવું છે'
+      changeLink: 'જીવનમાં પ્લાન તો બદલાય જ 😄 નીચે સ્ટેટસ બદલી દો.'
     },
     taste: {
       reminderTitle: '🍽️ શું ઓર્ડર કરવું એ વિચારવામાં અટવાયા છો?',
@@ -4102,7 +4131,7 @@ const translations = {
       atTKG: '🟢 मैं अभी स्टॉल पर ही खड़ा हूँ',
       planning: '🟡 बस रास्ते में हूँ, अभी पहुँचता हूँ',
       exploring: '⚪ बस ऐसे ही मेनू देख रहा हूँ',
-      changeLink: 'बदलें'
+      changeLink: 'अरे... प्लान बदल गया? 😄 नीचे से अपना स्टेटस बदल दीजिए।'
     },
     taste: {
       reminderTitle: '🍽️ समझ नहीं आ रहा क्या ऑर्डर करें?',
