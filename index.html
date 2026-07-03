@@ -2186,6 +2186,18 @@ textarea.field-input{
           </div>
         </div>
         <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div class="stat-label" style="margin-top:0;">Journey Analytics</div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟢 I'm at TKG</span><span id="statJourneyAnalyticsAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟡 Planning My Visit</span><span id="statJourneyAnalyticsPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>⚪ Just Exploring</span><span id="statJourneyAnalyticsExploring">0</span>
+          </div>
+        </div>
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
           <div class="stat-label" style="margin-top:0;">Journey Analytics (Today)</div>
           <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
             <span>🟢 At TKG</span><span id="statJourneyEventsAtTKG">0</span>
@@ -2861,7 +2873,7 @@ function selectJourney(journey){
   showScreen('screen-menu');
 }
 
-document.querySelectorAll('.journey-option').forEach(btn => {
+document.querySelectorAll('.journey-option[data-choice]').forEach(btn => {
   btn.addEventListener('click', () => selectJourney(btn.dataset.choice));
 });
 
@@ -3463,10 +3475,18 @@ function renderDashboard(){
   document.getElementById('statJourneyPlanning').textContent = list.filter(c => c.journey === 'planning').length;
   document.getElementById('statJourneyExploring').textContent = list.filter(c => c.journey === 'exploring').length;
 
-  // Journey Analytics (Today) — anonymous event log (tkg_journey_events),
-  // completely separate from the customer list above. Counts every
-  // selection made today on this device, registered or not.
-  const todaysEvents = loadJourneyEvents().filter(e => new Date(e.ts).toDateString() === todayStr);
+  // Journey Analytics — anonymous event log (tkg_journey_events), same
+  // source as the "(Today)" card below. Loaded once here and reused for
+  // both the all-time totals and the today-filtered totals — no second
+  // load, no new storage, no new calculation path.
+  const allJourneyEvents = loadJourneyEvents();
+  document.getElementById('statJourneyAnalyticsAtTKG').textContent = allJourneyEvents.filter(e => e.journey === 'atTKG').length;
+  document.getElementById('statJourneyAnalyticsPlanning').textContent = allJourneyEvents.filter(e => e.journey === 'planning').length;
+  document.getElementById('statJourneyAnalyticsExploring').textContent = allJourneyEvents.filter(e => e.journey === 'exploring').length;
+
+  // Journey Analytics (Today) — same anonymous event log, filtered to
+  // today only. Reuses allJourneyEvents above instead of loading again.
+  const todaysEvents = allJourneyEvents.filter(e => new Date(e.ts).toDateString() === todayStr);
   document.getElementById('statJourneyEventsAtTKG').textContent = todaysEvents.filter(e => e.journey === 'atTKG').length;
   document.getElementById('statJourneyEventsPlanning').textContent = todaysEvents.filter(e => e.journey === 'planning').length;
   document.getElementById('statJourneyEventsExploring').textContent = todaysEvents.filter(e => e.journey === 'exploring').length;
@@ -3713,48 +3733,48 @@ const translations = {
       lineCoal: 'Coal-Cooked',
       lineGravy: 'Cheesy Gravy',
       lineKhichiya: 'Khichiya for Dipping',
-      statement: '🔥 The Gravy is the Hero'
+      statement: "🔥 The Gravy's the Hero — Come Dip In"
     },
     reg: {
-      eyebrow: 'Stay in the loop',
-      title: 'Register &amp; Get <em>Updates.</em>',
-      sub: "Takes 10 seconds. We'll remember you next time you visit.",
+      eyebrow: "Let's stay connected",
+      title: "Register once, we'll remember you",
+      sub: "It only takes 10 seconds. Next time you're here, we'll already know you.",
       nameLabel: 'Your Name',
       namePlaceholder: 'e.g. Rohan Patel',
-      nameError: 'Please enter your name',
+      nameError: 'Looks like you missed your name.',
       mobileLabel: 'Mobile Number',
       mobilePlaceholder: '10-digit mobile number',
-      mobileError: 'Please enter a valid 10-digit number',
-      favoriteLabel: 'Favorite Item <span class="optional-tag">Optional</span>',
-      selectItem: 'Select an item…',
-      sourceLabel: 'How did you hear about us? <span class="optional-tag">Optional</span>',
-      submitBtn: 'Register &amp; Get Updates',
-      notNow: 'Not Now',
-      consent: 'No login. No OTP. No email. Just your name and number, saved securely.',
-      ctaSub: 'Takes 10 seconds. No login, no OTP.',
-      welcomeBack: 'Welcome back!',
-      welcomeBackVisit: (name, n) => `Welcome back, ${name}! This will be visit #${n}.`
+      mobileError: "That number doesn't look quite right. Please check once.",
+      favoriteLabel: 'Favourite Item <span class="optional-tag">Optional</span>',
+      selectItem: 'Choose an item…',
+      sourceLabel: 'How did you hear about TKG? <span class="optional-tag">Just curious 😊</span>',
+      submitBtn: 'Register &amp; Stay Connected',
+      notNow: 'Maybe Later',
+      consent: 'No login. No OTP. Just your name and number, safely stored.',
+      ctaSub: 'Just 10 seconds. No login, no OTP.',
+      welcomeBack: "Welcome back! It's great to see you again.",
+      welcomeBackVisit: (name, n) => `Welcome back, ${name}! This is visit #${n} — great to see you again.`
     },
     source: { instagram:'Instagram', google:'Google', friend:'Friend', family:'Family', walkin:'Walk-In', other:'Other' },
     feedback: {
-      title: '❤️ How was your TKG experience?',
-      label: 'Tell us anything <span class="optional-tag">Optional</span>',
-      placeholder: "Loved the smoky flavour\nAmazing cheese gravy\nBest Jain option I've tried\nCrispy Khichiya\nGreat service",
-      submitBtn: 'Submit Feedback',
-      skipBtn: 'Skip'
+      title: '❤️ Tell us honestly... how was your TKG experience?',
+      label: "Share what's on your mind <span class=\"optional-tag\">Only if you'd like to</span>",
+      placeholder: "The coal-smoked flavour was amazing...\nThe cheese gravy was incredible...\nLoved the Jain option...\nThe Khichiya was perfectly crispy...\nReally enjoyed the service...",
+      submitBtn: 'Send Feedback',
+      skipBtn: 'Maybe Next Time'
     },
     thanks: {
-      title: 'Thank you for visiting TKG',
-      sub: 'Your feedback helps us improve every weekend.',
+      title: 'Thank you for visiting TKG ❤️',
+      sub: 'Your feedback helps us make every weekend even better.',
       copyTitle: 'Copy My Review',
-      copySub: 'Paste it into Google, Instagram, or anywhere below.',
+      copySub: "Paste it on Google, Instagram or anywhere you'd like.",
       copyAction: 'Copy',
       reviewTitle: 'Leave a Google Review',
-      reviewSub: 'Support our small business.',
+      reviewSub: 'Your support means a lot to our little stall.',
       instaTitle: 'Open Instagram',
-      instaSub: "@the.khichiyagravy — tag us in your food photos, we'd love to feature you.",
+      instaSub: "@the.khichiyagravy — tag us in your food photos, we'd love to see them!",
       waTitle: 'Message TKG',
-      waSub: 'Suggestions, photos, or direct feedback.',
+      waSub: 'Share a suggestion, photo or just say hello.',
       open: 'Open →',
       closeBtn: 'Close'
     },
@@ -3763,79 +3783,79 @@ const translations = {
       hookPunch: 'Not poured on top.<br>Dip. Scoop. Enjoy.',
       eduTitle: 'What Makes TKG Different?',
       explainerToggle: 'What is TKG Signature Gravy?',
-      eduLine1: "TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.",
-      eduLine2: 'Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.',
+      eduLine1: "TKG's signature cheese gravy is freshly made over real coal heat with vegetables, herbs, spices and milk — for that real smoky flavour you won't find anywhere else.",
+      eduLine2: "Unlike anywhere else, our gravy and coal-roasted Khichiya are served separately, so you can dip, scoop and enjoy it exactly your way.",
       jainAvailable: '🟢 Jain options available',
       family1Title: 'Coal-Roasted Khichiya',
-      family1Sub: 'Classic dry-roasted snack, eaten as-is — no gravy.',
+      family1Sub: 'Classic dry-roasted snack, no gravy needed.',
       family1TitleShort: 'Traditional',
       family2Title: 'Signature Coal-Cooked Cheese Gravy',
       family2Sub: 'Our hero product — gravy for dipping, not poured on top.',
       family2TitleShort: 'Signature',
       jainPrepAvailable: 'Jain Preparation Available',
       bestseller: 'Bestseller',
-      extrasLabel: 'Extra (Signature Gravy items)',
-      noOnion: 'No Onion Option Available',
-      wholeWheat: 'Whole Wheat (Gehu Atta) on Selected Items',
-      seasonalVeg: 'Seasonal Vegetable Variations',
-      hours: 'Open on Weekend · Evening to Late Night',
+      extrasLabel: 'Extras (Signature Gravy items)',
+      noOnion: 'No-Onion Option Available',
+      wholeWheat: 'Whole Wheat (Gehu Atta) Available on Selected Items',
+      seasonalVeg: 'With Seasonal Vegetable Variations',
+      hours: 'Open Fri/Sat/Sun · Evening to Late Night',
       getDirections: 'Get Directions',
       callUs: '+91 95101 00950',
       priceMini: 'Mini ₹50',
       whatsapp: 'WhatsApp', instagram: 'Instagram', googleReview: 'Google Review',
-      classicKhichiya: { name:'Classic Khichiya', desc:'Freshly coal-roasted Khichiya finished with butter and our signature spice blend. Simple, crispy and perfect for first-time visitors.', descShort:'Butter and our signature spice blend.', price:'Mini ₹50<br>Large ₹60', priceLarge:'Large ₹60' },
-      masalaKhichiya: { name:'Masala Khichiya', desc:'Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal, sev and traditional street-food flavours.', descShort:'Chutney, fresh veg, chana dal, sev.', price:'Mini ₹80<br>Large ₹120', priceMini:'Mini ₹80', priceLarge:'Large ₹120' },
-      cheeseMasalaKhichiya: { name:'Cheese Masala Khichiya', desc:'Our traditional Masala Khichiya topped with melted cheese for a richer and more indulgent flavour.', descShort:'Masala Khichiya topped with melted cheese.', price:'Mini ₹100<br>Large ₹140', priceMini:'Mini ₹100', priceLarge:'Large ₹140' },
-      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature creamy cheese gravy, freshly prepared with vegetables, herbs and milk over real coal heat. Served with coal-roasted Khichiya for dipping.', descShort:'Creamy coal-cooked cheese gravy, served for dipping.', price:'Mini ₹140<br>Large ₹180', priceMini:'Mini ₹140', priceLarge:'Large ₹180' },
-      cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Everything you love about our Signature Gravy Khichiya, finished with extra cheese for an even richer and creamier experience. Served with coal-roasted Khichiya for dipping.', descShort:'Extra cheese, even richer and creamier.', price:'Mini ₹160<br>Large ₹200', priceMini:'Mini ₹160', priceLarge:'Large ₹200' },
-      extraCheese: { name:'Cheese', desc:'Extra cheese melted into your gravy.', descShort:'Extra cheese melted in.' },
-      extraGravy: { name:'Extra Gravy', desc:'More of the hero product — for when the Khichiya runs out first.', descShort:'More of the hero product.' },
-      extraKhichiya: { name:'Extra Khichiya', desc:'An extra coal-roasted Khichiya — for when the gravy outlasts the first one.', descShort:'One more coal-roasted Khichiya.', priceMini:'Mini ₹50', priceLarge:'Large ₹60' }
+      classicKhichiya: { name:'Classic Khichiya', desc:'Freshly coal-roasted Khichiya finished with real Amul butter and our signature spice blend. Simple, crispy and always a good call.', descShort:'Butter and our signature spice blend.', price:'Mini ₹50<br>Large ₹60', priceLarge:'Large ₹60' },
+      masalaKhichiya: { name:'Masala Khichiya', desc:'Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal and sev — a perfect mix in every bite.', descShort:'Chutney, fresh veg, chana dal and sev.', price:'Mini ₹80<br>Large ₹120', priceMini:'Mini ₹80', priceLarge:'Large ₹120' },
+      cheeseMasalaKhichiya: { name:'Cheese Masala Khichiya', desc:'Our classic Masala Khichiya, loaded with melted cheese on top for an extra indulgent bite.', descShort:'Masala Khichiya loaded with melted cheese.', price:'Mini ₹100<br>Large ₹140', priceMini:'Mini ₹100', priceLarge:'Large ₹140' },
+      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature cheese gravy, slow-cooked over coal with vegetables, herbs and milk. Served with coal-roasted Khichiya for dipping.', descShort:'Creamy coal-cooked cheese gravy, for dipping.', price:'Mini ₹140<br>Large ₹180', priceMini:'Mini ₹140', priceLarge:'Large ₹180' },
+      cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Our Signature Gravy, loaded with extra cheese on top for an even creamier, richer bite.', descShort:'Extra cheese, even creamier and richer.', price:'Mini ₹160<br>Large ₹200', priceMini:'Mini ₹160', priceLarge:'Large ₹200' },
+      extraCheese: { name:'Cheese', desc:'Extra cheese melted right into your gravy.', descShort:'Extra melted cheese.' },
+      extraGravy: { name:'Extra Gravy', desc:'One more bowl of the hero product — for when the Khichiya runs out first.', descShort:'One more bowl of our signature gravy.' },
+      extraKhichiya: { name:'Extra Khichiya', desc:'One more coal-roasted Khichiya — for when the gravy outlasts the first one.', descShort:'One more coal-roasted Khichiya.', priceMini:'Mini ₹50', priceLarge:'Large ₹60' }
     },
     install: {
-      androidTitle: 'Install TKG Customer OS',
-      androidSub: 'Faster access from your home screen. No app store needed.',
+      androidTitle: 'Add TKG to Your Home Screen',
+      androidSub: 'Just one shortcut — no app store needed.',
       androidBtn: 'Install',
       iosTitle: 'Add TKG to Home Screen',
-      iosSub: 'Tap the Share icon, then "Add to Home Screen."',
+      iosSub: 'Tap the Share icon below, then "Add to Home Screen."',
       iosBtn: 'Got It',
       dismiss: 'Maybe Later'
     },
-    status: { online:'Online', offline:'Offline — saved locally', syncing:'Syncing...', pendingSync:(n)=>`${n} pending sync` },
+    status: { online:'Online', offline:'Offline — saved on your phone', syncing:'Syncing...', pendingSync:(n)=>`${n} updates waiting to sync` },
     checkin: { returning:(name)=>`Great to see you again, ${name}!`, first:(name)=>`Welcome to TKG, ${name}!` },
     reviews: {
       sheetTitle: 'Loved by Customers',
       viewMore: 'Tap to read more reviews',
-      ctaHeading: 'Love your experience?',
+      ctaHeading: 'Loved your experience?',
       ctaButton: 'Leave us a Google Review'
     },
     contentSheet: {
       empty: 'Nothing here yet — check back soon.'
     },
     journey: {
-      title: '👋 Welcome to TKG',
-      subtitle: 'How can we help you today?',
-      atTKG: "🟢 I'm at TKG",
-      planning: '🟡 Planning my visit',
-      exploring: '⚪ Just exploring',
+      title: '👋 Welcome to TKG!',
+      subtitle: 'What brings you here today? Just let us know...',
+      atTKG: "🟢 I'm at the stall right now",
+      planning: "🟡 I'm planning to visit soon",
+      exploring: '⚪ Just having a look around',
       changeLink: 'Change'
     },
     // Sprint 2.0 — Taste Discovery Engine. New namespace, additive only.
     taste: {
       reminderTitle: '🍽️ Not sure what to order?',
-      reminderSub: "2 quick taps and we'll pick for you.",
-      reminderBtn: 'Find My Item',
+      reminderSub: "Relax... answer 2 quick questions and we'll take care of the rest.",
+      reminderBtn: 'Help Me Choose',
       title: '🍽️ Not sure what to order?',
-      sub: "2 quick taps and we'll pick for you.",
-      q1: 'Gravy to dip, or crispy & dry?',
-      q1Gravy: '🥣 Gravy to dip',
+      sub: "Relax... answer 2 quick questions and we'll take care of the rest.",
+      q1: 'How are you in the mood to enjoy it today?',
+      q1Gravy: '🥣 With delicious gravy',
       q1Dry: '🥨 Crispy & dry',
-      q2: 'Love extra cheese?',
-      q2Yes: '🧀 Yes please',
-      q2No: '🚫 Keep it classic',
-      resultIntro: "Here's your pick 👇",
-      doneBtn: 'Got it, thanks!',
-      skipBtn: 'Skip'
+      q2: 'Would you like extra cheese on top?',
+      q2Yes: '🧀 Absolutely!',
+      q2No: "🚫 I'll keep it classic",
+      resultIntro: "Here's the perfect pick for you 👇",
+      doneBtn: 'Sounds Great!',
+      skipBtn: "I'll Decide Myself"
     },
     langSheetTitle: 'Choose Language'
   },
@@ -3938,7 +3958,7 @@ const translations = {
       sheetTitle: 'ગ્રાહકોનો પ્રેમ',
       viewMore: 'વધુ રિવ્યુ વાંચવા ટૅપ કરો',
       ctaHeading: 'તમારો અનુભવ ગમ્યો?',
-      ctaButton: 'અмену Google Review આપો'
+      ctaButton: 'અમને Google Review આપો'
     },
     contentSheet: {
       empty: 'હજુ કંઈ નથી — થોડી વારમાં ફરી જુઓ.'
@@ -4048,7 +4068,7 @@ const translations = {
       classicKhichiya: { name:'क्लासिक खीचीया', desc:'लाइव कोयले पर सिंके हुए खीचीया, शुद्ध अमूल बटर और हमारे खास मसाले के साथ। सिंपल, क्रिस्पी और एकदम मस्त टेस्ट।', descShort:'बटर और हमारे खास मसाले के साथ।', price:'मिनी ₹50<br>लार्ज ₹60', priceLarge:'लार्ज ₹60' },
       masalaKhichiya: { name:'मसाला खीचीया', desc:'कोयले पर सिंके हुए खीचीया, चटनी, ताज़ी सब्ज़ियों, चने की दाल और बारीक सेव के ज़बरदस्त लेयर के साथ।', descShort:'चटनी, ताज़ी सब्ज़ियाँ, चना दाल और सेव।', price:'मिनी ₹80<br>लार्ज ₹120', priceMini:'मिनी ₹80', priceLarge:'लार्ज ₹120' },
       cheeseMasalaKhichiya: { name:'चीज़ मसाला खीचीया', desc:'हमारे पारंपरिक मसाला खीचीया पर ऊपर से डाला हुआ भरपूर मेल्टेड चीज़।', descShort:'ऊपर से भरपूर पिघला हुआ चीज़।', price:'मिनी ₹100<br>लार्ज ₹140', priceMini:'मिनी ₹100', priceLarge:'लार्ज ₹140' },
-      signatureGravy: { name:'सिग्नेचर ग्रेवी खीचीया', desc:'ताज़ी सब्ज़ियों, हर्ब्स और दूध के साथ कोयले पर धीमी आंच में पकी खास चीज़ ग्रेवी। साथ में खाने के लिए शेके हुए खीचीया।', descShort:'क्रीमी कोयले पर पकी चीज़ ग्रेवी, डिप करने के लिए।', डिपिंग के लिए।', price:'मिनी ₹140<br>लार्ज ₹180', priceMini:'मिनी ₹140', priceLarge:'लार्ज ₹180' },
+      signatureGravy: { name:'सिग्नेचर ग्रेवी खीचीया', desc:'ताज़ी सब्ज़ियों, हर्ब्स और दूध के साथ कोयले पर धीमी आंच में पकी खास चीज़ ग्रेवी। साथ में खाने के लिए शेके हुए खीचीया।', descShort:'क्रीमी कोयले पर पकी चीज़ ग्रेवी, डिप करने के लिए।', price:'मिनी ₹140<br>लार्ज ₹180', priceMini:'मिनी ₹140', priceLarge:'लार्ज ₹180' },
       cheesySignatureGravy: { name:'चीज़ी सिग्नेचर ग्रेवी खीचीया', desc:'हमारी सिग्नेचर ग्रेवी, ऊपर से एक्स्ट्रा चीज़ लोड किया हुआ, ताकि टेस्ट और भी क्रीमी और ज़बरदस्त लगे।', descShort:'एक्स्ट्रा चीज़ के साथ और भी क्रीमी स्वाद।', price:'मिनी ₹160<br>लार्ज ₹200', priceMini:'मिनी ₹160', priceLarge:'लार्ज ₹200' },
       extraCheese: { name:'चीज़', desc:'आपकी ग्रेवी में एक्स्ट्रा चीज़।', descShort:'ग्रेवी में एक्स्ट्रा चीज़।' },
       extraGravy: { name:'एक्स्ट्रा ग्रेवी', desc:'हमारी मुख्य ग्रेवी का एक और बाउल — जब खीचीया पहले खत्म हो जाए तब के लिए।', descShort:'थोड़ी और सिग्नेचर ग्रेवी।' },
@@ -4099,7 +4119,7 @@ const translations = {
       skipBtn: 'अभी रहने दीजिए।'
     },
     langSheetTitle: 'भाषा चुनें'
-  },
+  }
 };
 
 let currentLang = 'en';
