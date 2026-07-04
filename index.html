@@ -350,6 +350,51 @@ input{font-family:inherit;}
   padding:8px;
 }
 
+/* ---- Journey status bar — top of Menu page (Task 2) ---- */
+.journey-status-bar{
+  text-align:center;
+  padding:10px 0 4px;
+}
+.journey-status-label{
+  font-size:11px;
+  color:var(--ink-faint);
+  letter-spacing:0.03em;
+  margin-bottom:2px;
+}
+.journey-status-current{
+  font-size:14px;
+  font-weight:600;
+  color:var(--ink);
+  margin-bottom:2px;
+}
+.journey-status-bar #changeJourneyBtn{
+  background:none;
+  border:none;
+  color:var(--grey-warm);
+  font-size:12px;
+  letter-spacing:0.05em;
+  text-decoration:underline;
+  text-decoration-color:var(--grey-line);
+  padding:6px;
+}
+
+/* ---- Dynamic greeting — time-of-day + Journey aware (Task 3) ---- */
+.dynamic-greeting{
+  text-align:center;
+  padding:2px 0 10px;
+}
+.dg-greeting{
+  font-size:15px;
+  font-weight:700;
+  color:var(--ink);
+}
+.dg-sub{
+  font-size:12.5px;
+  color:var(--ink-soft);
+  margin-top:2px;
+  line-height:1.4;
+}
+
 /* ---- Registration screen ---- */
 .hero-block{
   margin-top:6px;
@@ -1837,6 +1882,18 @@ textarea.field-input{
       <button type="button" class="btn-primary" id="tasteDoneBtn" style="width:100%; margin-top:14px;" data-i18n="taste.doneBtn">Got it, thanks!</button>
     </div>
 
+    <!-- Taste Registration prompt — shown after the recommendation instead
+         of closing immediately. Reuses the existing customer registration
+         overlay/flow entirely (see openRegisterOverlay); this card itself
+         is just a simple, non-blocking inline step within the same
+         overlay — no backend changes, no new storage. -->
+    <div class="reg-card hidden" id="tasteStepSavePrompt">
+      <p class="field-label" data-i18n="taste.savePromptTitle">❤️ We'd love to remember your taste.</p>
+      <p class="hero-sub" style="margin-bottom:0;" data-i18n="taste.savePromptSub">Would you like us to save your taste profile?</p>
+      <button type="button" class="btn-primary" id="tasteSaveMyTasteBtn" style="width:100%; margin-top:14px;" data-i18n="taste.savePromptSaveBtn">Save My Taste</button>
+      <button type="button" class="btn-secondary" id="tasteMaybeLaterBtn" style="width:100%; margin-top:10px;" data-i18n="taste.savePromptLaterBtn">Maybe Later</button>
+    </div>
+
   </div>
 
   <!-- ============ GENERIC CONTENT SHEET ============
@@ -1874,6 +1931,28 @@ textarea.field-input{
 
   <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
   <section class="screen" id="screen-menu">
+
+    <!-- ============ JOURNEY STATUS BAR — moved here from the bottom of
+         the Menu page. Reuses the existing Journey selector/state (no new
+         Journey logic, no new storage) — #changeJourneyBtn is the same
+         element/handler that used to live at the bottom, just relocated;
+         #journeyStatusCurrent is set via updateJourneyStatusDisplay(),
+         wired alongside updateJourneyHint() in the same 3 places
+         (selectJourney, setLanguage, initial load). ============ -->
+    <div class="journey-status-bar" id="journeyStatusBar">
+      <p class="journey-status-label" data-i18n="journey.browsingAs">📍 You're browsing as</p>
+      <div class="journey-status-current" id="journeyStatusCurrent"></div>
+      <button type="button" id="changeJourneyBtn" data-i18n="journey.changeLink">Change Journey</button>
+    </div>
+
+    <!-- ============ DYNAMIC GREETING — time-of-day + Journey-aware.
+         Text-only, no new Journey logic; reuses the existing translation
+         system and is refreshed at the same 3 wiring points as the
+         Journey status bar/hint above. ============ -->
+    <div class="dynamic-greeting" id="dynamicGreeting">
+      <div class="dg-greeting" id="dgGreetingText"></div>
+      <div class="dg-sub" id="dgSubText"></div>
+    </div>
 
     <!-- ============ HERO — short, scannable in seconds ============ -->
     <div class="app-hero">
@@ -2110,8 +2189,12 @@ textarea.field-input{
       <button class="btn-secondary register-cta-btn" id="openTasteDiscoveryBtn" data-i18n="taste.reminderBtn">Find My Item</button>
     </div>
 
+    <!-- Journey Progression — friendly contextual suggestion, text-only.
+         The Change action itself now lives in the Journey status bar at
+         the top of this screen (see #journeyStatusBar) — this is just the
+         small helper line, reusing the existing #journeyHint mechanism. -->
     <div class="change-journey-link">
-      <button type="button" id="changeJourneyBtn" data-i18n="journey.changeLink">Change</button>
+      <p id="journeyHint" style="font-size:12px; color:var(--ink-soft); text-align:center; margin-bottom:6px;"></p>
     </div>
 
     <div class="owner-link">
@@ -2604,14 +2687,46 @@ function requestJourneyLocation(callback){
   );
 }
 
+// Reverse geocoding — turns Latitude/Longitude into a human-readable
+// Area/City using the free OSM Nominatim endpoint. Time-bounded (4s) so a
+// slow/unreachable geocoder can never hold up Journey Analytics; resolves
+// to null (never rejects) on any failure, timeout, or unparsable response,
+// so callers can always safely proceed without location's Area/City.
+function reverseGeocode(lat, lon){
+  return new Promise((resolve) => {
+    if(!('fetch' in window)){ resolve(null); return; }
+    const controller = ('AbortController' in window) ? new AbortController() : null;
+    const timeoutId = setTimeout(() => { if(controller) controller.abort(); resolve(null); }, 4000);
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`,
+      { signal: controller ? controller.signal : undefined, headers: { 'Accept-Language': 'en' } })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        clearTimeout(timeoutId);
+        const addr = (data && data.address) || {};
+        const area = addr.suburb || addr.neighbourhood || addr.residential || addr.quarter || '';
+        const city = addr.city || addr.town || addr.village || addr.state_district || '';
+        resolve((area || city) ? { area: area, city: city } : null);
+      })
+      .catch(() => { clearTimeout(timeoutId); resolve(null); });
+  });
+}
+
 function recordJourneyEvent(journey){
-  requestJourneyLocation((loc) => {
+  requestJourneyLocation(async (loc) => {
     const events = loadJourneyEvents();
     const event = { journey: journey, ts: new Date().toISOString(), pendingSync: true };
     if(loc){
       event.latitude = loc.latitude;
       event.longitude = loc.longitude;
       event.accuracy = loc.accuracy;
+      // Never blocks Journey Analytics: reverseGeocode is time-bounded and
+      // always resolves (never rejects), even on failure/timeout — the
+      // event is saved and synced with blank Area/City in that case.
+      const place = await reverseGeocode(loc.latitude, loc.longitude);
+      if(place){
+        event.area = place.area;
+        event.city = place.city;
+      }
     }
     events.push(event);
     saveJourneyEvents(events);
@@ -2638,7 +2753,7 @@ async function attemptJourneyEventSync(){
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'journeyEvent',
-        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy }))
+        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, area: e.area, city: e.city }))
       })
     });
 
@@ -2897,7 +3012,55 @@ function selectJourney(journey){
   recordJourneyEvent(journey); // anonymous analytics — independent of tkg_journey/tkg_customers
   applyJourneyVisibility(journey);
   updateTasteDiscoveryReminderVisibility(); // re-apply completed-hide on top of the fresh journey gate
+  updateJourneyHint(journey);
+  updateJourneyStatusDisplay(journey);
+  updateDynamicGreeting(journey);
   showScreen('screen-menu');
+}
+
+// Small, non-intrusive helper line shown above the Change link — reflects
+// whichever journey is currently active. Re-run on language switch too
+// (see setLanguage) since this text is set via JS, not a data-i18n attribute.
+const JOURNEY_HINT_KEYS = { atTKG: 'hintAtTKG', planning: 'hintPlanning', exploring: 'hintExploring' };
+function updateJourneyHint(journey){
+  const el = document.getElementById('journeyHint');
+  if(!el) return;
+  const key = JOURNEY_HINT_KEYS[journey];
+  const dict = translations[currentLang] || translations.en;
+  el.textContent = key ? (dict.journey[key] || '') : '';
+}
+
+// Journey status bar (top of Menu page) — shows the currently active
+// journey using the same translated labels already used on the Customer
+// Journey screen itself (journey.atTKG/planning/exploring). Re-run on
+// language switch (see setLanguage) exactly like updateJourneyHint above.
+function updateJourneyStatusDisplay(journey){
+  const el = document.getElementById('journeyStatusCurrent');
+  if(!el) return;
+  const dict = translations[currentLang] || translations.en;
+  el.textContent = JOURNEY_VALUES.includes(journey) ? (dict.journey[journey] || '') : '';
+}
+
+// Dynamic greeting (top of Menu page) — time-of-day greeting + a short
+// Journey-aware line underneath. Text-only, no new Journey logic; reuses
+// the existing translations system/currentLang. Re-run on language switch
+// and on every journey change, same as the two functions above.
+function getGreetingTimeKey_(){
+  const h = new Date().getHours();
+  if(h >= 5 && h < 12) return 'morning';
+  if(h >= 12 && h < 17) return 'afternoon';
+  if(h >= 17 && h < 21) return 'evening';
+  return 'night';
+}
+function updateDynamicGreeting(journey){
+  const greetEl = document.getElementById('dgGreetingText');
+  const subEl = document.getElementById('dgSubText');
+  if(!greetEl || !subEl) return;
+  const dict = translations[currentLang] || translations.en;
+  const g = dict.greeting || translations.en.greeting;
+  greetEl.textContent = g[getGreetingTimeKey_()];
+  const journeyKey = JOURNEY_VALUES.includes(journey) ? journey : 'exploring';
+  subEl.innerHTML = g[journeyKey] || '';
 }
 
 document.querySelectorAll('.journey-option[data-choice]').forEach(btn => {
@@ -3124,7 +3287,11 @@ explainerToggle.addEventListener('click', () => {
 const overlayBackdrop = document.getElementById('overlayBackdrop');
 const regOverlay = document.getElementById('regOverlay');
 
-function openRegisterOverlay(){
+function openRegisterOverlay(favoriteItemValue){
+  if(favoriteItemValue){
+    const favInput = document.getElementById('favoriteItemInput');
+    if(favInput) favInput.value = favoriteItemValue;
+  }
   overlayBackdrop.classList.add('show');
   regOverlay.classList.add('show');
 }
@@ -3336,9 +3503,21 @@ const tasteDiscoveryOverlay = document.getElementById('tasteDiscoveryOverlay');
 const tasteStepStyle = document.getElementById('tasteStepStyle');
 const tasteStepCheese = document.getElementById('tasteStepCheese');
 const tasteStepResult = document.getElementById('tasteStepResult');
+const tasteStepSavePrompt = document.getElementById('tasteStepSavePrompt');
 
 let tasteDiscoveryTimer = null;
 let tasteSelectedStyle = null;
+let tasteLastRecommendedItemKey = null;
+
+// Maps a Taste Discovery recommendation key to the exact value used by the
+// existing Favorite Item dropdown in the registration form (#favoriteItemInput)
+// — reused as-is, no new registration fields, no backend changes.
+const TASTE_ITEM_TO_REG_VALUE_ = {
+  signatureGravy: 'Signature Gravy Khichiya',
+  cheesySignatureGravy: 'Cheesy Signature Gravy Khichiya',
+  classicKhichiya: 'Classic Khichiya',
+  cheeseMasalaKhichiya: 'Cheese Masala Khichiya'
+};
 
 function hasCompletedTasteDiscovery(){
   try{ return localStorage.getItem(TASTE_DISCOVERY_COMPLETED_KEY) === 'true'; }catch(e){ return false; }
@@ -3387,9 +3566,11 @@ function cancelTasteDiscoveryTimer(){
 
 function resetTasteDiscoverySteps(){
   tasteSelectedStyle = null;
+  tasteLastRecommendedItemKey = null;
   tasteStepStyle.classList.remove('hidden');
   tasteStepCheese.classList.add('hidden');
   tasteStepResult.classList.add('hidden');
+  tasteStepSavePrompt.classList.add('hidden');
 }
 
 function openTasteDiscoveryOverlay(){
@@ -3422,6 +3603,7 @@ document.querySelectorAll('[data-taste-cheese]').forEach(btn => {
   btn.addEventListener('click', () => {
     const cheese = btn.dataset.tasteCheese;
     const itemKey = getTasteRecommendation_(tasteSelectedStyle, cheese);
+    tasteLastRecommendedItemKey = itemKey;
     const dict = translations[currentLang] || translations.en;
     const item = dict.menu[itemKey];
 
@@ -3438,7 +3620,24 @@ document.querySelectorAll('[data-taste-cheese]').forEach(btn => {
 });
 document.getElementById('tasteSkipBtn2').addEventListener('click', closeTasteDiscoveryOverlay);
 
-document.getElementById('tasteDoneBtn').addEventListener('click', closeTasteDiscoveryOverlay);
+// "Got it, thanks!" no longer closes the overlay immediately — it reveals
+// the Taste Registration prompt inline, within the same overlay/flow.
+document.getElementById('tasteDoneBtn').addEventListener('click', () => {
+  tasteStepResult.classList.add('hidden');
+  tasteStepSavePrompt.classList.remove('hidden');
+});
+
+// "Save My Taste" — closes the Taste Discovery overlay and opens the
+// existing customer registration overlay, reused as-is, with the
+// recommended item pre-selected in the existing Favorite Item dropdown.
+document.getElementById('tasteSaveMyTasteBtn').addEventListener('click', () => {
+  closeTasteDiscoveryOverlay();
+  const favoriteValue = TASTE_ITEM_TO_REG_VALUE_[tasteLastRecommendedItemKey] || '';
+  openRegisterOverlay(favoriteValue);
+});
+
+// "Maybe Later" — simple dismiss, no popup blocking, no backend action.
+document.getElementById('tasteMaybeLaterBtn').addEventListener('click', closeTasteDiscoveryOverlay);
 
 // ---------------------------------------------------------------------------
 // OWNER DASHBOARD
@@ -3868,7 +4067,22 @@ const translations = {
       atTKG: "🟢 I'm at the stall right now",
       planning: "🟡 I'm planning to visit soon",
       exploring: '⚪ Just having a look around',
-      changeLink: 'Life happens 😄 You can change your status anytime.'
+      browsingAs: "📍 You're browsing as",
+      changeLink: 'Change Journey',
+      hintAtTKG: 'Enjoy your food 😄 If your plans change, you can update your status anytime.',
+      hintPlanning: 'Heading towards TKG? Switch to "I\'m at TKG" once you arrive.',
+      hintExploring: 'Thinking of visiting today? You can change your status anytime.'
+    },
+    // Task 3 — Dynamic Greeting. Time-of-day greeting + a short Journey-aware
+    // line underneath, shown at the top of the Menu page. Additive namespace.
+    greeting: {
+      morning: '👋 Good Morning!',
+      afternoon: '👋 Good Afternoon!',
+      evening: '👋 Good Evening!',
+      night: '👋 Good Night!',
+      atTKG: "Welcome to TKG.<br>Let's make your visit delicious.",
+      planning: "Planning your visit?<br>Let's help you discover your perfect flavour.",
+      exploring: "Welcome!<br>Let's explore what makes TKG special."
     },
     // Sprint 2.0 — Taste Discovery Engine. New namespace, additive only.
     taste: {
@@ -3885,7 +4099,11 @@ const translations = {
       q2No: "🚫 I'll keep it classic",
       resultIntro: "Here's the perfect pick for you 👇",
       doneBtn: 'Sounds Great!',
-      skipBtn: "I'll Decide Myself"
+      skipBtn: "I'll Decide Myself",
+      savePromptTitle: "❤️ We'd love to remember your taste.",
+      savePromptSub: 'Would you like us to save your taste profile?',
+      savePromptSaveBtn: 'Save My Taste',
+      savePromptLaterBtn: 'Maybe Later'
     },
     langSheetTitle: 'Choose Language'
   },
@@ -4000,7 +4218,20 @@ const translations = {
       atTKG: '🟢 હું અત્યારે સ્ટોલ પર જ ઉભો છું',
       planning: '🟡 બસ રસ્તામાં જ છું, હમણાં આવીશ',
       exploring: '⚪ બસ એમ જ મેનૂ જોઈ રહ્યો છું',
-      changeLink: 'જીવનમાં પ્લાન તો બદલાય જ 😄 નીચે સ્ટેટસ બદલી દો.'
+      browsingAs: '📍 તમે આ રીતે જોઈ રહ્યા છો',
+      changeLink: 'સ્ટેટસ બદલો',
+      hintAtTKG: 'જમવાની મજા લો 😄 પ્લાન બદલાય તો, ગમે ત્યારે તમારું સ્ટેટસ બદલી શકો છો.',
+      hintPlanning: 'TKG તરફ આવી રહ્યા છો? પહોંચો એટલે "હું TKG પર છું" પર બદલી દેજો.',
+      hintExploring: 'આજે આવવાનું વિચારો છો? તમે ગમે ત્યારે તમારું સ્ટેટસ બદલી શકો છો.'
+    },
+    greeting: {
+      morning: '👋 સુપ્રભાત!',
+      afternoon: '👋 નમસ્કાર!',
+      evening: '👋 ગુડ ઇવનિંગ!',
+      night: '👋 શુભ રાત્રી!',
+      atTKG: 'TKG પર તમારું સ્વાગત છે.<br>ચાલો, તમારી મુલાકાત સ્વાદિષ્ટ બનાવીએ.',
+      planning: 'આવવાનું પ્લાનિંગ કરી રહ્યા છો?<br>તમારા માટે એકદમ પર્ફેક્ટ ફ્લેવર શોધવામાં મદદ કરીએ.',
+      exploring: 'સ્વાગત છે!<br>ચાલો જોઈએ TKG ને ખાસ શું બનાવે છે.'
     },
     taste: {
       reminderTitle: '🍽️ શું ઓર્ડર કરવું એ વિચારવામાં અટવાયા છો?',
@@ -4016,7 +4247,11 @@ const translations = {
       q2No: '🚫 ના, આપણું સાદું અને ક્લાસિક',
       resultIntro: 'તમારા માટે એકદમ બેસ્ટ આઇટમ આ રહી 👇',
       doneBtn: 'સમજાઈ ગયું, થેન્ક યુ!',
-      skipBtn: 'હમણાં નહીં'
+      skipBtn: 'હમણાં નહીં',
+      savePromptTitle: '❤️ અમને તમારો સ્વાદ યાદ રાખવો ગમશે.',
+      savePromptSub: 'શું અમે તમારી ટેસ્ટ પ્રોફાઇલ સાચવીએ?',
+      savePromptSaveBtn: 'મારો સ્વાદ સાચવો',
+      savePromptLaterBtn: 'પછી ક્યારેક'
     },
     langSheetTitle: 'ભાષા પસંદ કરો'
   },
@@ -4131,7 +4366,20 @@ const translations = {
       atTKG: '🟢 मैं अभी स्टॉल पर ही खड़ा हूँ',
       planning: '🟡 बस रास्ते में हूँ, अभी पहुँचता हूँ',
       exploring: '⚪ बस ऐसे ही मेनू देख रहा हूँ',
-      changeLink: 'अरे... प्लान बदल गया? 😄 नीचे से अपना स्टेटस बदल दीजिए।'
+      browsingAs: '📍 आप इस तरह देख रहे हैं',
+      changeLink: 'स्टेटस बदलें',
+      hintAtTKG: 'खाने का मज़ा लीजिए 😄 प्लान बदले तो, कभी भी अपना स्टेटस बदल सकते हैं।',
+      hintPlanning: 'TKG की तरफ आ रहे हैं? पहुँचते ही "मैं TKG पर हूँ" पर बदल दीजिए।',
+      hintExploring: 'आज आने का सोच रहे हैं? आप कभी भी अपना स्टेटस बदल सकते हैं।'
+    },
+    greeting: {
+      morning: '👋 सुप्रभात!',
+      afternoon: '👋 नमस्कार!',
+      evening: '👋 गुड इवनिंग!',
+      night: '👋 शुभ रात्रि!',
+      atTKG: 'TKG पर आपका स्वागत है।<br>चलिए, आपकी विज़िट को स्वादिष्ट बनाते हैं।',
+      planning: 'आने की योजना बना रहे हैं?<br>आपके लिए एकदम सही फ्लेवर खोजने में मदद करते हैं।',
+      exploring: 'स्वागत है!<br>चलिए देखते हैं TKG को क्या खास बनाता है।'
     },
     taste: {
       reminderTitle: '🍽️ समझ नहीं आ रहा क्या ऑर्डर करें?',
@@ -4147,7 +4395,11 @@ const translations = {
       q2No: '🚫 नहीं, अपना सिंपल और क्लासिक ही बढ़िया है',
       resultIntro: 'आपके स्वाद के हिसाब से बेस्ट आइटम यह रही 👇',
       doneBtn: 'समझ गया, थैंक यू!',
-      skipBtn: 'अभी रहने दीजिए।'
+      skipBtn: 'अभी रहने दीजिए।',
+      savePromptTitle: '❤️ हमें आपका स्वाद याद रखना अच्छा लगेगा।',
+      savePromptSub: 'क्या हम आपकी टेस्ट प्रोफाइल सेव कर लें?',
+      savePromptSaveBtn: 'मेरा स्वाद सेव करें',
+      savePromptLaterBtn: 'फिर कभी'
     },
     langSheetTitle: 'भाषा चुनें'
   }
@@ -4192,6 +4444,16 @@ function setLanguage(lang){
   document.querySelectorAll('.lang-option').forEach(opt => {
     opt.classList.toggle('selected', opt.dataset.lang === lang);
   });
+  // #journeyHint / #journeyStatusCurrent / #dgGreetingText+#dgSubText are
+  // all set via JS, not data-i18n, so applyTranslations() alone can't
+  // refresh them — re-run explicitly here, guarded for no journey stored
+  // yet (leaves them empty/unchanged, same as before this fix).
+  const storedJourneyForLang = getStoredJourney();
+  if(storedJourneyForLang){
+    updateJourneyHint(storedJourneyForLang);
+    updateJourneyStatusDisplay(storedJourneyForLang);
+    updateDynamicGreeting(storedJourneyForLang);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -4291,6 +4553,9 @@ const storedJourney = getStoredJourney();
 if(storedJourney){
   applyJourneyVisibility(storedJourney);
   updateTasteDiscoveryReminderVisibility(); // re-apply completed-hide on top of the fresh journey gate
+  updateJourneyHint(storedJourney);
+  updateJourneyStatusDisplay(storedJourney);
+  updateDynamicGreeting(storedJourney);
   showScreen('screen-menu');
 }else{
   let hasStoredLanguage = false;
