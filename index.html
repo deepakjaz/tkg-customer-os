@@ -350,49 +350,63 @@ input{font-family:inherit;}
   padding:8px;
 }
 
-/* ---- Journey status bar — top of Menu page (Task 2) ---- */
+/* ---- Journey status bar — compact header card, directly below the
+   topbar (language/online row). Reuses the same #journeyStatusBar /
+   #journeyStatusCurrent / #changeJourneyBtn elements — layout/styling
+   only, no new Journey component. ---- */
 .journey-status-bar{
-  text-align:center;
-  padding:10px 0 4px;
+  text-align:left;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  padding:12px 14px;
+  margin:10px 0 6px;
+}
+.journey-status-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
 }
 .journey-status-label{
-  font-size:11px;
-  color:var(--ink-faint);
-  letter-spacing:0.03em;
-  margin-bottom:2px;
+  font-size:12.5px;
+  color:var(--ink-soft);
+  margin:0;
 }
 .journey-status-current{
-  font-size:14px;
-  font-weight:600;
+  font-size:16px;
+  font-weight:700;
   color:var(--ink);
-  margin-bottom:2px;
+  margin-top:5px;
 }
 .journey-status-bar #changeJourneyBtn{
   background:none;
   border:none;
-  color:var(--grey-warm);
-  font-size:12px;
-  letter-spacing:0.05em;
+  color:var(--ember);
+  font-weight:600;
+  font-size:12.5px;
   text-decoration:underline;
-  text-decoration-color:var(--grey-line);
-  padding:6px;
+  text-decoration-color:var(--ember);
+  padding:2px 0;
+  white-space:nowrap;
+  flex-shrink:0;
 }
 
-/* ---- Dynamic greeting — time-of-day + Journey aware (Task 3) ---- */
+/* ---- Dynamic greeting — time-of-day + Journey aware (Task 2) ---- */
 .dynamic-greeting{
-  text-align:center;
-  padding:2px 0 10px;
+  text-align:left;
+  padding:4px 2px 10px;
 }
 .dg-greeting{
-  font-size:15px;
+  font-size:19px;
   font-weight:700;
   color:var(--ink);
 }
 .dg-sub{
-  font-size:12.5px;
+  font-size:13.5px;
   color:var(--ink-soft);
-  margin-top:2px;
-  line-height:1.4;
+  margin-top:3px;
+  line-height:1.45;
 }
 
 /* ---- Registration screen ---- */
@@ -1439,6 +1453,19 @@ textarea.field-input{
   align-items:center;
   justify-content:center;
 }
+.dash-header-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.dash-section-label{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:12.5px;
+  color:var(--gold-bright);
+  letter-spacing:0.05em;
+  margin:4px 0 8px;
+}
 
 .pin-gate{
   display:flex;
@@ -1940,9 +1967,11 @@ textarea.field-input{
          wired alongside updateJourneyHint() in the same 3 places
          (selectJourney, setLanguage, initial load). ============ -->
     <div class="journey-status-bar" id="journeyStatusBar">
-      <p class="journey-status-label" data-i18n="journey.browsingAs">📍 You're browsing as</p>
+      <div class="journey-status-row">
+        <p class="journey-status-label" data-i18n="journey.browsingAs">📍 You're browsing as</p>
+        <button type="button" id="changeJourneyBtn" data-i18n="journey.changeLink">Change Journey ›</button>
+      </div>
       <div class="journey-status-current" id="journeyStatusCurrent"></div>
-      <button type="button" id="changeJourneyBtn" data-i18n="journey.changeLink">Change Journey</button>
     </div>
 
     <!-- ============ DYNAMIC GREETING — time-of-day + Journey-aware.
@@ -2220,35 +2249,97 @@ textarea.field-input{
 
     <div class="dash-header">
       <h1 class="dash-title">Owner Dashboard</h1>
-      <button class="dash-close" id="closeDashBtn">✕</button>
+      <div class="dash-header-actions">
+        <button class="dash-close" id="ownerSettingsBtn" title="Owner Settings" aria-label="Owner Settings">⚙</button>
+        <button class="dash-close" id="closeDashBtn">✕</button>
+      </div>
     </div>
 
     <!-- PIN gate -->
     <div class="pin-gate" id="pinGate">
-      <p>Enter the owner PIN to continue.<br><span style="color:var(--grey-line); font-size:11px;">(Default PIN: 1234 — change inside app.js)</span></p>
+      <p>Enter the owner PIN to continue.<br><span style="color:var(--grey-line); font-size:11px;">(Default PIN: 1234 — change inside Owner Settings)</span></p>
       <input class="pin-input" id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
       <button class="btn-primary" id="pinSubmitBtn">Unlock</button>
+    </div>
+
+    <!-- Owner Settings — Change PIN. Reuses the exact dark pin-gate/pin-input
+         look; only reachable once already unlocked (see ownerSettingsBtn).
+         No Apps Script involved — localStorage only. -->
+    <div class="pin-gate hidden" id="ownerSettingsPanel">
+      <p>⚙ Owner Settings<br><span style="color:var(--grey-line); font-size:11px;">Change your Owner PIN</span></p>
+      <input class="pin-input" id="settingsCurrentPin" type="password" inputmode="numeric" maxlength="6" placeholder="Current PIN">
+      <input class="pin-input" id="settingsNewPin" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN">
+      <input class="pin-input" id="settingsConfirmPin" type="password" inputmode="numeric" maxlength="6" placeholder="Confirm New PIN">
+      <button class="btn-primary" id="settingsSavePinBtn">Save</button>
+      <button class="btn-secondary" id="settingsCancelBtn">Cancel</button>
     </div>
 
     <!-- Dashboard content -->
     <div id="dashContent" class="hidden" style="display:none; flex-direction:column; flex:1; min-height:0;">
 
+      <div class="dash-section-label">📊 Lifetime Statistics</div>
       <div class="stat-grid">
         <div class="stat-card">
           <div class="stat-num" id="statTotal">0</div>
           <div class="stat-label">Total Customers</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num" id="statToday">0</div>
-          <div class="stat-label">New Today</div>
+          <div class="stat-num" id="statRepeat">0</div>
+          <div class="stat-label">Returning Customers</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num" id="statRepeat">0</div>
-          <div class="stat-label">Repeat Customers</div>
+          <div class="stat-num" id="statTotalVisits">0</div>
+          <div class="stat-label">Total Visits</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statAvgVisits">0</div>
+          <div class="stat-label">Average Visits</div>
+        </div>
+      </div>
+
+      <div class="dash-section-label">🚶 Journey Analytics (Lifetime)</div>
+      <div class="stat-grid">
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟢 At TKG</span><span id="statJourneyAnalyticsAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟡 Planning</span><span id="statJourneyAnalyticsPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>⚪ Exploring</span><span id="statJourneyAnalyticsExploring">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-section-label">📅 Today's Summary</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="statToday">0</div>
+          <div class="stat-label">New Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statReturningToday">0</div>
+          <div class="stat-label">Returning Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statVisitsToday">0</div>
+          <div class="stat-label">Visits Today</div>
         </div>
         <div class="stat-card">
           <div class="stat-num" id="statPending">0</div>
           <div class="stat-label">Pending Sync</div>
+        </div>
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟢 At TKG Today</span><span id="statJourneyEventsAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟡 Planning Today</span><span id="statJourneyEventsPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>⚪ Exploring Today</span><span id="statJourneyEventsExploring">0</span>
+          </div>
         </div>
         <div class="stat-card full">
           <div>
@@ -2257,42 +2348,6 @@ textarea.field-input{
           </div>
           <button class="btn-secondary" id="forceSyncBtn" style="padding:9px 14px; font-size:12px;">Sync Now</button>
         </div>
-        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
-          <div class="stat-label" style="margin-top:0;">Customer Journey</div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-            <span>🟢 At TKG</span><span id="statJourneyAtTKG">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-            <span>🟡 Planning</span><span id="statJourneyPlanning">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-            <span>⚪ Exploring</span><span id="statJourneyExploring">0</span>
-          </div>
-        </div>
-        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
-          <div class="stat-label" style="margin-top:0;">Journey Analytics</div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-            <span>🟢 I'm at TKG</span><span id="statJourneyAnalyticsAtTKG">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-            <span>🟡 Planning My Visit</span><span id="statJourneyAnalyticsPlanning">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-            <span>⚪ Just Exploring</span><span id="statJourneyAnalyticsExploring">0</span>
-          </div>
-        </div>
-        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
-          <div class="stat-label" style="margin-top:0;">Journey Analytics (Today)</div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-            <span>🟢 At TKG</span><span id="statJourneyEventsAtTKG">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-            <span>🟡 Planning</span><span id="statJourneyEventsPlanning">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-            <span>⚪ Exploring</span><span id="statJourneyEventsExploring">0</span>
-          </div>
-        </div>
       </div>
 
       <div class="dash-actions">
@@ -2300,6 +2355,7 @@ textarea.field-input{
         <button class="btn-secondary" id="refreshDashBtn">Refresh</button>
       </div>
 
+      <div class="dash-section-label">👥 Recent Customers</div>
       <input class="search-box" id="searchInput" type="text" placeholder="Search by name or mobile number...">
 
       <div class="cust-list" id="custList">
@@ -2361,7 +2417,25 @@ textarea.field-input{
 // See AppsScript.gs setup instructions for how to generate this.
 // ---------------------------------------------------------------------------
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
-const OWNER_PIN = '1234'; // change this to your own PIN
+// Owner PIN — stored in localStorage so it can be changed from inside the
+// app (Owner Settings, see openOwnerSettings/saveOwnerPin below). First
+// launch on a device creates it as '1234' if nothing is stored yet.
+const OWNER_PIN_KEY = 'tkg_owner_pin';
+function getOwnerPin(){
+  try{
+    let pin = localStorage.getItem(OWNER_PIN_KEY);
+    if(!pin){
+      pin = '1234';
+      localStorage.setItem(OWNER_PIN_KEY, pin);
+    }
+    return pin;
+  }catch(e){
+    return '1234';
+  }
+}
+function setOwnerPin(pin){
+  try{ localStorage.setItem(OWNER_PIN_KEY, pin); }catch(e){}
+}
 const INSTAGRAM_URL = 'https://www.instagram.com/the.khichiyagravy/'; // production — official TKG profile
 const GOOGLE_REVIEW_URL = 'https://g.page/r/CYnAo2r-6b_zEAE/review'; // production — Google Business review link
 
@@ -3644,13 +3718,65 @@ document.getElementById('tasteMaybeLaterBtn').addEventListener('click', closeTas
 // ---------------------------------------------------------------------------
 let dashUnlocked = false;
 
+// Lifetime data fetched from the Google Sheet (cross-device source of
+// truth) — null until first successfully fetched, so renderDashboard() can
+// tell "not fetched yet / fetch failed" apart from "fetched, zero rows" and
+// fall back to this device's own local log in that case only.
+let serverCustomers = null;
+let serverJourneyEvents = null;
+let dashDataInFlight = false;
+
+async function fetchServerCustomers(){
+  try{
+    const res = await fetch(APP_SCRIPT_URL);
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data && data.status === 'ok' && Array.isArray(data.customers)) ? data.customers : null;
+  }catch(err){
+    console.warn('fetchServerCustomers failed:', err);
+    return null;
+  }
+}
+
+async function fetchServerJourneyEvents(){
+  try{
+    const res = await fetch(APP_SCRIPT_URL + '?action=journeyAnalytics');
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data && data.status === 'ok' && Array.isArray(data.events)) ? data.events : null;
+  }catch(err){
+    console.warn('fetchServerJourneyEvents failed:', err);
+    return null;
+  }
+}
+
+// Pulls the latest Customers + Journey Analytics from the Sheet, then
+// re-renders. Called on every Dashboard open/unlock (Task 2 — no hard
+// refresh needed) and by the manual Refresh button. Guarded against
+// duplicate concurrent requests; falls back silently to whatever's already
+// cached (or local data, in renderDashboard) if offline/unconfigured/failed.
+async function refreshDashboardData(){
+  if(dashDataInFlight) return;
+  if(!navigator.onLine || APP_SCRIPT_URL.includes('PASTE_YOUR')){ renderDashboard(); return; }
+  dashDataInFlight = true;
+  try{
+    const [customers, events] = await Promise.all([fetchServerCustomers(), fetchServerJourneyEvents()]);
+    if(customers) serverCustomers = customers;
+    if(events) serverJourneyEvents = events;
+  }finally{
+    dashDataInFlight = false;
+    renderDashboard();
+  }
+}
+
 document.getElementById('openDashBtn').addEventListener('click', () => {
   showScreen('screen-dash');
+  document.getElementById('ownerSettingsPanel').classList.add('hidden');
   if(dashUnlocked){
     document.getElementById('pinGate').style.display = 'none';
     document.getElementById('dashContent').classList.remove('hidden');
     document.getElementById('dashContent').style.display = 'flex';
-    renderDashboard();
+    refreshDashboardData(); // always pull the latest — same screen, freshest data
   }else{
     document.getElementById('pinGate').style.display = 'flex';
     document.getElementById('dashContent').classList.add('hidden');
@@ -3671,51 +3797,129 @@ document.getElementById('pinInput').addEventListener('keydown', (e) => {
 
 function unlockDashboard(){
   const val = document.getElementById('pinInput').value;
-  if(val === OWNER_PIN){
+  if(val === getOwnerPin()){
     dashUnlocked = true;
     document.getElementById('pinGate').style.display = 'none';
     document.getElementById('dashContent').classList.remove('hidden');
     document.getElementById('dashContent').style.display = 'flex';
-    renderDashboard();
+    refreshDashboardData();
   }else{
     showToast('Incorrect PIN');
     document.getElementById('pinInput').value = '';
   }
 }
 
-function renderDashboard(){
-  const list = loadCustomers();
-  const todayStr = new Date().toDateString();
+// ---------------------------------------------------------------------------
+// OWNER SETTINGS — Change PIN. localStorage only, no Apps Script involved.
+// ---------------------------------------------------------------------------
+document.getElementById('ownerSettingsBtn').addEventListener('click', () => {
+  document.getElementById('dashContent').classList.add('hidden');
+  document.getElementById('dashContent').style.display = 'none';
+  document.getElementById('settingsCurrentPin').value = '';
+  document.getElementById('settingsNewPin').value = '';
+  document.getElementById('settingsConfirmPin').value = '';
+  document.getElementById('ownerSettingsPanel').classList.remove('hidden');
+  document.getElementById('ownerSettingsPanel').style.display = 'flex';
+});
 
+document.getElementById('settingsCancelBtn').addEventListener('click', () => {
+  document.getElementById('ownerSettingsPanel').classList.add('hidden');
+  document.getElementById('ownerSettingsPanel').style.display = 'none';
+  document.getElementById('dashContent').classList.remove('hidden');
+  document.getElementById('dashContent').style.display = 'flex';
+});
+
+document.getElementById('settingsSavePinBtn').addEventListener('click', () => {
+  const current = document.getElementById('settingsCurrentPin').value;
+  const next = document.getElementById('settingsNewPin').value;
+  const confirmVal = document.getElementById('settingsConfirmPin').value;
+
+  if(current !== getOwnerPin()){
+    showToast('Current PIN is incorrect');
+    return;
+  }
+  if(!next || next.length < 4){
+    showToast('New PIN must be at least 4 digits');
+    return;
+  }
+  if(next !== confirmVal){
+    showToast('New PIN and Confirm PIN do not match');
+    return;
+  }
+
+  setOwnerPin(next); // saved immediately — future unlocks use this PIN
+  showToast('PIN updated');
+  document.getElementById('settingsCurrentPin').value = '';
+  document.getElementById('settingsNewPin').value = '';
+  document.getElementById('settingsConfirmPin').value = '';
+  document.getElementById('ownerSettingsPanel').classList.add('hidden');
+  document.getElementById('ownerSettingsPanel').style.display = 'none';
+  document.getElementById('dashContent').classList.remove('hidden');
+  document.getElementById('dashContent').style.display = 'flex';
+});
+
+// yyyy-MM-dd in the device's own local time — matches the format Apps
+// Script writes into the Journey Analytics "Date" column (script
+// timezone), so lifetime/today filtering stays a simple string compare
+// with no UTC/ISO shifting involved.
+function getLocalDateStr_(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function renderDashboard(){
+  // Lifetime data: prefer the full cross-device dataset fetched from the
+  // Sheet (serverCustomers/serverJourneyEvents — see refreshDashboardData);
+  // fall back to this device's own local log only when offline or the
+  // fetch hasn't succeeded yet, so the Dashboard never goes blank.
+  const list = serverCustomers || loadCustomers();
+  const journeyEvents = serverJourneyEvents || loadJourneyEvents();
+
+  const todayLocalStr = getLocalDateStr_(new Date());
+  const todayDateStr = new Date().toDateString();
+
+  // ---- 📊 Lifetime Statistics — every record ever captured ----
   const total = list.length;
-  const newToday = list.filter(c => new Date(c.firstVisit).toDateString() === todayStr).length;
   const repeat = list.filter(c => (c.visitCount || 1) > 1).length;
-  const pending = list.filter(c => c.pendingSync).length;
+  const totalVisits = list.reduce((sum, c) => sum + (c.visitCount || 1), 0);
+  const avgVisits = total > 0 ? (totalVisits / total) : 0;
 
   document.getElementById('statTotal').textContent = total;
-  document.getElementById('statToday').textContent = newToday;
   document.getElementById('statRepeat').textContent = repeat;
+  document.getElementById('statTotalVisits').textContent = totalVisits;
+  document.getElementById('statAvgVisits').textContent = avgVisits.toFixed(2);
+
+  // ---- 🚶 Journey Analytics (Lifetime) — anonymous event log, all-time ----
+  document.getElementById('statJourneyAnalyticsAtTKG').textContent = journeyEvents.filter(e => e.journey === 'atTKG').length;
+  document.getElementById('statJourneyAnalyticsPlanning').textContent = journeyEvents.filter(e => e.journey === 'planning').length;
+  document.getElementById('statJourneyAnalyticsExploring').textContent = journeyEvents.filter(e => e.journey === 'exploring').length;
+
+  // ---- 📅 Today's Summary — the ONLY section filtered by today's date ----
+  const newToday = list.filter(c => new Date(c.firstVisit).toDateString() === todayDateStr).length;
+  const returningToday = list.filter(c =>
+    new Date(c.lastVisit).toDateString() === todayDateStr &&
+    new Date(c.firstVisit).toDateString() !== todayDateStr
+  ).length;
+  const visitsToday = list.filter(c => new Date(c.lastVisit).toDateString() === todayDateStr).length;
+  // Pending Sync is always a *local* device concept (this device's own
+  // offline queue) regardless of which customer list is being displayed.
+  const pending = loadCustomers().filter(c => c.pendingSync).length;
+
+  document.getElementById('statToday').textContent = newToday;
+  document.getElementById('statReturningToday').textContent = returningToday;
+  document.getElementById('statVisitsToday').textContent = visitsToday;
   document.getElementById('statPending').textContent = pending;
 
-  // Customer Journey summary — registered customers only (list is always
-  // just tkg_customers). Anyone who never registered has no record here,
-  // by design — their journey choice stays local/UI-only, never counted.
-  document.getElementById('statJourneyAtTKG').textContent = list.filter(c => c.journey === 'atTKG').length;
-  document.getElementById('statJourneyPlanning').textContent = list.filter(c => c.journey === 'planning').length;
-  document.getElementById('statJourneyExploring').textContent = list.filter(c => c.journey === 'exploring').length;
-
-  // Journey Analytics — anonymous event log (tkg_journey_events), same
-  // source as the "(Today)" card below. Loaded once here and reused for
-  // both the all-time totals and the today-filtered totals — no second
-  // load, no new storage, no new calculation path.
-  const allJourneyEvents = loadJourneyEvents();
-  document.getElementById('statJourneyAnalyticsAtTKG').textContent = allJourneyEvents.filter(e => e.journey === 'atTKG').length;
-  document.getElementById('statJourneyAnalyticsPlanning').textContent = allJourneyEvents.filter(e => e.journey === 'planning').length;
-  document.getElementById('statJourneyAnalyticsExploring').textContent = allJourneyEvents.filter(e => e.journey === 'exploring').length;
-
-  // Journey Analytics (Today) — same anonymous event log, filtered to
-  // today only. Reuses allJourneyEvents above instead of loading again.
-  const todaysEvents = allJourneyEvents.filter(e => new Date(e.ts).toDateString() === todayStr);
+  // Server-fetched events carry a `date` field (yyyy-MM-dd, script
+  // timezone); this device's own not-yet-synced local events only have
+  // `ts` (ISO) — handle both so "Today" is accurate either way.
+  const todaysEvents = journeyEvents.filter(e => {
+    if(e.date) return e.date === todayLocalStr;
+    if(e.ts) return new Date(e.ts).toDateString() === todayDateStr;
+    return false;
+  });
   document.getElementById('statJourneyEventsAtTKG').textContent = todaysEvents.filter(e => e.journey === 'atTKG').length;
   document.getElementById('statJourneyEventsPlanning').textContent = todaysEvents.filter(e => e.journey === 'planning').length;
   document.getElementById('statJourneyEventsExploring').textContent = todaysEvents.filter(e => e.journey === 'exploring').length;
@@ -3726,6 +3930,7 @@ function renderDashboard(){
     ? new Date(lastSynced).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
     : 'Never';
 
+  // ---- 👥 Recent Customers — sorted by Last Visit, not filtered to today ----
   renderCustomerList(list);
 }
 
@@ -3766,8 +3971,8 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
   });
 });
 
-document.getElementById('refreshDashBtn').addEventListener('click', () => {
-  renderDashboard();
+document.getElementById('refreshDashBtn').addEventListener('click', async () => {
+  await refreshDashboardData();
   showToast('Dashboard refreshed');
 });
 
@@ -3783,7 +3988,7 @@ document.getElementById('forceSyncBtn').addEventListener('click', () => {
 // CSV EXPORT
 // ---------------------------------------------------------------------------
 document.getElementById('exportCsvBtn').addEventListener('click', () => {
-  const list = loadCustomers();
+  const list = serverCustomers || loadCustomers();
   if(list.length === 0){
     showToast('No data to export');
     return;
@@ -4068,7 +4273,7 @@ const translations = {
       planning: "🟡 I'm planning to visit soon",
       exploring: '⚪ Just having a look around',
       browsingAs: "📍 You're browsing as",
-      changeLink: 'Change Journey',
+      changeLink: 'Change Journey ›',
       hintAtTKG: 'Enjoy your food 😄 If your plans change, you can update your status anytime.',
       hintPlanning: 'Heading towards TKG? Switch to "I\'m at TKG" once you arrive.',
       hintExploring: 'Thinking of visiting today? You can change your status anytime.'
@@ -4080,8 +4285,8 @@ const translations = {
       afternoon: '👋 Good Afternoon!',
       evening: '👋 Good Evening!',
       night: '👋 Good Night!',
-      atTKG: "Welcome to TKG.<br>Let's make your visit delicious.",
-      planning: "Planning your visit?<br>Let's help you discover your perfect flavour.",
+      atTKG: 'Enjoy your meal 😄',
+      planning: "Can't wait to welcome you.",
       exploring: "Welcome!<br>Let's explore what makes TKG special."
     },
     // Sprint 2.0 — Taste Discovery Engine. New namespace, additive only.
@@ -4219,7 +4424,7 @@ const translations = {
       planning: '🟡 બસ રસ્તામાં જ છું, હમણાં આવીશ',
       exploring: '⚪ બસ એમ જ મેનૂ જોઈ રહ્યો છું',
       browsingAs: '📍 તમે આ રીતે જોઈ રહ્યા છો',
-      changeLink: 'સ્ટેટસ બદલો',
+      changeLink: 'સ્ટેટસ બદલો ›',
       hintAtTKG: 'જમવાની મજા લો 😄 પ્લાન બદલાય તો, ગમે ત્યારે તમારું સ્ટેટસ બદલી શકો છો.',
       hintPlanning: 'TKG તરફ આવી રહ્યા છો? પહોંચો એટલે "હું TKG પર છું" પર બદલી દેજો.',
       hintExploring: 'આજે આવવાનું વિચારો છો? તમે ગમે ત્યારે તમારું સ્ટેટસ બદલી શકો છો.'
@@ -4229,8 +4434,8 @@ const translations = {
       afternoon: '👋 નમસ્કાર!',
       evening: '👋 ગુડ ઇવનિંગ!',
       night: '👋 શુભ રાત્રી!',
-      atTKG: 'TKG પર તમારું સ્વાગત છે.<br>ચાલો, તમારી મુલાકાત સ્વાદિષ્ટ બનાવીએ.',
-      planning: 'આવવાનું પ્લાનિંગ કરી રહ્યા છો?<br>તમારા માટે એકદમ પર્ફેક્ટ ફ્લેવર શોધવામાં મદદ કરીએ.',
+      atTKG: 'જમવાની મજા લો 😄',
+      planning: 'તમારું સ્વાગત કરવા આતુર છીએ.',
       exploring: 'સ્વાગત છે!<br>ચાલો જોઈએ TKG ને ખાસ શું બનાવે છે.'
     },
     taste: {
@@ -4367,7 +4572,7 @@ const translations = {
       planning: '🟡 बस रास्ते में हूँ, अभी पहुँचता हूँ',
       exploring: '⚪ बस ऐसे ही मेनू देख रहा हूँ',
       browsingAs: '📍 आप इस तरह देख रहे हैं',
-      changeLink: 'स्टेटस बदलें',
+      changeLink: 'स्टेटस बदलें ›',
       hintAtTKG: 'खाने का मज़ा लीजिए 😄 प्लान बदले तो, कभी भी अपना स्टेटस बदल सकते हैं।',
       hintPlanning: 'TKG की तरफ आ रहे हैं? पहुँचते ही "मैं TKG पर हूँ" पर बदल दीजिए।',
       hintExploring: 'आज आने का सोच रहे हैं? आप कभी भी अपना स्टेटस बदल सकते हैं।'
@@ -4377,8 +4582,8 @@ const translations = {
       afternoon: '👋 नमस्कार!',
       evening: '👋 गुड इवनिंग!',
       night: '👋 शुभ रात्रि!',
-      atTKG: 'TKG पर आपका स्वागत है।<br>चलिए, आपकी विज़िट को स्वादिष्ट बनाते हैं।',
-      planning: 'आने की योजना बना रहे हैं?<br>आपके लिए एकदम सही फ्लेवर खोजने में मदद करते हैं।',
+      atTKG: 'खाने का मज़ा लीजिए 😄',
+      planning: 'आपका स्वागत करने के लिए बेताब हैं।',
       exploring: 'स्वागत है!<br>चलिए देखते हैं TKG को क्या खास बनाता है।'
     },
     taste: {
