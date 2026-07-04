@@ -1,0 +1,4568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>TKG — The Khichiya Gravy</title>
+<meta name="theme-color" content="#0B0B0C">
+<meta name="description" content="The Khichiya Gravy — menu, registration and visit tracking">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>
+/* ==========================================================================
+   TOKENS
+   White marble / Coal ember orange / Black charcoal / Warm gold
+   ========================================================================== */
+:root{
+  /* ---- DARK PALETTE \u2014 used by the Owner Dashboard (#screen-dash).
+     Re-calibrated to the TKG logo's own charcoal (sampled directly from
+     the logo file: a warm red-brown black, not a neutral grey-black). ---- */
+  --charcoal:       #160F0C;
+  --charcoal-soft:  #221813;
+  --ember-card:     #2A1E17;
+  --ember-card-top: #32241B;
+  --marble:         #FAF7F2;
+  --marble-dim:     #EFEAE1;
+  --marble-warm:    #FBF4EA;
+  --grey-line:      #3D2E24;
+
+  /* ---- LIGHT PALETTE — the customer-facing shell, cards, sheets.
+     White/warm-ivory marble base, charcoal text, ember reserved for
+     small accents per direction: "subtle, charcoal does the heavy lifting." ---- */
+  --stone-base:      #F4F1EC;   /* shell background base, warm off-white */
+  --stone-card:      #FFFFFF;   /* cards sit a shade lighter than the shell */
+  --stone-card-alt:  #FBF9F5;   /* secondary card tone for subtle layering */
+  --stone-vein:      #C7BFB2;   /* marble crack-vein color, warm grey */
+  --stone-vein-soft: #DCD5C8;
+  --stone-line:      #E3DDD2;   /* hairline borders on light surfaces */
+  --ink:             #1C1815;   /* primary text \u2014 near-black, warm */
+  --ink-soft:        #6B6256;   /* secondary text, warm grey-brown */
+  --ink-faint:       #9C9286;   /* tertiary text, placeholders */
+
+  /* ---- ACCENTS \u2014 shared by both palettes, used sparingly on light ---- */
+  --ember:          #E85D2C;
+  --ember-bright:   #FF7A45;
+  --ember-deep:     #B8431D;
+  --ember-glow:     #FAC646;   /* sampled from the TKG logo halo \u2014 warm gold-amber */
+  --gold:           #C9A24B;
+  --gold-bright:    #E0C170;
+  --gold-deep:      #8F7430;   /* new \u2014 readable gold-on-white for text */
+  --grey-warm:      #8A8278;
+  --success:        #4C7A4C;   /* slightly deepened for readability on white */
+  --danger:         #B5392F;   /* slightly deepened for readability on white */
+
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --max-w: 430px;
+
+  --font-display: 'Charcoal-Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{
+  background:var(--stone-base);
+  color:var(--ink);
+  font-family:var(--font-body);
+  -webkit-tap-highlight-color:transparent;
+  height:100%;
+}
+body{
+  display:flex;
+  justify-content:center;
+  min-height:100vh;
+  min-height:100dvh;
+}
+button{font-family:inherit; cursor:pointer;}
+input{font-family:inherit;}
+::selection{background:var(--ember); color:var(--marble);}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+}
+
+/* ==========================================================================
+   SHELL — white/warm-ivory marble, inspired by the stall counter.
+   Built entirely from CSS gradients: no image asset, no HTTP request,
+   scales cleanly at any density. Charcoal vein lines at varied angles
+   (not repeating, so it doesn't look like a pattern) plus two small
+   "fracture point" convergences echo the photographed reference.
+   ========================================================================== */
+.shell{
+  width:100%;
+  max-width:var(--max-w);
+  min-height:100vh;
+  min-height:100dvh;
+  background:var(--stone-base);
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  background-image:
+    /* warm gold pooling, top \u2014 sampled from the TKG logo's coal-ring halo */
+    radial-gradient(ellipse 110% 40% at 50% 0%, rgba(250,198,70,0.07), transparent 60%),
+    /* fracture-point convergences \u2014 small darker clusters where veins meet */
+    radial-gradient(ellipse 18% 10% at 78% 14%, rgba(120,108,92,0.16), transparent 70%),
+    radial-gradient(ellipse 14% 8% at 14% 62%, rgba(120,108,92,0.13), transparent 70%),
+    /* branching crack veins \u2014 varied angles so they read as organic, not a repeating pattern */
+    linear-gradient(124deg, transparent 11%, rgba(124,112,96,0.10) 11.4%, transparent 12%),
+    linear-gradient(124deg, transparent 11.6%, rgba(124,112,96,0.07) 12%, transparent 12.6%),
+    linear-gradient(82deg, transparent 31%, rgba(124,112,96,0.09) 31.4%, transparent 32%),
+    linear-gradient(96deg, transparent 47%, rgba(124,112,96,0.08) 47.3%, transparent 47.9%),
+    linear-gradient(151deg, transparent 58%, rgba(124,112,96,0.10) 58.4%, transparent 59%),
+    linear-gradient(67deg, transparent 69%, rgba(124,112,96,0.08) 69.4%, transparent 70%),
+    linear-gradient(140deg, transparent 84%, rgba(124,112,96,0.09) 84.4%, transparent 85%),
+    /* fine paper-like grain, very low opacity */
+    repeating-linear-gradient(0deg, rgba(28,24,21,0.01) 0px, rgba(28,24,21,0.01) 1px, transparent 1px, transparent 3px);
+  background-attachment:fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, local;
+}
+
+/* Ambient warmth — a soft gold-amber glow low in the shell, matched to
+   the TKG logo's halo color, evoking light pooling near a coal grill
+   against the white stone. Opacity-only animation (GPU-cheap), disabled
+   automatically under prefers-reduced-motion. */
+.shell::before{
+  content:'';
+  position:fixed;
+  left:50%;
+  bottom:-6%;
+  transform:translateX(-50%);
+  width:140%;
+  max-width:600px;
+  height:38%;
+  background:radial-gradient(ellipse at center, rgba(250,198,70,0.06), transparent 72%);
+  pointer-events:none;
+  z-index:0;
+  animation:ember-breathe 7s ease-in-out infinite;
+}
+@keyframes ember-breathe{
+  0%, 100%{opacity:0.5;}
+  50%{opacity:1;}
+}
+
+/* ==========================================================================
+   TOP BAR — wordmark + ember status dot (signature element)
+   ========================================================================== */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px 20px 14px;
+}
+.wordmark{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:22px;
+  letter-spacing:0.06em;
+  color:var(--ink);
+  display:flex;
+  align-items:baseline;
+  gap:7px;
+}
+.wordmark span.sub{
+  font-family:var(--font-body);
+  font-weight:500;
+  font-size:10px;
+  letter-spacing:0.18em;
+  color:var(--ink-soft);
+  text-transform:uppercase;
+}
+
+.status-pill{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:11px;
+  letter-spacing:0.04em;
+  color:var(--ink-soft);
+  padding:6px 10px;
+  border-radius:20px;
+  background:rgba(28,24,21,0.035);
+  border:1px solid var(--stone-line);
+}
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.lang-btn{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-size:11.5px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  color:var(--ember-deep);
+  padding:6px 11px;
+  border-radius:20px;
+  background:rgba(232,93,44,0.07);
+  border:1px solid rgba(232,93,44,0.28);
+  transition:background 0.15s ease, border-color 0.15s ease;
+}
+.lang-btn:active{background:rgba(232,93,44,0.14);}
+.lang-btn.attention{animation:lang-btn-attention 2.2s ease-in-out 1;}
+@keyframes lang-btn-attention{
+  0%, 100%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
+  25%{box-shadow:0 0 0 5px rgba(232,93,44,0.16);}
+  50%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
+  75%{box-shadow:0 0 0 5px rgba(232,93,44,0.1);}
+}
+
+.lang-sheet{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translate(-50%, 100%);
+  width:100%;
+  max-width:var(--max-w);
+  background:var(--stone-base);
+  border-radius:22px 22px 0 0;
+  padding:10px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  box-shadow:0 -10px 40px rgba(28,24,21,0.18);
+  transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index:160;
+}
+.lang-sheet.show{transform:translate(-50%, 0);}
+.lang-sheet-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:18px;
+  color:var(--ink);
+  text-align:center;
+  margin:6px 0 16px;
+}
+.lang-option{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--stone-card);
+  border:1.5px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  padding:15px 16px;
+  margin-bottom:10px;
+  color:var(--ink);
+  box-shadow:0 1px 2px rgba(28,24,21,0.06);
+}
+.lang-option-native{font-size:15px; font-weight:700;}
+.lang-option-check{opacity:0; color:var(--ember); font-weight:800; font-size:16px;}
+.lang-option.selected{border-color:var(--ember);}
+.lang-option.selected .lang-option-check{opacity:1;}
+.ember-dot{
+  width:8px; height:8px;
+  border-radius:50%;
+  background:var(--success);
+  box-shadow:0 0 0 0 rgba(92,138,92,0.6);
+  flex-shrink:0;
+}
+.status-pill[data-state="offline"] .ember-dot{
+  background:var(--ember);
+  animation:ember-pulse 1.6s ease-in-out infinite;
+}
+.status-pill[data-state="syncing"] .ember-dot{
+  background:var(--gold);
+  animation:ember-pulse 0.9s ease-in-out infinite;
+}
+@keyframes ember-pulse{
+  0%{box-shadow:0 0 0 0 rgba(232,93,44,0.55);}
+  70%{box-shadow:0 0 0 6px rgba(232,93,44,0);}
+  100%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
+}
+
+/* ==========================================================================
+   SCREENS
+   ========================================================================== */
+.screen{
+  flex:1;
+  display:none;
+  flex-direction:column;
+  padding:0 20px 28px;
+  animation:fade-in 0.35s ease;
+}
+.screen.active{display:flex;}
+#screen-dash{background:var(--charcoal);}
+@keyframes fade-in{
+  from{opacity:0; transform:translateY(6px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* ---- Customer Journey (Screen 1) — first interaction, offline-only.
+   Reuses .screen / showScreen() as-is. No new UI-switching mechanism. ---- */
+.journey-intro{
+  margin-top:32px;
+  margin-bottom:28px;
+  text-align:center;
+}
+.journey-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:22px;
+  color:var(--ink);
+  margin-bottom:8px;
+}
+.journey-subtitle{
+  font-size:14px;
+  color:var(--ink-soft);
+}
+.journey-options{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.journey-option{
+  width:100%;
+  text-align:left;
+  padding:18px 20px;
+  border-radius:var(--radius-lg);
+  border:1px solid var(--stone-line);
+  background:var(--stone-card);
+  font-size:16px;
+  font-weight:600;
+  color:var(--ink);
+  box-shadow:0 2px 8px -4px rgba(28,24,21,0.08);
+  transition:transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.journey-option:active{
+  transform:translateY(1px) scale(0.99);
+  border-color:var(--ember);
+  box-shadow:0 1px 4px -2px rgba(28,24,21,0.1);
+}
+
+/* Subtle, non-intrusive affordance to revisit the Customer Journey choice —
+   styled to match .owner-link exactly (same weight, same "quiet utility
+   link" treatment) so it never competes visually with primary content. */
+.change-journey-link{
+  text-align:center;
+  padding-top:8px;
+}
+.change-journey-link button{
+  background:none;
+  border:none;
+  color:var(--grey-warm);
+  font-size:12px;
+  letter-spacing:0.05em;
+  text-decoration:underline;
+  text-decoration-color:var(--grey-line);
+  padding:8px;
+}
+
+/* ---- Journey status bar — top of Menu page (Task 2) ---- */
+.journey-status-bar{
+  text-align:center;
+  padding:10px 0 4px;
+}
+.journey-status-label{
+  font-size:11px;
+  color:var(--ink-faint);
+  letter-spacing:0.03em;
+  margin-bottom:2px;
+}
+.journey-status-current{
+  font-size:14px;
+  font-weight:600;
+  color:var(--ink);
+  margin-bottom:2px;
+}
+.journey-status-bar #changeJourneyBtn{
+  background:none;
+  border:none;
+  color:var(--grey-warm);
+  font-size:12px;
+  letter-spacing:0.05em;
+  text-decoration:underline;
+  text-decoration-color:var(--grey-line);
+  padding:6px;
+}
+
+/* ---- Dynamic greeting — time-of-day + Journey aware (Task 3) ---- */
+.dynamic-greeting{
+  text-align:center;
+  padding:2px 0 10px;
+}
+.dg-greeting{
+  font-size:15px;
+  font-weight:700;
+  color:var(--ink);
+}
+.dg-sub{
+  font-size:12.5px;
+  color:var(--ink-soft);
+  margin-top:2px;
+  line-height:1.4;
+}
+
+/* ---- Registration screen ---- */
+.hero-block{
+  margin-top:6px;
+  margin-bottom:28px;
+}
+.hero-eyebrow{
+  font-size:11px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--gold);
+  font-weight:600;
+  margin-bottom:10px;
+}
+.hero-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:30px;
+  line-height:1.15;
+  letter-spacing:-0.01em;
+  color:var(--ink);
+}
+.hero-title em{
+  color:var(--ember);
+  font-style:normal;
+}
+.hero-sub{
+  margin-top:10px;
+  font-size:14px;
+  color:var(--ink-soft);
+  line-height:1.5;
+}
+
+.reg-card{
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  padding:24px 20px 22px;
+  box-shadow:
+    0 1px 2px rgba(28,24,21,0.06),
+    0 10px 28px -12px rgba(28,24,21,0.16);
+  border-top:3px solid var(--ember);
+}
+.field-group{margin-bottom:16px;}
+.field-label{
+  display:block;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.04em;
+  color:var(--ink);
+  margin-bottom:7px;
+  text-transform:uppercase;
+}
+.field-input{
+  width:100%;
+  padding:14px 14px;
+  border-radius:var(--radius-md);
+  border:1.5px solid #E2DDD3;
+  background:#FFFFFF;
+  color:var(--ink);
+  font-size:16px;
+  outline:none;
+  transition:border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.field-input::placeholder{color:#B7AFA3;}
+.field-input:focus{
+  border-color:var(--ember);
+  box-shadow:0 0 0 3px rgba(232,93,44,0.16);
+}
+.field-input.invalid{
+  border-color:var(--danger);
+}
+.field-error{
+  font-size:12px;
+  color:var(--danger);
+  margin-top:6px;
+  display:none;
+  font-weight:500;
+}
+.field-error.show{display:block;}
+
+textarea.field-input{
+  min-height:96px;
+  resize:vertical;
+  font-family:inherit;
+  line-height:1.5;
+}
+
+/* ==========================================================================
+   FEEDBACK OVERLAY — post check-in, optional, never blocks the menu
+   ========================================================================== */
+.thanks-block{
+  text-align:center;
+  padding:6px 0 18px;
+}
+.thanks-icon{font-size:34px; margin-bottom:8px;}
+.thanks-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:20px;
+  color:var(--ink);
+}
+.thanks-sub{
+  font-size:13px;
+  color:var(--ink-soft);
+  margin-top:6px;
+  line-height:1.5;
+}
+
+.action-card{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  background:#FFFFFF;
+  border:1.5px solid #E2DDD3;
+  border-radius:var(--radius-md);
+  padding:14px;
+  margin-bottom:10px;
+  text-decoration:none;
+  text-align:left;
+  font-family:inherit;
+  cursor:pointer;
+}
+.action-card .ac-icon{font-size:22px; flex-shrink:0;}
+.action-card .ac-text{flex:1; min-width:0;}
+.action-card .ac-title{
+  font-size:13.5px;
+  font-weight:700;
+  color:var(--ink);
+}
+.action-card .ac-sub{
+  font-size:11px;
+  color:var(--grey-warm);
+  margin-top:2px;
+  line-height:1.4;
+}
+.action-card .ac-go{
+  font-size:11px;
+  font-weight:700;
+  color:var(--ember);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+.btn-primary{
+  width:100%;
+  padding:16px;
+  border-radius:var(--radius-md);
+  border:none;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  color:var(--marble);
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
+  transition:transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-primary:active{transform:translateY(1px) scale(0.99); box-shadow:0 4px 10px -4px rgba(232,93,44,0.5);}
+.btn-primary:disabled{opacity:0.55; box-shadow:none;}
+
+.consent-line{
+  margin-top:14px;
+  font-size:11.5px;
+  color:var(--grey-warm);
+  text-align:center;
+  line-height:1.5;
+}
+
+.trust-row{
+  display:flex;
+  gap:10px;
+  margin-top:22px;
+}
+.trust-item{
+  flex:1;
+  text-align:center;
+  font-size:10.5px;
+  color:var(--grey-warm);
+  letter-spacing:0.03em;
+}
+.trust-item .ti-mark{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:13px;
+  color:var(--gold);
+  display:block;
+  margin-bottom:3px;
+}
+
+.owner-link{
+  margin-top:auto;
+  padding-top:24px;
+  text-align:center;
+}
+.owner-link button{
+  background:none;
+  border:none;
+  color:var(--grey-warm);
+  font-size:12px;
+  letter-spacing:0.05em;
+  text-decoration:underline;
+  text-decoration-color:var(--grey-line);
+  padding:8px;
+}
+
+/* ---- Welcome-back chip (returning customer) ---- */
+.welcome-chip{
+  display:none;
+  align-items:center;
+  gap:10px;
+  background:rgba(201,162,75,0.1);
+  border:1px solid rgba(201,162,75,0.35);
+  border-radius:var(--radius-md);
+  padding:11px 14px;
+  margin-bottom:16px;
+  font-size:13px;
+  color:var(--gold-deep);
+}
+.welcome-chip.show{display:flex;}
+.welcome-chip .wc-icon{font-size:16px;}
+
+/* ==========================================================================
+   REGISTRATION OVERLAY (bottom sheet, optional, never blocks the menu)
+   ========================================================================== */
+.overlay-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(28,24,21,0.45);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease;
+  z-index:150;
+}
+.overlay-backdrop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.reg-overlay{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translate(-50%, 100%);
+  width:100%;
+  max-width:var(--max-w);
+  max-height:88vh;
+  overflow-y:auto;
+  background:var(--stone-base);
+  border-radius:22px 22px 0 0;
+  padding:10px 20px 28px;
+  box-shadow:0 -10px 40px rgba(28,24,21,0.22);
+  transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index:160;
+  -webkit-overflow-scrolling:touch;
+}
+.reg-overlay.show{
+  transform:translate(-50%, 0);
+}
+.reg-overlay-handle{
+  width:40px;
+  height:4px;
+  border-radius:3px;
+  background:var(--grey-line);
+  margin:8px auto 16px;
+}
+
+.optional-tag{
+  font-weight:500;
+  text-transform:none;
+  letter-spacing:0;
+  color:var(--grey-warm);
+  font-size:11px;
+}
+
+.source-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.source-chip{
+  padding:9px 14px;
+  border-radius:20px;
+  border:1.5px solid #E2DDD3;
+  background:#FFFFFF;
+  color:var(--ink);
+  font-size:12.5px;
+  font-weight:600;
+}
+.source-chip.selected{
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
+}
+
+/* ==========================================================================
+   GENERIC CONTENT SHEET — reusable bottom sheet for any content-registry-
+   driven block (Reviews now; FAQ / Weekend Special / Featured Products /
+   Announcements later). Built on the existing .reg-overlay bottom-sheet
+   pattern — only the inner layout classes below are new.
+   ========================================================================== */
+.content-sheet{
+  max-height:82vh;
+  display:flex;
+  flex-direction:column;
+}
+.content-sheet-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:19px;
+  color:var(--ink);
+  margin-bottom:14px;
+}
+.content-sheet-body{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.cs-empty-state{
+  padding:30px 10px;
+  text-align:center;
+  font-size:13.5px;
+  color:var(--ink-soft);
+}
+.cs-review-card{
+  background:var(--stone-card-alt);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  padding:13px 14px;
+  margin-bottom:10px;
+}
+.cs-review-top{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:7px;
+}
+.cs-review-avatar{
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
+  color:var(--marble);
+  font-size:11px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.cs-review-author{
+  flex:1;
+  min-width:0;
+  font-size:12.5px;
+  font-weight:700;
+  color:var(--ink);
+}
+.cs-review-stars{
+  font-size:10.5px;
+  color:var(--gold-deep);
+  letter-spacing:1px;
+  flex-shrink:0;
+}
+.cs-review-quote{
+  font-size:13.5px;
+  line-height:1.5;
+  color:var(--ink);
+}
+
+.content-sheet-footer{
+  margin-top:6px;
+  padding-top:14px;
+  border-top:1px solid var(--stone-line);
+  text-align:center;
+}
+.content-sheet-footer.hidden{display:none;}
+.cs-footer-stars{
+  font-size:16px;
+  color:var(--gold-deep);
+  letter-spacing:2px;
+  margin-bottom:6px;
+}
+.cs-footer-heading{
+  font-size:14px;
+  font-weight:700;
+  color:var(--ink);
+  margin-bottom:12px;
+}
+.cs-footer-btn{
+  display:inline-block;
+  width:100%;
+  text-align:center;
+  text-decoration:none;
+  padding:14px;
+  border-radius:var(--radius-md);
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  color:var(--marble);
+  font-size:14.5px;
+  font-weight:700;
+  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
+}
+
+/* ==========================================================================
+   APP HERO — short, scan-in-seconds, replaces the old stacked-cards hero
+   ========================================================================== */
+.app-hero{
+  padding-top:2px;
+  margin-bottom:14px;
+}
+.app-hero-meta{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:8px;
+}
+.app-hero-hours{
+  font-size:11.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--grey-warm);
+  font-weight:600;
+}
+.directions-link{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--ember-deep);
+  text-decoration:underline;
+  text-decoration-color:rgba(184,67,29,0.4);
+  text-underline-offset:2px;
+  padding:3px 9px 3px 7px;
+  border-radius:20px;
+  background:rgba(232,93,44,0.08);
+  border:1px solid rgba(232,93,44,0.25);
+}
+.directions-link .dl-icon{width:12px; height:12px; flex-shrink:0;}
+.directions-link:active{background:rgba(232,93,44,0.16);}
+.directions-link.attention{animation:directions-bounce 1.8s ease-in-out 1;}
+@keyframes directions-bounce{
+  0%, 100%{transform:translateY(0);}
+  20%{transform:translateY(-3px);}
+  35%{transform:translateY(0);}
+  50%{transform:translateY(-2px);}
+  65%{transform:translateY(0);}
+}
+.app-hero-headline{
+  font-family:var(--font-display);
+  font-weight:800;
+  line-height:1.04;
+  letter-spacing:-0.01em;
+}
+.app-hero-headline .line-coal{
+  display:block;
+  font-size:21px;
+  color:var(--ink-soft);
+}
+.app-hero-headline .line-gravy{
+  display:block;
+  font-size:42px;
+  color:var(--ember-deep);
+  margin:2px 0;
+}
+.app-hero-headline .line-khichiya{
+  display:block;
+  font-size:17px;
+  font-weight:600;
+  color:var(--ink-soft);
+}
+.app-hero-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.info-btn{
+  flex-shrink:0;
+  width:32px; height:32px;
+  border-radius:50%;
+  background:rgba(28,24,21,0.035);
+  border:1px solid var(--stone-line);
+  color:var(--ink-soft);
+  font-size:14px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:2px;
+}
+.info-btn:active{background:rgba(28,24,21,0.07);}
+
+/* Story strip — compact 3-step visual explainer directly beneath the
+   headline. Carries the "Gravy is the Hero" punch as its lead-in label
+   instead of repeating it as a separate line, so the hero reads in two
+   beats (headline, then story) instead of three. */
+.hero-story-label{
+  font-size:11px;
+  font-weight:700;
+  color:var(--gold-deep);
+  margin-top:10px;
+  margin-bottom:6px;
+  letter-spacing:0.01em;
+}
+.hero-story-strip{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:10px 12px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  overflow-x:auto;
+  scrollbar-width:none;
+  box-shadow:0 1px 2px rgba(28,24,21,0.05);
+}
+.hero-story-strip::-webkit-scrollbar{display:none;}
+.hero-story-strip .story-step{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  color:var(--ink-soft);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.hero-story-strip .story-step .step-icon{font-size:13px; line-height:1;}
+.hero-story-strip .story-arrow{
+  color:var(--stone-vein);
+  font-size:11px;
+  flex-shrink:0;
+}
+
+/* ==========================================================================
+   REVIEW HERO CARD — Instagram-Stories-style single review, auto-rotating.
+   Highest trust-building element on the menu screen. Data-driven from
+   contentRegistry.featuredReviews via renderContent() — see script section.
+   Uses only existing design tokens so it matches the rest of the shell.
+   ========================================================================== */
+.review-hero{
+  margin-bottom:16px;
+  cursor:pointer;
+}
+.review-hero-bars{
+  display:flex;
+  gap:4px;
+  margin-bottom:8px;
+}
+.review-hero-bars .rh-bar{
+  flex:1;
+  height:2.5px;
+  border-radius:2px;
+  background:rgba(28,24,21,0.12);
+  overflow:hidden;
+}
+.review-hero-bars .rh-bar-fill{
+  display:block;
+  height:100%;
+  width:0%;
+  background:var(--ember);
+  border-radius:2px;
+}
+.review-hero-bars .rh-bar.done .rh-bar-fill{width:100%; transition:none;}
+.review-hero-bars .rh-bar.active .rh-bar-fill{width:100%; transition:width 5.5s linear;}
+
+.review-hero-card{
+  background:var(--stone-card);
+  border:1.5px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  padding:16px 18px 14px;
+  box-shadow:0 10px 26px -14px rgba(28,24,21,0.28);
+  transition:opacity 0.25s ease;
+}
+.review-hero-card.rh-fade{opacity:0;}
+
+.review-hero-top{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-bottom:10px;
+}
+.review-hero-avatar{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
+  color:var(--marble);
+  font-size:12px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.review-hero-author{
+  flex:1;
+  min-width:0;
+  font-size:13px;
+  font-weight:700;
+  color:var(--ink);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.review-hero-stars{
+  font-size:11px;
+  color:var(--gold-deep);
+  letter-spacing:1px;
+  flex-shrink:0;
+}
+.review-hero-quote{
+  font-size:14.5px;
+  line-height:1.5;
+  color:var(--ink);
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.review-hero-tap-hint{
+  margin-top:10px;
+  font-size:11px;
+  font-weight:700;
+  color:var(--ember-deep);
+}
+
+/* ==========================================================================
+   EXPANDABLE EXPLAINER — "What is TKG Signature Gravy?"
+   Collapsed by default; expands in place (no overlay) so first-time
+   visitors can satisfy curiosity without leaving the menu screen.
+   Reuses the same menu.edu* / menu.hookPunch translation keys as the
+   info sheet, so there is one source of truth for the copy.
+   ========================================================================== */
+.explainer{
+  margin-bottom:16px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  box-shadow:0 1px 2px rgba(28,24,21,0.04);
+  overflow:hidden;
+}
+.explainer-toggle{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:13px 14px;
+  background:none;
+  border:none;
+  text-align:left;
+  font-size:13.5px;
+  font-weight:700;
+  color:var(--ink);
+}
+.explainer-toggle .et-icon{font-size:16px; flex-shrink:0;}
+.explainer-toggle .et-label{flex:1; min-width:0;}
+.explainer-toggle .et-chevron{
+  flex-shrink:0;
+  color:var(--ink-soft);
+  font-size:12px;
+  transition:transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.explainer.open .explainer-toggle .et-chevron{transform:rotate(180deg);}
+.explainer-body{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.explainer.open .explainer-body{max-height:340px;}
+.explainer-body-inner{
+  padding:0 14px 16px;
+}
+.explainer-body-inner .info-sheet-line{font-size:12.5px;}
+.explainer-body-inner .info-sheet-punch{margin-top:10px;}
+
+/* ==========================================================================
+   CATEGORY TABS — real switching, Signature default, no page reload
+   ========================================================================== */
+.menu-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+}
+.menu-tab{
+  flex:1;
+  padding:11px 10px;
+  border-radius:var(--radius-md);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  color:var(--ink-soft);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.01em;
+  text-align:center;
+  box-shadow:0 1px 2px rgba(28,24,21,0.04);
+  transition:background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+}
+.menu-tab.active{
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
+  box-shadow:0 4px 12px -4px rgba(232,93,44,0.4);
+}
+.menu-tab:active{transform:scale(0.97);}
+
+/* ==========================================================================
+   MENU SECTIONS — gentle slide+fade on category switch
+   ========================================================================== */
+.menu-section{display:none;}
+.menu-section.active{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  animation:menu-fade 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes menu-fade{
+  from{opacity:0; transform:translateY(5px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+.menu-section-label{
+  font-size:11.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--gold);
+  margin:6px 0 2px;
+}
+
+.jain-tag{
+  font-size:9.5px;
+  letter-spacing:0.04em;
+  text-transform:none;
+  font-weight:700;
+  color:var(--success);
+  background:rgba(92,138,92,0.12);
+  padding:2px 8px;
+  border-radius:10px;
+}
+
+.footer-meta{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid var(--stone-line);
+}
+.hours-note{
+  font-size:12px;
+  color:var(--ink-soft);
+}
+.phone-note{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  margin-top:8px;
+  font-size:12.5px;
+  font-weight:700;
+  color:var(--ink);
+  text-decoration:none;
+}
+.phone-note .pn-icon{width:13px; height:13px; color:var(--ember-deep); flex-shrink:0;}
+.phone-note:active{color:var(--ember-deep);}
+
+/* ==========================================================================
+   INFO SHEET — education content, tucked behind the info button
+   ========================================================================== */
+.info-sheet-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:19px;
+  color:var(--ink);
+  margin-bottom:12px;
+}
+.info-sheet-line{
+  font-size:13px;
+  color:var(--ink-soft);
+  line-height:1.6;
+  margin-bottom:10px;
+}
+.info-sheet-line:last-of-type{margin-bottom:0;}
+.info-sheet-punch{
+  margin-top:14px;
+  padding:12px 14px;
+  background:rgba(232,93,44,0.07);
+  border:1px solid rgba(232,93,44,0.22);
+  border-radius:var(--radius-md);
+  font-size:13px;
+  font-weight:700;
+  color:var(--ember-deep);
+  text-align:center;
+}
+.info-sheet-jain{
+  display:inline-block;
+  margin-top:14px;
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--success);
+  background:rgba(92,138,92,0.12);
+  padding:4px 11px;
+  border-radius:10px;
+}
+
+/* ==========================================================================
+   EXTRAS — compact chip row, replaces flour-note + notes-grid paragraphs
+   ========================================================================== */
+.extras-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:16px;
+}
+.extra-chip{
+  font-size:11px;
+  font-weight:600;
+  color:var(--ink-soft);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  padding:6px 12px;
+  border-radius:14px;
+}
+.extra-chip.jain{
+  color:var(--success);
+  border-color:rgba(76,122,76,0.3);
+  background:rgba(76,122,76,0.07);
+}
+.extra-chip .extra-chip-price{
+  font-family:var(--font-mono);
+  font-weight:700;
+  margin-left:4px;
+  color:var(--gold-deep);
+}
+
+.link-row{
+  display:flex;
+  gap:8px;
+  margin-top:16px;
+}
+.link-chip{
+  flex:1;
+  text-align:center;
+  padding:12px 10px;
+  border-radius:var(--radius-md);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  color:var(--ink);
+  font-size:12.5px;
+  font-weight:600;
+  text-decoration:none;
+  box-shadow:0 1px 2px rgba(28,24,21,0.05);
+  transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.link-chip:active{
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
+}
+
+.register-cta{
+  margin-top:22px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  padding:18px 18px 16px;
+  border-top:3px solid var(--gold);
+  box-shadow:
+    0 1px 2px rgba(28,24,21,0.05),
+    0 6px 16px -8px rgba(28,24,21,0.12);
+}
+.register-cta-text{margin-bottom:12px;}
+.register-cta-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:16px;
+  color:var(--ink);
+}
+.register-cta-sub{
+  font-size:12px;
+  color:var(--ink-soft);
+  margin-top:3px;
+}
+
+/* Sprint 2.0 — Taste Discovery Engine. New, additive only: reuses
+   .register-cta family for the reminder chip (see markup) and adds one
+   small new block for the in-overlay recommendation result. No existing
+   CSS above this point was modified. */
+.taste-result-card{
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  padding:16px 16px 14px;
+  border-top:3px solid var(--gold);
+  margin-bottom:6px;
+}
+.taste-result-name{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:17px;
+  color:var(--ink);
+  margin-bottom:4px;
+}
+.taste-result-desc{
+  font-size:13px;
+  color:var(--ink-soft);
+  margin-bottom:8px;
+}
+.taste-result-price{
+  font-size:14px;
+  font-weight:700;
+  color:var(--ink);
+}
+
+/* ==========================================================================
+   PREMIUM MENU CARDS — rounded, soft shadow, name+price scannable at a glance
+   ========================================================================== */
+.menu-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  padding:16px;
+  box-shadow:
+    0 1px 2px rgba(28,24,21,0.06),
+    0 8px 20px -10px rgba(28,24,21,0.14);
+  transition:transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease;
+}
+.menu-item:active{
+  transform:scale(0.985);
+  box-shadow:
+    0 1px 2px rgba(28,24,21,0.05),
+    0 4px 10px -6px rgba(28,24,21,0.12);
+}
+.menu-item-thumb{
+  width:56px;
+  height:56px;
+  flex-shrink:0;
+  border-radius:var(--radius-sm);
+  background:var(--stone-base);
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.menu-item-thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.menu-item-info{flex:1; min-width:0;}
+.menu-item-top{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.menu-item-name{
+  font-size:15.5px;
+  font-weight:800;
+  color:var(--ink);
+  letter-spacing:-0.01em;
+}
+.menu-item-desc{
+  font-size:11.5px;
+  color:#8A8278;
+  line-height:1.35;
+  margin-top:3px;
+}
+.menu-item-tag{
+  display:inline-block;
+  font-size:9px;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--ember-deep);
+  background:rgba(232,93,44,0.1);
+  padding:2px 7px;
+  border-radius:4px;
+}
+.menu-item-price{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:14px;
+  color:var(--ember-deep);
+  white-space:nowrap;
+  text-align:right;
+  flex-shrink:0;
+}
+.menu-item-price .price-large{
+  display:block;
+  font-size:11px;
+  color:var(--grey-warm);
+  font-weight:600;
+  margin-top:1px;
+}
+
+.menu-footer{
+  margin-top:24px;
+  text-align:center;
+}
+.btn-secondary{
+  background:none;
+  border:1.5px solid var(--grey-line);
+  color:var(--grey-warm);
+  padding:12px 22px;
+  border-radius:var(--radius-md);
+  font-size:13px;
+  font-weight:600;
+}
+
+/* ==========================================================================
+   OWNER DASHBOARD
+   ========================================================================== */
+.dash-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+}
+.dash-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:22px;
+  color:var(--marble);
+}
+.dash-close{
+  background:none;
+  border:1px solid var(--grey-line);
+  color:var(--grey-warm);
+  width:34px; height:34px;
+  border-radius:50%;
+  font-size:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.pin-gate{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  justify-content:center;
+  gap:16px;
+}
+.pin-gate p{
+  text-align:center;
+  color:var(--grey-warm);
+  font-size:13px;
+}
+.pin-input{
+  width:100%;
+  padding:16px;
+  border-radius:var(--radius-md);
+  border:1.5px solid var(--grey-line);
+  background:var(--ember-card);
+  color:var(--marble);
+  font-size:20px;
+  letter-spacing:0.3em;
+  text-align:center;
+  outline:none;
+}
+.pin-input:focus{border-color:var(--ember);}
+
+.stat-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:18px;
+}
+.stat-card{
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  border-radius:var(--radius-md);
+  padding:16px 14px;
+}
+.stat-card.full{grid-column:1 / -1; display:flex; justify-content:space-between; align-items:center;}
+.stat-num{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:26px;
+  color:var(--gold-bright);
+  line-height:1;
+}
+.stat-label{
+  font-size:11px;
+  color:var(--grey-warm);
+  margin-top:6px;
+  letter-spacing:0.03em;
+}
+.stat-card.full .stat-num{font-size:20px; color:var(--ember-bright);}
+
+.dash-actions{
+  display:flex;
+  gap:10px;
+  margin-bottom:18px;
+}
+.dash-actions .btn-secondary{flex:1; padding:11px;}
+
+.search-box{
+  width:100%;
+  padding:12px 14px;
+  border-radius:var(--radius-md);
+  border:1.5px solid var(--grey-line);
+  background:var(--ember-card);
+  color:var(--marble);
+  font-size:14px;
+  margin-bottom:12px;
+  outline:none;
+}
+.search-box:focus{border-color:var(--ember);}
+.search-box::placeholder{color:var(--grey-warm);}
+
+.cust-list{
+  flex:1;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  -webkit-overflow-scrolling:touch;
+}
+.cust-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  border-radius:var(--radius-sm);
+  padding:12px 13px;
+}
+.cust-info .cust-name{font-size:13.5px; font-weight:700; color:var(--marble);}
+.cust-info .cust-mobile{font-size:11.5px; color:var(--grey-warm); font-family:var(--font-mono); margin-top:2px;}
+.cust-info .cust-tags{font-size:10.5px; color:var(--gold); margin-top:3px;}
+.cust-meta{text-align:right;}
+.cust-meta .cust-visits{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--gold-bright);
+  font-weight:700;
+}
+.cust-meta .cust-last{font-size:10px; color:var(--grey-warm); margin-top:2px;}
+.cust-meta .pending-tag{
+  font-size:9px;
+  color:var(--ember-bright);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  margin-top:3px;
+}
+
+.empty-state{
+  text-align:center;
+  padding:40px 10px;
+  color:var(--grey-warm);
+  font-size:13px;
+}
+
+/* ==========================================================================
+   TOAST
+   ========================================================================== */
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--marble);
+  color:var(--charcoal);
+  padding:13px 20px;
+  border-radius:var(--radius-md);
+  font-size:13px;
+  font-weight:600;
+  box-shadow:0 12px 30px -8px rgba(28,24,21,0.35), 0 2px 8px rgba(28,24,21,0.12);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+  z-index:200;
+  max-width:90%;
+  text-align:center;
+  border-left:4px solid var(--ember);
+}
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* ==========================================================================
+   INSTALL PROMPT — bottom banner, dismissible, platform-aware
+   ========================================================================== */
+.install-banner{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translate(-50%, 110%);
+  width:100%;
+  max-width:var(--max-w);
+  background:var(--stone-card);
+  border-top:1px solid var(--stone-line);
+  border-radius:18px 18px 0 0;
+  padding:16px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-shadow:0 -8px 30px rgba(28,24,21,0.18);
+  transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index:140;
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
+.install-banner.show{
+  transform:translate(-50%, 0);
+}
+.install-icon{
+  width:42px; height:42px;
+  border-radius:11px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  background:var(--stone-base);
+  border:1px solid var(--stone-line);
+}
+.install-text{flex:1; min-width:0;}
+.install-title{
+  font-size:13.5px;
+  font-weight:700;
+  color:var(--ink);
+}
+.install-sub{
+  font-size:11.5px;
+  color:var(--ink-soft);
+  margin-top:2px;
+  line-height:1.4;
+}
+.install-actions{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex-shrink:0;
+}
+.install-btn{
+  padding:9px 14px;
+  border-radius:var(--radius-sm);
+  border:none;
+  background:var(--ember);
+  color:var(--marble);
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
+}
+.install-dismiss{
+  background:none;
+  border:none;
+  color:var(--ink-soft);
+  font-size:11px;
+  padding:4px 6px;
+}
+
+/* Utility */
+.hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="shell" id="shell">
+
+  <!-- ============ TOP BAR ============ -->
+  <div class="topbar">
+    <div class="wordmark">TKG <span class="sub">The Khichiya Gravy</span></div>
+    <div class="topbar-right">
+      <button type="button" class="lang-btn" id="langBtn" aria-label="Change language">🌐 <span id="langBtnLabel">EN</span></button>
+      <div class="status-pill" id="statusPill" data-state="online">
+        <span class="ember-dot" id="emberDot"></span>
+        <span id="statusText">Online</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LANGUAGE SELECTOR SHEET ============ -->
+  <div class="overlay-backdrop" id="langBackdrop"></div>
+  <div class="lang-sheet" id="langSheet">
+    <div class="reg-overlay-handle"></div>
+    <div class="lang-sheet-title" id="langSheetTitle">Choose Language</div>
+    <button type="button" class="lang-option" data-lang="en">
+      <span class="lang-option-native">English</span>
+      <span class="lang-option-check">✓</span>
+    </button>
+    <button type="button" class="lang-option" data-lang="gu">
+      <span class="lang-option-native">ગુજરાતી</span>
+      <span class="lang-option-check">✓</span>
+    </button>
+    <button type="button" class="lang-option" data-lang="hi">
+      <span class="lang-option-native">हिन्दी</span>
+      <span class="lang-option-check">✓</span>
+    </button>
+  </div>
+
+  <!-- ============ REGISTRATION OVERLAY (optional, reachable from menu) ============ -->
+  <div class="overlay-backdrop" id="overlayBackdrop"></div>
+  <div class="reg-overlay" id="regOverlay">
+
+    <div class="reg-overlay-handle"></div>
+
+    <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
+      <div class="hero-eyebrow" data-i18n="reg.eyebrow">Stay in the loop</div>
+      <h1 class="hero-title" style="font-size:24px;" data-i18n-html="reg.title">Register &amp; Get <em>Updates.</em></h1>
+      <p class="hero-sub" data-i18n="reg.sub">Takes 10 seconds. We'll remember you next time you visit.</p>
+    </div>
+
+    <div class="welcome-chip" id="welcomeChip">
+      <span class="wc-icon">🔥</span>
+      <span id="welcomeChipText" data-i18n="reg.welcomeBack">Welcome back!</span>
+    </div>
+
+    <form class="reg-card" id="regForm" novalidate>
+      <div class="field-group">
+        <label class="field-label" for="nameInput" data-i18n="reg.nameLabel">Your Name</label>
+        <input class="field-input" id="nameInput" type="text" placeholder="e.g. Rohan Patel" autocomplete="name" maxlength="60" data-i18n-placeholder="reg.namePlaceholder">
+        <div class="field-error" id="nameError" data-i18n="reg.nameError">Please enter your name</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="mobileInput" data-i18n="reg.mobileLabel">Mobile Number</label>
+        <input class="field-input" id="mobileInput" type="tel" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" maxlength="10" data-i18n-placeholder="reg.mobilePlaceholder">
+        <div class="field-error" id="mobileError" data-i18n="reg.mobileError">Please enter a valid 10-digit number</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" data-i18n-html="reg.favoriteLabel">Favorite Item <span class="optional-tag">Optional</span></label>
+        <select class="field-input" id="favoriteItemInput">
+          <option value="" data-i18n="reg.selectItem">Select an item…</option>
+          <option value="Classic Khichiya" data-i18n="menu.classicKhichiya.name">Classic Khichiya</option>
+          <option value="Masala Khichiya" data-i18n="menu.masalaKhichiya.name">Masala Khichiya</option>
+          <option value="Cheese Masala Khichiya" data-i18n="menu.cheeseMasalaKhichiya.name">Cheese Masala Khichiya</option>
+          <option value="Signature Gravy Khichiya" data-i18n="menu.signatureGravy.name">Signature Gravy Khichiya</option>
+          <option value="Cheesy Signature Gravy Khichiya" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Gravy Khichiya</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" data-i18n-html="reg.sourceLabel">How did you hear about us? <span class="optional-tag">Optional</span></label>
+        <div class="source-chips" id="sourceChips">
+          <button type="button" class="source-chip" data-source="Instagram" data-i18n="source.instagram">Instagram</button>
+          <button type="button" class="source-chip" data-source="Google" data-i18n="source.google">Google</button>
+          <button type="button" class="source-chip" data-source="Friend" data-i18n="source.friend">Friend</button>
+          <button type="button" class="source-chip" data-source="Family" data-i18n="source.family">Family</button>
+          <button type="button" class="source-chip" data-source="Walk-In" data-i18n="source.walkin">Walk-In</button>
+          <button type="button" class="source-chip" data-source="Other" data-i18n="source.other">Other</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submitBtn" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</button>
+      <button type="button" class="btn-secondary" id="closeRegisterBtn" style="width:100%; margin-top:10px;" data-i18n="reg.notNow">Not Now</button>
+
+      <p class="consent-line" data-i18n="reg.consent">No login. No OTP. No email. Just your name and number, saved securely.</p>
+    </form>
+
+  </div>
+
+  <!-- ============ FEEDBACK OVERLAY — shown right after check-in, optional ============ -->
+  <div class="overlay-backdrop" id="feedbackBackdrop"></div>
+  <div class="reg-overlay" id="feedbackOverlay">
+
+    <div class="reg-overlay-handle"></div>
+
+    <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
+      <h1 class="hero-title" style="font-size:22px;" data-i18n="feedback.title">❤️ How was your TKG experience?</h1>
+    </div>
+
+    <form class="reg-card" id="feedbackForm" novalidate>
+      <div class="field-group">
+        <label class="field-label" for="feedbackInput" data-i18n-html="feedback.label">Tell us anything <span class="optional-tag">Optional</span></label>
+        <textarea class="field-input" id="feedbackInput" maxlength="500" placeholder="Loved the smoky flavour&#10;Amazing cheese gravy&#10;Best Jain option I've tried&#10;Crispy Khichiya&#10;Great service" data-i18n-placeholder="feedback.placeholder"></textarea>
+      </div>
+
+      <button type="submit" class="btn-primary" id="feedbackSubmitBtn" data-i18n="feedback.submitBtn">Submit Feedback</button>
+      <button type="button" class="btn-secondary" id="skipFeedbackBtn" style="width:100%; margin-top:10px;" data-i18n="feedback.skipBtn">Skip</button>
+    </form>
+
+  </div>
+
+  <!-- ============ THANK YOU + OPTIONAL ACTIONS OVERLAY ============ -->
+  <div class="overlay-backdrop" id="thanksBackdrop"></div>
+  <div class="reg-overlay" id="thanksOverlay">
+
+    <div class="reg-overlay-handle"></div>
+
+    <div class="thanks-block">
+      <div class="thanks-icon">❤️</div>
+      <div class="thanks-title" data-i18n="thanks.title">Thank you for visiting TKG</div>
+      <p class="thanks-sub" data-i18n="thanks.sub">Your feedback helps us improve every weekend.</p>
+    </div>
+
+    <button type="button" class="action-card hidden" id="copyReviewCard">
+      <span class="ac-icon">📋</span>
+      <span class="ac-text">
+        <span class="ac-title" id="copyReviewTitle" data-i18n="thanks.copyTitle">Copy My Review</span>
+        <span class="ac-sub" data-i18n="thanks.copySub">Paste it into Google, Instagram, or anywhere below.</span>
+      </span>
+      <span class="ac-go" data-i18n="thanks.copyAction">Copy</span>
+    </button>
+
+    <a class="action-card" id="thanksReviewLink" target="_blank" rel="noopener">
+      <span class="ac-icon">⭐</span>
+      <span class="ac-text">
+        <span class="ac-title" data-i18n="thanks.reviewTitle">Leave a Google Review</span>
+        <span class="ac-sub" data-i18n="thanks.reviewSub">Support our small business.</span>
+      </span>
+      <span class="ac-go" data-i18n="thanks.open">Open →</span>
+    </a>
+
+    <a class="action-card" id="thanksInstaLink" target="_blank" rel="noopener">
+      <span class="ac-icon">📸</span>
+      <span class="ac-text">
+        <span class="ac-title" data-i18n="thanks.instaTitle">Open Instagram</span>
+        <span class="ac-sub" data-i18n="thanks.instaSub">@the.khichiyagravy — tag us in your food photos, we'd love to feature you.</span>
+      </span>
+      <span class="ac-go" data-i18n="thanks.open">Open →</span>
+    </a>
+
+    <a class="action-card" id="thanksWhatsappLink" href="https://wa.me/919510100950" target="_blank" rel="noopener">
+      <span class="ac-icon">💬</span>
+      <span class="ac-text">
+        <span class="ac-title" data-i18n="thanks.waTitle">Message TKG</span>
+        <span class="ac-sub" data-i18n="thanks.waSub">Suggestions, photos, or direct feedback.</span>
+      </span>
+      <span class="ac-go" data-i18n="thanks.open">Open →</span>
+    </a>
+
+    <button type="button" class="btn-secondary" id="closeThanksBtn" style="width:100%; margin-top:6px;" data-i18n="thanks.closeBtn">Close</button>
+
+  </div>
+
+  <!-- ============ TASTE DISCOVERY OVERLAY — Sprint 2.0 ============
+       Anonymous, tap-only, 2-question quiz + in-flow recommendation.
+       Reuses the overlay-backdrop / reg-overlay / reg-card / journey-option
+       / btn-secondary pattern exactly as Registration and Feedback do —
+       per Product Owner decision, this must feel like those, not like
+       browsing content (no openContentSheet()). Opened either by the
+       automatic 30s-on-Menu timer or by tapping the reminder chip on the
+       Planning/Exploring journeys — same overlay, same flow either way.
+       Anonymous by design: no mobile, no name, no link to tkg_customers. ==== -->
+  <div class="overlay-backdrop" id="tasteDiscoveryBackdrop"></div>
+  <div class="reg-overlay" id="tasteDiscoveryOverlay">
+
+    <div class="reg-overlay-handle"></div>
+
+    <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
+      <h1 class="hero-title" style="font-size:22px;" data-i18n="taste.title">🍽️ Not sure what to order?</h1>
+      <p class="hero-sub" data-i18n="taste.sub">2 quick taps and we'll pick for you.</p>
+    </div>
+
+    <!-- Step 1 of 2: gravy vs dry -->
+    <div class="reg-card" id="tasteStepStyle">
+      <p class="field-label" data-i18n="taste.q1">Gravy to dip, or crispy &amp; dry?</p>
+      <div class="journey-options">
+        <button type="button" class="journey-option" data-taste-style="gravy" data-i18n="taste.q1Gravy">🥣 Gravy to dip</button>
+        <button type="button" class="journey-option" data-taste-style="dry" data-i18n="taste.q1Dry">🥨 Crispy &amp; dry</button>
+      </div>
+      <button type="button" class="btn-secondary" id="tasteSkipBtn1" style="width:100%; margin-top:14px;" data-i18n="taste.skipBtn">Skip</button>
+    </div>
+
+    <!-- Step 2 of 2: cheese preference -->
+    <div class="reg-card hidden" id="tasteStepCheese">
+      <p class="field-label" data-i18n="taste.q2">Love extra cheese?</p>
+      <div class="journey-options">
+        <button type="button" class="journey-option" data-taste-cheese="yes" data-i18n="taste.q2Yes">🧀 Yes please</button>
+        <button type="button" class="journey-option" data-taste-cheese="no" data-i18n="taste.q2No">🚫 Keep it classic</button>
+      </div>
+      <button type="button" class="btn-secondary" id="tasteSkipBtn2" style="width:100%; margin-top:14px;" data-i18n="taste.skipBtn">Skip</button>
+    </div>
+
+    <!-- Result — appears inside the same overlay flow, no separate screen -->
+    <div class="reg-card hidden" id="tasteStepResult">
+      <p class="field-label" data-i18n="taste.resultIntro">Here's your pick 👇</p>
+      <div class="taste-result-card">
+        <div class="taste-result-name" id="tasteResultName"></div>
+        <div class="taste-result-desc" id="tasteResultDesc"></div>
+        <div class="taste-result-price" id="tasteResultPrice"></div>
+      </div>
+      <button type="button" class="btn-primary" id="tasteDoneBtn" style="width:100%; margin-top:14px;" data-i18n="taste.doneBtn">Got it, thanks!</button>
+    </div>
+
+    <!-- Taste Registration prompt — shown after the recommendation instead
+         of closing immediately. Reuses the existing customer registration
+         overlay/flow entirely (see openRegisterOverlay); this card itself
+         is just a simple, non-blocking inline step within the same
+         overlay — no backend changes, no new storage. -->
+    <div class="reg-card hidden" id="tasteStepSavePrompt">
+      <p class="field-label" data-i18n="taste.savePromptTitle">❤️ We'd love to remember your taste.</p>
+      <p class="hero-sub" style="margin-bottom:0;" data-i18n="taste.savePromptSub">Would you like us to save your taste profile?</p>
+      <button type="button" class="btn-primary" id="tasteSaveMyTasteBtn" style="width:100%; margin-top:14px;" data-i18n="taste.savePromptSaveBtn">Save My Taste</button>
+      <button type="button" class="btn-secondary" id="tasteMaybeLaterBtn" style="width:100%; margin-top:10px;" data-i18n="taste.savePromptLaterBtn">Maybe Later</button>
+    </div>
+
+  </div>
+
+  <!-- ============ GENERIC CONTENT SHEET ============
+       Reusable bottom sheet for any content-registry-driven block.
+       Used by Review Hero Card (Phase A). Later phases (FAQ, Weekend
+       Special, Featured Products, Announcements) reuse this exact
+       markup/CSS/JS — only the data passed to openContentSheet() changes.
+       ============================================================== -->
+  <div class="overlay-backdrop" id="contentSheetBackdrop"></div>
+  <div class="reg-overlay content-sheet" id="contentSheet">
+    <div class="reg-overlay-handle"></div>
+    <div class="content-sheet-title" id="contentSheetTitle"></div>
+    <div class="content-sheet-body" id="contentSheetBody"></div>
+    <div class="content-sheet-footer hidden" id="contentSheetFooter"></div>
+    <button type="button" class="btn-secondary" id="closeContentSheetBtn" style="width:100%; margin-top:14px;" data-i18n="thanks.closeBtn">Close</button>
+  </div>
+
+  <!-- ============ SCREEN 1: CUSTOMER JOURNEY — permanent core feature,
+       independent of any campaign. Always the first interaction on a
+       fresh device. Choice is stored locally (tkg_journey — separate key
+       from tkg_customers) and remembered, so returning devices skip
+       straight to Screen 2 filtered to their path. Offline only: no
+       Apps Script, no backend, no Google Sheet involved. ============ -->
+  <section class="screen active" id="screen-journey">
+    <div class="journey-intro">
+      <div class="journey-title" data-i18n="journey.title">👋 Welcome to TKG</div>
+      <div class="journey-subtitle" data-i18n="journey.subtitle">How can we help you today?</div>
+    </div>
+    <div class="journey-options">
+      <button type="button" class="journey-option" data-choice="atTKG" data-i18n="journey.atTKG">🟢 I'm at TKG</button>
+      <button type="button" class="journey-option" data-choice="planning" data-i18n="journey.planning">🟡 Planning my visit</button>
+      <button type="button" class="journey-option" data-choice="exploring" data-i18n="journey.exploring">⚪ Just exploring</button>
+    </div>
+  </section>
+
+  <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
+  <section class="screen" id="screen-menu">
+
+    <!-- ============ JOURNEY STATUS BAR — moved here from the bottom of
+         the Menu page. Reuses the existing Journey selector/state (no new
+         Journey logic, no new storage) — #changeJourneyBtn is the same
+         element/handler that used to live at the bottom, just relocated;
+         #journeyStatusCurrent is set via updateJourneyStatusDisplay(),
+         wired alongside updateJourneyHint() in the same 3 places
+         (selectJourney, setLanguage, initial load). ============ -->
+    <div class="journey-status-bar" id="journeyStatusBar">
+      <p class="journey-status-label" data-i18n="journey.browsingAs">📍 You're browsing as</p>
+      <div class="journey-status-current" id="journeyStatusCurrent"></div>
+      <button type="button" id="changeJourneyBtn" data-i18n="journey.changeLink">Change Journey</button>
+    </div>
+
+    <!-- ============ DYNAMIC GREETING — time-of-day + Journey-aware.
+         Text-only, no new Journey logic; reuses the existing translation
+         system and is refreshed at the same 3 wiring points as the
+         Journey status bar/hint above. ============ -->
+    <div class="dynamic-greeting" id="dynamicGreeting">
+      <div class="dg-greeting" id="dgGreetingText"></div>
+      <div class="dg-sub" id="dgSubText"></div>
+    </div>
+
+    <!-- ============ HERO — short, scannable in seconds ============ -->
+    <div class="app-hero">
+      <div class="app-hero-row">
+        <div style="flex:1; min-width:0;">
+          <div class="app-hero-meta">
+            <span class="app-hero-hours" data-i18n="menu.hours">Open on Fri/Sat/Sun· Evening to Late Night</span>
+            <a class="directions-link" id="directionsLink" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
+              <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+              <span data-i18n="menu.getDirections">Get Directions</span>
+            </a>
+          </div>
+          <h1 class="app-hero-headline">
+            <span class="line-coal" data-i18n="hero.lineCoal">Coal-Cooked</span>
+            <span class="line-gravy" data-i18n="hero.lineGravy">Cheesy Gravy</span>
+            <span class="line-khichiya" data-i18n="hero.lineKhichiya">Khichiya for Dipping</span>
+          </h1>
+        </div>
+        <button type="button" class="info-btn" id="openInfoBtn" aria-label="About TKG">ⓘ</button>
+      </div>
+
+      <!-- Compact story strip — visual 3-step explainer, reuses existing
+           hero.line* translation keys so it works in EN/GU/HI for free.
+           The label above carries the old standalone statement line's
+           message, so the hero now reads in two beats, not three. -->
+      <div class="hero-story-label" data-i18n="hero.statement">🔥 The Gravy is the Hero</div>
+      <div class="hero-story-strip" aria-hidden="true">
+        <div class="story-step"><span class="step-icon">🔥</span><span data-i18n="hero.lineCoal">Coal-Cooked</span></div>
+        <span class="story-arrow">→</span>
+        <div class="story-step"><span class="step-icon">🧀</span><span data-i18n="hero.lineGravy">Cheesy Gravy</span></div>
+        <span class="story-arrow">→</span>
+        <div class="story-step"><span class="step-icon">🥣</span><span data-i18n="hero.lineKhichiya">Khichiya for Dipping</span></div>
+      </div>
+    </div>
+
+    <!-- ============ REVIEW HERO CARD — Instagram-Stories-style, single
+         review at a time, auto-rotating. Fully data-driven from
+         contentRegistry.featuredReviews via renderContent() (see script
+         section below). Tapping anywhere opens the Customer Stories sheet. ===== -->
+    <div class="review-hero" id="reviewHero" role="button" tabindex="0" aria-label="View customer reviews">
+      <div class="review-hero-bars" id="reviewHeroBars"></div>
+      <div class="review-hero-card" id="reviewHeroCard">
+        <div class="review-hero-top">
+          <span class="review-hero-avatar" id="reviewHeroAvatar"></span>
+          <span class="review-hero-author" id="reviewHeroAuthor"></span>
+          <span class="review-hero-stars" id="reviewHeroStars"></span>
+        </div>
+        <div class="review-hero-quote" id="reviewHeroQuote"></div>
+        <div class="review-hero-tap-hint" data-i18n="reviews.viewMore">Tap to read more reviews</div>
+      </div>
+    </div>
+
+    <!-- ============ EXPANDABLE EXPLAINER — collapsed by default ============ -->
+    <div class="explainer" id="explainer" data-journey="exploring">
+      <button type="button" class="explainer-toggle" id="explainerToggle" aria-expanded="false">
+        <span class="et-icon">❓</span>
+        <span class="et-label" data-i18n="menu.explainerToggle">What is TKG Signature Gravy?</span>
+        <span class="et-chevron">▾</span>
+      </button>
+      <div class="explainer-body" id="explainerBody">
+        <div class="explainer-body-inner">
+          <div class="info-sheet-line" data-i18n="menu.eduLine1">TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.</div>
+          <div class="info-sheet-line" data-i18n="menu.eduLine2">Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.</div>
+          <div class="info-sheet-punch" data-i18n-html="menu.hookPunch">Not poured on top.<br>Dip. Scoop. Enjoy.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MENU (tabs + items + extras) — grouped under one
+         data-journey gate since the journey spec lists "Menu" as a single
+         unit for the planning/exploring paths. Internal tab-switching IDs/
+         JS are untouched; this is purely a visibility wrapper. ============ -->
+    <div id="menuJourneySection">
+    <!-- ============ CATEGORY TABS — Signature default, instant switch ============ -->
+    <div class="menu-tabs" id="menuTabs">
+      <button type="button" class="menu-tab active" data-cat="signature" data-i18n="menu.family2TitleShort">Signature</button>
+      <button type="button" class="menu-tab" data-cat="traditional" data-i18n="menu.family1TitleShort">Traditional</button>
+    </div>
+
+    <!-- ===== SIGNATURE (default) ===== -->
+    <div class="menu-section active" id="cat-signature">
+      <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/signature-gravy.webp" width="56" height="56" alt="Signature Gravy Khichiya" loading="lazy" decoding="async">
+        </div>
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.signatureGravy.name">Signature Gravy Khichiya</span>
+            <span class="menu-item-tag" data-i18n="menu.bestseller">Bestseller</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.signatureGravy.descShort">Creamy coal-cooked cheese gravy, served for dipping.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+        </div>
+        <div class="menu-item-price"><span data-i18n="menu.signatureGravy.priceMini">Mini ₹140</span><span class="price-large" data-i18n="menu.signatureGravy.priceLarge">Large ₹180</span></div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/cheesy-signature.webp" width="56" height="56" alt="Cheesy Signature Gravy Khichiya" loading="lazy" decoding="async">
+        </div>
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Gravy Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.cheesySignatureGravy.descShort">Extra cheese, even richer and creamier.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+        </div>
+        <div class="menu-item-price"><span data-i18n="menu.cheesySignatureGravy.priceMini">Mini ₹160</span><span class="price-large" data-i18n="menu.cheesySignatureGravy.priceLarge">Large ₹200</span></div>
+      </div>
+
+      <div class="menu-section-label" data-i18n="menu.extrasLabel">Extra (Signature Gravy items)</div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.extraCheese.name">Cheese</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.extraCheese.descShort">Extra cheese melted in.</div>
+        </div>
+        <div class="menu-item-price">₹25</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.extraKhichiya.name">Extra Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.extraKhichiya.descShort">One more coal-roasted Khichiya.</div>
+        </div>
+        <div class="menu-item-price"><span data-i18n="menu.extraKhichiya.priceMini">Mini ₹50</span><span class="price-large" data-i18n="menu.extraKhichiya.priceLarge">Large ₹60</span></div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.extraGravy.name">Extra Gravy</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.extraGravy.descShort">More of the hero product.</div>
+        </div>
+        <div class="menu-item-price">₹100</div>
+      </div>
+    </div>
+
+    <!-- ===== TRADITIONAL ===== -->
+    <div class="menu-section" id="cat-traditional">
+      <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/classic-khichiya.webp" width="56" height="56" alt="Classic Khichiya" loading="lazy" decoding="async">
+        </div>
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.classicKhichiya.name">Classic Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.classicKhichiya.descShort">Butter and our signature spice blend.</div>
+        </div>
+        <div class="menu-item-price"><span data-i18n="menu.priceMini">Mini ₹50</span><span class="price-large" data-i18n="menu.classicKhichiya.priceLarge">Large ₹60</span></div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/masala-khichiya.webp" width="56" height="56" alt="Masala Khichiya" loading="lazy" decoding="async">
+        </div>
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.masalaKhichiya.name">Masala Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.masalaKhichiya.descShort">Chutney, fresh veg, chana dal, sev.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+        </div>
+        <div class="menu-item-price"><span data-i18n="menu.masalaKhichiya.priceMini">Mini ₹80</span><span class="price-large" data-i18n="menu.masalaKhichiya.priceLarge">Large ₹120</span></div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/cheese-masala.webp" width="56" height="56" alt="Cheese Masala Khichiya" loading="lazy" decoding="async">
+        </div>
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.cheeseMasalaKhichiya.name">Cheese Masala Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.cheeseMasalaKhichiya.descShort">Masala Khichiya topped with melted cheese.</div>
+          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+        </div>
+        <div class="menu-item-price"><span data-i18n="menu.cheeseMasalaKhichiya.priceMini">Mini ₹100</span><span class="price-large" data-i18n="menu.cheeseMasalaKhichiya.priceLarge">Large ₹140</span></div>
+      </div>
+    </div>
+
+    <!-- ===== EXTRAS — compact chip row ===== -->
+    <div class="extras-row">
+      <span class="extra-chip jain" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+      <span class="extra-chip jain" data-i18n="menu.noOnion">No Onion Option</span>
+      <span class="extra-chip" data-i18n="menu.wholeWheat">Whole Wheat (Gehu Atta)</span>
+      <span class="extra-chip" data-i18n="menu.seasonalVeg">Seasonal Vegetable Variations</span>
+    </div>
+    </div><!-- /#menuJourneySection -->
+
+    <div class="footer-meta" data-journey="planning">
+      <span class="hours-note" data-i18n="menu.hours">Opens Fri/Sat/Sun · Evening to Late Night</span>
+      <a class="directions-link" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
+        <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        <span data-i18n="menu.getDirections">Get Directions</span>
+      </a>
+    </div>
+
+    <a class="phone-note" href="tel:+919510100950">
+      <svg class="pn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      <span data-i18n="menu.callUs">+91 95101 00950</span>
+    </a>
+
+    <!-- About / Instagram / Google Review — static, always visible, never gated -->
+    <div class="link-row">
+      <a class="link-chip" href="https://wa.me/919510100950" target="_blank" rel="noopener" data-i18n="menu.whatsapp">WhatsApp</a>
+      <a class="link-chip" id="instaLink" href="#" target="_blank" rel="noopener" data-i18n="menu.instagram" data-journey="planning,exploring">Instagram</a>
+      <a class="link-chip" id="googleReviewLink" href="#" target="_blank" rel="noopener" data-i18n="menu.googleReview" data-journey="atTKG">Google Review</a>
+    </div>
+
+    <!-- Registration entry point — permanent Customer OS module, visible on
+         all three journeys (aligned with Permanent Modules principle,
+         Sprint 2.0). Previously gated to atTKG only; that gate has been
+         removed — never blocks menu access either way. -->
+    <div class="register-cta" id="registerCtaCard">
+      <div class="register-cta-text">
+        <div class="register-cta-title" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</div>
+        <div class="register-cta-sub" data-i18n="reg.ctaSub">Takes 10 seconds. No login, no OTP.</div>
+      </div>
+      <button class="btn-primary register-cta-btn" id="openRegisterBtn" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</button>
+    </div>
+
+    <!-- Sprint 2.0 — Taste Discovery reminder. Contextual module (Planning /
+         Exploring journeys only, per roadmap). data-journey handles the
+         journey gate exactly like every other contextual element; a small
+         JS toggle (updateTasteDiscoveryReminderVisibility) additionally
+         hides it once the quiz has been completed on this device. Opens
+         the same overlay as the automatic 30s trigger — no separate UI. -->
+    <div class="register-cta" id="tasteDiscoveryReminderCard" data-journey="planning,exploring">
+      <div class="register-cta-text">
+        <div class="register-cta-title" data-i18n="taste.reminderTitle">🍽️ Not sure what to order?</div>
+        <div class="register-cta-sub" data-i18n="taste.reminderSub">2 quick taps and we'll pick for you.</div>
+      </div>
+      <button class="btn-secondary register-cta-btn" id="openTasteDiscoveryBtn" data-i18n="taste.reminderBtn">Find My Item</button>
+    </div>
+
+    <!-- Journey Progression — friendly contextual suggestion, text-only.
+         The Change action itself now lives in the Journey status bar at
+         the top of this screen (see #journeyStatusBar) — this is just the
+         small helper line, reusing the existing #journeyHint mechanism. -->
+    <div class="change-journey-link">
+      <p id="journeyHint" style="font-size:12px; color:var(--ink-soft); text-align:center; margin-bottom:6px;"></p>
+    </div>
+
+    <div class="owner-link">
+      <button type="button" id="openDashBtn">Owner Dashboard →</button>
+    </div>
+
+  </section>
+
+  <!-- ============ INFO SHEET — education content, behind the ⓘ button ============ -->
+  <div class="overlay-backdrop" id="infoBackdrop"></div>
+  <div class="reg-overlay" id="infoSheet">
+    <div class="reg-overlay-handle"></div>
+    <div class="info-sheet-title" data-i18n="menu.eduTitle">What Makes TKG Different?</div>
+    <div class="info-sheet-line" data-i18n="menu.eduLine1">TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.</div>
+    <div class="info-sheet-line" data-i18n="menu.eduLine2">Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.</div>
+    <div class="info-sheet-punch" data-i18n-html="menu.hookPunch">Not poured on top.<br>Dip. Scoop. Enjoy.</div>
+    <span class="info-sheet-jain" data-i18n="menu.jainAvailable">🟢 Jain options available</span>
+    <button type="button" class="btn-secondary" id="closeInfoBtn" style="width:100%; margin-top:18px;" data-i18n="thanks.closeBtn">Close</button>
+  </div>
+
+  <!-- ============ SCREEN 3: OWNER DASHBOARD ============ -->
+  <section class="screen" id="screen-dash">
+
+    <div class="dash-header">
+      <h1 class="dash-title">Owner Dashboard</h1>
+      <button class="dash-close" id="closeDashBtn">✕</button>
+    </div>
+
+    <!-- PIN gate -->
+    <div class="pin-gate" id="pinGate">
+      <p>Enter the owner PIN to continue.<br><span style="color:var(--grey-line); font-size:11px;">(Default PIN: 1234 — change inside app.js)</span></p>
+      <input class="pin-input" id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+      <button class="btn-primary" id="pinSubmitBtn">Unlock</button>
+    </div>
+
+    <!-- Dashboard content -->
+    <div id="dashContent" class="hidden" style="display:none; flex-direction:column; flex:1; min-height:0;">
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">Total Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statToday">0</div>
+          <div class="stat-label">New Today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statRepeat">0</div>
+          <div class="stat-label">Repeat Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statPending">0</div>
+          <div class="stat-label">Pending Sync</div>
+        </div>
+        <div class="stat-card full">
+          <div>
+            <div class="stat-label" style="margin-top:0;">Last synced</div>
+            <div style="font-size:12px; color:var(--marble); font-family:var(--font-mono); margin-top:3px;" id="lastSyncedAt">—</div>
+          </div>
+          <button class="btn-secondary" id="forceSyncBtn" style="padding:9px 14px; font-size:12px;">Sync Now</button>
+        </div>
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div class="stat-label" style="margin-top:0;">Customer Journey</div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟢 At TKG</span><span id="statJourneyAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟡 Planning</span><span id="statJourneyPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>⚪ Exploring</span><span id="statJourneyExploring">0</span>
+          </div>
+        </div>
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div class="stat-label" style="margin-top:0;">Journey Analytics</div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟢 I'm at TKG</span><span id="statJourneyAnalyticsAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟡 Planning My Visit</span><span id="statJourneyAnalyticsPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>⚪ Just Exploring</span><span id="statJourneyAnalyticsExploring">0</span>
+          </div>
+        </div>
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div class="stat-label" style="margin-top:0;">Journey Analytics (Today)</div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟢 At TKG</span><span id="statJourneyEventsAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>🟡 Planning</span><span id="statJourneyEventsPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+            <span>⚪ Exploring</span><span id="statJourneyEventsExploring">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-actions">
+        <button class="btn-secondary" id="exportCsvBtn">Export CSV</button>
+        <button class="btn-secondary" id="refreshDashBtn">Refresh</button>
+      </div>
+
+      <input class="search-box" id="searchInput" type="text" placeholder="Search by name or mobile number...">
+
+      <div class="cust-list" id="custList">
+        <div class="empty-state">No customers yet.</div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ============ INSTALL PROMPT BANNER — platform-aware, dismissible ============ -->
+  <div class="install-banner" id="installBanner">
+    <div class="install-icon">📱</div>
+    <div class="install-text">
+      <div class="install-title" id="installTitle">Install TKG Customer OS</div>
+      <div class="install-sub" id="installSub">Faster access from your home screen. No app store needed.</div>
+    </div>
+    <div class="install-actions" id="installActions">
+      <button type="button" class="install-btn" id="installActionBtn">Install</button>
+      <button type="button" class="install-dismiss" id="installDismissBtn" data-i18n="install.dismiss">Maybe Later</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================================
+   TKG APP LOGIC
+   ============================================================================
+   Data model per customer (LocalStorage key: tkg_customers):
+   {
+     mobile: "9876543210",       // normalized, used as unique key
+     name: "Rohan Patel",
+     journey: "atTKG",           // 'atTKG' | 'planning' | 'exploring' | ''
+                                  // — captured from the Customer Journey
+                                  // choice (localStorage: tkg_journey) at
+                                  // the moment of check-in. Business intent
+                                  // signal, refreshed on every check-in to
+                                  // reflect the customer's latest choice.
+                                  // '' if the customer registered before
+                                  // this field existed, or a stored journey
+                                  // wasn't available at check-in time.
+     firstVisit: "2026-06-23T10:15:00.000Z",
+     lastVisit:  "2026-06-23T10:15:00.000Z",
+     visitCount: 1,
+     favoriteItem: "Cheesey Gravy Khichiya (Mini)", // optional, "" if skipped
+     source: "Instagram",         // optional, "" if skipped
+     reviewStatus: "",            // RESERVED for Phase 2 (Review Growth System)
+     rating: "",                  // RESERVED for Phase 2 — no UI yet
+     feedback: "",                // RESERVED for Phase 2 — no UI yet
+     pendingSync: true|false     // true until Apps Script confirms receipt
+   }
+   ============================================================================ */
+
+// ---------------------------------------------------------------------------
+// CONFIG — paste your deployed Apps Script Web App URL here.
+// See AppsScript.gs setup instructions for how to generate this.
+// ---------------------------------------------------------------------------
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
+const OWNER_PIN = '1234'; // change this to your own PIN
+const INSTAGRAM_URL = 'https://www.instagram.com/the.khichiyagravy/'; // production — official TKG profile
+const GOOGLE_REVIEW_URL = 'https://g.page/r/CYnAo2r-6b_zEAE/review'; // production — Google Business review link
+
+document.getElementById('instaLink').href = INSTAGRAM_URL;
+document.getElementById('googleReviewLink').href = GOOGLE_REVIEW_URL;
+
+// ---------------------------------------------------------------------------
+// CONTENT REGISTRY — Content OS ⇄ Customer OS data contract
+// ---------------------------------------------------------------------------
+// This object is the data source of truth for all content-driven UI blocks
+// (Review Hero Card now; mustTry, weekendSpecials, faq, polls,
+// educationalPosts, announcements in later phases). Content OS will
+// eventually replace or hydrate this object's contents (locally or from a
+// remote source) without requiring any change to Customer OS.
+//
+// IMPORTANT: Customer OS components must NEVER read this object directly.
+// They must go through renderContent(type) below. That is the actual
+// contract boundary — the registry is data, renderContent() is the
+// presentation-layer gate in front of it:
+//
+//     contentRegistry (data)  →  renderContent(type)  →  UI component
+//
+// Every item in every array shares this minimal envelope, regardless of
+// content type, so renderContent() can filter/sort generically without
+// needing to know what a "review" or "FAQ" is:
+//   id         — unique string
+//   status     — 'draft' | 'testing' | 'active' | 'archived' (only 'active'
+//                is ever shown to customers — mirrors the Draft/Testing/
+//                Active/Archived vocabulary already used elsewhere)
+//   order      — number, lower shows first; undefined sorts last
+//   startDate  — ISO string or null; item hidden before this date if set
+//   endDate    — ISO string or null; item hidden after this date if set
+//   ...plus type-specific fields (quoteText/authorName for a review, etc.)
+//
+// NOTE on translation: left intentionally unresolved for Version 1.2 — see
+// renderContent() comment below. Do not add per-item translation handling
+// here yet; that's a Content OS-era decision, not a Phase A/B one.
+//
+// NOTE: featuredReviews below is SAMPLE/PLACEHOLDER data for development —
+// replace with real customer reviews before this ships to production.
+// Reviews are intentionally NOT translated (see quoteText) — authenticity
+// over localization. Only surrounding UI chrome uses the translations system.
+// ---------------------------------------------------------------------------
+const contentRegistry = {
+  featuredReviews: [
+    {
+      id: 'rev-001', status: 'active', order: 1, startDate: null, endDate: null,
+      quoteText: 'Best khichiya in Surat, hands down. The cheese gravy is unreal.',
+      authorName: 'Rohan P.',
+      rating: 5,
+      source: 'Google'
+    },
+    {
+      id: 'rev-002', status: 'active', order: 2, startDate: null, endDate: null,
+      quoteText: 'સિગ્નેચર ગ્રેવી ટ્રાય કરવી જ જોઈએ. બહુ જ સ્વાદિષ્ટ છે!',
+      authorName: 'Priya S.',
+      rating: 5,
+      source: 'Google'
+    },
+    {
+      id: 'rev-003', status: 'active', order: 3, startDate: null, endDate: null,
+      quoteText: 'हर वीकेंड यहाँ आना अब रूटीन बन गया है। जैन ऑप्शन भी बढ़िया है।',
+      authorName: 'Amit K.',
+      rating: 5,
+      source: 'Instagram'
+    },
+    {
+      id: 'rev-004', status: 'active', order: 4, startDate: null, endDate: null,
+      quoteText: 'Coal-cooked flavour you can actually taste. Worth the wait on weekends.',
+      authorName: 'Sneha M.',
+      rating: 5,
+      source: 'Google'
+    }
+  ],
+  mustTry: [],            // reserved — Phase B
+  weekendSpecials: [],    // reserved — Phase F
+  faq: [],                // reserved — Phase E
+  polls: [],               // reserved — Phase D
+  educationalPosts: [],    // reserved — future
+  announcements: []        // reserved — future
+};
+
+// ---------------------------------------------------------------------------
+// RENDER LAYER — the only sanctioned way to read contentRegistry.
+// ---------------------------------------------------------------------------
+// Customer OS components call renderContent(type) and get back a ready-to-
+// display array: active items only, respecting startDate/endDate, sorted by
+// order. They never touch contentRegistry directly. This means Content OS
+// can later replace contentRegistry's contents (add items, retire items,
+// reorder, schedule) and nothing in Customer OS's rendering code has to
+// change — only this one function's inputs change, never its callers.
+//
+// Translation is deliberately NOT handled here yet. For Version 1.2, content
+// items render exactly as authored (same approach as featuredReviews).
+// Multilingual content items are a Content OS-era problem, to be solved once
+// the renderer layer has been in production and we know its real shape —
+// not speculatively designed now.
+// ---------------------------------------------------------------------------
+function renderContent(type){
+  const items = contentRegistry[type] || [];
+  const now = new Date();
+  return items
+    .filter(item => (item.status || 'active') === 'active')
+    .filter(item => {
+      if(item.startDate && now < new Date(item.startDate)) return false;
+      if(item.endDate && now > new Date(item.endDate)) return false;
+      return true;
+    })
+    .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+}
+
+const LS_KEY = 'tkg_customers';
+const LS_SESSION_KEY = 'tkg_current_session';
+
+// ---------------------------------------------------------------------------
+// STORAGE HELPERS
+// ---------------------------------------------------------------------------
+function loadCustomers(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Failed to read local customers', e);
+    return [];
+  }
+}
+
+function saveCustomers(list){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify(list));
+  }catch(e){
+    console.error('Failed to save local customers', e);
+  }
+}
+
+function normalizeMobile(mobile){
+  return String(mobile || '').replace(/[^\d]/g, '').replace(/^0+/, '').slice(-10);
+}
+
+function findCustomerIndex(list, mobile){
+  const target = normalizeMobile(mobile);
+  return list.findIndex(c => normalizeMobile(c.mobile) === target);
+}
+
+function isSameDay(isoA, isoB){
+  const a = new Date(isoA), b = new Date(isoB);
+  return a.toDateString() === b.toDateString();
+}
+
+// ---------------------------------------------------------------------------
+// CHECK-IN LOGIC (LocalStorage first, instant — sync happens after)
+// ---------------------------------------------------------------------------
+function checkInCustomer(name, mobile, favoriteItem, source){
+  const list = loadCustomers();
+  const nowIso = new Date().toISOString();
+  const idx = findCustomerIndex(list, mobile);
+  // Business-intent capture: reuses the same tkg_journey value already
+  // stored for UI routing. Only registered customers get this recorded —
+  // an unregistered visitor's journey stays local/UI-only, never synced.
+  const journey = getStoredJourney() || '';
+
+  let record;
+  let isReturning = false;
+
+  if(idx === -1){
+    record = {
+      mobile: normalizeMobile(mobile),
+      name: name,
+      journey: journey,
+      firstVisit: nowIso,
+      lastVisit: nowIso,
+      visitCount: 1,
+      favoriteItem: favoriteItem || '',
+      source: source || '',
+      // Reserved for Phase 2 (Review Growth System) — no UI yet, fields kept
+      // empty so the data shape is ready before that phase begins.
+      reviewStatus: '',
+      rating: '',
+      feedback: '',
+      pendingSync: true
+    };
+    list.push(record);
+  }else{
+    record = list[idx];
+    isReturning = true;
+    record.name = name; // keep name fresh in case of correction
+    if(journey) record.journey = journey; // refresh to the latest known intent
+    else if(record.journey === undefined) record.journey = '';
+    if(favoriteItem) record.favoriteItem = favoriteItem; // only overwrite if provided
+    if(source) record.source = source;
+    if(record.reviewStatus === undefined) record.reviewStatus = '';
+    if(record.rating === undefined) record.rating = '';
+    if(record.feedback === undefined) record.feedback = '';
+    if(!isSameDay(record.lastVisit, nowIso)){
+      record.visitCount = (record.visitCount || 1) + 1;
+    }
+    record.lastVisit = nowIso;
+    record.pendingSync = true;
+    list[idx] = record;
+  }
+
+  saveCustomers(list);
+
+  sessionStorage.setItem(LS_SESSION_KEY, JSON.stringify({ name: record.name, visitCount: record.visitCount, isReturning }));
+
+  attemptSync(); // fire and forget; works offline gracefully
+
+  return { record, isReturning };
+}
+
+// ---------------------------------------------------------------------------
+// SYNC ENGINE — sends pending records to Google Apps Script.
+// Retries automatically when connectivity returns (see online listener below).
+// ---------------------------------------------------------------------------
+let syncInFlight = false;
+
+async function attemptSync(){
+  if(syncInFlight) return;
+  if(!navigator.onLine) { updateStatusPill(); return; }
+  if(APP_SCRIPT_URL.includes('PASTE_YOUR')) { return; } // not configured yet
+
+  const list = loadCustomers();
+  const pending = list.filter(c => c.pendingSync);
+  if(pending.length === 0){ updateStatusPill(); return; }
+
+  syncInFlight = true;
+  setStatusState('syncing');
+
+  try{
+    // The `journey` field below is now understood by AppsScript.gs (Journey
+    // column, position H) — but that only takes effect once the updated
+    // .gs is pasted into Apps Script and re-deployed as a new version on
+    // Deepak's side. Until that redeploy happens, the currently-live Apps
+    // Script (pre-Journey-column version) will simply ignore this field —
+    // sync of every other field keeps working exactly as before either way.
+    const records = pending.map(c => ({
+      name: c.name,
+      mobile: c.mobile,
+      journey: c.journey || '',
+      visitDate: c.lastVisit,
+      favoriteItem: c.favoriteItem || '',
+      source: c.source || '',
+      feedback: c.feedback || ''
+    }));
+
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight on Apps Script
+      body: JSON.stringify({ action: 'sync', records: records })
+    });
+
+    if(!res.ok) throw new Error('Sync request failed: ' + res.status);
+
+    // Mark all as synced
+    const freshList = loadCustomers();
+    pending.forEach(p => {
+      const i = findCustomerIndex(freshList, p.mobile);
+      if(i !== -1) freshList[i].pendingSync = false;
+    });
+    saveCustomers(freshList);
+    localStorage.setItem('tkg_last_synced', new Date().toISOString());
+
+  }catch(err){
+    console.warn('Sync failed, will retry later:', err);
+  }finally{
+    syncInFlight = false;
+    updateStatusPill();
+    if(document.getElementById('screen-dash').classList.contains('active')){
+      renderDashboard();
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// JOURNEY ANALYTICS — anonymous event log, completely independent of the
+// customer record system above. No name, no mobile, no link to tkg_customers
+// or to any specific person — just "someone picked atTKG at this moment".
+// Recorded the instant a Customer Journey choice is made (see selectJourney
+// below), regardless of whether that person ever registers.
+//
+// Local shape (LocalStorage key: tkg_journey_events), a plain array —
+// events are appended forever and never deleted locally (same convention as
+// tkg_customers), so the Owner Dashboard can count "today" from local
+// history even after an event has already synced:
+//   { journey: 'atTKG' | 'planning' | 'exploring', ts: "ISO string",
+//     pendingSync: true|false }
+// ---------------------------------------------------------------------------
+const JOURNEY_EVENTS_KEY = 'tkg_journey_events';
+
+function loadJourneyEvents(){
+  try{
+    const raw = localStorage.getItem(JOURNEY_EVENTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Failed to read local journey events', e);
+    return [];
+  }
+}
+
+function saveJourneyEvents(list){
+  try{
+    localStorage.setItem(JOURNEY_EVENTS_KEY, JSON.stringify(list));
+  }catch(e){
+    console.error('Failed to save local journey events', e);
+  }
+}
+
+// Location Capture — requests browser Geolocation immediately after any
+// Journey selection, and attaches it to the same Journey Analytics event.
+// Uses the standard browser permission dialog only (no custom popup). If
+// permission is denied, unavailable, or times out, the journey event is
+// still recorded without location — this never blocks the customer flow.
+function requestJourneyLocation(callback){
+  if(!navigator.geolocation){ callback(null); return; }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => callback({
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+      accuracy: pos.coords.accuracy
+    }),
+    () => callback(null), // denied / unavailable / timed out — degrade gracefully
+    { timeout: 5000, maximumAge: 60000 }
+  );
+}
+
+// Reverse geocoding — turns Latitude/Longitude into a human-readable
+// Area/City using the free OSM Nominatim endpoint. Time-bounded (4s) so a
+// slow/unreachable geocoder can never hold up Journey Analytics; resolves
+// to null (never rejects) on any failure, timeout, or unparsable response,
+// so callers can always safely proceed without location's Area/City.
+function reverseGeocode(lat, lon){
+  return new Promise((resolve) => {
+    if(!('fetch' in window)){ resolve(null); return; }
+    const controller = ('AbortController' in window) ? new AbortController() : null;
+    const timeoutId = setTimeout(() => { if(controller) controller.abort(); resolve(null); }, 4000);
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`,
+      { signal: controller ? controller.signal : undefined, headers: { 'Accept-Language': 'en' } })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        clearTimeout(timeoutId);
+        const addr = (data && data.address) || {};
+        const area = addr.suburb || addr.neighbourhood || addr.residential || addr.quarter || '';
+        const city = addr.city || addr.town || addr.village || addr.state_district || '';
+        resolve((area || city) ? { area: area, city: city } : null);
+      })
+      .catch(() => { clearTimeout(timeoutId); resolve(null); });
+  });
+}
+
+function recordJourneyEvent(journey){
+  requestJourneyLocation(async (loc) => {
+    const events = loadJourneyEvents();
+    const event = { journey: journey, ts: new Date().toISOString(), pendingSync: true };
+    if(loc){
+      event.latitude = loc.latitude;
+      event.longitude = loc.longitude;
+      event.accuracy = loc.accuracy;
+      // Never blocks Journey Analytics: reverseGeocode is time-bounded and
+      // always resolves (never rejects), even on failure/timeout — the
+      // event is saved and synced with blank Area/City in that case.
+      const place = await reverseGeocode(loc.latitude, loc.longitude);
+      if(place){
+        event.area = place.area;
+        event.city = place.city;
+      }
+    }
+    events.push(event);
+    saveJourneyEvents(events);
+    attemptJourneyEventSync(); // fire and forget; works offline gracefully
+  });
+}
+
+let journeyEventSyncInFlight = false;
+
+async function attemptJourneyEventSync(){
+  if(journeyEventSyncInFlight) return;
+  if(!navigator.onLine) return;
+  if(APP_SCRIPT_URL.includes('PASTE_YOUR')) return; // not configured yet
+
+  const events = loadJourneyEvents();
+  const pending = events.filter(e => e.pendingSync);
+  if(pending.length === 0) return;
+
+  journeyEventSyncInFlight = true;
+
+  try{
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'journeyEvent',
+        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, area: e.area, city: e.city }))
+      })
+    });
+
+    if(!res.ok) throw new Error('Journey event sync failed: ' + res.status);
+
+    // Don't just trust HTTP 200 — an Apps Script deployment that doesn't
+    // yet recognize action:'journeyEvent' (e.g. not redeployed after this
+    // feature was added) still responds 200 OK via its generic fallback,
+    // which would otherwise get silently treated as a successful sync even
+    // though no row was ever written. Only a response carrying a numeric
+    // `recorded` count is proof the journeyEvent branch actually ran.
+    const data = await res.json();
+    if(data.status !== 'ok' || typeof data.recorded !== 'number'){
+      // Include the actual response so a shape mismatch is diagnosable from
+      // the console alone next time — no more guessing whether Apps Script
+      // is stale, mid-paste, or throwing.
+      throw new Error('Journey event sync: unexpected response — ' + JSON.stringify(data));
+    }
+
+    // Mark the ones we just sent as synced — matched by timestamp, which is
+    // effectively unique here since only one event is ever created per tap.
+    const freshEvents = loadJourneyEvents();
+    const sentTimestamps = new Set(pending.map(e => e.ts));
+    freshEvents.forEach(e => {
+      if(e.pendingSync && sentTimestamps.has(e.ts)) e.pendingSync = false;
+    });
+    saveJourneyEvents(freshEvents);
+
+  }catch(err){
+    console.warn('Journey event sync failed, will retry later:', err);
+  }finally{
+    journeyEventSyncInFlight = false;
+    if(document.getElementById('screen-dash').classList.contains('active')){
+      renderDashboard();
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// TASTE DISCOVERY ENGINE — Sprint 2.0. Anonymous, tap-only recommendation
+// quiz. Fully independent of the customer record system, and independent
+// of Journey Analytics too — its own key, own Apps Script action, own
+// Google Sheet tab, own sync loop. No mobile, no name, no link to any
+// customer or journey-event row. Mirrors the Journey Analytics pattern
+// above deliberately, so the two features stay structurally consistent.
+//
+// Local shape (LocalStorage key: tkg_taste_discovery), a plain array —
+// events are appended forever and never deleted locally, same convention
+// as tkg_customers / tkg_journey_events:
+//   { responses: { style: 'gravy'|'dry', cheese: 'yes'|'no' },
+//     recommendedItem: 'signatureGravy' | 'cheesySignatureGravy' |
+//                       'classicKhichiya' | 'cheeseMasalaKhichiya',
+//     ts: "ISO string", pendingSync: true|false }
+//
+// Future Relationship Model: Taste Discovery remains anonymous during
+// Sprint 2. If the same customer later chooses to Register & Get Updates,
+// Customer OS may use future recommendation history to personalise the
+// experience. That behaviour is outside the scope of Sprint 2 and is not
+// implemented here.
+// ---------------------------------------------------------------------------
+const TASTE_DISCOVERY_KEY = 'tkg_taste_discovery';
+const TASTE_DISCOVERY_COMPLETED_KEY = 'tkg_taste_discovery_completed'; // quiz finished at least once on this device
+const TASTE_DISCOVERY_PROMPTED_KEY = 'tkg_taste_discovery_prompted';   // automatic popup already shown once on this device
+const TASTE_DISCOVERY_DELAY_MS = 30000; // single configurable trigger delay — time spent on Menu screen, per Product Owner decision (default 30s)
+
+function loadTasteDiscoveryEvents(){
+  try{
+    const raw = localStorage.getItem(TASTE_DISCOVERY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Failed to read local taste discovery events', e);
+    return [];
+  }
+}
+
+function saveTasteDiscoveryEvents(list){
+  try{
+    localStorage.setItem(TASTE_DISCOVERY_KEY, JSON.stringify(list));
+  }catch(e){
+    console.error('Failed to save local taste discovery events', e);
+  }
+}
+
+function recordTasteDiscoveryEvent(responses, recommendedItem){
+  const events = loadTasteDiscoveryEvents();
+  events.push({ responses: responses, recommendedItem: recommendedItem, ts: new Date().toISOString(), pendingSync: true });
+  saveTasteDiscoveryEvents(events);
+  attemptTasteDiscoverySync(); // fire and forget; works offline gracefully
+}
+
+let tasteDiscoverySyncInFlight = false;
+
+async function attemptTasteDiscoverySync(){
+  if(tasteDiscoverySyncInFlight) return;
+  if(!navigator.onLine) return;
+  if(APP_SCRIPT_URL.includes('PASTE_YOUR')) return; // not configured yet
+
+  const events = loadTasteDiscoveryEvents();
+  const pending = events.filter(e => e.pendingSync);
+  if(pending.length === 0) return;
+
+  tasteDiscoverySyncInFlight = true;
+
+  try{
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'tasteDiscovery',
+        events: pending.map(e => ({ responses: e.responses, recommendedItem: e.recommendedItem, ts: e.ts }))
+      })
+    });
+
+    if(!res.ok) throw new Error('Taste Discovery sync failed: ' + res.status);
+
+    // Same anti-stale-deployment safeguard as Journey Analytics — an Apps
+    // Script that doesn't yet recognize action:'tasteDiscovery' would still
+    // respond 200 OK via its generic fallback. Only a response carrying a
+    // numeric `recorded` count proves the tasteDiscovery branch actually ran.
+    const data = await res.json();
+    if(data.status !== 'ok' || typeof data.recorded !== 'number'){
+      throw new Error('Taste Discovery sync: unexpected response — ' + JSON.stringify(data));
+    }
+
+    const freshEvents = loadTasteDiscoveryEvents();
+    const sentTimestamps = new Set(pending.map(e => e.ts));
+    freshEvents.forEach(e => {
+      if(e.pendingSync && sentTimestamps.has(e.ts)) e.pendingSync = false;
+    });
+    saveTasteDiscoveryEvents(freshEvents);
+
+  }catch(err){
+    console.warn('Taste Discovery sync failed, will retry later:', err);
+  }finally{
+    tasteDiscoverySyncInFlight = false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Static recommendation mapping table — Sprint 2.0 scope explicitly excludes
+// a registry, AI, or dynamic engine. Two taps (style, cheese) map to one of
+// four existing menu items. Item content (name/desc/price) is read directly
+// from the existing translations.menu.* objects — no duplicated content.
+// ---------------------------------------------------------------------------
+const TASTE_RECOMMENDATION_TABLE = {
+  'gravy_yes': 'cheesySignatureGravy',
+  'gravy_no' : 'signatureGravy',
+  'dry_yes'  : 'cheeseMasalaKhichiya',
+  'dry_no'   : 'classicKhichiya'
+};
+
+function getTasteRecommendation_(style, cheese){
+  return TASTE_RECOMMENDATION_TABLE[style + '_' + cheese] || 'signatureGravy'; // safe fallback
+}
+
+// Retry sync the moment connectivity returns
+window.addEventListener('online', () => { showToast('Back online — syncing...'); attemptSync(); attemptJourneyEventSync(); attemptTasteDiscoverySync(); });
+window.addEventListener('offline', () => { updateStatusPill(); });
+
+// Periodic background retry every 30s in case "online" event doesn't fire reliably
+setInterval(attemptSync, 30000);
+setInterval(attemptJourneyEventSync, 30000);
+setInterval(attemptTasteDiscoverySync, 30000);
+
+// ---------------------------------------------------------------------------
+// STATUS PILL UI
+// ---------------------------------------------------------------------------
+function setStatusState(state){
+  const pill = document.getElementById('statusPill');
+  const text = document.getElementById('statusText');
+  const dict = translations[currentLang] || translations.en;
+  pill.setAttribute('data-state', state);
+  if(state === 'online') text.textContent = dict.status.online;
+  else if(state === 'offline') text.textContent = dict.status.offline;
+  else if(state === 'syncing') text.textContent = dict.status.syncing;
+}
+
+function updateStatusPill(){
+  if(!navigator.onLine){
+    setStatusState('offline');
+    return;
+  }
+  const pendingCount = loadCustomers().filter(c => c.pendingSync).length;
+  setStatusState(pendingCount > 0 ? 'offline' : 'online');
+  if(pendingCount > 0){
+    const dict = translations[currentLang] || translations.en;
+    document.getElementById('statusText').textContent = dict.status.pendingSync(pendingCount);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// TOAST
+// ---------------------------------------------------------------------------
+let toastTimer;
+function showToast(msg){
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+// ---------------------------------------------------------------------------
+// SCREEN NAVIGATION (Owner Dashboard is the only remaining full screen swap —
+// Menu is now the permanent default screen and is never swapped away from)
+// ---------------------------------------------------------------------------
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // Sprint 2.0 — Taste Discovery Engine. Additive hook only: the trigger is
+  // "time spent on the Menu screen," so the timer starts whenever the menu
+  // becomes the active screen and cancels the moment it isn't. This does
+  // not change screen routing, journey visibility, or any frozen logic —
+  // showScreen()'s own behavior above this line is untouched.
+  if(id === 'screen-menu'){ startTasteDiscoveryTimer(); }
+  else{ cancelTasteDiscoveryTimer(); }
+}
+
+// ---------------------------------------------------------------------------
+// CUSTOMER JOURNEY — permanent core feature, independent of any campaign.
+// Always the first interaction on a fresh device. Reuses showScreen()/
+// .screen exactly as-is (Screen 1 in the numbering gap) — no new
+// UI-switching mechanism. Offline only: no Apps Script, no backend, no
+// Google Sheet. Stored choice lives in its own key, separate from
+// tkg_customers, and is remembered so returning devices skip straight to
+// the menu, pre-filtered to their path.
+// ---------------------------------------------------------------------------
+const JOURNEY_KEY = 'tkg_journey';
+const JOURNEY_VALUES = ['atTKG', 'planning', 'exploring'];
+
+function getStoredJourney(){
+  try{
+    const v = localStorage.getItem(JOURNEY_KEY);
+    return JOURNEY_VALUES.includes(v) ? v : null;
+  }catch(e){
+    return null;
+  }
+}
+
+// The one genuinely new piece of logic Customer Journey needs: every
+// existing section tagged data-journey is shown/hidden by matching the
+// active journey against its (comma-separated) allow-list. Elements with
+// no data-journey attribute are never touched — they keep behaving exactly
+// as their own existing CSS/JS already governs (hero, phone-note,
+// WhatsApp chip, owner-link, etc. are intentionally ungated).
+function applyJourneyVisibility(journey){
+  document.querySelectorAll('[data-journey]').forEach(el => {
+    const allowed = el.dataset.journey.split(',').map(s => s.trim());
+    el.style.display = allowed.includes(journey) ? '' : 'none';
+  });
+}
+
+function selectJourney(journey){
+  if(!JOURNEY_VALUES.includes(journey)) return;
+  try{ localStorage.setItem(JOURNEY_KEY, journey); }catch(e){}
+  recordJourneyEvent(journey); // anonymous analytics — independent of tkg_journey/tkg_customers
+  applyJourneyVisibility(journey);
+  updateTasteDiscoveryReminderVisibility(); // re-apply completed-hide on top of the fresh journey gate
+  updateJourneyHint(journey);
+  updateJourneyStatusDisplay(journey);
+  updateDynamicGreeting(journey);
+  showScreen('screen-menu');
+}
+
+// Small, non-intrusive helper line shown above the Change link — reflects
+// whichever journey is currently active. Re-run on language switch too
+// (see setLanguage) since this text is set via JS, not a data-i18n attribute.
+const JOURNEY_HINT_KEYS = { atTKG: 'hintAtTKG', planning: 'hintPlanning', exploring: 'hintExploring' };
+function updateJourneyHint(journey){
+  const el = document.getElementById('journeyHint');
+  if(!el) return;
+  const key = JOURNEY_HINT_KEYS[journey];
+  const dict = translations[currentLang] || translations.en;
+  el.textContent = key ? (dict.journey[key] || '') : '';
+}
+
+// Journey status bar (top of Menu page) — shows the currently active
+// journey using the same translated labels already used on the Customer
+// Journey screen itself (journey.atTKG/planning/exploring). Re-run on
+// language switch (see setLanguage) exactly like updateJourneyHint above.
+function updateJourneyStatusDisplay(journey){
+  const el = document.getElementById('journeyStatusCurrent');
+  if(!el) return;
+  const dict = translations[currentLang] || translations.en;
+  el.textContent = JOURNEY_VALUES.includes(journey) ? (dict.journey[journey] || '') : '';
+}
+
+// Dynamic greeting (top of Menu page) — time-of-day greeting + a short
+// Journey-aware line underneath. Text-only, no new Journey logic; reuses
+// the existing translations system/currentLang. Re-run on language switch
+// and on every journey change, same as the two functions above.
+function getGreetingTimeKey_(){
+  const h = new Date().getHours();
+  if(h >= 5 && h < 12) return 'morning';
+  if(h >= 12 && h < 17) return 'afternoon';
+  if(h >= 17 && h < 21) return 'evening';
+  return 'night';
+}
+function updateDynamicGreeting(journey){
+  const greetEl = document.getElementById('dgGreetingText');
+  const subEl = document.getElementById('dgSubText');
+  if(!greetEl || !subEl) return;
+  const dict = translations[currentLang] || translations.en;
+  const g = dict.greeting || translations.en.greeting;
+  greetEl.textContent = g[getGreetingTimeKey_()];
+  const journeyKey = JOURNEY_VALUES.includes(journey) ? journey : 'exploring';
+  subEl.innerHTML = g[journeyKey] || '';
+}
+
+document.querySelectorAll('.journey-option[data-choice]').forEach(btn => {
+  btn.addEventListener('click', () => selectJourney(btn.dataset.choice));
+});
+
+// Subtle, non-intrusive affordance — lets a customer revisit their choice
+// without clearing browser storage. Re-picking simply overwrites tkg_journey.
+document.getElementById('changeJourneyBtn').addEventListener('click', () => {
+  showScreen('screen-journey');
+});
+
+// The initial-screen decision (and first-time language sheet auto-open) runs
+// at the very end of this script — see CUSTOMER JOURNEY: INITIAL SCREEN
+// near the bottom — so it can safely use langBackdrop/langSheet/LANG_KEY,
+// which are declared further down in this same file.
+
+// ---------------------------------------------------------------------------
+// CATEGORY TABS — Signature default, instant switch, no page reload
+// ---------------------------------------------------------------------------
+document.querySelectorAll('.menu-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if(tab.classList.contains('active')) return; // already showing this category
+    document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('cat-' + tab.dataset.cat).classList.add('active');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// INFO SHEET — education content, tucked behind the ⓘ button
+// ---------------------------------------------------------------------------
+const infoBackdrop = document.getElementById('infoBackdrop');
+const infoSheet = document.getElementById('infoSheet');
+
+function openInfoSheet(){
+  infoBackdrop.classList.add('show');
+  infoSheet.classList.add('show');
+}
+function closeInfoSheet(){
+  infoBackdrop.classList.remove('show');
+  infoSheet.classList.remove('show');
+}
+document.getElementById('openInfoBtn').addEventListener('click', openInfoSheet);
+document.getElementById('closeInfoBtn').addEventListener('click', closeInfoSheet);
+infoBackdrop.addEventListener('click', closeInfoSheet);
+
+// ---------------------------------------------------------------------------
+// GENERIC CONTENT SHEET — reusable bottom sheet driven entirely by data
+// passed in. Reviews (Phase A) is the first consumer; mustTry / weekendSpecials
+// / faq / polls / educationalPosts / announcements (later phases) reuse this
+// unchanged — only the { title, items, renderItem, footerHtml } arguments
+// differ. No new overlay should ever be built alongside this one.
+// ---------------------------------------------------------------------------
+const contentSheetBackdrop = document.getElementById('contentSheetBackdrop');
+const contentSheet = document.getElementById('contentSheet');
+const contentSheetTitle = document.getElementById('contentSheetTitle');
+const contentSheetBody = document.getElementById('contentSheetBody');
+const contentSheetFooter = document.getElementById('contentSheetFooter');
+
+function openContentSheet({ title, items, renderItem, footerHtml }){
+  const dict = translations[currentLang] || translations.en;
+  contentSheetTitle.textContent = title || '';
+  if(!items || items.length === 0){
+    contentSheetBody.innerHTML = '<div class="cs-empty-state">' + escapeHtml(dict.contentSheet.empty) + '</div>';
+  }else{
+    contentSheetBody.innerHTML = items.map(renderItem).join('');
+  }
+  if(footerHtml){
+    contentSheetFooter.innerHTML = footerHtml;
+    contentSheetFooter.classList.remove('hidden');
+  }else{
+    contentSheetFooter.innerHTML = '';
+    contentSheetFooter.classList.add('hidden');
+  }
+  contentSheetBackdrop.classList.add('show');
+  contentSheet.classList.add('show');
+}
+function closeContentSheet(){
+  contentSheetBackdrop.classList.remove('show');
+  contentSheet.classList.remove('show');
+}
+contentSheetBackdrop.addEventListener('click', closeContentSheet);
+document.getElementById('closeContentSheetBtn').addEventListener('click', closeContentSheet);
+
+// Shared CTA-footer builder for the Content Sheet's optional footer slot.
+// Any future content type (Reviews now; possibly Weekend Specials or
+// Announcements later) that wants a closing call-to-action reuses this
+// instead of hand-building the footer HTML again.
+function buildCtaFooter({ heading, buttonText, href, showStars = false }){
+  return (showStars ? '<div class="cs-footer-stars">★★★★★</div>' : '') +
+    '<div class="cs-footer-heading">' + escapeHtml(heading) + '</div>' +
+    '<a class="cs-footer-btn" href="' + href + '" target="_blank" rel="noopener">' + escapeHtml(buttonText) + '</a>';
+}
+
+// ---------------------------------------------------------------------------
+// REVIEW HERO CARD — Instagram-Stories-style, single review at a time,
+// auto-rotating every 5.5s. Fully data-driven from
+// contentRegistry.featuredReviews via renderContent(). Tapping anywhere opens the Customer
+// Stories content sheet (all reviews + Google Review CTA). Review quote
+// text is shown exactly as written — never run through the translation
+// system; only surrounding UI chrome (tap hint, sheet title, CTA) is
+// translated.
+// ---------------------------------------------------------------------------
+const REVIEW_HERO_INTERVAL_MS = 5500;
+let reviewHeroIndex = 0;
+let reviewHeroTimer = null;
+
+function getInitials(name){
+  return String(name || '').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+}
+
+function renderReviewHeroCard(index){
+  const r = renderContent('featuredReviews')[index];
+  if(!r) return;
+  document.getElementById('reviewHeroAvatar').textContent = getInitials(r.authorName);
+  document.getElementById('reviewHeroAuthor').textContent = r.authorName;
+  document.getElementById('reviewHeroStars').textContent = '★'.repeat(r.rating || 5);
+  document.getElementById('reviewHeroQuote').textContent = r.quoteText;
+}
+
+function renderReviewHeroBars(activeIndex, total){
+  const barsEl = document.getElementById('reviewHeroBars');
+  barsEl.innerHTML = '';
+  for(let i = 0; i < total; i++){
+    const bar = document.createElement('span');
+    bar.className = 'rh-bar' + (i < activeIndex ? ' done' : '');
+    const fill = document.createElement('span');
+    fill.className = 'rh-bar-fill';
+    bar.appendChild(fill);
+    barsEl.appendChild(bar);
+  }
+  // Trigger the active bar's fill transition on the next frame — starting
+  // it in the same paint as adding the element would just jump to 100%.
+  requestAnimationFrame(() => {
+    const activeBar = barsEl.children[activeIndex];
+    if(activeBar) activeBar.classList.add('active');
+  });
+}
+
+function showReviewHeroSlide(index){
+  const card = document.getElementById('reviewHeroCard');
+  card.classList.add('rh-fade');
+  setTimeout(() => {
+    renderReviewHeroCard(index);
+    card.classList.remove('rh-fade');
+  }, 220);
+  renderReviewHeroBars(index, renderContent('featuredReviews').length);
+}
+
+function advanceReviewHero(){
+  const total = renderContent('featuredReviews').length;
+  if(total === 0) return;
+  reviewHeroIndex = (reviewHeroIndex + 1) % total;
+  showReviewHeroSlide(reviewHeroIndex);
+}
+
+function startReviewHeroRotation(){
+  const reviewHeroEl = document.getElementById('reviewHero');
+  const total = renderContent('featuredReviews').length;
+  if(total === 0){
+    // Graceful degrade — no active reviews in the registry, hide the whole
+    // component instead of showing an empty card.
+    if(reviewHeroEl) reviewHeroEl.style.display = 'none';
+    return;
+  }
+  reviewHeroIndex = 0;
+  renderReviewHeroCard(0);
+  renderReviewHeroBars(0, total);
+  if(reviewHeroTimer) clearInterval(reviewHeroTimer);
+  reviewHeroTimer = setInterval(advanceReviewHero, REVIEW_HERO_INTERVAL_MS);
+}
+
+function openCustomerStoriesSheet(){
+  const dict = translations[currentLang] || translations.en;
+  const footerHtml = buildCtaFooter({
+    heading: dict.reviews.ctaHeading,
+    buttonText: dict.reviews.ctaButton,
+    href: GOOGLE_REVIEW_URL,
+    showStars: true
+  });
+
+  openContentSheet({
+    title: dict.reviews.sheetTitle,
+    items: renderContent('featuredReviews'),
+    renderItem: (r) =>
+      '<div class="cs-review-card">' +
+        '<div class="cs-review-top">' +
+          '<span class="cs-review-avatar">' + escapeHtml(getInitials(r.authorName)) + '</span>' +
+          '<span class="cs-review-author">' + escapeHtml(r.authorName) + '</span>' +
+          '<span class="cs-review-stars">' + '★'.repeat(r.rating || 5) + '</span>' +
+        '</div>' +
+        '<div class="cs-review-quote">' + escapeHtml(r.quoteText) + '</div>' +
+      '</div>',
+    footerHtml: footerHtml
+  });
+}
+
+const reviewHeroEl = document.getElementById('reviewHero');
+reviewHeroEl.addEventListener('click', openCustomerStoriesSheet);
+reviewHeroEl.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();
+    openCustomerStoriesSheet();
+  }
+});
+
+startReviewHeroRotation();
+
+// ---------------------------------------------------------------------------
+// EXPANDABLE EXPLAINER — "What is TKG Signature Gravy?" inline on the menu
+// ---------------------------------------------------------------------------
+const explainer = document.getElementById('explainer');
+const explainerToggle = document.getElementById('explainerToggle');
+explainerToggle.addEventListener('click', () => {
+  const isOpen = explainer.classList.toggle('open');
+  explainerToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+});
+
+// ---------------------------------------------------------------------------
+// REGISTRATION OVERLAY — optional, opened from the menu, never blocks it
+// ---------------------------------------------------------------------------
+const overlayBackdrop = document.getElementById('overlayBackdrop');
+const regOverlay = document.getElementById('regOverlay');
+
+function openRegisterOverlay(favoriteItemValue){
+  if(favoriteItemValue){
+    const favInput = document.getElementById('favoriteItemInput');
+    if(favInput) favInput.value = favoriteItemValue;
+  }
+  overlayBackdrop.classList.add('show');
+  regOverlay.classList.add('show');
+}
+
+function closeRegisterOverlay(){
+  overlayBackdrop.classList.remove('show');
+  regOverlay.classList.remove('show');
+}
+
+document.getElementById('openRegisterBtn').addEventListener('click', openRegisterOverlay);
+document.getElementById('closeRegisterBtn').addEventListener('click', closeRegisterOverlay);
+overlayBackdrop.addEventListener('click', closeRegisterOverlay);
+
+// ---------------------------------------------------------------------------
+// REGISTRATION FORM
+// ---------------------------------------------------------------------------
+const nameInput = document.getElementById('nameInput');
+const mobileInput = document.getElementById('mobileInput');
+const nameError = document.getElementById('nameError');
+const mobileError = document.getElementById('mobileError');
+const favoriteItemInput = document.getElementById('favoriteItemInput');
+const regForm = document.getElementById('regForm');
+
+let selectedSource = '';
+
+document.querySelectorAll('.source-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const alreadySelected = chip.classList.contains('selected');
+    document.querySelectorAll('.source-chip').forEach(c => c.classList.remove('selected'));
+    if(alreadySelected){
+      selectedSource = ''; // tap again to deselect — stays optional
+    }else{
+      chip.classList.add('selected');
+      selectedSource = chip.dataset.source;
+    }
+  });
+});
+
+mobileInput.addEventListener('input', () => {
+  mobileInput.value = mobileInput.value.replace(/[^\d]/g, '').slice(0, 10);
+});
+
+// Show "welcome back" chip as soon as a returning mobile number is typed
+mobileInput.addEventListener('input', () => {
+  const list = loadCustomers();
+  const idx = findCustomerIndex(list, mobileInput.value);
+  const chip = document.getElementById('welcomeChip');
+  if(mobileInput.value.length === 10 && idx !== -1){
+    const willBeSameDay = isSameDay(list[idx].lastVisit, new Date().toISOString());
+    const nextVisitCount = (list[idx].visitCount || 1) + (willBeSameDay ? 0 : 1);
+    const dict = translations[currentLang] || translations.en;
+    document.getElementById('welcomeChipText').textContent =
+      dict.reg.welcomeBackVisit(list[idx].name.split(' ')[0], nextVisitCount);
+    chip.classList.add('show');
+    if(!nameInput.value) nameInput.value = list[idx].name;
+  }else{
+    chip.classList.remove('show');
+  }
+});
+
+regForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  let valid = true;
+
+  const name = nameInput.value.trim();
+  const mobile = mobileInput.value.trim();
+  const favoriteItem = favoriteItemInput.value;
+
+  if(name.length < 2){
+    nameInput.classList.add('invalid');
+    nameError.classList.add('show');
+    valid = false;
+  }else{
+    nameInput.classList.remove('invalid');
+    nameError.classList.remove('show');
+  }
+
+  if(mobile.length !== 10){
+    mobileInput.classList.add('invalid');
+    mobileError.classList.add('show');
+    valid = false;
+  }else{
+    mobileInput.classList.remove('invalid');
+    mobileError.classList.remove('show');
+  }
+
+  if(!valid) return;
+
+  const { record, isReturning } = checkInCustomer(name, mobile, favoriteItem, selectedSource);
+
+  const dict = translations[currentLang] || translations.en;
+  const firstName = record.name.split(' ')[0];
+  showToast(isReturning ? dict.checkin.returning(firstName) : dict.checkin.first(firstName));
+  closeRegisterOverlay();
+
+  regForm.reset();
+  document.querySelectorAll('.source-chip').forEach(c => c.classList.remove('selected'));
+  selectedSource = '';
+  document.getElementById('welcomeChip').classList.remove('show');
+
+  // Hand off to the feedback overlay — optional, never forced. Stored for
+  // the feedback/skip handlers below to know which customer to update.
+  lastCheckedInMobile = record.mobile;
+  setTimeout(openFeedbackOverlay, 350); // brief pause so the toast is visible first
+});
+
+// ---------------------------------------------------------------------------
+// FEEDBACK OVERLAY — optional, shown right after check-in
+// ---------------------------------------------------------------------------
+let lastCheckedInMobile = '';
+const feedbackBackdrop = document.getElementById('feedbackBackdrop');
+const feedbackOverlay = document.getElementById('feedbackOverlay');
+const feedbackForm = document.getElementById('feedbackForm');
+const feedbackInput = document.getElementById('feedbackInput');
+
+function openFeedbackOverlay(){
+  feedbackInput.value = '';
+  feedbackBackdrop.classList.add('show');
+  feedbackOverlay.classList.add('show');
+}
+function closeFeedbackOverlay(){
+  feedbackBackdrop.classList.remove('show');
+  feedbackOverlay.classList.remove('show');
+}
+feedbackBackdrop.addEventListener('click', closeFeedbackOverlay);
+
+function saveFeedback(text){
+  if(!lastCheckedInMobile) return;
+  const list = loadCustomers();
+  const idx = findCustomerIndex(list, lastCheckedInMobile);
+  if(idx !== -1){
+    list[idx].feedback = text.trim();
+    list[idx].pendingSync = true;
+    saveCustomers(list);
+    attemptSync();
+  }
+}
+
+feedbackForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = feedbackInput.value.trim();
+  saveFeedback(text);
+  closeFeedbackOverlay();
+  openThanksOverlay(text);
+});
+
+document.getElementById('skipFeedbackBtn').addEventListener('click', () => {
+  closeFeedbackOverlay();
+  openThanksOverlay('');
+});
+
+// ---------------------------------------------------------------------------
+// THANK YOU + OPTIONAL ACTIONS OVERLAY — every action is skippable
+// ---------------------------------------------------------------------------
+const thanksBackdrop = document.getElementById('thanksBackdrop');
+const thanksOverlay = document.getElementById('thanksOverlay');
+const copyReviewCard = document.getElementById('copyReviewCard');
+let lastSubmittedFeedback = '';
+
+function openThanksOverlay(feedbackText){
+  lastSubmittedFeedback = feedbackText || '';
+  // Only offer the copy shortcut if they actually wrote something —
+  // nothing to paste anywhere if they skipped feedback entirely.
+  copyReviewCard.classList.toggle('hidden', !lastSubmittedFeedback);
+  document.getElementById('thanksReviewLink').href = GOOGLE_REVIEW_URL;
+  document.getElementById('thanksInstaLink').href = INSTAGRAM_URL;
+  thanksBackdrop.classList.add('show');
+  thanksOverlay.classList.add('show');
+}
+function closeThanksOverlay(){
+  thanksBackdrop.classList.remove('show');
+  thanksOverlay.classList.remove('show');
+}
+thanksBackdrop.addEventListener('click', closeThanksOverlay);
+document.getElementById('closeThanksBtn').addEventListener('click', closeThanksOverlay);
+
+copyReviewCard.addEventListener('click', async () => {
+  if(!lastSubmittedFeedback) return;
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(lastSubmittedFeedback);
+    }else{
+      // Fallback for older browsers / non-secure contexts where the
+      // Clipboard API isn't available — temporary offscreen textarea
+      // + the legacy execCommand copy path.
+      const ta = document.createElement('textarea');
+      ta.value = lastSubmittedFeedback;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showToast('Review copied — paste it anywhere 👍');
+  }catch(e){
+    showToast('Could not copy — please select the text manually');
+  }
+});
+
+// ---------------------------------------------------------------------------
+// TASTE DISCOVERY OVERLAY — Sprint 2.0. Opens from either the automatic
+// 30s-on-Menu timer or the reminder chip (Planning/Exploring journeys).
+// Same overlay, same flow, either way. Uses the reg-overlay/backdrop
+// pattern exactly like Registration/Feedback — never openContentSheet().
+// ---------------------------------------------------------------------------
+const tasteDiscoveryBackdrop = document.getElementById('tasteDiscoveryBackdrop');
+const tasteDiscoveryOverlay = document.getElementById('tasteDiscoveryOverlay');
+const tasteStepStyle = document.getElementById('tasteStepStyle');
+const tasteStepCheese = document.getElementById('tasteStepCheese');
+const tasteStepResult = document.getElementById('tasteStepResult');
+const tasteStepSavePrompt = document.getElementById('tasteStepSavePrompt');
+
+let tasteDiscoveryTimer = null;
+let tasteSelectedStyle = null;
+let tasteLastRecommendedItemKey = null;
+
+// Maps a Taste Discovery recommendation key to the exact value used by the
+// existing Favorite Item dropdown in the registration form (#favoriteItemInput)
+// — reused as-is, no new registration fields, no backend changes.
+const TASTE_ITEM_TO_REG_VALUE_ = {
+  signatureGravy: 'Signature Gravy Khichiya',
+  cheesySignatureGravy: 'Cheesy Signature Gravy Khichiya',
+  classicKhichiya: 'Classic Khichiya',
+  cheeseMasalaKhichiya: 'Cheese Masala Khichiya'
+};
+
+function hasCompletedTasteDiscovery(){
+  try{ return localStorage.getItem(TASTE_DISCOVERY_COMPLETED_KEY) === 'true'; }catch(e){ return false; }
+}
+
+function hasBeenPromptedForTasteDiscovery(){
+  try{ return localStorage.getItem(TASTE_DISCOVERY_PROMPTED_KEY) === 'true'; }catch(e){ return false; }
+}
+
+function markTasteDiscoveryPrompted(){
+  try{ localStorage.setItem(TASTE_DISCOVERY_PROMPTED_KEY, 'true'); }catch(e){}
+}
+
+function markTasteDiscoveryCompleted(){
+  try{ localStorage.setItem(TASTE_DISCOVERY_COMPLETED_KEY, 'true'); }catch(e){}
+  updateTasteDiscoveryReminderVisibility();
+}
+
+// Reminder chip: journey-gated by data-journey (planning/exploring) exactly
+// like every other contextual element via applyJourneyVisibility(). This
+// adds one more condition on top — hidden once the quiz is completed,
+// regardless of journey — without touching applyJourneyVisibility() itself.
+function updateTasteDiscoveryReminderVisibility(){
+  const card = document.getElementById('tasteDiscoveryReminderCard');
+  if(!card) return;
+  if(hasCompletedTasteDiscovery()) card.style.display = 'none';
+  // else: leave whatever applyJourneyVisibility() last set (journey gate wins)
+}
+
+function startTasteDiscoveryTimer(){
+  cancelTasteDiscoveryTimer(); // never stack multiple timers
+  if(hasBeenPromptedForTasteDiscovery()) return; // automatic popup fires once per device, ever
+  tasteDiscoveryTimer = setTimeout(() => {
+    // Re-check at fire time: don't interrupt if another overlay is open,
+    // or if the customer somehow left the Menu screen without the cancel
+    // path running (defensive — cancelTasteDiscoveryTimer should prevent this).
+    if(!document.getElementById('screen-menu').classList.contains('active')) return;
+    if(document.querySelector('.reg-overlay.show')) return; // never stack over an open overlay
+    openTasteDiscoveryOverlay();
+  }, TASTE_DISCOVERY_DELAY_MS);
+}
+
+function cancelTasteDiscoveryTimer(){
+  if(tasteDiscoveryTimer){ clearTimeout(tasteDiscoveryTimer); tasteDiscoveryTimer = null; }
+}
+
+function resetTasteDiscoverySteps(){
+  tasteSelectedStyle = null;
+  tasteLastRecommendedItemKey = null;
+  tasteStepStyle.classList.remove('hidden');
+  tasteStepCheese.classList.add('hidden');
+  tasteStepResult.classList.add('hidden');
+  tasteStepSavePrompt.classList.add('hidden');
+}
+
+function openTasteDiscoveryOverlay(){
+  markTasteDiscoveryPrompted(); // whether they complete, skip, or dismiss — auto-popup never fires again
+  resetTasteDiscoverySteps();
+  tasteDiscoveryBackdrop.classList.add('show');
+  tasteDiscoveryOverlay.classList.add('show');
+}
+
+function closeTasteDiscoveryOverlay(){
+  tasteDiscoveryBackdrop.classList.remove('show');
+  tasteDiscoveryOverlay.classList.remove('show');
+}
+
+tasteDiscoveryBackdrop.addEventListener('click', closeTasteDiscoveryOverlay);
+document.getElementById('openTasteDiscoveryBtn').addEventListener('click', openTasteDiscoveryOverlay);
+
+// Step 1 — style
+document.querySelectorAll('[data-taste-style]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    tasteSelectedStyle = btn.dataset.tasteStyle;
+    tasteStepStyle.classList.add('hidden');
+    tasteStepCheese.classList.remove('hidden');
+  });
+});
+document.getElementById('tasteSkipBtn1').addEventListener('click', closeTasteDiscoveryOverlay);
+
+// Step 2 — cheese, then show result inside the same overlay flow
+document.querySelectorAll('[data-taste-cheese]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cheese = btn.dataset.tasteCheese;
+    const itemKey = getTasteRecommendation_(tasteSelectedStyle, cheese);
+    tasteLastRecommendedItemKey = itemKey;
+    const dict = translations[currentLang] || translations.en;
+    const item = dict.menu[itemKey];
+
+    document.getElementById('tasteResultName').textContent = item.name;
+    document.getElementById('tasteResultDesc').textContent = item.descShort || item.desc || '';
+    document.getElementById('tasteResultPrice').innerHTML = item.price || '';
+
+    recordTasteDiscoveryEvent({ style: tasteSelectedStyle, cheese: cheese }, itemKey);
+    markTasteDiscoveryCompleted();
+
+    tasteStepCheese.classList.add('hidden');
+    tasteStepResult.classList.remove('hidden');
+  });
+});
+document.getElementById('tasteSkipBtn2').addEventListener('click', closeTasteDiscoveryOverlay);
+
+// "Got it, thanks!" no longer closes the overlay immediately — it reveals
+// the Taste Registration prompt inline, within the same overlay/flow.
+document.getElementById('tasteDoneBtn').addEventListener('click', () => {
+  tasteStepResult.classList.add('hidden');
+  tasteStepSavePrompt.classList.remove('hidden');
+});
+
+// "Save My Taste" — closes the Taste Discovery overlay and opens the
+// existing customer registration overlay, reused as-is, with the
+// recommended item pre-selected in the existing Favorite Item dropdown.
+document.getElementById('tasteSaveMyTasteBtn').addEventListener('click', () => {
+  closeTasteDiscoveryOverlay();
+  const favoriteValue = TASTE_ITEM_TO_REG_VALUE_[tasteLastRecommendedItemKey] || '';
+  openRegisterOverlay(favoriteValue);
+});
+
+// "Maybe Later" — simple dismiss, no popup blocking, no backend action.
+document.getElementById('tasteMaybeLaterBtn').addEventListener('click', closeTasteDiscoveryOverlay);
+
+// ---------------------------------------------------------------------------
+// OWNER DASHBOARD
+// ---------------------------------------------------------------------------
+let dashUnlocked = false;
+
+document.getElementById('openDashBtn').addEventListener('click', () => {
+  showScreen('screen-dash');
+  if(dashUnlocked){
+    document.getElementById('pinGate').style.display = 'none';
+    document.getElementById('dashContent').classList.remove('hidden');
+    document.getElementById('dashContent').style.display = 'flex';
+    renderDashboard();
+  }else{
+    document.getElementById('pinGate').style.display = 'flex';
+    document.getElementById('dashContent').classList.add('hidden');
+    document.getElementById('dashContent').style.display = 'none';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+});
+
+document.getElementById('closeDashBtn').addEventListener('click', () => {
+  showScreen('screen-menu');
+});
+
+document.getElementById('pinSubmitBtn').addEventListener('click', unlockDashboard);
+document.getElementById('pinInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') unlockDashboard();
+});
+
+function unlockDashboard(){
+  const val = document.getElementById('pinInput').value;
+  if(val === OWNER_PIN){
+    dashUnlocked = true;
+    document.getElementById('pinGate').style.display = 'none';
+    document.getElementById('dashContent').classList.remove('hidden');
+    document.getElementById('dashContent').style.display = 'flex';
+    renderDashboard();
+  }else{
+    showToast('Incorrect PIN');
+    document.getElementById('pinInput').value = '';
+  }
+}
+
+function renderDashboard(){
+  const list = loadCustomers();
+  const todayStr = new Date().toDateString();
+
+  const total = list.length;
+  const newToday = list.filter(c => new Date(c.firstVisit).toDateString() === todayStr).length;
+  const repeat = list.filter(c => (c.visitCount || 1) > 1).length;
+  const pending = list.filter(c => c.pendingSync).length;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statToday').textContent = newToday;
+  document.getElementById('statRepeat').textContent = repeat;
+  document.getElementById('statPending').textContent = pending;
+
+  // Customer Journey summary — registered customers only (list is always
+  // just tkg_customers). Anyone who never registered has no record here,
+  // by design — their journey choice stays local/UI-only, never counted.
+  document.getElementById('statJourneyAtTKG').textContent = list.filter(c => c.journey === 'atTKG').length;
+  document.getElementById('statJourneyPlanning').textContent = list.filter(c => c.journey === 'planning').length;
+  document.getElementById('statJourneyExploring').textContent = list.filter(c => c.journey === 'exploring').length;
+
+  // Journey Analytics — anonymous event log (tkg_journey_events), same
+  // source as the "(Today)" card below. Loaded once here and reused for
+  // both the all-time totals and the today-filtered totals — no second
+  // load, no new storage, no new calculation path.
+  const allJourneyEvents = loadJourneyEvents();
+  document.getElementById('statJourneyAnalyticsAtTKG').textContent = allJourneyEvents.filter(e => e.journey === 'atTKG').length;
+  document.getElementById('statJourneyAnalyticsPlanning').textContent = allJourneyEvents.filter(e => e.journey === 'planning').length;
+  document.getElementById('statJourneyAnalyticsExploring').textContent = allJourneyEvents.filter(e => e.journey === 'exploring').length;
+
+  // Journey Analytics (Today) — same anonymous event log, filtered to
+  // today only. Reuses allJourneyEvents above instead of loading again.
+  const todaysEvents = allJourneyEvents.filter(e => new Date(e.ts).toDateString() === todayStr);
+  document.getElementById('statJourneyEventsAtTKG').textContent = todaysEvents.filter(e => e.journey === 'atTKG').length;
+  document.getElementById('statJourneyEventsPlanning').textContent = todaysEvents.filter(e => e.journey === 'planning').length;
+  document.getElementById('statJourneyEventsExploring').textContent = todaysEvents.filter(e => e.journey === 'exploring').length;
+
+  let lastSynced = null;
+  try{ lastSynced = localStorage.getItem('tkg_last_synced'); }catch(e){}
+  document.getElementById('lastSyncedAt').textContent = lastSynced
+    ? new Date(lastSynced).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+    : 'Never';
+
+  renderCustomerList(list);
+}
+
+function renderCustomerList(list){
+  const sorted = [...list].sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit));
+  const container = document.getElementById('custList');
+
+  if(sorted.length === 0){
+    container.innerHTML = '<div class="empty-state">No customers yet. Once guests check in, they will appear here.</div>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(c => `
+    <div class="cust-row" data-name="${escapeHtml(c.name.toLowerCase())}" data-mobile="${c.mobile}">
+      <div class="cust-info">
+        <div class="cust-name">${escapeHtml(c.name)}</div>
+        <div class="cust-mobile">${c.mobile}</div>
+        ${c.favoriteItem || c.source ? `<div class="cust-tags">${c.favoriteItem ? escapeHtml(c.favoriteItem) : ''}${c.favoriteItem && c.source ? ' · ' : ''}${c.source ? escapeHtml(c.source) : ''}</div>` : ''}
+      </div>
+      <div class="cust-meta">
+        <div class="cust-visits">${c.visitCount || 1}x</div>
+        <div class="cust-last">${new Date(c.lastVisit).toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}</div>
+        ${c.pendingSync ? '<div class="pending-tag">Pending</div>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.cust-row').forEach(row => {
+    const matches = row.dataset.name.includes(q) || row.dataset.mobile.includes(q);
+    row.style.display = matches ? 'flex' : 'none';
+  });
+});
+
+document.getElementById('refreshDashBtn').addEventListener('click', () => {
+  renderDashboard();
+  showToast('Dashboard refreshed');
+});
+
+document.getElementById('forceSyncBtn').addEventListener('click', () => {
+  if(!navigator.onLine){
+    showToast('No internet connection right now');
+    return;
+  }
+  attemptSync().then(() => showToast('Sync attempted'));
+});
+
+// ---------------------------------------------------------------------------
+// CSV EXPORT
+// ---------------------------------------------------------------------------
+document.getElementById('exportCsvBtn').addEventListener('click', () => {
+  const list = loadCustomers();
+  if(list.length === 0){
+    showToast('No data to export');
+    return;
+  }
+
+  const header = ['Name', 'Mobile', 'Journey', 'First Visit', 'Last Visit', 'Visit Count', 'Favorite Item', 'Source'];
+  const rows = list.map(c => [
+    c.name,
+    c.mobile,
+    c.journey || '',
+    new Date(c.firstVisit).toISOString(),
+    new Date(c.lastVisit).toISOString(),
+    c.visitCount || 1,
+    c.favoriteItem || '',
+    c.source || ''
+  ]);
+
+  const csvContent = [header, ...rows]
+    .map(row => row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(','))
+    .join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tkg_customers_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('CSV exported');
+});
+
+// ---------------------------------------------------------------------------
+// SERVICE WORKER REGISTRATION
+// ---------------------------------------------------------------------------
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+
+  // Auto-refresh once a new service worker version takes control, so
+  // customers see updates on their next normal reload instead of having
+  // to manually clear cookies/site data. Guarded with `refreshing` so a
+  // reload can never trigger this twice (which would otherwise loop).
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(refreshing) return;
+    refreshing = true;
+    // Don't yank the page out from under someone mid-registration or
+    // mid-feedback — wait until that overlay closes, then reload.
+    const isFormOpen = () =>
+      regOverlay.classList.contains('show') || feedbackOverlay.classList.contains('show');
+    if(isFormOpen()){
+      const waitAndReload = () => {
+        if(!isFormOpen()) location.reload();
+        else setTimeout(waitAndReload, 1000);
+      };
+      waitAndReload();
+    }else{
+      location.reload();
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// INSTALL PROMPT — platform-aware (Android real prompt, iOS manual tip)
+// Never re-shown once dismissed or once installed. Backend/customer data
+// is never touched by any of this.
+// ---------------------------------------------------------------------------
+const INSTALL_DISMISSED_KEY = 'tkg_install_dismissed';
+const installBanner = document.getElementById('installBanner');
+const installTitle = document.getElementById('installTitle');
+const installSub = document.getElementById('installSub');
+const installActionBtn = document.getElementById('installActionBtn');
+const installDismissBtn = document.getElementById('installDismissBtn');
+
+let deferredInstallEvent = null;
+
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true; // iOS Safari flag
+}
+
+function isIos(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent)
+    // iPadOS 13+ reports as Mac but has touch support
+    || (/macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+}
+
+function dismissInstallBanner(persist){
+  installBanner.classList.remove('show');
+  if(persist){
+    try{ localStorage.setItem(INSTALL_DISMISSED_KEY, 'true'); }catch(e){}
+  }
+}
+
+function showInstallBanner(){
+  if(isStandalone()) return; // already installed, never show
+  let dismissed = false;
+  try{ dismissed = localStorage.getItem(INSTALL_DISMISSED_KEY) === 'true'; }catch(e){}
+  if(dismissed) return; // dismissed before
+
+  const dict = translations[currentLang] || translations.en;
+
+  if(deferredInstallEvent){
+    // Android Chrome — real installable state, one-tap action
+    installTitle.textContent = dict.install.androidTitle;
+    installSub.textContent = dict.install.androidSub;
+    installActionBtn.textContent = dict.install.androidBtn;
+    installActionBtn.classList.remove('hidden');
+    installBanner.classList.add('show');
+  }else if(isIos()){
+    // iOS Safari — no programmatic install, show manual instructions instead
+    installTitle.textContent = dict.install.iosTitle;
+    installSub.textContent = dict.install.iosSub;
+    installActionBtn.textContent = dict.install.iosBtn;
+    installActionBtn.classList.remove('hidden');
+    installBanner.classList.add('show');
+  }
+  // Any other platform/browser: beforeinstallprompt never fired, not iOS —
+  // skip entirely rather than show a dead-end button.
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); // suppress the browser's default mini-infobar
+  deferredInstallEvent = e;
+  showInstallBanner();
+});
+
+window.addEventListener('appinstalled', () => {
+  dismissInstallBanner(true);
+  deferredInstallEvent = null;
+});
+
+installActionBtn.addEventListener('click', async () => {
+  if(deferredInstallEvent){
+    dismissInstallBanner(false); // hide immediately, native dialog takes over
+    deferredInstallEvent.prompt(); // actually trigger the native install dialog
+    const choice = await deferredInstallEvent.userChoice;
+    deferredInstallEvent = null;
+    if(choice.outcome === 'accepted'){
+      try{ localStorage.setItem(INSTALL_DISMISSED_KEY, 'true'); }catch(e){}
+    }
+    // If dismissed in the native dialog, banner stays gone for this session
+    // but isn't permanently dismissed — they may have just misclicked.
+  }else{
+    // iOS "Got It" — acknowledge the instructions, don't show again
+    dismissInstallBanner(true);
+  }
+});
+
+installDismissBtn.addEventListener('click', () => dismissInstallBanner(true));
+
+// Delay the iOS check slightly so it doesn't compete with the initial paint;
+// Android path fires naturally via the beforeinstallprompt event whenever
+// Chrome decides to dispatch it (no fixed timing to wait for).
+setTimeout(() => {
+  if(!deferredInstallEvent && isIos()) showInstallBanner();
+}, 1500);
+
+// ---------------------------------------------------------------------------
+// LANGUAGE / i18n — English / Gujarati / Hindi
+// UI text only. Customer data (name, mobile, feedback, etc.) is never
+// touched by this — language choice is stored separately and is purely
+// a display-layer concern. Owner Dashboard intentionally stays English.
+// ---------------------------------------------------------------------------
+const LANG_KEY = 'tkg_language';
+
+const translations = {
+  en: {
+    hero: {
+      lineCoal: 'Coal-Cooked',
+      lineGravy: 'Cheesy Gravy',
+      lineKhichiya: 'Khichiya for Dipping',
+      statement: "🔥 The Gravy's the Hero — Come Dip In"
+    },
+    reg: {
+      eyebrow: "Let's stay connected",
+      title: "Register once, we'll remember you",
+      sub: "It only takes 10 seconds. Next time you're here, we'll already know you.",
+      nameLabel: 'Your Name',
+      namePlaceholder: 'e.g. Rohan Patel',
+      nameError: 'Looks like you missed your name.',
+      mobileLabel: 'Mobile Number',
+      mobilePlaceholder: '10-digit mobile number',
+      mobileError: "That number doesn't look quite right. Please check once.",
+      favoriteLabel: 'Favourite Item <span class="optional-tag">Optional</span>',
+      selectItem: 'Choose an item…',
+      sourceLabel: 'How did you hear about TKG? <span class="optional-tag">Just curious 😊</span>',
+      submitBtn: 'Register &amp; Stay Connected',
+      notNow: 'Maybe Later',
+      consent: 'No login. No OTP. Just your name and number, safely stored.',
+      ctaSub: 'Just 10 seconds. No login, no OTP.',
+      welcomeBack: "Welcome back! It's great to see you again.",
+      welcomeBackVisit: (name, n) => `Welcome back, ${name}! This is visit #${n} — great to see you again.`
+    },
+    source: { instagram:'Instagram', google:'Google', friend:'Friend', family:'Family', walkin:'Walk-In', other:'Other' },
+    feedback: {
+      title: '❤️ Tell us honestly... how was your TKG experience?',
+      label: "Share what's on your mind <span class=\"optional-tag\">Only if you'd like to</span>",
+      placeholder: "The coal-smoked flavour was amazing...\nThe cheese gravy was incredible...\nLoved the Jain option...\nThe Khichiya was perfectly crispy...\nReally enjoyed the service...",
+      submitBtn: 'Send Feedback',
+      skipBtn: 'Maybe Next Time'
+    },
+    thanks: {
+      title: 'Thank you for visiting TKG ❤️',
+      sub: 'Your feedback helps us make every weekend even better.',
+      copyTitle: 'Copy My Review',
+      copySub: "Paste it on Google, Instagram or anywhere you'd like.",
+      copyAction: 'Copy',
+      reviewTitle: 'Leave a Google Review',
+      reviewSub: 'Your support means a lot to our little stall.',
+      instaTitle: 'Open Instagram',
+      instaSub: "@the.khichiyagravy — tag us in your food photos, we'd love to see them!",
+      waTitle: 'Message TKG',
+      waSub: 'Share a suggestion, photo or just say hello.',
+      open: 'Open →',
+      closeBtn: 'Close'
+    },
+    menu: {
+      title: 'Coal-Cooked Cheese Gravy.<br>Roasted Khichiya for Dipping.',
+      hookPunch: 'Not poured on top.<br>Dip. Scoop. Enjoy.',
+      eduTitle: 'What Makes TKG Different?',
+      explainerToggle: 'What is TKG Signature Gravy?',
+      eduLine1: "TKG's signature cheese gravy is freshly made over real coal heat with vegetables, herbs, spices and milk — for that real smoky flavour you won't find anywhere else.",
+      eduLine2: "Unlike anywhere else, our gravy and coal-roasted Khichiya are served separately, so you can dip, scoop and enjoy it exactly your way.",
+      jainAvailable: '🟢 Jain options available',
+      family1Title: 'Coal-Roasted Khichiya',
+      family1Sub: 'Classic dry-roasted snack, no gravy needed.',
+      family1TitleShort: 'Traditional',
+      family2Title: 'Signature Coal-Cooked Cheese Gravy',
+      family2Sub: 'Our hero product — gravy for dipping, not poured on top.',
+      family2TitleShort: 'Signature',
+      jainPrepAvailable: 'Jain Preparation Available',
+      bestseller: 'Bestseller',
+      extrasLabel: 'Extras (Signature Gravy items)',
+      noOnion: 'No-Onion Option Available',
+      wholeWheat: 'Whole Wheat (Gehu Atta) Available on Selected Items',
+      seasonalVeg: 'With Seasonal Vegetable Variations',
+      hours: 'Open Fri/Sat/Sun · Evening to Late Night',
+      getDirections: 'Get Directions',
+      callUs: '+91 95101 00950',
+      priceMini: 'Mini ₹50',
+      whatsapp: 'WhatsApp', instagram: 'Instagram', googleReview: 'Google Review',
+      classicKhichiya: { name:'Classic Khichiya', desc:'Freshly coal-roasted Khichiya finished with real Amul butter and our signature spice blend. Simple, crispy and always a good call.', descShort:'Butter and our signature spice blend.', price:'Mini ₹50<br>Large ₹60', priceLarge:'Large ₹60' },
+      masalaKhichiya: { name:'Masala Khichiya', desc:'Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal and sev — a perfect mix in every bite.', descShort:'Chutney, fresh veg, chana dal and sev.', price:'Mini ₹80<br>Large ₹120', priceMini:'Mini ₹80', priceLarge:'Large ₹120' },
+      cheeseMasalaKhichiya: { name:'Cheese Masala Khichiya', desc:'Our classic Masala Khichiya, loaded with melted cheese on top for an extra indulgent bite.', descShort:'Masala Khichiya loaded with melted cheese.', price:'Mini ₹100<br>Large ₹140', priceMini:'Mini ₹100', priceLarge:'Large ₹140' },
+      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature cheese gravy, slow-cooked over coal with vegetables, herbs and milk. Served with coal-roasted Khichiya for dipping.', descShort:'Creamy coal-cooked cheese gravy, for dipping.', price:'Mini ₹140<br>Large ₹180', priceMini:'Mini ₹140', priceLarge:'Large ₹180' },
+      cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Our Signature Gravy, loaded with extra cheese on top for an even creamier, richer bite.', descShort:'Extra cheese, even creamier and richer.', price:'Mini ₹160<br>Large ₹200', priceMini:'Mini ₹160', priceLarge:'Large ₹200' },
+      extraCheese: { name:'Cheese', desc:'Extra cheese melted right into your gravy.', descShort:'Extra melted cheese.' },
+      extraGravy: { name:'Extra Gravy', desc:'One more bowl of the hero product — for when the Khichiya runs out first.', descShort:'One more bowl of our signature gravy.' },
+      extraKhichiya: { name:'Extra Khichiya', desc:'One more coal-roasted Khichiya — for when the gravy outlasts the first one.', descShort:'One more coal-roasted Khichiya.', priceMini:'Mini ₹50', priceLarge:'Large ₹60' }
+    },
+    install: {
+      androidTitle: 'Add TKG to Your Home Screen',
+      androidSub: 'Just one shortcut — no app store needed.',
+      androidBtn: 'Install',
+      iosTitle: 'Add TKG to Home Screen',
+      iosSub: 'Tap the Share icon below, then "Add to Home Screen."',
+      iosBtn: 'Got It',
+      dismiss: 'Maybe Later'
+    },
+    status: { online:'Online', offline:'Offline — saved on your phone', syncing:'Syncing...', pendingSync:(n)=>`${n} updates waiting to sync` },
+    checkin: { returning:(name)=>`Great to see you again, ${name}!`, first:(name)=>`Welcome to TKG, ${name}!` },
+    reviews: {
+      sheetTitle: 'Loved by Customers',
+      viewMore: 'Tap to read more reviews',
+      ctaHeading: 'Loved your experience?',
+      ctaButton: 'Leave us a Google Review'
+    },
+    contentSheet: {
+      empty: 'Nothing here yet — check back soon.'
+    },
+    journey: {
+      title: '👋 Welcome to TKG!',
+      subtitle: 'What brings you here today? Just let us know...',
+      atTKG: "🟢 I'm at the stall right now",
+      planning: "🟡 I'm planning to visit soon",
+      exploring: '⚪ Just having a look around',
+      browsingAs: "📍 You're browsing as",
+      changeLink: 'Change Journey',
+      hintAtTKG: 'Enjoy your food 😄 If your plans change, you can update your status anytime.',
+      hintPlanning: 'Heading towards TKG? Switch to "I\'m at TKG" once you arrive.',
+      hintExploring: 'Thinking of visiting today? You can change your status anytime.'
+    },
+    // Task 3 — Dynamic Greeting. Time-of-day greeting + a short Journey-aware
+    // line underneath, shown at the top of the Menu page. Additive namespace.
+    greeting: {
+      morning: '👋 Good Morning!',
+      afternoon: '👋 Good Afternoon!',
+      evening: '👋 Good Evening!',
+      night: '👋 Good Night!',
+      atTKG: "Welcome to TKG.<br>Let's make your visit delicious.",
+      planning: "Planning your visit?<br>Let's help you discover your perfect flavour.",
+      exploring: "Welcome!<br>Let's explore what makes TKG special."
+    },
+    // Sprint 2.0 — Taste Discovery Engine. New namespace, additive only.
+    taste: {
+      reminderTitle: '🍽️ Not sure what to order?',
+      reminderSub: "Relax... answer 2 quick questions and we'll take care of the rest.",
+      reminderBtn: 'Help Me Choose',
+      title: '🍽️ Not sure what to order?',
+      sub: "Relax... answer 2 quick questions and we'll take care of the rest.",
+      q1: 'How are you in the mood to enjoy it today?',
+      q1Gravy: '🥣 With delicious gravy',
+      q1Dry: '🥨 Crispy & dry',
+      q2: 'Would you like extra cheese on top?',
+      q2Yes: '🧀 Absolutely!',
+      q2No: "🚫 I'll keep it classic",
+      resultIntro: "Here's the perfect pick for you 👇",
+      doneBtn: 'Sounds Great!',
+      skipBtn: "I'll Decide Myself",
+      savePromptTitle: "❤️ We'd love to remember your taste.",
+      savePromptSub: 'Would you like us to save your taste profile?',
+      savePromptSaveBtn: 'Save My Taste',
+      savePromptLaterBtn: 'Maybe Later'
+    },
+    langSheetTitle: 'Choose Language'
+  },
+
+  gu: {
+    hero: {
+      lineCoal: 'કોલસા પર શેકેલું',
+      lineGravy: 'ચીઝી ગ્રેવી',
+      lineKhichiya: 'ડિપ કરીને ખાવા માટે ખીચીયા',
+      statement: '🔥 TKG નો હીરો — અમારી સિગ્નેચર ગ્રેવી'
+    },
+    reg: {
+      eyebrow: 'આપણા પરિવાર જેવા સંબંધ',
+      title: 'નામ નોંધાવો ને <em>જોડાયેલા રહો.</em>',
+      sub: 'ખાલી ૧૦ સેકન્ડ લાગશે. બીજી વાર આવશો ત્યારે બધું યાદ રહેશે, તમારે મહેનત નહીં કરવી પડે.',
+      nameLabel: 'તમારું નામ',
+      namePlaceholder: 'દા.ત. રોહન પટેલ',
+      nameError: 'નામ લખવાનું રહી ગયું, પ્લીઝ લખી દો ને',
+      mobileLabel: 'મોબાઇલ નંબર',
+      mobilePlaceholder: '૧૦-અંકનો મોબાઇલ નંબર',
+      mobileError: 'નંબર બરાબર નથી લાગતો, એક વાર ચેક કરી લો ને',
+      favoriteLabel: 'તમારી સૌથી મનપસંદ આઇટમ <span class="optional-tag">વૈકલ્પિક</span>',
+      selectItem: 'એક આઇટમ પસંદ કરો…',
+      sourceLabel: 'તમને અમારા વિષે ક્યાંથી ખબર પડી? <span class="optional-tag">વૈકલ્પિક</span>',
+      submitBtn: 'નામ નોંધાવો ને જોડાયેલા રહો',
+      notNow: 'હમણાં રહેવા દો',
+      consent: 'કોઈ લોગિનની ઝંઝટ નથી, કોઈ OTP ની માથાકૂટ નથી. તમારું નામ ને નંબર અહીં એકદમ સુરક્ષિત રહેશે.',
+      ctaSub: 'ખાલી ૧૦ સેકન્ડની જ વાત છે. કોઈ લોગિન કે OTP નથી.',
+      welcomeBack: 'અરે વાહ, ફરી પાછા આવ્યા! બહુ ગમ્યું હોં!',
+      welcomeBackVisit: (name, n) => `અરે વાહ ${name}! ફરી પધાર્યા? આ તમારી #${n} મી મુલાકાત છે, હોં!`
+    },
+    source: { instagram:'ઇન્સ્ટાગ્રામ', google:'ગૂગલ', friend:'મિત્ર તરફથી', family:'પરિવાર તરફથી', walkin:'સીધા સ્ટોલ પરથી', other:'અન્ય' },
+    feedback: {
+      title: '❤️ સાચું કહેજો, TKG નો સ્વાદ કેવો લાગ્યો?',
+      label: 'તમારા મનની વાત કહી દો <span class="optional-tag">વૈકલ્પિક</span>',
+      placeholder: 'કોલસાનો એ સ્મોકી સ્વાદ બહુ મસ્ત હતો...\nચીઝી ગ્રેવી તો એકદમ જોરદાર હતી હોં!\nજૈન ઓપ્શન માટે ખૂબ આભાર...\nખીચીયા એકદમ ક્રિસ્પી ને મજા આવે એવા હતા...\nતમારી સર્વિસ બહુ ગમી...',
+      submitBtn: 'અમારા સુધી મોકલી આપો',
+      skipBtn: 'પછી કહીશ'
+    },
+    thanks: {
+      title: 'TKG પર પધારવા બદલ તમારો ખૂબ ખૂબ આભાર',
+      sub: 'તમે જે વાત કહી, એનાથી અમને દર વીકએન્ડ વધુ સારું કરવાની પ્રેરણા મળશે.',
+      copyTitle: 'મારો રિવ્યુ કોપી કરો',
+      copySub: 'તેને ગૂગલ, ઇન્સ્ટાગ્રામ કે ગમે ત્યાં પેસ્ટ કરી શકો છો.',
+      copyAction: 'કોપી',
+      reviewTitle: 'ગૂગલ પર રિવ્યુ આપો',
+      reviewSub: 'તમારો નાનો સપોર્ટ અમારા નાના સ્ટોલ માટે બહુ મોટો છે.',
+      instaTitle: 'ઇન્સ્ટાગ્રામ ખોલો',
+      instaSub: '@the.khichiyagravy — તમારા મસ્ત ફોટામાં અમને ટેગ કરજો, અમને જોવું બહુ ગમશે.',
+      waTitle: 'TKG ને સીધો મેસેજ કરો',
+      waSub: 'કોઈ પણ સૂચન, ફોટા કે સીધી વાત અમારા સુધી પહોંચાડો.',
+      open: 'ખોલો →',
+      closeBtn: 'બંધ કરો'
+    },
+    menu: {
+      title: 'કોલસા પર રાંધેલી ચીઝ ગ્રેવી.<br>ડિપિંગ માટે શેકેલા ખીચીયા.',
+      hookPunch: 'ઉપર રેડવાની નથી.<br>ડિપ કરો. સ્કૂપ કરો. મજા લો.',
+      eduTitle: 'TKG ને અલગ શું બનાવે છે?',
+      explainerToggle: 'TKG સિગ્નેચર ગ્રેવી શું છે?',
+      eduLine1: 'TKG ની સિગ્નેચર ચીઝ ગ્રેવી શાકભાજી, મસાલા અને અસલી દૂધનો ઉપયોગ કરીને લાઈવ કોલસાની આંચ પર તાજી બનાવવામાં આવે છે જેથી અસલી સ્મોકી ટેસ્ટ મળે.',
+      eduLine2: 'બીજી બધી જગ્યાઓ કરતા અલગ, અહીંયા ગ્રેવી અને કોલસા પર શેકેલા ક્રિસ્પી ખીચીયા અલગથી પીરસવામાં આવે છે, જેથી તમે તમારી રીતે ખાઈ શકો.',
+      jainAvailable: '🟢 જૈન ઓપ્શન ઉપલબ્ધ છે',
+      family1Title: 'કોલસા પર શેકેલા ખીચીયા',
+      family1Sub: 'ક્લાસિક ડ્રાય-રોસ્ટેડ નાસ્તો, ગ્રેવી વગર.',
+      family1TitleShort: 'ટ્રેડિશનલ',
+      family2Title: 'સિગ્નેચર કોલસા પર બનેલી ચીઝ ગ્રેવી',
+      family2Sub: 'અમારી મેઇન આઇટમ — ગ્રેવી ડિપ કરવા માટે છે, ઉપર રેડવા માટે નથી.',
+      family2TitleShort: 'સિગ્નેચર',
+      jainPrepAvailable: 'જૈન ઓપ્શન ઉપલબ્ધ',
+      bestseller: 'બેસ્ટસેલર',
+      extrasLabel: 'એક્સ્ટ્રા (સિગ્નેચર ગ્રેવી આઇટમ્સ)',
+      noOnion: 'ડુંગળી વગર પણ મળી જશે',
+      wholeWheat: 'ઘઉંના લોટના ખીચીયાનો વિકલ્પ પણ મળશે',
+      seasonalVeg: 'સીઝનલ શાકભાજીના ફેરફાર સાથે',
+      hours: 'શુક્ર/શનિ/રવિ ખુલ્લું · સાંજથી મોડી રાત સુધી',
+      getDirections: 'લોકેશન જુઓ',
+      callUs: '+91 95101 00950',
+      priceMini: 'મિની ₹50',
+      whatsapp: 'વોટ્સએપ', instagram: 'ઇન્સ્ટાગ્રામ', googleReview: 'ગૂગલ રિવ્યુ',
+      classicKhichiya: { name:'ક્લાસિક ખીચીયા', desc:'લાઇવ કોલસા પર શેકેલા ખીચીયા, શુદ્ધ અમૂલ બટર અને અમારા ખાસ મસાલા સાથે. એકદમ ક્રિસ્પી ને મસ્ત ટેસ્ટ.', descShort:'બટર અને અમારા ખાસ મસાલા સાથે.', price:'મિની ₹50<br>લાર્જ ₹60', priceLarge:'લાર્જ ₹60' },
+      masalaKhichiya: { name:'મસાલા ખીચીયા', desc:'કોલસા પર શેકેલા ખીચીયા, ચટણી, તાજા શાકભાજી, ચણાની દાળ અને સેવના પરફેક્ટ લેયર સાથે.', descShort:'ચટણી, તાજા શાકભાજી, ચણાની દાળ અને સેવ.', price:'મિની ₹80<br>લાર્જ ₹120', priceMini:'મિની ₹80', priceLarge:'લાર્જ ₹120' },
+      cheeseMasalaKhichiya: { name:'ચીઝ મસાલા ખીચીયા', desc:'અમારા પરંપરાગત મસાલા ખીચીયા પર ઉપરથી નાખેલું ભરપૂર ચીઝ.', descShort:'મસાલા ખીચીયા પર ભરપૂર ઓગળેલું ચીઝ.', price:'મિની ₹100<br>લાર્જ ₹140', priceMini:'મિની ₹100', priceLarge:'લાર્જ ₹140' },
+      signatureGravy: { name:'સિગ્નેચર ગ્રેવી ખીચીયા', desc:'શાકભાજી, હર્બ્સ અને દૂધ સાથે કોલસા પર ધીમી આંચે રાંધેલી ખાસ ચીઝ ગ્રેવી. સાથે ખાવા માટે શેકેલા ખીચીયા.', descShort:'ક્રીમી કોલ-કૂક્ડ ચીઝ ગ્રેવી, ડિપિંગ માટે.', price:'મિની ₹140<br>લાર્જ ₹180', priceMini:'મિની ₹140', priceLarge:'લાર્જ ₹180' },
+      cheesySignatureGravy: { name:'ચીઝી સિગ્નેચર ગ્રેવી ખીચીયા', desc:'અમારી સિગ્નેચર ગ્રેવી, ઉપરથી એક્સ્ટ્રા ચીઝ લોડ કરેલું, જેથી સ્વાદ વધુ ક્રીમી અને જોરદાર લાગે.', descShort:'વધારે ચીઝ, વધુ ક્રીમી અને જોરદાર સ્વાદ.', price:'મિની ₹160<br>લાર્જ ₹200', priceMini:'મિની ₹160', priceLarge:'લાર્જ ₹200' },
+      extraCheese: { name:'ચીઝ', desc:'તમારી ગ્રેવીમાં એક્સ્ટ્રા ચીઝ.', descShort:'ગ્રેવીમાં ઓગળેલું વધારાનું ચીઝ.' },
+      extraGravy: { name:'એક્સ્ટ્રા ગ્રેવી', desc:'અમારી મેઇન ગ્રેવીનો વધુ એક બાઉલ — જ્યારે ખીચીયા વહેલા પતી જાય ત્યારે.', descShort:'અમારી સિગ્નેચર ગ્રેવી વધુ.' },
+      extraKhichiya: { name:'એક્સ્ટ્રા ખીચીયા', desc:'એક એક્સ્ટ્રા કોલસા પર શેકેલા ખીચીયા — જ્યારે ગ્રેવી વધી જાય ત્યારે.', descShort:'એક વધુ કોલસા પર શેકેલા ખીચીયા.', priceMini:'મિની ₹50', priceLarge:'લાર્જ ₹60' }
+    },
+    install: {
+      androidTitle: 'TKG હોમ સ્ક્રીન પર લાવો',
+      androidSub: 'બસ એક શોર્ટકટ બનાવો, કોઈ એપ સ્ટોરની કડાકૂટ નથી.',
+      androidBtn: 'ઇન્સ્ટોલ કરો',
+      iosTitle: 'TKG ને હોમ સ્ક્રીન પર એડ કરો',
+      iosSub: 'નીચે શેર (Share) આઇકન પર ક્લિક કરીને "Add to Home Screen" પસંદ કરી લો.',
+      iosBtn: 'સમજાઈ ગયું',
+      dismiss: 'પછીથી'
+    },
+    status: { online:'ઓનલાઇન', offline:'ઓફલાઇન — ફોનમાં સેવ થયું છે', syncing:'સિંક થાય છે...', pendingSync:(n)=>`${n} અપડેટ્સ સિંક થવાના બાકી` },
+    checkin: { returning:(name)=>`અરે વાહ, ફરી પાછા આવ્યા ${name}! બહુ ગમ્યું હોં!`, first:(name)=>`${name}, TKG માં તમારું સ્વાગત છે!` },
+    reviews: {
+      sheetTitle: 'ગ્રાહકોનો પ્રેમ',
+      viewMore: 'વધુ રિવ્યુ વાંચવા ટૅપ કરો',
+      ctaHeading: 'તમારો અનુભવ ગમ્યો?',
+      ctaButton: 'અમને Google Review આપો'
+    },
+    contentSheet: {
+      empty: 'હજુ કંઈ નથી — થોડી વારમાં ફરી જુઓ.'
+    },
+    journey: {
+      title: '👋 આવો ને! TKG પર તમારું સ્વાગત છે',
+      subtitle: 'આજે તમારા માટે શું સેવા કરીએ? બસ કહી દો...',
+      atTKG: '🟢 હું અત્યારે સ્ટોલ પર જ ઉભો છું',
+      planning: '🟡 બસ રસ્તામાં જ છું, હમણાં આવીશ',
+      exploring: '⚪ બસ એમ જ મેનૂ જોઈ રહ્યો છું',
+      browsingAs: '📍 તમે આ રીતે જોઈ રહ્યા છો',
+      changeLink: 'સ્ટેટસ બદલો',
+      hintAtTKG: 'જમવાની મજા લો 😄 પ્લાન બદલાય તો, ગમે ત્યારે તમારું સ્ટેટસ બદલી શકો છો.',
+      hintPlanning: 'TKG તરફ આવી રહ્યા છો? પહોંચો એટલે "હું TKG પર છું" પર બદલી દેજો.',
+      hintExploring: 'આજે આવવાનું વિચારો છો? તમે ગમે ત્યારે તમારું સ્ટેટસ બદલી શકો છો.'
+    },
+    greeting: {
+      morning: '👋 સુપ્રભાત!',
+      afternoon: '👋 નમસ્કાર!',
+      evening: '👋 ગુડ ઇવનિંગ!',
+      night: '👋 શુભ રાત્રી!',
+      atTKG: 'TKG પર તમારું સ્વાગત છે.<br>ચાલો, તમારી મુલાકાત સ્વાદિષ્ટ બનાવીએ.',
+      planning: 'આવવાનું પ્લાનિંગ કરી રહ્યા છો?<br>તમારા માટે એકદમ પર્ફેક્ટ ફ્લેવર શોધવામાં મદદ કરીએ.',
+      exploring: 'સ્વાગત છે!<br>ચાલો જોઈએ TKG ને ખાસ શું બનાવે છે.'
+    },
+    taste: {
+      reminderTitle: '🍽️ શું ઓર્ડર કરવું એ વિચારવામાં અટવાયા છો?',
+      reminderSub: 'રિલેક્સ... બસ ૨ નાની વાત કહો ને બાકી બધું અમે સંભાળી લઈશું.',
+      reminderBtn: 'મારા માટે બેસ્ટ આઇટમ પસંદ કરો',
+      title: '🍽️ શું ઓર્ડર કરવું એ વિચારવામાં અટવાયા છો?',
+      sub: 'રિલેક્સ... બસ ૨ નાની વાત કહો ને બાકી બધું અમે સંભાળી લઈશું.',
+      q1: 'ડિપ કરવા માટે મસ્ત ગ્રેવી જોઈએ કે એકદમ ક્રિસ્પી અને ડ્રાય?',
+      q1Gravy: '🥣 ડિપ કરવા માટે ગ્રેવી',
+      q1Dry: '🥨 એકદમ ક્રિસ્પી અને ડ્રાય',
+      q2: 'ઉપરથી એક્સ્ટ્રા ચીઝ લોડ કરવું છે ને?',
+      q2Yes: '🧀 હા, ચીઝ તો જોઈએ જ',
+      q2No: '🚫 ના, આપણું સાદું અને ક્લાસિક',
+      resultIntro: 'તમારા માટે એકદમ બેસ્ટ આઇટમ આ રહી 👇',
+      doneBtn: 'સમજાઈ ગયું, થેન્ક યુ!',
+      skipBtn: 'હમણાં નહીં',
+      savePromptTitle: '❤️ અમને તમારો સ્વાદ યાદ રાખવો ગમશે.',
+      savePromptSub: 'શું અમે તમારી ટેસ્ટ પ્રોફાઇલ સાચવીએ?',
+      savePromptSaveBtn: 'મારો સ્વાદ સાચવો',
+      savePromptLaterBtn: 'પછી ક્યારેક'
+    },
+    langSheetTitle: 'ભાષા પસંદ કરો'
+  },
+
+  hi: {
+    hero: {
+      lineCoal: 'कोयले पर बना',
+      lineGravy: 'चीज़ी ग्रेवी',
+      lineKhichiya: 'डिप करके खाने के लिए खीचीया',
+      statement: '🔥 TKG का हीरो — हमारी सिग्नेचर ग्रेवी'
+    },
+    reg: {
+      eyebrow: 'अपनों जैसा रिश्ता',
+      title: 'नाम लिखवाएं और <em>जुड़े रहें.</em>',
+      sub: 'सिर्फ १० सेकंड लगेंगे। अगली बार जब आप आएंगे, तो हमें सब याद रहेगा, आपको सोचना नहीं पड़ेगा।',
+      nameLabel: 'आपका नाम',
+      namePlaceholder: 'जैसे: रोहन पटेल',
+      nameError: 'नाम लिखना रह गया, प्लीज लिख दीजिए न',
+      mobileLabel: 'मोबाइल नंबर',
+      mobilePlaceholder: '१०-अंकों का मोबाइल नंबर',
+      mobileError: 'नंबर कुछ ठीक नहीं लग रहा, एक बार चेक कर लीजिए न',
+      favoriteLabel: 'आपकी सबसे पसंदीदा आइटम <span class="optional-tag">वैकल्पिक</span>',
+      selectItem: 'एक आइटम चुनें…',
+      sourceLabel: 'आपको हमारे बारे में कहाँ से पता चला? <span class="optional-tag">वैकल्पिक</span>',
+      submitBtn: 'नाम लिखवाएं और जुड़े रहें',
+      notNow: 'अभी रहने दीजिए',
+      consent: 'कोई लॉगिन का चक्कर नहीं, कोई OTP का झंझट नहीं। आपका नाम और नंबर यहाँ हमारे पास बिल्कुल सुरक्षित रहेगा।',
+      ctaSub: 'बस १० सेकंड की बात है। कोई लॉगिन या OTP नहीं।',
+      welcomeBack: 'अरे वाह! आप वापस आए, हमें बहुत अच्छा लगा!',
+      welcomeBackVisit: (name, n) => `अरे वाह ${name}! वापस आने के लिए धन्यवाद। यह आपकी #${n} वीं विज़िट है!`
+    },
+    source: { instagram:'इंस्टाग्राम', google:'गूगल', friend:'दोस्तों से', family:'परिवार से', walkin:'सीधे स्टॉल पर देखकर', other:'अन्य' },
+    feedback: {
+      title: '❤️ सच बताइएगा, TKG का स्वाद आपको कैसा लगा?',
+      label: 'अपने दिल की बात हमें बताएं <span class="optional-tag">वैकल्पिक</span>',
+      placeholder: 'कोयले का वो सोंधा स्मोकी स्वाद बहुत मस्त था...\nचीज़ी ग्रेवी एकदम ज़बरदस्त थी!\nजैन ऑप्शन रखने के लिए बहुत-बहुत धन्यवाद...\nखीचीया एकदम क्रिस्पी और मज़ेदार थे...\nआपकी सर्विस बहुत अच्छी लगी...',
+      submitBtn: 'हमारे पास भेज दीजिए',
+      skipBtn: 'फिर कभी बताऊंगा'
+    },
+    thanks: {
+      title: 'TKG आने के लिए आपका बहुत-बहुत धन्यवाद',
+      sub: 'आपका फीडबैक हर वीकेंड हमें बेहतर बनाने में मदद करता है।',
+      copyTitle: 'मेरा रिव्यू कॉपी करें',
+      copySub: 'इसे आप गूगल, इंस्टाग्राम या नीचे कहीं भी पेस्ट कर सकते हैं।',
+      copyAction: 'कॉपी',
+      reviewTitle: 'गूगल पर रिव्यू दें',
+      reviewSub: 'आपका छोटा सा सपोर्ट हमारे इस छोटे स्टॉल के लिए बहुत बड़ा है।',
+      instaTitle: 'इंस्टाग्राम खोलें',
+      instaSub: '@the.khichiyagravy — अपनी मस्त फोटोज़ में हमें टैग कीजिएगा, हमें देखना बहुत अच्छा लगेगा।',
+      waTitle: 'TKG को सीधा मैसेज करें',
+      waSub: 'कोई भी सुझाव, फोटो या अपनी बात हम तक सीधे पहुँचाने के लिए।',
+      open: 'खोलें →',
+      closeBtn: 'बंद करें'
+    },
+    menu: {
+      title: 'कोयले पर पकी चीज़ ग्रेवी।<br>डिप करने के लिए शेके हुए खीचीया।',
+      hookPunch: 'ऊपर से नहीं डालनी।<br>डिप करो। स्कूप करो। मज़ा लो।',
+      eduTitle: 'TKG को सबसे अलग क्या बनाता है?',
+      explainerToggle: 'TKG सिग्नेचर ग्रेवी क्या है?',
+      eduLine1: 'TKG की सिग्नेचर चीज़ ग्रेवी को ताज़ी सब्ज़ियों, मसालों और दूध के साथ लाइव कोयले की आंच पर धीरे-धीरे पकाया जाता है ताकि असली सोंधा स्मोकी टेस्ट मिले।',
+      eduLine2: 'बाकी सब जगह से अलग, यहाँ ग्रेवी और कोयले पर सिंके हुए क्रिस्पी खीचीया अलग से परोसे जाते हैं, ताकि आप हर बाइट अपने तरीके से एंजॉय कर सकें।',
+      jainAvailable: '🟢 जैन ऑप्शन भी उपलब्ध है',
+      family1Title: 'कोयले पर सिंके हुए खीचीया',
+      family1Sub: 'क्लासिक ड्राई-रोस्टेड स्नैक, बिना ग्रेवी के।',
+      family1TitleShort: 'पारंपरिक',
+      family2Title: 'सिग्नेचर कोयले पर बनी चीज़ ग्रेवी',
+      family2Sub: 'हमारा मुख्य प्रोडक्ट — ग्रेवी डिप करने के लिए है, ऊपर से डालने के लिए नहीं।',
+      family2TitleShort: 'सिग्नेचर',
+      jainPrepAvailable: 'जैन तैयारी उपलब्ध',
+      bestseller: 'बेस्टसेलर',
+      extrasLabel: 'एक्स्ट्रा (सिग्नेचर ग्रेवी आइटम्स)',
+      noOnion: 'बिना प्याज के भी मिल जाएगा',
+      wholeWheat: 'गेहूं के आटे के खीचीया का ऑप्शन भी मिलेगा',
+      seasonalVeg: 'सीज़नल सब्ज़ियों के बदलाव के साथ',
+      hours: 'शुक्र/शनि/रवि खुला · शाम से देर रात तक',
+      getDirections: 'लोकेशन देखें',
+      callUs: '+91 95101 00950',
+      priceMini: 'मिनी ₹50',
+      whatsapp: 'व्हाट्सएप', instagram: 'इंस्टाग्राम', googleReview: 'गूगल रिव्यू',
+      classicKhichiya: { name:'क्लासिक खीचीया', desc:'लाइव कोयले पर सिंके हुए खीचीया, शुद्ध अमूल बटर और हमारे खास मसाले के साथ। सिंपल, क्रिस्पी और एकदम मस्त टेस्ट।', descShort:'बटर और हमारे खास मसाले के साथ।', price:'मिनी ₹50<br>लार्ज ₹60', priceLarge:'लार्ज ₹60' },
+      masalaKhichiya: { name:'मसाला खीचीया', desc:'कोयले पर सिंके हुए खीचीया, चटनी, ताज़ी सब्ज़ियों, चने की दाल और बारीक सेव के ज़बरदस्त लेयर के साथ।', descShort:'चटनी, ताज़ी सब्ज़ियाँ, चना दाल और सेव।', price:'मिनी ₹80<br>लार्ज ₹120', priceMini:'मिनी ₹80', priceLarge:'लार्ज ₹120' },
+      cheeseMasalaKhichiya: { name:'चीज़ मसाला खीचीया', desc:'हमारे पारंपरिक मसाला खीचीया पर ऊपर से डाला हुआ भरपूर मेल्टेड चीज़।', descShort:'ऊपर से भरपूर पिघला हुआ चीज़।', price:'मिनी ₹100<br>लार्ज ₹140', priceMini:'मिनी ₹100', priceLarge:'लार्ज ₹140' },
+      signatureGravy: { name:'सिग्नेचर ग्रेवी खीचीया', desc:'ताज़ी सब्ज़ियों, हर्ब्स और दूध के साथ कोयले पर धीमी आंच में पकी खास चीज़ ग्रेवी। साथ में खाने के लिए शेके हुए खीचीया।', descShort:'क्रीमी कोयले पर पकी चीज़ ग्रेवी, डिप करने के लिए।', price:'मिनी ₹140<br>लार्ज ₹180', priceMini:'मिनी ₹140', priceLarge:'लार्ज ₹180' },
+      cheesySignatureGravy: { name:'चीज़ी सिग्नेचर ग्रेवी खीचीया', desc:'हमारी सिग्नेचर ग्रेवी, ऊपर से एक्स्ट्रा चीज़ लोड किया हुआ, ताकि टेस्ट और भी क्रीमी और ज़बरदस्त लगे।', descShort:'एक्स्ट्रा चीज़ के साथ और भी क्रीमी स्वाद।', price:'मिनी ₹160<br>लार्ज ₹200', priceMini:'मिनी ₹160', priceLarge:'लार्ज ₹200' },
+      extraCheese: { name:'चीज़', desc:'आपकी ग्रेवी में एक्स्ट्रा चीज़।', descShort:'ग्रेवी में एक्स्ट्रा चीज़।' },
+      extraGravy: { name:'एक्स्ट्रा ग्रेवी', desc:'हमारी मुख्य ग्रेवी का एक और बाउल — जब खीचीया पहले खत्म हो जाए तब के लिए।', descShort:'थोड़ी और सिग्नेचर ग्रेवी।' },
+      extraKhichiya: { name:'एक्स्ट्रा खीचीया', desc:'एक एक्स्ट्रा कोयले पर सिंके हुए खीचीया — जब ग्रेवी खीचीया से ज़्यादा चले तब के लिए।', descShort:'एक और कोयले पर सिकी हुई खीचीया।', priceMini:'मिनी ₹50', priceLarge:'लार्ज ₹60' }
+    },
+    install: {
+      androidTitle: 'TKG होम स्क्रीन पर लाएं',
+      androidSub: 'बस एक शॉर्टकट बनाएं, किसी ऐप स्टोर की ज़रूरत नहीं।',
+      androidBtn: 'इंस्टॉल करें',
+      iosTitle: 'TKG को होम स्क्रीन पर जोड़ें',
+      iosSub: 'नीचे शेयर (Share) आइकन पर क्लिक करके "Add to Home Screen" चुन लीजिए।',
+      iosBtn: 'समझ गया',
+      dismiss: 'बाद में'
+    },
+    status: { online:'ऑनलाइन', offline:'ऑफलाइन — फोन में सेव है', syncing:'सिंक हो रहा है...', pendingSync:(n)=>`${n} अपडेट्स सिंक होना बाकी` },
+    checkin: { returning:(name)=>`${name}, वापस देखकर खुशी हुई!`, first:(name)=>`${name}, TKG में आपका स्वागत है!` },
+    reviews: {
+      sheetTitle: 'ग्राहकों का प्यार',
+      viewMore: 'और रिव्यू पढ़ने के लिए टैप करें',
+      ctaHeading: 'आपका अनुभव अच्छा रहा?',
+      ctaButton: 'हमें Google Review दें'
+    },
+    contentSheet: {
+      empty: 'अभी यहाँ कुछ नहीं है — थोड़ी देर में फिर देखें.'
+    },
+    journey: {
+      title:'👋 आइए! TKG पर आपका स्वागत है',
+      subtitle: 'आज आपके लिए क्या सेवा करें? बस बता दीजिए...',
+      atTKG: '🟢 मैं अभी स्टॉल पर ही खड़ा हूँ',
+      planning: '🟡 बस रास्ते में हूँ, अभी पहुँचता हूँ',
+      exploring: '⚪ बस ऐसे ही मेनू देख रहा हूँ',
+      browsingAs: '📍 आप इस तरह देख रहे हैं',
+      changeLink: 'स्टेटस बदलें',
+      hintAtTKG: 'खाने का मज़ा लीजिए 😄 प्लान बदले तो, कभी भी अपना स्टेटस बदल सकते हैं।',
+      hintPlanning: 'TKG की तरफ आ रहे हैं? पहुँचते ही "मैं TKG पर हूँ" पर बदल दीजिए।',
+      hintExploring: 'आज आने का सोच रहे हैं? आप कभी भी अपना स्टेटस बदल सकते हैं।'
+    },
+    greeting: {
+      morning: '👋 सुप्रभात!',
+      afternoon: '👋 नमस्कार!',
+      evening: '👋 गुड इवनिंग!',
+      night: '👋 शुभ रात्रि!',
+      atTKG: 'TKG पर आपका स्वागत है।<br>चलिए, आपकी विज़िट को स्वादिष्ट बनाते हैं।',
+      planning: 'आने की योजना बना रहे हैं?<br>आपके लिए एकदम सही फ्लेवर खोजने में मदद करते हैं।',
+      exploring: 'स्वागत है!<br>चलिए देखते हैं TKG को क्या खास बनाता है।'
+    },
+    taste: {
+      reminderTitle: '🍽️ समझ नहीं आ रहा क्या ऑर्डर करें?',
+      reminderSub: 'रिलैक्स... बस २ छोटे जवाब दीजिए, बाकी सब हम संभाल लेंगे।',
+      reminderBtn: 'मेरे लिए सही आइटम चुनिए',
+      title: '🍽️ समझ नहीं आ रहा क्या ऑर्डर करें?',
+      sub: 'रिलैक्स... बस २ छोटे जवाब दीजिए, बाकी सब हम संभाल लेंगे।',
+      q1: 'डिप करने के लिए मस्त ग्रेवी चाहिए या एकदम क्रिस्पी और ड्राई?',
+      q1Gravy: '🥣 डिप करने के लिए ग्रेवी',
+      q1Dry: '🥨 एकदम क्रिस्पी और ड्राई',
+      q2: 'ऊपर से बढ़िया एक्स्ट्रा चीज़ लोड करना है न?',
+      q2Yes: '🧀 हाँ, चीज़ तो बिल्कुल चाहिए',
+      q2No: '🚫 नहीं, अपना सिंपल और क्लासिक ही बढ़िया है',
+      resultIntro: 'आपके स्वाद के हिसाब से बेस्ट आइटम यह रही 👇',
+      doneBtn: 'समझ गया, थैंक यू!',
+      skipBtn: 'अभी रहने दीजिए।',
+      savePromptTitle: '❤️ हमें आपका स्वाद याद रखना अच्छा लगेगा।',
+      savePromptSub: 'क्या हम आपकी टेस्ट प्रोफाइल सेव कर लें?',
+      savePromptSaveBtn: 'मेरा स्वाद सेव करें',
+      savePromptLaterBtn: 'फिर कभी'
+    },
+    langSheetTitle: 'भाषा चुनें'
+  }
+};
+
+let currentLang = 'en';
+try{ currentLang = localStorage.getItem(LANG_KEY) || 'en'; }catch(e){}
+
+function getNested(obj, path){
+  return path.split('.').reduce((o, k) => (o && o[k] !== undefined) ? o[k] : undefined, obj);
+}
+
+function applyTranslations(){
+  const dict = translations[currentLang] || translations.en;
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const val = getNested(dict, el.dataset.i18n);
+    if(typeof val === 'string') el.textContent = val;
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const val = getNested(dict, el.dataset.i18nHtml);
+    if(typeof val === 'string') el.innerHTML = val;
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const val = getNested(dict, el.dataset.i18nPlaceholder);
+    if(typeof val === 'string') el.setAttribute('placeholder', val);
+  });
+
+  document.getElementById('langSheetTitle').textContent = dict.langSheetTitle;
+  document.getElementById('langBtnLabel').textContent = currentLang.toUpperCase();
+
+  // Re-apply current status pill state in the new language without
+  // disturbing actual online/offline/syncing logic.
+  updateStatusPill();
+}
+
+function setLanguage(lang){
+  if(!translations[lang]) return;
+  currentLang = lang;
+  try{ localStorage.setItem(LANG_KEY, lang); }catch(e){}
+  applyTranslations();
+  document.querySelectorAll('.lang-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.lang === lang);
+  });
+  // #journeyHint / #journeyStatusCurrent / #dgGreetingText+#dgSubText are
+  // all set via JS, not data-i18n, so applyTranslations() alone can't
+  // refresh them — re-run explicitly here, guarded for no journey stored
+  // yet (leaves them empty/unchanged, same as before this fix).
+  const storedJourneyForLang = getStoredJourney();
+  if(storedJourneyForLang){
+    updateJourneyHint(storedJourneyForLang);
+    updateJourneyStatusDisplay(storedJourneyForLang);
+    updateDynamicGreeting(storedJourneyForLang);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// LANGUAGE SELECTOR SHEET — open/close/select
+// ---------------------------------------------------------------------------
+const langBackdrop = document.getElementById('langBackdrop');
+const langSheet = document.getElementById('langSheet');
+
+function openLangSheet(){
+  langBackdrop.classList.add('show');
+  langSheet.classList.add('show');
+  clearLangBtnAttention();
+}
+document.getElementById('langBtn').addEventListener('click', openLangSheet);
+function closeLangSheet(){
+  langBackdrop.classList.remove('show');
+  langSheet.classList.remove('show');
+}
+langBackdrop.addEventListener('click', closeLangSheet);
+document.querySelectorAll('.lang-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    setLanguage(opt.dataset.lang);
+    closeLangSheet();
+  });
+});
+
+// One-time discoverability pulse on the language button — fires once per
+// device, never again after the button is noticed or used. Purely visual,
+// never touches language/customer data.
+const LANG_ATTENTION_KEY = 'tkg_lang_attention_seen';
+function clearLangBtnAttention(){
+  const btn = document.getElementById('langBtn');
+  if(btn) btn.classList.remove('attention');
+  try{ localStorage.setItem(LANG_ATTENTION_KEY, 'true'); }catch(e){}
+}
+try{
+  if(!localStorage.getItem(LANG_ATTENTION_KEY)){
+    setTimeout(() => {
+      const btn = document.getElementById('langBtn');
+      if(btn) btn.classList.add('attention');
+      setTimeout(clearLangBtnAttention, 2400); // matches animation duration
+    }, 900); // let the initial paint settle first
+  }
+}catch(e){
+  // localStorage unavailable (e.g. strict private browsing) — skip the
+  // attention cue silently, button still works normally either way.
+}
+
+// Same one-time discoverability pulse for the "Get Directions" link —
+// staggered later than the language pulse so the two don't compete for
+// attention on first load. Fires once per device, never again.
+const DIRECTIONS_ATTENTION_KEY = 'tkg_directions_attention_seen';
+function clearDirectionsAttention(){
+  const link = document.getElementById('directionsLink');
+  if(link) link.classList.remove('attention');
+  try{ localStorage.setItem(DIRECTIONS_ATTENTION_KEY, 'true'); }catch(e){}
+}
+try{
+  if(!localStorage.getItem(DIRECTIONS_ATTENTION_KEY)){
+    setTimeout(() => {
+      const link = document.getElementById('directionsLink');
+      if(link) link.classList.add('attention');
+      setTimeout(clearDirectionsAttention, 1800); // matches animation duration
+    }, 1600); // staggered after the lang-button pulse
+  }
+}catch(e){
+  // localStorage unavailable — skip the attention cue silently, link
+  // still works normally either way.
+}
+document.getElementById('directionsLink')?.addEventListener('click', clearDirectionsAttention);
+
+// ---------------------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------------------
+document.querySelectorAll('.lang-option').forEach(opt => {
+  opt.classList.toggle('selected', opt.dataset.lang === currentLang);
+});
+applyTranslations();
+attemptSync();
+
+// ---------------------------------------------------------------------------
+// CUSTOMER JOURNEY — INITIAL SCREEN (runs last, after langBackdrop/langSheet/
+// LANG_KEY/translations are all initialized above).
+//
+// Returning device (journey already stored): skip straight to the menu,
+// filtered to that path — no language prompt, nothing reused or duplicated.
+//
+// First-time device (no journey stored yet): stay on the Customer Journey
+// screen (already the default-active screen in the markup) and, only if no
+// language has been saved either, auto-open the existing Language Bottom
+// Sheet on top of it via openLangSheet() — the exact same function/markup
+// the language button uses. No new selector, no new popup. Selecting a
+// language closes the sheet automatically (existing .lang-option handler
+// above); the Customer Journey screen is simply what was underneath it.
+// ---------------------------------------------------------------------------
+const storedJourney = getStoredJourney();
+if(storedJourney){
+  applyJourneyVisibility(storedJourney);
+  updateTasteDiscoveryReminderVisibility(); // re-apply completed-hide on top of the fresh journey gate
+  updateJourneyHint(storedJourney);
+  updateJourneyStatusDisplay(storedJourney);
+  updateDynamicGreeting(storedJourney);
+  showScreen('screen-menu');
+}else{
+  let hasStoredLanguage = false;
+  try{ hasStoredLanguage = !!localStorage.getItem(LANG_KEY); }catch(e){}
+  if(!hasStoredLanguage) openLangSheet();
+}
+</script>
+
+</body>
+</html>
