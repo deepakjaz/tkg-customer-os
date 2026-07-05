@@ -3318,7 +3318,10 @@ function openProductPreview(cardEl){
   const badgeEl = cardEl.querySelector('.menu-item-tag:not(.jain-tag)');
 
   const previewImg = document.getElementById('productPreviewImg');
-  previewImg.src = thumbImg.currentSrc || thumbImg.src;
+  // Same filename, dedicated high-res folder — no mapping object, just a
+  // path swap on whatever the Menu thumb is already pointing at.
+  const thumbSrc = thumbImg.currentSrc || thumbImg.src;
+  previewImg.src = thumbSrc.replace('assets/products/', 'assets/product-preview/');
   previewImg.alt = thumbImg.alt || '';
 
   document.getElementById('productPreviewName').textContent = nameEl ? nameEl.textContent : '';
