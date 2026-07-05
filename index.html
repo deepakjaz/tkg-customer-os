@@ -683,6 +683,55 @@ textarea.field-input{
   font-size:11px;
 }
 
+/* ==========================================================================
+   PRODUCT PREVIEW — bottom sheet, opened by tapping a Menu item card.
+   Reuses .overlay-backdrop / .reg-overlay / .reg-overlay-handle as-is (same
+   component already used by Registration/Language/Content sheets) — no new
+   sheet mechanics, just this preview's own content inside it.
+   ========================================================================== */
+.product-preview-media{
+  width:100%;
+  aspect-ratio:4/3;
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  background:var(--stone-card-alt);
+}
+.product-preview-media img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.product-preview-body{
+  padding-top:16px;
+}
+.product-preview-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.product-preview-name{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:19px;
+  color:var(--ink);
+}
+.product-preview-desc{
+  font-size:13.5px;
+  color:var(--ink-soft);
+  line-height:1.5;
+  margin-top:6px;
+}
+.product-preview-price{
+  margin-top:14px;
+  text-align:left;
+  font-size:16px;
+}
+.product-preview-price .price-large{
+  margin-top:3px;
+}
+
 .source-chips{
   display:flex;
   flex-wrap:wrap;
@@ -1936,6 +1985,31 @@ textarea.field-input{
     <div class="content-sheet-body" id="contentSheetBody"></div>
     <div class="content-sheet-footer hidden" id="contentSheetFooter"></div>
     <button type="button" class="btn-secondary" id="closeContentSheetBtn" style="width:100%; margin-top:14px;" data-i18n="thanks.closeBtn">Close</button>
+  </div>
+
+  <!-- ============ PRODUCT PREVIEW — bottom sheet opened by tapping a Menu
+       item card (Menu screen only; no change to Journey/ordering/Dashboard).
+       Reuses .overlay-backdrop/.reg-overlay exactly like every other sheet
+       above — same mechanics, no new component. Content is populated at
+       open time by reading the tapped card's own image/name/desc/price
+       (see openProductPreview()) — no separate product data anywhere.
+       #productPreviewMedia is a plain wrapper so a future sprint can swap
+       the <img> for a looping <video> without touching this markup. ======= -->
+  <div class="overlay-backdrop" id="productPreviewBackdrop"></div>
+  <div class="reg-overlay" id="productPreviewSheet">
+    <div class="reg-overlay-handle"></div>
+    <div class="product-preview-media" id="productPreviewMedia">
+      <img id="productPreviewImg" src="" alt="" loading="lazy" decoding="async">
+    </div>
+    <div class="product-preview-body">
+      <div class="product-preview-top">
+        <div class="product-preview-name" id="productPreviewName"></div>
+        <span class="menu-item-tag hidden" id="productPreviewBadge"></span>
+      </div>
+      <div class="product-preview-desc" id="productPreviewDesc"></div>
+      <div class="menu-item-price product-preview-price" id="productPreviewPrice"></div>
+    </div>
+    <button type="button" class="btn-secondary" id="productPreviewCloseBtn" style="width:100%; margin-top:16px;" data-i18n="thanks.closeBtn">Close</button>
   </div>
 
   <!-- ============ SCREEN 1: CUSTOMER JOURNEY — permanent core feature,
@@ -3220,6 +3294,63 @@ function closeContentSheet(){
 }
 contentSheetBackdrop.addEventListener('click', closeContentSheet);
 document.getElementById('closeContentSheetBtn').addEventListener('click', closeContentSheet);
+
+// ---------------------------------------------------------------------------
+// PRODUCT PREVIEW — bottom sheet opened by tapping a Menu item card. Reads
+// everything (image src, name, description, price, Bestseller badge)
+// straight off the tapped card's own DOM at open time — never a second copy
+// of product data, and it's already in the customer's current language
+// since the card text was set by applyTranslations(). Cards with no
+// .menu-item-thumb image (the "Extra" chip-style rows) are simply not
+// wired up — nothing to preview there.
+// ---------------------------------------------------------------------------
+const productPreviewBackdrop = document.getElementById('productPreviewBackdrop');
+const productPreviewSheet = document.getElementById('productPreviewSheet');
+
+function openProductPreview(cardEl){
+  const thumbImg = cardEl.querySelector('.menu-item-thumb img');
+  if(!thumbImg) return;
+
+  const nameEl = cardEl.querySelector('.menu-item-name');
+  const descEl = cardEl.querySelector('.menu-item-desc');
+  const priceEl = cardEl.querySelector('.menu-item-price');
+  // Bestseller only — the Jain tag is a separate signal, not shown here.
+  const badgeEl = cardEl.querySelector('.menu-item-tag:not(.jain-tag)');
+
+  const previewImg = document.getElementById('productPreviewImg');
+  previewImg.src = thumbImg.currentSrc || thumbImg.src;
+  previewImg.alt = thumbImg.alt || '';
+
+  document.getElementById('productPreviewName').textContent = nameEl ? nameEl.textContent : '';
+  document.getElementById('productPreviewDesc').textContent = descEl ? descEl.textContent : '';
+  document.getElementById('productPreviewPrice').innerHTML = priceEl ? priceEl.innerHTML : '';
+
+  const previewBadge = document.getElementById('productPreviewBadge');
+  if(badgeEl){
+    previewBadge.textContent = badgeEl.textContent;
+    previewBadge.classList.remove('hidden');
+  }else{
+    previewBadge.classList.add('hidden');
+  }
+
+  productPreviewBackdrop.classList.add('show');
+  productPreviewSheet.classList.add('show');
+}
+
+function closeProductPreview(){
+  productPreviewBackdrop.classList.remove('show');
+  productPreviewSheet.classList.remove('show');
+}
+
+document.querySelectorAll('.menu-item').forEach(card => {
+  if(card.querySelector('.menu-item-thumb img')){
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => openProductPreview(card));
+  }
+});
+
+productPreviewBackdrop.addEventListener('click', closeProductPreview);
+document.getElementById('productPreviewCloseBtn').addEventListener('click', closeProductPreview);
 
 // Shared CTA-footer builder for the Content Sheet's optional footer slot.
 // Any future content type (Reviews now; possibly Weekend Specials or
