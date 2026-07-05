@@ -2844,15 +2844,33 @@ function saveJourneyEvents(list){
 // Uses the standard browser permission dialog only (no custom popup). If
 // permission is denied, unavailable, or times out, the journey event is
 // still recorded without location — this never blocks the customer flow.
+//
+// --- TEMPORARY DIAGNOSTIC LOGGING (remove or flip to false after data is
+// collected) --- Added solely to answer "is the bottleneck GPS, permissions,
+// or geocoding?" with real numbers instead of guesses. Console-only, no
+// server/Sheet writes, no PII beyond what's already in Journey Analytics.
+// Safe to delete this whole block and its call sites once you've got enough
+// real-world samples.
+const JOURNEY_GEO_DEBUG = true;
+function geoLog_(...args){ if(JOURNEY_GEO_DEBUG) console.log('[TKG-GEO-DEBUG]', ...args); }
+
 function requestJourneyLocation(callback){
-  if(!navigator.geolocation){ callback(null); return; }
+  if(!navigator.geolocation){ geoLog_('GPS: geolocation API unavailable'); callback(null); return; }
+  const startedAt = Date.now();
   navigator.geolocation.getCurrentPosition(
-    (pos) => callback({
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
-      accuracy: pos.coords.accuracy
-    }),
-    () => callback(null), // denied / unavailable / timed out — degrade gracefully
+    (pos) => {
+      geoLog_(`GPS: success in ${Date.now() - startedAt}ms, accuracy ${pos.coords.accuracy}m`);
+      callback({
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        accuracy: pos.coords.accuracy
+      });
+    },
+    (err) => {
+      // err.code: 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
+      geoLog_(`GPS: failed after ${Date.now() - startedAt}ms — code ${err.code} (${err.message || 'no message'})`);
+      callback(null); // denied / unavailable / timed out — degrade gracefully
+    },
     { timeout: 5000, maximumAge: 60000 }
   );
 }
@@ -2882,6 +2900,7 @@ function ensureLocationConsent(callback){
 
   if('permissions' in navigator && navigator.permissions && navigator.permissions.query){
     navigator.permissions.query({ name: 'geolocation' }).then(status => {
+      geoLog_(`Permission state: ${status.state}`);
       if(status.state === 'granted' || status.state === 'denied'){
         // Browser has already resolved this — no dialog will show either
         // way, so there's nothing to explain. Continue exactly as before.
@@ -2891,6 +2910,7 @@ function ensureLocationConsent(callback){
       }
     }).catch(() => showGeoConsent(callback));
   }else{
+    geoLog_('Permissions API unavailable — cannot report state');
     showGeoConsent(callback);
   }
 }
@@ -2921,20 +2941,31 @@ document.getElementById('geoConsentContinueBtn').addEventListener('click', () =>
 // so callers can always safely proceed without location's Area/City.
 function reverseGeocode(lat, lon){
   return new Promise((resolve) => {
-    if(!('fetch' in window)){ resolve(null); return; }
+    if(!('fetch' in window)){ geoLog_('Geocode: fetch API unavailable'); resolve(null); return; }
+    const startedAt = Date.now();
     const controller = ('AbortController' in window) ? new AbortController() : null;
-    const timeoutId = setTimeout(() => { if(controller) controller.abort(); resolve(null); }, 4000);
+    const timeoutId = setTimeout(() => {
+      if(controller) controller.abort();
+      geoLog_(`Geocode: timed out after ${Date.now() - startedAt}ms`);
+      resolve(null);
+    }, 4000);
     fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`,
       { signal: controller ? controller.signal : undefined, headers: { 'Accept-Language': 'en' } })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         clearTimeout(timeoutId);
         const addr = (data && data.address) || {};
-        const area = addr.suburb || addr.neighbourhood || addr.residential || addr.quarter || '';
+        const area = addr.suburb || addr.neighbourhood || addr.residential || addr.quarter
+          || addr.city_district || addr.hamlet || addr.borough || addr.municipality || '';
         const city = addr.city || addr.town || addr.village || addr.state_district || '';
+        geoLog_(`Geocode: resolved in ${Date.now() - startedAt}ms — area="${area}" city="${city}"`);
         resolve((area || city) ? { area: area, city: city } : null);
       })
-      .catch(() => { clearTimeout(timeoutId); resolve(null); });
+      .catch(() => {
+        clearTimeout(timeoutId);
+        geoLog_(`Geocode: failed after ${Date.now() - startedAt}ms`);
+        resolve(null);
+      });
   });
 }
 
