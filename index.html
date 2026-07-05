@@ -4305,8 +4305,8 @@ const translations = {
     },
     reg: {
       eyebrow: "Let's stay connected",
-      title: "Register once, we'll remember you",
-      sub: "It only takes 10 seconds. Next time you're here, we'll already know you.",
+      title: "Write your name &amp; stay connected",
+      sub: "Takes 10 seconds. We'll remember your preferences next time you stop by.",
       nameLabel: 'Your Name',
       namePlaceholder: 'e.g. Rohan Patel',
       nameError: 'Looks like you missed your name.',
@@ -4318,14 +4318,14 @@ const translations = {
       sourceLabel: 'How did you hear about TKG? <span class="optional-tag">Just curious 😊</span>',
       submitBtn: 'Register &amp; Stay Connected',
       notNow: 'Maybe Later',
-      consent: 'No login. No OTP. Just your name and number, safely stored.',
+      consent: 'No login hassle, no OTP hassle. Just your name and number, kept safe.',
       ctaSub: 'Just 10 seconds. No login, no OTP.',
       welcomeBack: "Welcome back! It's great to see you again.",
       welcomeBackVisit: (name, n) => `Welcome back, ${name}! This is visit #${n} — great to see you again.`
     },
     source: { instagram:'Instagram', google:'Google', friend:'Friend', family:'Family', walkin:'Walk-In', other:'Other' },
     feedback: {
-      title: '❤️ Tell us honestly... how was your TKG experience?',
+      title: '❤️ How did things taste today?',
       label: "Share what's on your mind <span class=\"optional-tag\">Only if you'd like to</span>",
       placeholder: "The coal-smoked flavour was amazing...\nThe cheese gravy was incredible...\nLoved the Jain option...\nThe Khichiya was perfectly crispy...\nReally enjoyed the service...",
       submitBtn: 'Send Feedback',
@@ -4389,7 +4389,7 @@ const translations = {
       iosBtn: 'Got It',
       dismiss: 'Maybe Later'
     },
-    status: { online:'Online', offline:'Offline — saved on your phone', syncing:'Syncing...', pendingSync:(n)=>`${n} updates waiting to sync` },
+    status: { online:'Connected to the Counter', offline:"Saved locally · We'll update the counter when you're back online", syncing:'Updating counter...', pendingSync:(n)=>`Waiting to sync ${n} updates...` },
     checkin: { returning:(name)=>`Great to see you again, ${name}!`, first:(name)=>`Welcome to TKG, ${name}!` },
     reviews: {
       sheetTitle: 'Loved by Customers',
@@ -4402,10 +4402,10 @@ const translations = {
     },
     journey: {
       title: '👋 Welcome to TKG!',
-      subtitle: 'What brings you here today? Just let us know...',
+      subtitle: 'How can we help you today?',
       atTKG: "🟢 I'm at the stall right now",
-      planning: "🟡 I'm planning to visit soon",
-      exploring: '⚪ Just having a look around',
+      planning: '🟡 Planning my visit for later',
+      exploring: '⚪ Just exploring the menu',
       browsingAs: "📍 You're browsing as",
       changeLink: 'Change Journey ›',
       hintAtTKG: 'Enjoy your food 😄 If your plans change, you can update your status anytime.',
@@ -4426,8 +4426,8 @@ const translations = {
     // Sprint 2.0 — Taste Discovery Engine. New namespace, additive only.
     taste: {
       reminderTitle: '🍽️ Not sure what to order?',
-      reminderSub: "Relax... answer 2 quick questions and we'll take care of the rest.",
-      reminderBtn: 'Help Me Choose',
+      reminderSub: "Relax... answer 2 quick questions and we'll pick for you.",
+      reminderBtn: 'Choose my perfect item',
       title: '🍽️ Not sure what to order?',
       sub: "Relax... answer 2 quick questions and we'll take care of the rest.",
       q1: 'How are you in the mood to enjoy it today?',
@@ -4540,7 +4540,7 @@ const translations = {
       iosBtn: 'સમજાઈ ગયું',
       dismiss: 'પછીથી'
     },
-    status: { online:'ઓનલાઇન', offline:'ઓફલાઇન — ફોનમાં સેવ થયું છે', syncing:'સિંક થાય છે...', pendingSync:(n)=>`${n} અપડેટ્સ સિંક થવાના બાકી` },
+    status: { online:'કાઉન્ટર સાથે જોડાયેલા છો', offline:'ફોનમાં સુરક્ષિત છે · ઓનલાઇન આવતા જ કાઉન્ટર પર અપડેટ થઈ જશે', syncing:'કાઉન્ટર અપડેટ થાય છે...', pendingSync:(n)=>`${n} અપડેટ્સ મોકલવાના બાકી છે...` },
     checkin: { returning:(name)=>`અરે વાહ, ફરી પાછા આવ્યા ${name}! બહુ ગમ્યું હોં!`, first:(name)=>`${name}, TKG માં તમારું સ્વાગત છે!` },
     reviews: {
       sheetTitle: 'ગ્રાહકોનો પ્રેમ',
@@ -4688,7 +4688,7 @@ const translations = {
       iosBtn: 'समझ गया',
       dismiss: 'बाद में'
     },
-    status: { online:'ऑनलाइन', offline:'ऑफलाइन — फोन में सेव है', syncing:'सिंक हो रहा है...', pendingSync:(n)=>`${n} अपडेट्स सिंक होना बाकी` },
+    status: { online:'काउंटर से जुड़े हुए हैं', offline:'फ़ोन में सुरक्षित है · ऑनलाइन आते ही काउंटर पर अपडेट हो जाएगा', syncing:'काउंटर अपडेट हो रहा है...', pendingSync:(n)=>`${n} अपडेट्स भेजना बाकी है...` },
     checkin: { returning:(name)=>`${name}, वापस देखकर खुशी हुई!`, first:(name)=>`${name}, TKG में आपका स्वागत है!` },
     reviews: {
       sheetTitle: 'ग्राहकों का प्यार',
