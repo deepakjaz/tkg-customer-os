@@ -2012,6 +2012,21 @@ textarea.field-input{
     <button type="button" class="btn-secondary" id="productPreviewCloseBtn" style="width:100%; margin-top:16px;" data-i18n="thanks.closeBtn">Close</button>
   </div>
 
+  <!-- ============ LOCATION PERMISSION EXPLANATION — shown once, only
+       before the very first native browser location prompt (see
+       ensureLocationConsent()). Reuses .overlay-backdrop/.reg-overlay
+       exactly like every other sheet on this page — same mechanics, no new
+       component, no second overlay system. ======= -->
+  <div class="overlay-backdrop" id="geoConsentBackdrop"></div>
+  <div class="reg-overlay" id="geoConsentOverlay">
+    <div class="reg-overlay-handle"></div>
+    <div class="hero-block" style="margin-top:0; margin-bottom:0;">
+      <p class="hero-sub" data-i18n="geo.title" style="font-weight:600; color:var(--ink);">Help us serve you better.</p>
+      <p class="hero-sub" data-i18n="geo.sub">Location is used only during your visit.</p>
+    </div>
+    <button type="button" class="btn-primary" id="geoConsentContinueBtn" style="width:100%; margin-top:16px;" data-i18n="geo.continueBtn">Continue</button>
+  </div>
+
   <!-- ============ SCREEN 1: CUSTOMER JOURNEY — permanent core feature,
        independent of any campaign. Always the first interaction on a
        fresh device. Choice is stored locally (tkg_journey — separate key
@@ -2386,6 +2401,13 @@ textarea.field-input{
         </div>
       </div>
 
+      <div class="dash-section-label">📍 Where Customers Come From</div>
+      <div class="stat-grid">
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div id="topAreasList"></div>
+        </div>
+      </div>
+
       <div class="dash-section-label">📅 Today's Summary</div>
       <div class="stat-grid">
         <div class="stat-card">
@@ -2402,7 +2424,7 @@ textarea.field-input{
         </div>
         <div class="stat-card">
           <div class="stat-num" id="statPending">0</div>
-          <div class="stat-label">Pending Sync</div>
+          <div class="stat-label">Pending Registration Sync</div>
         </div>
         <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
           <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
@@ -2420,7 +2442,7 @@ textarea.field-input{
             <div class="stat-label" style="margin-top:0;">Last synced</div>
             <div style="font-size:12px; color:var(--marble); font-family:var(--font-mono); margin-top:3px;" id="lastSyncedAt">—</div>
           </div>
-          <button class="btn-secondary" id="forceSyncBtn" style="padding:9px 14px; font-size:12px;">Sync Now</button>
+          <button class="btn-secondary" id="forceSyncBtn" style="padding:9px 14px; font-size:12px;">Sync Registrations</button>
         </div>
       </div>
 
@@ -2835,6 +2857,63 @@ function requestJourneyLocation(callback){
   );
 }
 
+// ---------------------------------------------------------------------------
+// LOCATION PERMISSION EXPLANATION — a small, one-time, brand-voice screen
+// shown before the *first* native browser location prompt only. Uses the
+// Permissions API (where available) to detect whether the browser has
+// already resolved this permission (granted or denied) — in that case the
+// native dialog either won't appear at all (granted) or won't appear again
+// anyway (denied), so we skip straight to requestJourneyLocation exactly as
+// before, unchanged. Only when the state is still 'prompt' (or the
+// Permissions API isn't supported, e.g. older Safari — falls back to a
+// one-time localStorage flag instead) do we show the explanation first.
+// Reuses .overlay-backdrop/.reg-overlay — no new sheet mechanics.
+// ---------------------------------------------------------------------------
+const GEO_CONSENT_SHOWN_KEY = 'tkg_geo_consent_shown';
+const geoConsentBackdrop = document.getElementById('geoConsentBackdrop');
+const geoConsentOverlay = document.getElementById('geoConsentOverlay');
+let pendingLocationCallback = null;
+
+function ensureLocationConsent(callback){
+  let alreadyShown = false;
+  try{ alreadyShown = localStorage.getItem(GEO_CONSENT_SHOWN_KEY) === '1'; }catch(e){}
+
+  if(alreadyShown){ requestJourneyLocation(callback); return; }
+
+  if('permissions' in navigator && navigator.permissions && navigator.permissions.query){
+    navigator.permissions.query({ name: 'geolocation' }).then(status => {
+      if(status.state === 'granted' || status.state === 'denied'){
+        // Browser has already resolved this — no dialog will show either
+        // way, so there's nothing to explain. Continue exactly as before.
+        requestJourneyLocation(callback);
+      }else{
+        showGeoConsent(callback);
+      }
+    }).catch(() => showGeoConsent(callback));
+  }else{
+    showGeoConsent(callback);
+  }
+}
+
+function showGeoConsent(callback){
+  pendingLocationCallback = callback;
+  geoConsentBackdrop.classList.add('show');
+  geoConsentOverlay.classList.add('show');
+}
+
+function closeGeoConsent(){
+  geoConsentBackdrop.classList.remove('show');
+  geoConsentOverlay.classList.remove('show');
+}
+
+document.getElementById('geoConsentContinueBtn').addEventListener('click', () => {
+  try{ localStorage.setItem(GEO_CONSENT_SHOWN_KEY, '1'); }catch(e){}
+  closeGeoConsent();
+  const cb = pendingLocationCallback;
+  pendingLocationCallback = null;
+  requestJourneyLocation(cb || (() => {}));
+});
+
 // Reverse geocoding — turns Latitude/Longitude into a human-readable
 // Area/City using the free OSM Nominatim endpoint. Time-bounded (4s) so a
 // slow/unreachable geocoder can never hold up Journey Analytics; resolves
@@ -2860,7 +2939,7 @@ function reverseGeocode(lat, lon){
 }
 
 function recordJourneyEvent(journey){
-  requestJourneyLocation(async (loc) => {
+  ensureLocationConsent(async (loc) => {
     const events = loadJourneyEvents();
     const event = { journey: journey, ts: new Date().toISOString(), pendingSync: true };
     if(loc){
@@ -4030,6 +4109,12 @@ function renderDashboard(){
   document.getElementById('statJourneyAnalyticsPlanning').textContent = journeyEvents.filter(e => e.journey === 'planning').length;
   document.getElementById('statJourneyAnalyticsExploring').textContent = journeyEvents.filter(e => e.journey === 'exploring').length;
 
+  // ---- 📍 Where Customers Come From — Area tally from Journey Analytics.
+  // Blank Areas (no geocode result) are excluded entirely rather than shown
+  // as an "Unknown" row, per spec. Reuses the same row styling as the
+  // At TKG / Planning / Exploring rows above — no new component.
+  renderTopAreas(journeyEvents);
+
   // ---- 📅 Today's Summary — the ONLY section filtered by today's date ----
   const newToday = list.filter(c => new Date(c.firstVisit).toDateString() === todayDateStr).length;
   const returningToday = list.filter(c =>
@@ -4066,6 +4151,29 @@ function renderDashboard(){
 
   // ---- 👥 Recent Customers — sorted by Last Visit, not filtered to today ----
   renderCustomerList(list);
+}
+
+function renderTopAreas(journeyEvents){
+  const counts = {};
+  journeyEvents.forEach(e => {
+    const area = (e.area || '').trim();
+    if(!area) return; // ignore blank Areas entirely
+    counts[area] = (counts[area] || 0) + 1;
+  });
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const container = document.getElementById('topAreasList');
+
+  if(sorted.length === 0){
+    container.innerHTML = '<div class="empty-state">No area data yet.</div>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(([area, count]) => `
+    <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+      <span>${escapeHtml(area)}</span><span>${count}</span>
+    </div>
+  `).join('');
 }
 
 function renderCustomerList(list){
@@ -4390,6 +4498,7 @@ const translations = {
       dismiss: 'Maybe Later'
     },
     status: { online:'Connected to the Counter', offline:"Saved locally · We'll update the counter when you're back online", syncing:'Updating counter...', pendingSync:(n)=>`Waiting to sync ${n} updates...` },
+    geo: { title:'Help us serve you better.', sub:'Location is used only during your visit.', continueBtn:'Continue' },
     checkin: { returning:(name)=>`Great to see you again, ${name}!`, first:(name)=>`Welcome to TKG, ${name}!` },
     reviews: {
       sheetTitle: 'Loved by Customers',
@@ -4541,6 +4650,7 @@ const translations = {
       dismiss: 'પછીથી'
     },
     status: { online:'કાઉન્ટર સાથે જોડાયેલા છો', offline:'ફોનમાં સુરક્ષિત છે · ઓનલાઇન આવતા જ કાઉન્ટર પર અપડેટ થઈ જશે', syncing:'કાઉન્ટર અપડેટ થાય છે...', pendingSync:(n)=>`${n} અપડેટ્સ મોકલવાના બાકી છે...` },
+    geo: { title:'તમને વધુ સારી સેવા આપવા માટે.', sub:'સ્થાનનો ઉપયોગ ફક્ત તમારી મુલાકાત દરમિયાન જ થશે.', continueBtn:'આગળ વધો' },
     checkin: { returning:(name)=>`અરે વાહ, ફરી પાછા આવ્યા ${name}! બહુ ગમ્યું હોં!`, first:(name)=>`${name}, TKG માં તમારું સ્વાગત છે!` },
     reviews: {
       sheetTitle: 'ગ્રાહકોનો પ્રેમ',
@@ -4689,6 +4799,7 @@ const translations = {
       dismiss: 'बाद में'
     },
     status: { online:'काउंटर से जुड़े हुए हैं', offline:'फ़ोन में सुरक्षित है · ऑनलाइन आते ही काउंटर पर अपडेट हो जाएगा', syncing:'काउंटर अपडेट हो रहा है...', pendingSync:(n)=>`${n} अपडेट्स भेजना बाकी है...` },
+    geo: { title:'आपको बेहतर सेवा देने के लिए।', sub:'स्थान का उपयोग केवल आपकी इस यात्रा के दौरान होगा।', continueBtn:'आगे बढ़ें' },
     checkin: { returning:(name)=>`${name}, वापस देखकर खुशी हुई!`, first:(name)=>`${name}, TKG में आपका स्वागत है!` },
     reviews: {
       sheetTitle: 'ग्राहकों का प्यार',
