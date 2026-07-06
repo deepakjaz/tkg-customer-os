@@ -2016,15 +2016,42 @@ textarea.field-input{
        before the very first native browser location prompt (see
        ensureLocationConsent()). Reuses .overlay-backdrop/.reg-overlay
        exactly like every other sheet on this page — same mechanics, no new
-       component, no second overlay system. ======= -->
+       component, no second overlay system.
+
+       The .geo-preview-* block below is a purely decorative, non-interactive
+       mock of the Menu screen — reassurance only, never real product data.
+       Deliberately uses its own class names (NOT .menu-item) so it can never
+       be picked up by the real Product Preview binding
+       (`document.querySelectorAll('.menu-item')` at the bottom of this
+       file) — no click handlers, pointer-events disabled, aria-hidden. ======= -->
   <div class="overlay-backdrop" id="geoConsentBackdrop"></div>
   <div class="reg-overlay" id="geoConsentOverlay">
     <div class="reg-overlay-handle"></div>
     <div class="hero-block" style="margin-top:0; margin-bottom:0;">
-      <p class="hero-sub" data-i18n="geo.title" style="font-weight:600; color:var(--ink);">Help us serve you better.</p>
-      <p class="hero-sub" data-i18n="geo.sub">Location is used only during your visit.</p>
+      <p class="hero-sub" data-i18n="geo.title" style="font-weight:600; color:var(--ink);">You're in control.</p>
+      <p class="hero-sub" data-i18n="geo.sub">Next, your browser will ask if TKG can use your location — that choice is entirely yours. We only use it to understand which areas our customers visit us from, so we can serve you better. Whichever you choose, Allow or Don't Allow, you'll continue straight to the menu right after.</p>
     </div>
-    <button type="button" class="btn-primary" id="geoConsentContinueBtn" style="width:100%; margin-top:16px;" data-i18n="geo.continueBtn">Continue</button>
+
+    <div class="geo-preview" aria-hidden="true" style="display:flex; gap:10px; margin:16px 0 2px; pointer-events:none; user-select:none; opacity:0.55; filter:saturate(0.7);">
+      <div class="geo-preview-card" style="flex:1; background:var(--stone-base); border:1px solid var(--marble-dim); border-radius:12px; padding:9px;">
+        <div style="height:40px; border-radius:8px; background:var(--marble-dim); display:flex; align-items:center; justify-content:center; font-size:18px;">🍛</div>
+        <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:8px; width:80%;"></div>
+        <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:5px; width:55%;"></div>
+      </div>
+      <div class="geo-preview-card" style="flex:1; background:var(--stone-base); border:1px solid var(--marble-dim); border-radius:12px; padding:9px;">
+        <div style="height:40px; border-radius:8px; background:var(--marble-dim); display:flex; align-items:center; justify-content:center; font-size:18px;">🥟</div>
+        <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:8px; width:70%;"></div>
+        <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:5px; width:45%;"></div>
+      </div>
+      <div class="geo-preview-card" style="flex:1; background:var(--stone-base); border:1px solid var(--marble-dim); border-radius:12px; padding:9px;">
+        <div style="height:40px; border-radius:8px; background:var(--marble-dim); display:flex; align-items:center; justify-content:center; font-size:18px;">🧀</div>
+        <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:8px; width:75%;"></div>
+        <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:5px; width:50%;"></div>
+      </div>
+    </div>
+    <p class="hero-sub" data-i18n="geo.previewCaption" style="font-size:11px; text-align:center; opacity:0.7; margin-top:0;">You'll reach the menu right after you make your choice.</p>
+
+    <button type="button" class="btn-primary" id="geoConsentContinueBtn" style="width:100%; margin-top:14px;" data-i18n="geo.continueBtn">Continue</button>
   </div>
 
   <!-- ============ SCREEN 1: CUSTOMER JOURNEY — permanent core feature,
@@ -2844,33 +2871,15 @@ function saveJourneyEvents(list){
 // Uses the standard browser permission dialog only (no custom popup). If
 // permission is denied, unavailable, or times out, the journey event is
 // still recorded without location — this never blocks the customer flow.
-//
-// --- TEMPORARY DIAGNOSTIC LOGGING (remove or flip to false after data is
-// collected) --- Added solely to answer "is the bottleneck GPS, permissions,
-// or geocoding?" with real numbers instead of guesses. Console-only, no
-// server/Sheet writes, no PII beyond what's already in Journey Analytics.
-// Safe to delete this whole block and its call sites once you've got enough
-// real-world samples.
-const JOURNEY_GEO_DEBUG = true;
-function geoLog_(...args){ if(JOURNEY_GEO_DEBUG) console.log('[TKG-GEO-DEBUG]', ...args); }
-
 function requestJourneyLocation(callback){
-  if(!navigator.geolocation){ geoLog_('GPS: geolocation API unavailable'); callback(null); return; }
-  const startedAt = Date.now();
+  if(!navigator.geolocation){ callback(null); return; }
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      geoLog_(`GPS: success in ${Date.now() - startedAt}ms, accuracy ${pos.coords.accuracy}m`);
-      callback({
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude,
-        accuracy: pos.coords.accuracy
-      });
-    },
-    (err) => {
-      // err.code: 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
-      geoLog_(`GPS: failed after ${Date.now() - startedAt}ms — code ${err.code} (${err.message || 'no message'})`);
-      callback(null); // denied / unavailable / timed out — degrade gracefully
-    },
+    (pos) => callback({
+      latitude: pos.coords.latitude,
+      longitude: pos.coords.longitude,
+      accuracy: pos.coords.accuracy
+    }),
+    () => callback(null), // denied / unavailable / timed out — degrade gracefully
     { timeout: 5000, maximumAge: 60000 }
   );
 }
@@ -2900,7 +2909,6 @@ function ensureLocationConsent(callback){
 
   if('permissions' in navigator && navigator.permissions && navigator.permissions.query){
     navigator.permissions.query({ name: 'geolocation' }).then(status => {
-      geoLog_(`Permission state: ${status.state}`);
       if(status.state === 'granted' || status.state === 'denied'){
         // Browser has already resolved this — no dialog will show either
         // way, so there's nothing to explain. Continue exactly as before.
@@ -2910,7 +2918,6 @@ function ensureLocationConsent(callback){
       }
     }).catch(() => showGeoConsent(callback));
   }else{
-    geoLog_('Permissions API unavailable — cannot report state');
     showGeoConsent(callback);
   }
 }
@@ -2934,41 +2941,66 @@ document.getElementById('geoConsentContinueBtn').addEventListener('click', () =>
   requestJourneyLocation(cb || (() => {}));
 });
 
-// Reverse geocoding — turns Latitude/Longitude into a human-readable
-// Area/City using the free OSM Nominatim endpoint. Time-bounded (4s) so a
-// slow/unreachable geocoder can never hold up Journey Analytics; resolves
-// to null (never rejects) on any failure, timeout, or unparsable response,
-// so callers can always safely proceed without location's Area/City.
+// ---------------------------------------------------------------------------
+// resolveBusinessLocality(address) — turns a Nominatim `address` object into
+// a single, business-meaningful locality name for the Owner Dashboard.
+//
+// Why this priority order (tuned for how OSM/Nominatim tags Surat & similar
+// Indian cities, not a generic global default):
+//   suburb, neighbourhood, city_district  — the standard tiers OSM uses for
+//     named localities *within* a city (e.g. Vesu, Adajan, Piplod, City
+//     Light) — these are exactly the "which locality sends visitors" answer
+//     the owner wants, so they're checked first.
+//   residential, borough, quarter         — looser/administrative tags that
+//     sometimes stand in for the above inside dense urban areas when OSM's
+//     finer tagging is incomplete for a given street.
+//   hamlet, village, town                 — for points that fall *outside*
+//     the dense city core (e.g. Dumas), OSM often has nothing finer than a
+//     village/town tag. Using it as the locality here means a customer
+//     visiting from an outlying area still gets a real, useful name instead
+//     of a permanently blank row — at the cost of that name sometimes
+//     matching the City column too, which is an acceptable trade-off for a
+//     rural/peri-urban point.
+// GPS coordinates are deliberately never part of this — lat/lon exist only
+// as the reverse-geocoding input, never as an owner-facing output.
+// ---------------------------------------------------------------------------
+function resolveBusinessLocality(address){
+  const addr = address || {};
+  return addr.suburb || addr.neighbourhood || addr.city_district || addr.residential
+    || addr.borough || addr.quarter || addr.hamlet || addr.village || addr.town || '';
+}
+
+// Reverse geocoding — turns Latitude/Longitude into a business Locality/City
+// using the free OSM Nominatim endpoint. Time-bounded (4s) so a slow/
+// unreachable geocoder can never hold up Journey Analytics; resolves to null
+// (never rejects) on any failure, timeout, or unparsable response, so
+// callers can always safely proceed without a Locality/City.
 function reverseGeocode(lat, lon){
   return new Promise((resolve) => {
-    if(!('fetch' in window)){ geoLog_('Geocode: fetch API unavailable'); resolve(null); return; }
-    const startedAt = Date.now();
+    if(!('fetch' in window)){ resolve(null); return; }
     const controller = ('AbortController' in window) ? new AbortController() : null;
-    const timeoutId = setTimeout(() => {
-      if(controller) controller.abort();
-      geoLog_(`Geocode: timed out after ${Date.now() - startedAt}ms`);
-      resolve(null);
-    }, 4000);
+    const timeoutId = setTimeout(() => { if(controller) controller.abort(); resolve(null); }, 4000);
     fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`,
       { signal: controller ? controller.signal : undefined, headers: { 'Accept-Language': 'en' } })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         clearTimeout(timeoutId);
         const addr = (data && data.address) || {};
-        const area = addr.suburb || addr.neighbourhood || addr.residential || addr.quarter
-          || addr.city_district || addr.hamlet || addr.borough || addr.municipality || '';
+        const locality = resolveBusinessLocality(addr);
         const city = addr.city || addr.town || addr.village || addr.state_district || '';
-        geoLog_(`Geocode: resolved in ${Date.now() - startedAt}ms — area="${area}" city="${city}"`);
-        resolve((area || city) ? { area: area, city: city } : null);
+        resolve((locality || city) ? { locality: locality, city: city } : null);
       })
-      .catch(() => {
-        clearTimeout(timeoutId);
-        geoLog_(`Geocode: failed after ${Date.now() - startedAt}ms`);
-        resolve(null);
-      });
+      .catch(() => { clearTimeout(timeoutId); resolve(null); });
   });
 }
 
+// One tap = one event: recordJourneyEvent is called from exactly one place
+// (selectJourney), which is itself bound by exactly one addEventListener
+// per journey-option button, at top-level script scope (runs once per page
+// load, never re-bound). The event object is only ever pushed to storage
+// once, inside this single callback, after the permission flow (and, when
+// permission allows it, the GPS + reverse-geocode chain) has fully finished
+// — never before.
 function recordJourneyEvent(journey){
   ensureLocationConsent(async (loc) => {
     const events = loadJourneyEvents();
@@ -2979,10 +3011,10 @@ function recordJourneyEvent(journey){
       event.accuracy = loc.accuracy;
       // Never blocks Journey Analytics: reverseGeocode is time-bounded and
       // always resolves (never rejects), even on failure/timeout — the
-      // event is saved and synced with blank Area/City in that case.
+      // event is saved and synced with a blank Locality/City in that case.
       const place = await reverseGeocode(loc.latitude, loc.longitude);
       if(place){
-        event.area = place.area;
+        event.locality = place.locality;
         event.city = place.city;
       }
     }
@@ -3011,7 +3043,7 @@ async function attemptJourneyEventSync(){
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'journeyEvent',
-        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, area: e.area, city: e.city }))
+        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, locality: e.locality, city: e.city }))
       })
     });
 
@@ -4140,10 +4172,12 @@ function renderDashboard(){
   document.getElementById('statJourneyAnalyticsPlanning').textContent = journeyEvents.filter(e => e.journey === 'planning').length;
   document.getElementById('statJourneyAnalyticsExploring').textContent = journeyEvents.filter(e => e.journey === 'exploring').length;
 
-  // ---- 📍 Where Customers Come From — Area tally from Journey Analytics.
-  // Blank Areas (no geocode result) are excluded entirely rather than shown
-  // as an "Unknown" row, per spec. Reuses the same row styling as the
-  // At TKG / Planning / Exploring rows above — no new component.
+  // ---- 📍 Where Customers Come From — Locality tally from Journey
+  // Analytics. Blank Localities (no geocode result) are excluded entirely
+  // rather than shown as an "Unknown" row, per spec. Reuses the same row
+  // styling as the At TKG / Planning / Exploring rows above — no new
+  // component. Never shows Latitude/Longitude — those exist only as the
+  // reverse-geocoding input, never as an owner-facing output.
   renderTopAreas(journeyEvents);
 
   // ---- 📅 Today's Summary — the ONLY section filtered by today's date ----
@@ -4187,22 +4221,22 @@ function renderDashboard(){
 function renderTopAreas(journeyEvents){
   const counts = {};
   journeyEvents.forEach(e => {
-    const area = (e.area || '').trim();
-    if(!area) return; // ignore blank Areas entirely
-    counts[area] = (counts[area] || 0) + 1;
+    const locality = (e.locality || '').trim();
+    if(!locality) return; // ignore blank Localities entirely — never show "Unknown"
+    counts[locality] = (counts[locality] || 0) + 1;
   });
 
   const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const container = document.getElementById('topAreasList');
 
   if(sorted.length === 0){
-    container.innerHTML = '<div class="empty-state">No area data yet.</div>';
+    container.innerHTML = '<div class="empty-state">No locality data yet.</div>';
     return;
   }
 
-  container.innerHTML = sorted.map(([area, count]) => `
+  container.innerHTML = sorted.map(([locality, count]) => `
     <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-      <span>${escapeHtml(area)}</span><span>${count}</span>
+      <span>${escapeHtml(locality)}</span><span>${count}</span>
     </div>
   `).join('');
 }
@@ -4529,7 +4563,7 @@ const translations = {
       dismiss: 'Maybe Later'
     },
     status: { online:'Connected to the Counter', offline:"Saved locally · We'll update the counter when you're back online", syncing:'Updating counter...', pendingSync:(n)=>`Waiting to sync ${n} updates...` },
-    geo: { title:'Help us serve you better.', sub:'Location is used only during your visit.', continueBtn:'Continue' },
+    geo: { title:"You're in control.", sub:"Next, your browser will ask if TKG can use your location — that choice is entirely yours. We only use it to understand which areas our customers visit us from, so we can serve you better. Whichever you choose, Allow or Don't Allow, you'll continue straight to the menu right after.", previewCaption:"You'll reach the menu right after you make your choice.", continueBtn:'Continue' },
     checkin: { returning:(name)=>`Great to see you again, ${name}!`, first:(name)=>`Welcome to TKG, ${name}!` },
     reviews: {
       sheetTitle: 'Loved by Customers',
@@ -4681,7 +4715,7 @@ const translations = {
       dismiss: 'પછીથી'
     },
     status: { online:'કાઉન્ટર સાથે જોડાયેલા છો', offline:'ફોનમાં સુરક્ષિત છે · ઓનલાઇન આવતા જ કાઉન્ટર પર અપડેટ થઈ જશે', syncing:'કાઉન્ટર અપડેટ થાય છે...', pendingSync:(n)=>`${n} અપડેટ્સ મોકલવાના બાકી છે...` },
-    geo: { title:'તમને વધુ સારી સેવા આપવા માટે.', sub:'સ્થાનનો ઉપયોગ ફક્ત તમારી મુલાકાત દરમિયાન જ થશે.', continueBtn:'આગળ વધો' },
+    geo: { title:'નિર્ણય તમારા હાથમાં છે.', sub:"હવે તમારું બ્રાઉઝર પૂછશે કે TKG તમારું લોકેશન વાપરી શકે કે નહીં — એ પસંદગી પૂરેપૂરી તમારી છે. અમે ફક્ત એ સમજવા માટે વાપરીએ છીએ કે અમારા ગ્રાહકો કયા વિસ્તારમાંથી આવે છે, જેથી તમને વધુ સારી સેવા આપી શકીએ. તમે Allow કરો કે Don't Allow, તમારી પસંદગી પછી તરત જ તમે મેનૂ પર પહોંચી જશો.", previewCaption:'તમારી પસંદગી કર્યા પછી તરત જ તમે મેનૂ પર પહોંચી જશો.', continueBtn:'આગળ વધો' },
     checkin: { returning:(name)=>`અરે વાહ, ફરી પાછા આવ્યા ${name}! બહુ ગમ્યું હોં!`, first:(name)=>`${name}, TKG માં તમારું સ્વાગત છે!` },
     reviews: {
       sheetTitle: 'ગ્રાહકોનો પ્રેમ',
@@ -4830,7 +4864,7 @@ const translations = {
       dismiss: 'बाद में'
     },
     status: { online:'काउंटर से जुड़े हुए हैं', offline:'फ़ोन में सुरक्षित है · ऑनलाइन आते ही काउंटर पर अपडेट हो जाएगा', syncing:'काउंटर अपडेट हो रहा है...', pendingSync:(n)=>`${n} अपडेट्स भेजना बाकी है...` },
-    geo: { title:'आपको बेहतर सेवा देने के लिए।', sub:'स्थान का उपयोग केवल आपकी इस यात्रा के दौरान होगा।', continueBtn:'आगे बढ़ें' },
+    geo: { title:'निर्णय आपके हाथ में है।', sub:"अब आपका ब्राउज़र पूछेगा कि TKG आपकी लोकेशन इस्तेमाल कर सकता है या नहीं — यह फैसला पूरी तरह आपका है। हम बस इतना समझने के लिए इस्तेमाल करते हैं कि हमारे ग्राहक किन इलाकों से आते हैं, ताकि आपको और बेहतर सेवा दे सकें। आप Allow करें या Don't Allow, अपना फैसला करते ही आप सीधे मेनू पर पहुंच जाएंगे।", previewCaption:'अपना फैसला करते ही आप सीधे मेनू पर पहुंच जाएंगे।', continueBtn:'आगे बढ़ें' },
     checkin: { returning:(name)=>`${name}, वापस देखकर खुशी हुई!`, first:(name)=>`${name}, TKG में आपका स्वागत है!` },
     reviews: {
       sheetTitle: 'ग्राहकों का प्यार',
