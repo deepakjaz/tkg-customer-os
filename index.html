@@ -2844,6 +2844,9 @@ async function attemptSync(){
 // tkg_customers), so the Owner Dashboard can count "today" from local
 // history even after an event has already synced:
 //   { journey: 'atTKG' | 'planning' | 'exploring', ts: "ISO string",
+//     locality, city, landmark: all optional strings, blank/absent when
+//     location wasn't granted or geocoding failed — older locally-stored
+//     events simply predate the `landmark` field and are read the same way,
 //     pendingSync: true|false }
 // ---------------------------------------------------------------------------
 const JOURNEY_EVENTS_KEY = 'tkg_journey_events';
@@ -2994,6 +2997,35 @@ function reverseGeocode(lat, lon){
   });
 }
 
+// Nearby Landmark — a second, independent reverse-geocode lookup at
+// building/POI zoom (18, vs. reverseGeocode's suburb-level zoom 14) purely
+// to find a recognizable named place near the customer (shop, attraction,
+// office, etc.) for business analytics. Deliberately separate from
+// resolveBusinessLocality/Locality above — Locality is unchanged by this.
+// Runs in parallel with reverseGeocode() (see recordJourneyEvent), not
+// after it, so it adds no extra wait time. Time-bounded (4s) and always
+// resolves to '' — never rejects — on any failure, timeout, or when no
+// named place is nearby, so a missing landmark can never fail or delay a
+// Journey event.
+function resolveNearbyLandmark(lat, lon){
+  return new Promise((resolve) => {
+    if(!('fetch' in window)){ resolve(''); return; }
+    const controller = ('AbortController' in window) ? new AbortController() : null;
+    const timeoutId = setTimeout(() => { if(controller) controller.abort(); resolve(''); }, 4000);
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+      { signal: controller ? controller.signal : undefined, headers: { 'Accept-Language': 'en' } })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        clearTimeout(timeoutId);
+        const addr = (data && data.address) || {};
+        const landmark = addr.attraction || addr.tourism || addr.leisure || addr.amenity
+          || addr.shop || addr.office || addr.historic || addr.building || (data && data.name) || '';
+        resolve(landmark);
+      })
+      .catch(() => { clearTimeout(timeoutId); resolve(''); });
+  });
+}
+
 // One tap = one event: recordJourneyEvent is called from exactly one place
 // (selectJourney), which is itself bound by exactly one addEventListener
 // per journey-option button, at top-level script scope (runs once per page
@@ -3009,14 +3041,20 @@ function recordJourneyEvent(journey){
       event.latitude = loc.latitude;
       event.longitude = loc.longitude;
       event.accuracy = loc.accuracy;
-      // Never blocks Journey Analytics: reverseGeocode is time-bounded and
-      // always resolves (never rejects), even on failure/timeout — the
-      // event is saved and synced with a blank Locality/City in that case.
-      const place = await reverseGeocode(loc.latitude, loc.longitude);
+      // Never blocks Journey Analytics: both lookups are time-bounded and
+      // always resolve (never reject), even on failure/timeout — the event
+      // is saved and synced with a blank Locality/City/Landmark in that case.
+      // Run in parallel, not sequentially, so Nearby Landmark adds zero
+      // extra wait time on top of the existing Locality/City lookup.
+      const [place, landmark] = await Promise.all([
+        reverseGeocode(loc.latitude, loc.longitude),
+        resolveNearbyLandmark(loc.latitude, loc.longitude)
+      ]);
       if(place){
         event.locality = place.locality;
         event.city = place.city;
       }
+      event.landmark = landmark || '';
     }
     events.push(event);
     saveJourneyEvents(events);
@@ -3043,7 +3081,7 @@ async function attemptJourneyEventSync(){
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'journeyEvent',
-        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, locality: e.locality, city: e.city }))
+        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, locality: e.locality, city: e.city, landmark: e.landmark }))
       })
     });
 
