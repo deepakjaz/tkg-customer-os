@@ -3142,6 +3142,17 @@ function resolveNearbyLandmarkFallback(lat, lon){
 // it. Time-bounded (4s) and always resolves to '' on failure/timeout/rate
 // limit — never blocks or fails the event; resolveLandmark() below falls
 // back to the Nominatim-based Tier B in that case.
+//
+// Selection is two-tiered:
+//   Tier A (curated, genuinely recognizable) — mall, university, college,
+//     school, hospital, place of worship, hotel, cinema, railway station,
+//     bus station, marketplace, or any named shop/office. Preferred whenever
+//     present, regardless of distance within the radius.
+//   Tier B (catch-all) — the NEAREST named building of any kind. This is
+//     what actually covers residential societies and commercial complexes
+//     (e.g. "Jolly Residency") that carry no amenity/shop/office tag at
+//     all, only a building name — previously these fell through to blank.
+//     Only used when Tier A finds nothing.
 function resolveOverpassLandmark(lat, lon){
   return new Promise((resolve) => {
     if(!('fetch' in window)){ resolve(''); return; }
@@ -3155,6 +3166,8 @@ function resolveOverpassLandmark(lat, lon){
       `way(around:750,${lat},${lon})["amenity"="university"];` +
       `node(around:750,${lat},${lon})["amenity"="college"];` +
       `way(around:750,${lat},${lon})["amenity"="college"];` +
+      `node(around:750,${lat},${lon})["amenity"="school"];` +
+      `way(around:750,${lat},${lon})["amenity"="school"];` +
       `node(around:750,${lat},${lon})["tourism"="attraction"];` +
       `node(around:750,${lat},${lon})["tourism"="aquarium"];` +
       // Tier 2: still genuinely recognizable, broadens hit rate for
@@ -3168,7 +3181,18 @@ function resolveOverpassLandmark(lat, lon){
       `node(around:750,${lat},${lon})["amenity"="cinema"];` +
       `node(around:750,${lat},${lon})["railway"="station"];` +
       `node(around:750,${lat},${lon})["amenity"="bus_station"];` +
-    ');out tags center 1;';
+      `node(around:750,${lat},${lon})["amenity"="marketplace"];` +
+      // Tier 3: commercial complexes — any named shop/office, so retail and
+      // office addresses resolve even without a more specific curated tag
+      `node(around:750,${lat},${lon})["shop"]["name"];` +
+      `way(around:750,${lat},${lon})["shop"]["name"];` +
+      `node(around:750,${lat},${lon})["office"]["name"];` +
+      `way(around:750,${lat},${lon})["office"]["name"];` +
+      // Tier 4: catch-all — any named building at all (residential
+      // societies, apartment complexes, generic named structures)
+      `way(around:750,${lat},${lon})["building"]["name"];` +
+      `node(around:750,${lat},${lon})["building"]["name"];` +
+    ');out tags center 30;';
     fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
       body: 'data=' + encodeURIComponent(query),
@@ -3179,8 +3203,31 @@ function resolveOverpassLandmark(lat, lon){
         clearTimeout(timeoutId);
         if(TKG_GEO_RAW_LOG) console.log('[TKG GEO RAW] resolveOverpassLandmark input:', { lat, lon }, 'response:', data);
         const elements = (data && Array.isArray(data.elements)) ? data.elements : [];
-        const first = elements.find(el => el && el.tags && el.tags.name);
-        resolve(first ? first.tags.name : '');
+
+        const isCuratedTag = (tags) => !!(
+          tags.shop || tags.office ||
+          ['university','college','school','hospital','place_of_worship','cinema','bus_station','marketplace']
+            .includes(tags.amenity) ||
+          ['attraction','aquarium','hotel'].includes(tags.tourism) ||
+          tags.railway === 'station'
+        );
+        const curated = elements.find(el => el && el.tags && el.tags.name && isCuratedTag(el.tags));
+        if(curated){ resolve(curated.tags.name); return; }
+
+        // Nothing curated nearby — fall back to the NEAREST named building
+        // (covers residential societies / commercial complexes with no
+        // other tag) instead of leaving Landmark blank.
+        const namedBuildings = elements.filter(el => el && el.tags && el.tags.name && el.tags.building);
+        if(namedBuildings.length === 0){ resolve(''); return; }
+        let nearest = null, nearestDist = Infinity;
+        for(const el of namedBuildings){
+          const elLat = el.lat != null ? el.lat : (el.center && el.center.lat);
+          const elLon = el.lon != null ? el.lon : (el.center && el.center.lon);
+          if(elLat == null || elLon == null) continue;
+          const dist = haversineMeters(lat, lon, elLat, elLon);
+          if(dist < nearestDist){ nearestDist = dist; nearest = el; }
+        }
+        resolve(nearest ? nearest.tags.name : '');
       })
       .catch(() => { clearTimeout(timeoutId); resolve(''); });
   });
