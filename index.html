@@ -2945,6 +2945,72 @@ document.getElementById('geoConsentContinueBtn').addEventListener('click', () =>
 });
 
 // ---------------------------------------------------------------------------
+// SURAT_COHORTS — a small, hand-maintained list of known high-traffic
+// locality centers, used to resolve GPS coordinates to a clean marketing
+// name (Vesu/Piplod/Adajan/Pal) BEFORE falling back to OSM/Nominatim's
+// often-missing neighbourhood tags. This is the fix for "Vesu coordinates
+// become Dumas/Surat/blank" — it does not depend on OSM having tagged the
+// area at all.
+//
+// Where these coordinates came from: each one was cross-checked against
+// multiple independent public pincode/locality lookups (not a single
+// AI-generated guess, and not a physical site visit) before being used
+// here. They are pincode-area centroids, not survey-grade points — that is
+// the right level of precision for "which named neighbourhood is this
+// customer in", not for anything requiring meter-level accuracy.
+//
+// Extending this list later requires NO field visits: look up a new
+// locality's pincode centroid from any public source (cross-check against
+// at least one other source — different sites can disagree by kilometers,
+// as we found while building this), add one line below, done. A good
+// prompt for when to add one: the "Where Customers Come From" dashboard
+// card will show blank or oddly-named rows clustering somewhere real — add
+// a cohort for that place then, driven by actual data, not upfront guessing.
+//
+// maxMatchMeters is a hard ceiling: a coordinate farther than this from
+// EVERY cohort below never gets force-matched to the nearest one just
+// because it's on the list — it falls through to the OSM-based
+// resolveBusinessLocality() result instead. This is what prevents a
+// customer genuinely in Dumas (or anywhere else not on this list) from
+// being mislabeled as "Vesu" simply because Vesu happens to be closest of
+// four hardcoded points.
+// ---------------------------------------------------------------------------
+const SURAT_COHORTS = [
+  { name: 'Vesu',   lat: 21.1447, lon: 72.7718, radiusMeters: 1800 },
+  { name: 'Piplod', lat: 21.1575, lon: 72.7755, radiusMeters: 1500 },
+  { name: 'Adajan', lat: 21.1940, lon: 72.7980, radiusMeters: 2000 },
+  { name: 'Pal',    lat: 21.1850, lon: 72.7761, radiusMeters: 1500 }
+];
+const SURAT_COHORT_MAX_MATCH_METERS = 3000;
+
+function haversineMeters(lat1, lon1, lat2, lon2){
+  const R = 6371000;
+  const toRad = (d) => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Returns the name of the closest cohort whose distance is within
+// SURAT_COHORT_MAX_MATCH_METERS, or '' if nothing is close enough — pure
+// local math, no network call, so this is instant and never fails.
+function resolveSuratCohortLocality(lat, lon){
+  let best = null;
+  let bestDist = Infinity;
+  for(const cohort of SURAT_COHORTS){
+    const dist = haversineMeters(lat, lon, cohort.lat, cohort.lon);
+    if(dist < bestDist){
+      bestDist = dist;
+      best = cohort;
+    }
+  }
+  if(best && bestDist <= SURAT_COHORT_MAX_MATCH_METERS) return best.name;
+  return '';
+}
+
+// ---------------------------------------------------------------------------
 // resolveBusinessLocality(address) — turns a Nominatim `address` object into
 // a single, business-meaningful locality name for the Owner Dashboard.
 //
@@ -2966,6 +3032,9 @@ document.getElementById('geoConsentContinueBtn').addEventListener('click', () =>
 //     rural/peri-urban point.
 // GPS coordinates are deliberately never part of this — lat/lon exist only
 // as the reverse-geocoding input, never as an owner-facing output.
+//
+// This is now the FALLBACK, used only when resolveSuratCohortLocality()
+// above doesn't find a close-enough match — see recordJourneyEvent.
 // ---------------------------------------------------------------------------
 function resolveBusinessLocality(address){
   const addr = address || {};
@@ -2978,6 +3047,14 @@ function resolveBusinessLocality(address){
 // unreachable geocoder can never hold up Journey Analytics; resolves to null
 // (never rejects) on any failure, timeout, or unparsable response, so
 // callers can always safely proceed without a Locality/City.
+// --- TEMPORARY AUDIT LOGGING (Location Intelligence Audit sprint) ---
+// Logs the COMPLETE, unmodified Nominatim response so real GPS-fix data can
+// be inspected directly, instead of guessing at field priority. No parsing,
+// no filtering, no summarizing here — just exposing exactly what Customer
+// OS receives. Remove this whole block (and its two call sites below) once
+// the audit is done; toggle to false in the meantime to silence it.
+const TKG_GEO_RAW_LOG = true;
+
 function reverseGeocode(lat, lon){
   return new Promise((resolve) => {
     if(!('fetch' in window)){ resolve(null); return; }
@@ -2988,6 +3065,7 @@ function reverseGeocode(lat, lon){
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         clearTimeout(timeoutId);
+        if(TKG_GEO_RAW_LOG) console.log('[TKG GEO RAW] reverseGeocode (zoom=14) input:', { lat, lon }, 'response:', data);
         const addr = (data && data.address) || {};
         const locality = resolveBusinessLocality(addr);
         const city = addr.city || addr.town || addr.village || addr.state_district || '';
@@ -2997,17 +3075,15 @@ function reverseGeocode(lat, lon){
   });
 }
 
-// Nearby Landmark — a second, independent reverse-geocode lookup at
-// building/POI zoom (18, vs. reverseGeocode's suburb-level zoom 14) purely
-// to find a recognizable named place near the customer (shop, attraction,
-// office, etc.) for business analytics. Deliberately separate from
-// resolveBusinessLocality/Locality above — Locality is unchanged by this.
-// Runs in parallel with reverseGeocode() (see recordJourneyEvent), not
-// after it, so it adds no extra wait time. Time-bounded (4s) and always
-// resolves to '' — never rejects — on any failure, timeout, or when no
-// named place is nearby, so a missing landmark can never fail or delay a
-// Journey event.
-function resolveNearbyLandmark(lat, lon){
+// Nearby Landmark, Tier B (fallback) — a second, independent reverse-geocode
+// lookup at building/POI zoom (18, vs. reverseGeocode's suburb-level zoom
+// 14). Kept as a fallback for when Overpass (Tier A, below) is unreachable
+// or times out — Nominatim's reverse endpoint can only tell you what
+// contains the exact point, not what's nearby, which is why it was usually
+// blank on its own; Overpass is a genuine proximity search and is tried
+// first. Time-bounded (4s) and always resolves to '' — never rejects — on
+// any failure, timeout, or when no named place is nearby.
+function resolveNearbyLandmarkFallback(lat, lon){
   return new Promise((resolve) => {
     if(!('fetch' in window)){ resolve(''); return; }
     const controller = ('AbortController' in window) ? new AbortController() : null;
@@ -3017,6 +3093,7 @@ function resolveNearbyLandmark(lat, lon){
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         clearTimeout(timeoutId);
+        if(TKG_GEO_RAW_LOG) console.log('[TKG GEO RAW] resolveNearbyLandmarkFallback (zoom=18) input:', { lat, lon }, 'response:', data);
         const addr = (data && data.address) || {};
         const landmark = addr.attraction || addr.tourism || addr.leisure || addr.amenity
           || addr.shop || addr.office || addr.historic || addr.building || (data && data.name) || '';
@@ -3024,6 +3101,53 @@ function resolveNearbyLandmark(lat, lon){
       })
       .catch(() => { clearTimeout(timeoutId); resolve(''); });
   });
+}
+
+// Nearby Landmark, Tier A — Overpass API (free, unmetered OSM spatial query
+// engine). Unlike Nominatim's reverse endpoint, this can do a genuine
+// "what's within N meters of this point" search, which is what actually
+// fixes Landmark being blank most of the time — a customer doesn't need to
+// be standing exactly on VR Mall's building outline, just within 750m of
+// it. Time-bounded (4s) and always resolves to '' on failure/timeout/rate
+// limit — never blocks or fails the event; resolveLandmark() below falls
+// back to the Nominatim-based Tier B in that case.
+function resolveOverpassLandmark(lat, lon){
+  return new Promise((resolve) => {
+    if(!('fetch' in window)){ resolve(''); return; }
+    const controller = ('AbortController' in window) ? new AbortController() : null;
+    const timeoutId = setTimeout(() => { if(controller) controller.abort(); resolve(''); }, 4000);
+    const query = '[out:json][timeout:4];(' +
+      `node(around:750,${lat},${lon})["shop"="mall"];` +
+      `way(around:750,${lat},${lon})["shop"="mall"];` +
+      `node(around:750,${lat},${lon})["amenity"="university"];` +
+      `node(around:750,${lat},${lon})["amenity"="college"];` +
+      `node(around:750,${lat},${lon})["tourism"="attraction"];` +
+      `node(around:750,${lat},${lon})["tourism"="aquarium"];` +
+    ');out tags center 1;';
+    fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: 'data=' + encodeURIComponent(query),
+      signal: controller ? controller.signal : undefined
+    })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        clearTimeout(timeoutId);
+        if(TKG_GEO_RAW_LOG) console.log('[TKG GEO RAW] resolveOverpassLandmark input:', { lat, lon }, 'response:', data);
+        const elements = (data && Array.isArray(data.elements)) ? data.elements : [];
+        const first = elements.find(el => el && el.tags && el.tags.name);
+        resolve(first ? first.tags.name : '');
+      })
+      .catch(() => { clearTimeout(timeoutId); resolve(''); });
+  });
+}
+
+// Combined landmark resolver: Overpass first (real proximity search), then
+// the Nominatim-based fallback only if Overpass found nothing or failed.
+// Never rejects; blank is always an acceptable final answer.
+async function resolveLandmark(lat, lon){
+  const overpassResult = await resolveOverpassLandmark(lat, lon);
+  if(overpassResult) return overpassResult;
+  return resolveNearbyLandmarkFallback(lat, lon);
 }
 
 // One tap = one event: recordJourneyEvent is called from exactly one place
@@ -3041,20 +3165,39 @@ function recordJourneyEvent(journey){
       event.latitude = loc.latitude;
       event.longitude = loc.longitude;
       event.accuracy = loc.accuracy;
-      // Never blocks Journey Analytics: both lookups are time-bounded and
-      // always resolve (never reject), even on failure/timeout — the event
-      // is saved and synced with a blank Locality/City/Landmark in that case.
-      // Run in parallel, not sequentially, so Nearby Landmark adds zero
-      // extra wait time on top of the existing Locality/City lookup.
-      const [place, landmark] = await Promise.all([
-        reverseGeocode(loc.latitude, loc.longitude),
-        resolveNearbyLandmark(loc.latitude, loc.longitude)
-      ]);
-      if(place){
-        event.locality = place.locality;
-        event.city = place.city;
+
+      // Confidence guard: a poor GPS fix (large accuracy radius) can put the
+      // raw coordinate anywhere within a wide circle — resolving Locality/
+      // Landmark from it would just be guessing with extra steps, and could
+      // burn an Overpass/Nominatim call on data not worth trusting. Skip all
+      // network lookups entirely in that case rather than resolve something
+      // confidently wrong.
+      if(loc.accuracy != null && loc.accuracy > 150){
+        event.locality = 'Low GPS Confidence';
+        event.landmark = 'Low GPS Confidence';
+      }else{
+        // Never blocks Journey Analytics: every lookup below is time-bounded
+        // and always resolves (never rejects), even on failure/timeout — the
+        // event is saved and synced with whatever it does have in that case.
+        // Run in parallel, not sequentially, so Landmark resolution adds no
+        // extra wait time on top of Locality/City.
+        const [place, landmark, cohortLocality] = await Promise.all([
+          reverseGeocode(loc.latitude, loc.longitude),
+          resolveLandmark(loc.latitude, loc.longitude),
+          Promise.resolve(resolveSuratCohortLocality(loc.latitude, loc.longitude))
+        ]);
+        if(place){
+          event.locality = place.locality;
+          event.city = place.city;
+        }
+        // Surat Cohort Matrix takes priority over the OSM-based locality
+        // whenever it has a close-enough match — it exists specifically to
+        // override OSM's patchy/missing neighbourhood tags for the handful
+        // of high-traffic areas we've verified. Falls through to whatever
+        // reverseGeocode already resolved (or blank) when nothing matches.
+        if(cohortLocality) event.locality = cohortLocality;
+        event.landmark = landmark || '';
       }
-      event.landmark = landmark || '';
     }
     events.push(event);
     saveJourneyEvents(events);
