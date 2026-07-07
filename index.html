@@ -2875,15 +2875,21 @@ function saveJourneyEvents(list){
 // permission is denied, unavailable, or times out, the journey event is
 // still recorded without location — this never blocks the customer flow.
 function requestJourneyLocation(callback){
-  if(!navigator.geolocation){ callback(null); return; }
+  if(!navigator.geolocation){ callback(null, 'unavailable'); return; }
   navigator.geolocation.getCurrentPosition(
-    (pos) => callback({
-      latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
-      accuracy: pos.coords.accuracy
-    }),
-    () => callback(null), // denied / unavailable / timed out — degrade gracefully
-    { timeout: 5000, maximumAge: 60000 }
+    (pos) => {
+      markGeoPermissionGranted(); // only ever set on a real successful fix
+      callback({
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        accuracy: pos.coords.accuracy
+      }, 'granted');
+    },
+    (err) => {
+      const reason = err && err.code === 1 ? 'denied' : (err && err.code === 3 ? 'timeout' : 'unavailable');
+      callback(null, reason); // denied / unavailable / timed out — degrade gracefully
+    },
+    { timeout: 12000, maximumAge: 60000 }
   );
 }
 
@@ -2899,33 +2905,44 @@ function requestJourneyLocation(callback){
 // one-time localStorage flag instead) do we show the explanation first.
 // Reuses .overlay-backdrop/.reg-overlay — no new sheet mechanics.
 // ---------------------------------------------------------------------------
-const GEO_CONSENT_SHOWN_KEY = 'tkg_geo_consent_shown';
+const GEO_PERMISSION_GRANTED_KEY = 'tkg_geo_permission_granted';
 const geoConsentBackdrop = document.getElementById('geoConsentBackdrop');
 const geoConsentOverlay = document.getElementById('geoConsentOverlay');
 let pendingLocationCallback = null;
 
+function markGeoPermissionGranted(){
+  try{ localStorage.setItem(GEO_PERMISSION_GRANTED_KEY, '1'); }catch(e){}
+}
+
+// Business rule: once permission is confirmed granted, never show the
+// explanation again. If denied, or never decided, show it again every time
+// the customer changes Journey (or reaches Registration — see
+// offerLocationExplanationIfNeeded). Live Permissions API state is
+// authoritative where available; falls back to our own confirmed-granted
+// flag (set only on an actual successful GPS fix, never merely on tapping
+// Continue) where the Permissions API isn't supported.
 function ensureLocationConsent(callback){
-  let alreadyShown = false;
-  try{ alreadyShown = localStorage.getItem(GEO_CONSENT_SHOWN_KEY) === '1'; }catch(e){}
-
-  if(alreadyShown){ requestJourneyLocation(callback); return; }
-
   if('permissions' in navigator && navigator.permissions && navigator.permissions.query){
     navigator.permissions.query({ name: 'geolocation' }).then(status => {
-      if(status.state === 'granted' || status.state === 'denied'){
-        // Browser has already resolved this — no dialog will show either
-        // way, so there's nothing to explain. Continue exactly as before.
+      if(status.state === 'granted'){
         requestJourneyLocation(callback);
       }else{
         showGeoConsent(callback);
       }
-    }).catch(() => showGeoConsent(callback));
+    }).catch(() => {
+      let confirmedGranted = false;
+      try{ confirmedGranted = localStorage.getItem(GEO_PERMISSION_GRANTED_KEY) === '1'; }catch(e){}
+      confirmedGranted ? requestJourneyLocation(callback) : showGeoConsent(callback);
+    });
   }else{
-    showGeoConsent(callback);
+    let confirmedGranted = false;
+    try{ confirmedGranted = localStorage.getItem(GEO_PERMISSION_GRANTED_KEY) === '1'; }catch(e){}
+    confirmedGranted ? requestJourneyLocation(callback) : showGeoConsent(callback);
   }
 }
 
 function showGeoConsent(callback){
+  if(geoConsentOverlay.classList.contains('show')) return; // already open — never stack a second one
   pendingLocationCallback = callback;
   geoConsentBackdrop.classList.add('show');
   geoConsentOverlay.classList.add('show');
@@ -2937,12 +2954,26 @@ function closeGeoConsent(){
 }
 
 document.getElementById('geoConsentContinueBtn').addEventListener('click', () => {
-  try{ localStorage.setItem(GEO_CONSENT_SHOWN_KEY, '1'); }catch(e){}
   closeGeoConsent();
   const cb = pendingLocationCallback;
   pendingLocationCallback = null;
   requestJourneyLocation(cb || (() => {}));
 });
+
+// Registration never requires location — this only offers the same
+// explanation again (fire-and-forget, non-blocking) if permission hasn't
+// been confirmed granted yet.
+function offerLocationExplanationIfNeeded(){
+  if('permissions' in navigator && navigator.permissions && navigator.permissions.query){
+    navigator.permissions.query({ name: 'geolocation' })
+      .then(status => { if(status.state !== 'granted') showGeoConsent(() => {}); })
+      .catch(() => {});
+    return;
+  }
+  let confirmedGranted = false;
+  try{ confirmedGranted = localStorage.getItem(GEO_PERMISSION_GRANTED_KEY) === '1'; }catch(e){}
+  if(!confirmedGranted) showGeoConsent(() => {});
+}
 
 // ---------------------------------------------------------------------------
 // SURAT_COHORTS — a small, hand-maintained list of known high-traffic
@@ -2981,7 +3012,7 @@ const SURAT_COHORTS = [
   { name: 'Adajan', lat: 21.1940, lon: 72.7980, radiusMeters: 2000 },
   { name: 'Pal',    lat: 21.1850, lon: 72.7761, radiusMeters: 1500 }
 ];
-const SURAT_COHORT_MAX_MATCH_METERS = 3000;
+const SURAT_COHORT_MAX_MATCH_METERS = 4500;
 
 function haversineMeters(lat1, lon1, lat2, lon2){
   const R = 6371000;
@@ -3053,7 +3084,7 @@ function resolveBusinessLocality(address){
 // no filtering, no summarizing here — just exposing exactly what Customer
 // OS receives. Remove this whole block (and its two call sites below) once
 // the audit is done; toggle to false in the meantime to silence it.
-const TKG_GEO_RAW_LOG = true;
+const TKG_GEO_RAW_LOG = false;
 
 function reverseGeocode(lat, lon){
   return new Promise((resolve) => {
@@ -3172,7 +3203,7 @@ async function resolveLandmark(lat, lon){
 // permission allows it, the GPS + reverse-geocode chain) has fully finished
 // — never before.
 function recordJourneyEvent(journey){
-  ensureLocationConsent(async (loc) => {
+  ensureLocationConsent(async (loc, reason) => {
     const events = loadJourneyEvents();
     const event = { journey: journey, ts: new Date().toISOString(), pendingSync: true };
     if(loc){
@@ -3212,6 +3243,14 @@ function recordJourneyEvent(journey){
         if(cohortLocality) event.locality = cohortLocality;
         event.landmark = landmark || '';
       }
+    }else{
+      // Final outcome reached with no coordinates (denied/timeout/unavailable)
+      // — record that intentionally with one business-friendly label rather
+      // than leaving the row ambiguously blank. The Owner Dashboard is a
+      // marketing view, not a debugging view, so reason-level detail is
+      // deliberately collapsed into a single value here.
+      event.locality = 'Location Not Shared';
+      event.landmark = 'Location Not Shared';
     }
     events.push(event);
     saveJourneyEvents(events);
@@ -3839,6 +3878,7 @@ function openRegisterOverlay(favoriteItemValue){
   }
   overlayBackdrop.classList.add('show');
   regOverlay.classList.add('show');
+  offerLocationExplanationIfNeeded(); // fire-and-forget, non-blocking, stack-safe
 }
 
 function closeRegisterOverlay(){
