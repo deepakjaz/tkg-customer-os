@@ -3117,12 +3117,26 @@ function resolveOverpassLandmark(lat, lon){
     const controller = ('AbortController' in window) ? new AbortController() : null;
     const timeoutId = setTimeout(() => { if(controller) controller.abort(); resolve(''); }, 4000);
     const query = '[out:json][timeout:4];(' +
+      // Tier 1: highest marketing recognizability
       `node(around:750,${lat},${lon})["shop"="mall"];` +
       `way(around:750,${lat},${lon})["shop"="mall"];` +
       `node(around:750,${lat},${lon})["amenity"="university"];` +
+      `way(around:750,${lat},${lon})["amenity"="university"];` +
       `node(around:750,${lat},${lon})["amenity"="college"];` +
+      `way(around:750,${lat},${lon})["amenity"="college"];` +
       `node(around:750,${lat},${lon})["tourism"="attraction"];` +
       `node(around:750,${lat},${lon})["tourism"="aquarium"];` +
+      // Tier 2: still genuinely recognizable, broadens hit rate for
+      // residential-area taps that have no mall/university nearby
+      `node(around:750,${lat},${lon})["amenity"="hospital"];` +
+      `way(around:750,${lat},${lon})["amenity"="hospital"];` +
+      `node(around:750,${lat},${lon})["amenity"="place_of_worship"];` +
+      `way(around:750,${lat},${lon})["amenity"="place_of_worship"];` +
+      `node(around:750,${lat},${lon})["tourism"="hotel"];` +
+      `way(around:750,${lat},${lon})["tourism"="hotel"];` +
+      `node(around:750,${lat},${lon})["amenity"="cinema"];` +
+      `node(around:750,${lat},${lon})["railway"="station"];` +
+      `node(around:750,${lat},${lon})["amenity"="bus_station"];` +
     ');out tags center 1;';
     fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
