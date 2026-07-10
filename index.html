@@ -1611,6 +1611,33 @@ textarea.field-input{
 .cust-info .cust-name{font-size:13.5px; font-weight:700; color:var(--marble);}
 .cust-info .cust-mobile{font-size:11.5px; color:var(--grey-warm); font-family:var(--font-mono); margin-top:2px;}
 .cust-info .cust-tags{font-size:10.5px; color:var(--gold); margin-top:3px;}
+
+.locality-breakdown{
+  padding:10px 0;
+  border-bottom:1px solid var(--grey-line);
+}
+.locality-breakdown:last-child{ border-bottom:none; }
+.locality-breakdown-name{
+  font-size:13px;
+  font-weight:600;
+  color:var(--marble);
+  margin-bottom:4px;
+}
+.locality-breakdown-row{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  color:var(--marble);
+  opacity:0.85;
+  padding:1px 0;
+}
+.locality-breakdown-total{
+  margin-top:3px;
+  padding-top:4px;
+  border-top:1px dashed var(--grey-line);
+  font-weight:600;
+  opacity:1;
+}
 .cust-meta{text-align:right;}
 .cust-meta .cust-visits{
   font-family:var(--font-mono);
@@ -2446,7 +2473,7 @@ textarea.field-input{
 
     <!-- PIN gate -->
     <div class="pin-gate" id="pinGate">
-      <p>Enter the owner PIN to continue.<br><span style="color:var(--grey-line); font-size:11px;">(Default PIN: 1234 — change inside Owner Settings)</span></p>
+      <p>Enter the owner PIN to continue.</p>
       <input class="pin-input" id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
       <button class="btn-primary" id="pinSubmitBtn">Unlock</button>
     </div>
@@ -2455,8 +2482,10 @@ textarea.field-input{
          look; only reachable once already unlocked (see ownerSettingsBtn).
          No Apps Script involved — localStorage only. -->
     <div class="pin-gate hidden" id="ownerSettingsPanel">
-      <p>⚙ Owner Settings<br><span style="color:var(--grey-line); font-size:11px;">Change your Owner PIN</span></p>
-      <input class="pin-input" id="settingsCurrentPin" type="password" inputmode="numeric" maxlength="6" placeholder="Current PIN">
+      <p id="ownerSettingsMessage">⚙ Owner Settings<br><span style="color:var(--grey-line); font-size:11px;">Change your Owner PIN</span></p>
+      <div id="settingsCurrentPinWrap">
+        <input class="pin-input" id="settingsCurrentPin" type="password" inputmode="numeric" maxlength="6" placeholder="Current PIN">
+      </div>
       <input class="pin-input" id="settingsNewPin" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN">
       <input class="pin-input" id="settingsConfirmPin" type="password" inputmode="numeric" maxlength="6" placeholder="Confirm New PIN">
       <button class="btn-primary" id="settingsSavePinBtn">Save</button>
@@ -2647,23 +2676,44 @@ textarea.field-input{
 // ---------------------------------------------------------------------------
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 // Owner PIN — stored in localStorage so it can be changed from inside the
-// app (Owner Settings, see openOwnerSettings/saveOwnerPin below). First
-// launch on a device creates it as '1234' if nothing is stored yet.
+// app (Owner Settings, see openOwnerSettings/saveOwnerPin below).
+//
+// Security fix: a bare "seed 1234 if missing" meant Incognito mode (where
+// localStorage is always empty) silently and permanently granted dashboard
+// access via the well-known default PIN. Fix: seeding the default PIN now
+// also sets OWNER_PIN_IS_DEFAULT_KEY, and unlockDashboard() checks that flag
+// — a successful unlock while it's still the seeded default forces a PIN
+// change (enterForcedPinChange) before dashContent is ever shown, instead of
+// granting normal access. setOwnerPin() clears the flag, so once an owner
+// saves a real PIN it behaves exactly as before (this device's/localStorage
+// backing is unchanged; only the first-run/Incognito gap is closed).
+// Existing installations that already have tkg_owner_pin saved from before
+// this fix never hit the "seed" branch at all, so they're untouched — this
+// is purely additive.
 const OWNER_PIN_KEY = 'tkg_owner_pin';
+const OWNER_PIN_IS_DEFAULT_KEY = 'tkg_owner_pin_is_default';
 function getOwnerPin(){
   try{
     let pin = localStorage.getItem(OWNER_PIN_KEY);
     if(!pin){
       pin = '1234';
       localStorage.setItem(OWNER_PIN_KEY, pin);
+      localStorage.setItem(OWNER_PIN_IS_DEFAULT_KEY, 'true');
     }
     return pin;
   }catch(e){
     return '1234';
   }
 }
+function isOwnerPinDefault(){
+  try{ return localStorage.getItem(OWNER_PIN_IS_DEFAULT_KEY) === 'true'; }
+  catch(e){ return false; }
+}
 function setOwnerPin(pin){
-  try{ localStorage.setItem(OWNER_PIN_KEY, pin); }catch(e){}
+  try{
+    localStorage.setItem(OWNER_PIN_KEY, pin);
+    localStorage.removeItem(OWNER_PIN_IS_DEFAULT_KEY); // explicitly set — no longer the seeded default
+  }catch(e){}
 }
 const INSTAGRAM_URL = 'https://www.instagram.com/the.khichiyagravy/'; // production — official TKG profile
 const GOOGLE_REVIEW_URL = 'https://g.page/r/CYnAo2r-6b_zEAE/review'; // production — Google Business review link
@@ -4459,18 +4509,49 @@ document.getElementById('pinInput').addEventListener('keydown', (e) => {
   if(e.key === 'Enter') unlockDashboard();
 });
 
+let forcePinChangeActive = false;
+
 function unlockDashboard(){
   const val = document.getElementById('pinInput').value;
   if(val === getOwnerPin()){
-    dashUnlocked = true;
-    document.getElementById('pinGate').style.display = 'none';
-    document.getElementById('dashContent').classList.remove('hidden');
-    document.getElementById('dashContent').style.display = 'flex';
-    refreshDashboardData();
+    document.getElementById('pinInput').value = '';
+    if(isOwnerPinDefault()){
+      enterForcedPinChange();
+    }else{
+      dashUnlocked = true;
+      document.getElementById('pinGate').style.display = 'none';
+      document.getElementById('dashContent').classList.remove('hidden');
+      document.getElementById('dashContent').style.display = 'flex';
+      refreshDashboardData();
+    }
   }else{
     showToast('Incorrect PIN');
     document.getElementById('pinInput').value = '';
   }
+}
+
+// Security fix (Issue 1): reached only when the PIN just entered matched
+// the seeded default (true on every fresh install, and on every Incognito
+// session since localStorage never persists there). Shows the same Owner
+// Settings panel used for a normal PIN change, but with Current PIN and
+// Cancel hidden — the operator already proved they know the default by
+// unlocking with it, and there is no dashContent to fall back to, so there
+// is nothing to verify or cancel back into. dashContent stays hidden until
+// settingsSavePinBtn below actually saves a new PIN.
+function enterForcedPinChange(){
+  forcePinChangeActive = true;
+  document.getElementById('pinGate').style.display = 'none';
+  document.getElementById('dashContent').classList.add('hidden');
+  document.getElementById('dashContent').style.display = 'none';
+  document.getElementById('ownerSettingsMessage').innerHTML =
+    '⚠ Set a new Owner PIN<br><span style="color:var(--grey-line); font-size:11px;">For security, you must set a new PIN before continuing.</span>';
+  document.getElementById('settingsCurrentPinWrap').style.display = 'none';
+  document.getElementById('settingsCancelBtn').style.display = 'none';
+  document.getElementById('settingsCurrentPin').value = '';
+  document.getElementById('settingsNewPin').value = '';
+  document.getElementById('settingsConfirmPin').value = '';
+  document.getElementById('ownerSettingsPanel').classList.remove('hidden');
+  document.getElementById('ownerSettingsPanel').style.display = 'flex';
 }
 
 // ---------------------------------------------------------------------------
@@ -4479,6 +4560,10 @@ function unlockDashboard(){
 document.getElementById('ownerSettingsBtn').addEventListener('click', () => {
   document.getElementById('dashContent').classList.add('hidden');
   document.getElementById('dashContent').style.display = 'none';
+  document.getElementById('ownerSettingsMessage').innerHTML =
+    '⚙ Owner Settings<br><span style="color:var(--grey-line); font-size:11px;">Change your Owner PIN</span>';
+  document.getElementById('settingsCurrentPinWrap').style.display = '';
+  document.getElementById('settingsCancelBtn').style.display = '';
   document.getElementById('settingsCurrentPin').value = '';
   document.getElementById('settingsNewPin').value = '';
   document.getElementById('settingsConfirmPin').value = '';
@@ -4487,6 +4572,7 @@ document.getElementById('ownerSettingsBtn').addEventListener('click', () => {
 });
 
 document.getElementById('settingsCancelBtn').addEventListener('click', () => {
+  if(forcePinChangeActive) return; // must save a new PIN before continuing — no cancel path here
   document.getElementById('ownerSettingsPanel').classList.add('hidden');
   document.getElementById('ownerSettingsPanel').style.display = 'none';
   document.getElementById('dashContent').classList.remove('hidden');
@@ -4498,7 +4584,11 @@ document.getElementById('settingsSavePinBtn').addEventListener('click', () => {
   const next = document.getElementById('settingsNewPin').value;
   const confirmVal = document.getElementById('settingsConfirmPin').value;
 
-  if(current !== getOwnerPin()){
+  // During a forced change there is no dashContent session to have gotten
+  // here from, and the operator already proved they know the current PIN
+  // by unlocking with it — so Current PIN isn't asked for (see
+  // enterForcedPinChange) and isn't checked here either.
+  if(!forcePinChangeActive && current !== getOwnerPin()){
     showToast('Current PIN is incorrect');
     return;
   }
@@ -4510,16 +4600,28 @@ document.getElementById('settingsSavePinBtn').addEventListener('click', () => {
     showToast('New PIN and Confirm PIN do not match');
     return;
   }
+  if(next === '1234'){
+    showToast('Choose a PIN other than the default 1234');
+    return;
+  }
 
   setOwnerPin(next); // saved immediately — future unlocks use this PIN
   showToast('PIN updated');
   document.getElementById('settingsCurrentPin').value = '';
   document.getElementById('settingsNewPin').value = '';
   document.getElementById('settingsConfirmPin').value = '';
+  document.getElementById('settingsCurrentPinWrap').style.display = '';
+  document.getElementById('settingsCancelBtn').style.display = '';
   document.getElementById('ownerSettingsPanel').classList.add('hidden');
   document.getElementById('ownerSettingsPanel').style.display = 'none';
+
+  const wasForced = forcePinChangeActive;
+  forcePinChangeActive = false;
+
+  dashUnlocked = true; // true either way now — a forced change just proved the new PIN, a normal change already had dashContent open
   document.getElementById('dashContent').classList.remove('hidden');
   document.getElementById('dashContent').style.display = 'flex';
+  if(wasForced) refreshDashboardData(); // forced path skipped the normal unlock's data fetch
 });
 
 // yyyy-MM-dd in the device's own local time — matches the format Apps
@@ -4606,15 +4708,28 @@ function renderDashboard(){
   renderCustomerList(list);
 }
 
+// Same source data as before (Journey Analytics, locality tally) — now
+// broken down by journey status per locality instead of one combined
+// count. No new storage, no new Apps Script field: journeyEvents already
+// carries both `locality` and `journey` per event (see JOURNEY ANALYTICS
+// EVENT SCHEMA in AppsScript.gs) — this only changes how the existing data
+// is grouped for display.
 function renderTopAreas(journeyEvents){
-  const counts = {};
+  const counts = {}; // { locality: { atTKG: n, planning: n, exploring: n } }
   journeyEvents.forEach(e => {
     const locality = (e.locality || '').trim();
     if(!locality) return; // ignore blank Localities entirely — never show "Unknown"
-    counts[locality] = (counts[locality] || 0) + 1;
+    if(!counts[locality]) counts[locality] = { atTKG: 0, planning: 0, exploring: 0 };
+    if(e.journey === 'atTKG') counts[locality].atTKG++;
+    else if(e.journey === 'planning') counts[locality].planning++;
+    else if(e.journey === 'exploring') counts[locality].exploring++;
   });
 
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const sorted = Object.entries(counts)
+    .map(([locality, c]) => [locality, c, c.atTKG + c.planning + c.exploring])
+    .sort((a, b) => b[2] - a[2])
+    .slice(0, 5);
+
   const container = document.getElementById('topAreasList');
 
   if(sorted.length === 0){
@@ -4622,9 +4737,13 @@ function renderTopAreas(journeyEvents){
     return;
   }
 
-  container.innerHTML = sorted.map(([locality, count]) => `
-    <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
-      <span>${escapeHtml(locality)}</span><span>${count}</span>
+  container.innerHTML = sorted.map(([locality, c, total]) => `
+    <div class="locality-breakdown">
+      <div class="locality-breakdown-name">${escapeHtml(locality)}</div>
+      <div class="locality-breakdown-row"><span>🟢 At TKG</span><span>${c.atTKG}</span></div>
+      <div class="locality-breakdown-row"><span>🟡 Planning</span><span>${c.planning}</span></div>
+      <div class="locality-breakdown-row"><span>⚪ Exploring</span><span>${c.exploring}</span></div>
+      <div class="locality-breakdown-row locality-breakdown-total"><span>Total</span><span>${total}</span></div>
     </div>
   `).join('');
 }
