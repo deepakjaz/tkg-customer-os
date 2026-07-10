@@ -1626,6 +1626,16 @@ textarea.field-input{
   letter-spacing:0.04em;
   margin-top:3px;
 }
+.owner-fields-btn{
+  margin-top:6px;
+  background:none;
+  border:none;
+  color:var(--gold);
+  font-size:10.5px;
+  font-weight:600;
+  padding:2px 0;
+  cursor:pointer;
+}
 
 .empty-state{
   text-align:center;
@@ -1852,6 +1862,69 @@ textarea.field-input{
 
       <button type="submit" class="btn-primary" id="feedbackSubmitBtn" data-i18n="feedback.submitBtn">Submit Feedback</button>
       <button type="button" class="btn-secondary" id="skipFeedbackBtn" style="width:100%; margin-top:10px;" data-i18n="feedback.skipBtn">Skip</button>
+    </form>
+
+  </div>
+
+  <!-- ============ OWNER FIELDS OVERLAY — Journey Architecture V1 Phase 2.
+       PIN-gated (only ever opened from inside #screen-dash, which is
+       already behind the Owner Dashboard PIN gate — see unlockDashboard).
+       Staff-authored only: Outcome, Operator Summary, Review Status.
+       Deliberately separate from the guest-facing Feedback overlay above —
+       different data, different author, different column, per the
+       Structural Isolation ruling. Never opened by, and never writes
+       through, the guest check-in/sync path. ============ -->
+  <div class="overlay-backdrop" id="ownerFieldsBackdrop"></div>
+  <div class="reg-overlay" id="ownerFieldsOverlay">
+
+    <div class="reg-overlay-handle"></div>
+
+    <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
+      <div class="hero-eyebrow">Owner Notes</div>
+      <h1 class="hero-title" style="font-size:22px;" id="ownerFieldsCustName">Customer</h1>
+      <p class="hero-sub" id="ownerFieldsCustMobile"></p>
+    </div>
+
+    <form class="reg-card" id="ownerFieldsForm" novalidate>
+      <div class="field-group">
+        <label class="field-label" for="outcomeSelect">Last Outcome <span class="optional-tag">Optional</span></label>
+        <select class="field-input" id="outcomeSelect">
+          <option value="">— Not set —</option>
+          <option value="Dined">Dined</option>
+          <option value="Parcel">Parcel</option>
+          <option value="Review Left">Review Left</option>
+          <option value="Returning Customer">Returning Customer</option>
+          <option value="No Purchase">No Purchase</option>
+          <option value="Unknown">Unknown</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="operatorSummaryInput">Operator Summary <span class="optional-tag">Staff only</span></label>
+        <textarea class="field-input" id="operatorSummaryInput" maxlength="500" placeholder="Customer liked coal flavour. Asked for extra cheese. Will return with family."></textarea>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="reviewStatusSelect">Review Status <span class="optional-tag">Optional</span></label>
+        <select class="field-input" id="reviewStatusSelect">
+          <option value="">— Not set —</option>
+          <option value="Eligible">Eligible for Review</option>
+          <option value="Requested">Review Requested</option>
+          <option value="Completed">Review Completed</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Current Known Location <span class="optional-tag">Staff only</span></label>
+        <button type="button" class="btn-secondary" id="ownerFieldsSuggestBtn" style="width:100%; margin-bottom:10px;">📍 Suggest from this device's location</button>
+        <input class="field-input" id="currentKnownLocalityInput" type="text" placeholder="Locality, e.g. Vesu" maxlength="100" style="margin-bottom:8px;">
+        <input class="field-input" id="currentKnownSocietyInput" type="text" placeholder="Society, e.g. Happy Elegance" maxlength="100" style="margin-bottom:8px;">
+        <input class="field-input" id="currentKnownLandmarkInput" type="text" placeholder="Landmark, e.g. VR Mall" maxlength="100">
+        <p class="consent-line" id="ownerFieldsSuggestStatus" style="margin-top:8px;"></p>
+      </div>
+
+      <button type="submit" class="btn-primary" id="ownerFieldsSaveBtn">Save Notes</button>
+      <button type="button" class="btn-secondary" id="ownerFieldsCancelBtn" style="width:100%; margin-top:10px;">Cancel</button>
     </form>
 
   </div>
@@ -2533,7 +2606,40 @@ textarea.field-input{
      feedback: "",                // RESERVED for Phase 2 — no UI yet
      pendingSync: true|false     // true until Apps Script confirms receipt
    }
-   ============================================================================ */
+
+   Deliberately NOT in this local/guest-facing shape (Journey Architecture
+   V1, Phase 2 — additive, staff-authored only):
+     outcome         — sheet column J ("Last_Outcome"). Latest-known visit
+                        outcome ('Dined' | 'Parcel' | 'Review Left' |
+                        'No Purchase' | 'Unknown' | '').
+     operatorSummary — sheet column K. Human-written note about the
+                        customer, business truth, never customer-authored
+                        and never AI-overwritten.
+     reviewStatus (sheet) — sheet column L. Distinct from the local-only
+                        `reviewStatus` field above (that one is unrelated
+                        RESERVED Phase-2 scaffolding with no UI yet). The
+                        sheet's Review_Status tracks 'Eligible' | 'Requested'
+                        | 'Completed' | ''.
+     currentKnownLocality/Society/Landmark — sheet columns M/N/O. Location
+                        Intelligence Sprint Phase 1. Staff-owned, free text.
+                        May be typed manually or pre-filled from a one-off
+                        device-location suggestion (see
+                        ownerFieldsSuggestBtn/resolveSuratCohortLocality/
+                        reverseGeocode/resolveLandmark) — but the suggestion
+                        only ever populates the on-screen inputs; nothing
+                        reaches the Sheet until the operator explicitly
+                        presses Save (Human Verification Gate). Completely
+                        separate from the anonymous Journey Analytics
+                        locality/landmark fields — no automatic linking
+                        between an anonymous event and a named customer row
+                        exists or is planned.
+   These three are set exclusively from the Owner Dashboard (PIN-gated,
+   see Owner Fields editor below) via a dedicated `updateOwnerFields`
+   Apps Script action — completely isolated from the guest check-in/sync
+   path (checkInCustomer/attemptSync never read or write them). They are
+   read back purely through the existing `serverCustomers` fetch (see
+   fetchServerCustomers) — no change to the local tkg_customers shape was
+   needed to support them. */
 
 // ---------------------------------------------------------------------------
 // CONFIG — paste your deployed Apps Script Web App URL here.
@@ -4523,9 +4629,19 @@ function renderTopAreas(journeyEvents){
   `).join('');
 }
 
+// Holds whatever list renderCustomerList most recently drew, keyed by
+// normalized mobile — lets the Owner Fields overlay (opened by tapping a
+// row) look up that customer's current outcome/operatorSummary/reviewStatus
+// without a second network round-trip. Rebuilt on every render; read-only
+// from the overlay's point of view.
+let lastRenderedCustomersByMobile = {};
+
 function renderCustomerList(list){
   const sorted = [...list].sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit));
   const container = document.getElementById('custList');
+
+  lastRenderedCustomersByMobile = {};
+  sorted.forEach(c => { lastRenderedCustomersByMobile[String(c.mobile)] = c; });
 
   if(sorted.length === 0){
     container.innerHTML = '<div class="empty-state">No customers yet. Once guests check in, they will appear here.</div>';
@@ -4538,15 +4654,143 @@ function renderCustomerList(list){
         <div class="cust-name">${escapeHtml(c.name)}</div>
         <div class="cust-mobile">${c.mobile}</div>
         ${c.favoriteItem || c.source ? `<div class="cust-tags">${c.favoriteItem ? escapeHtml(c.favoriteItem) : ''}${c.favoriteItem && c.source ? ' · ' : ''}${c.source ? escapeHtml(c.source) : ''}</div>` : ''}
+        ${c.outcome || c.reviewStatus || c.operatorSummary ? `<div class="cust-tags">${c.outcome ? escapeHtml(c.outcome) : ''}${c.outcome && c.reviewStatus ? ' · ' : ''}${c.reviewStatus ? escapeHtml(c.reviewStatus) : ''}${c.operatorSummary ? ' · 📝' : ''}</div>` : ''}
+        ${c.currentKnownLocality || c.currentKnownSociety || c.currentKnownLandmark ? `<div class="cust-tags">📍 ${[c.currentKnownLocality, c.currentKnownSociety, c.currentKnownLandmark].filter(Boolean).map(escapeHtml).join(' · ')}</div>` : ''}
       </div>
       <div class="cust-meta">
         <div class="cust-visits">${c.visitCount || 1}x</div>
         <div class="cust-last">${new Date(c.lastVisit).toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}</div>
         ${c.pendingSync ? '<div class="pending-tag">Pending</div>' : ''}
+        <button type="button" class="owner-fields-btn" data-mobile="${c.mobile}">Notes ›</button>
       </div>
     </div>
   `).join('');
 }
+
+// ---------------------------------------------------------------------------
+// OWNER FIELDS EDITOR — Journey Architecture V1 Phase 2 (Outcome, Operator
+// Summary, Review Status). Staff-only, reachable only via the "Notes" button
+// inside the already PIN-gated Owner Dashboard. Writes go straight to the
+// Sheet through a dedicated `updateOwnerFields` action — completely separate
+// from checkInCustomer/attemptSync, so the guest check-in path never touches
+// these fields and these fields never touch tkg_customers/localStorage.
+// ---------------------------------------------------------------------------
+const ownerFieldsBackdrop = document.getElementById('ownerFieldsBackdrop');
+const ownerFieldsOverlay = document.getElementById('ownerFieldsOverlay');
+const ownerFieldsForm = document.getElementById('ownerFieldsForm');
+let ownerFieldsMobile = '';
+
+function openOwnerFieldsEditor(mobile){
+  const c = lastRenderedCustomersByMobile[String(mobile)];
+  if(!c) return;
+  ownerFieldsMobile = String(mobile);
+  document.getElementById('ownerFieldsCustName').textContent = c.name || 'Customer';
+  document.getElementById('ownerFieldsCustMobile').textContent = c.mobile || '';
+  document.getElementById('outcomeSelect').value = c.outcome || '';
+  document.getElementById('operatorSummaryInput').value = c.operatorSummary || '';
+  document.getElementById('reviewStatusSelect').value = c.reviewStatus || '';
+  document.getElementById('currentKnownLocalityInput').value = c.currentKnownLocality || '';
+  document.getElementById('currentKnownSocietyInput').value = c.currentKnownSociety || '';
+  document.getElementById('currentKnownLandmarkInput').value = c.currentKnownLandmark || '';
+  document.getElementById('ownerFieldsSuggestStatus').textContent = '';
+  ownerFieldsBackdrop.classList.add('show');
+  ownerFieldsOverlay.classList.add('show');
+}
+
+function closeOwnerFieldsEditor(){
+  ownerFieldsBackdrop.classList.remove('show');
+  ownerFieldsOverlay.classList.remove('show');
+  ownerFieldsMobile = '';
+}
+
+document.getElementById('custList').addEventListener('click', (e) => {
+  const btn = e.target.closest('.owner-fields-btn');
+  if(!btn) return;
+  openOwnerFieldsEditor(btn.dataset.mobile);
+});
+
+ownerFieldsBackdrop.addEventListener('click', closeOwnerFieldsEditor);
+document.getElementById('ownerFieldsCancelBtn').addEventListener('click', closeOwnerFieldsEditor);
+
+// Human Verification Gate: this button only ever fills the three text
+// inputs below with a one-off suggestion. It never calls updateOwnerFields
+// itself and never touches the Sheet — only the form's own Save button
+// (below) does that, and only with whatever the operator has left in the
+// inputs at that moment (edited, cleared, or untouched). Reuses the exact
+// same reverse-geocode helpers already built for Journey Analytics
+// (resolveSuratCohortLocality, reverseGeocode, resolveLandmark) — no new
+// geocoding logic, no confidence scores, no alias-normalization engine.
+document.getElementById('ownerFieldsSuggestBtn').addEventListener('click', () => {
+  const statusEl = document.getElementById('ownerFieldsSuggestStatus');
+  if(!('geolocation' in navigator)){
+    statusEl.textContent = 'Location is not available on this device.';
+    return;
+  }
+  statusEl.textContent = 'Getting this device\'s location…';
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude, lon = pos.coords.longitude;
+      statusEl.textContent = 'Looking up nearby locality and landmark…';
+      try{
+        const cohortLocality = resolveSuratCohortLocality(lat, lon);
+        const [geo, landmark] = await Promise.all([reverseGeocode(lat, lon), resolveLandmark(lat, lon)]);
+        const suggestedLocality = cohortLocality || (geo && geo.locality) || '';
+
+        if(suggestedLocality) document.getElementById('currentKnownLocalityInput').value = suggestedLocality;
+        if(landmark) document.getElementById('currentKnownLandmarkInput').value = landmark;
+        // No dedicated "society" resolver exists yet — Landmark's
+        // building-level lookup already covers named residential societies,
+        // but not distinctly from other landmarks, so Society is left for
+        // the operator to fill in by hand rather than guessed.
+
+        statusEl.textContent = (suggestedLocality || landmark)
+          ? 'Suggestion filled in below — review before saving.'
+          : 'No nearby locality or landmark found for this location.';
+      }catch(err){
+        console.warn('Owner fields location suggestion failed:', err);
+        statusEl.textContent = 'Could not resolve a suggestion — you can still enter it manually.';
+      }
+    },
+    () => { statusEl.textContent = 'Location permission denied or unavailable.'; },
+    { timeout: 8000 }
+  );
+});
+
+ownerFieldsForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if(!ownerFieldsMobile) return;
+  if(!navigator.onLine){ showToast('No internet connection right now'); return; }
+  if(APP_SCRIPT_URL.includes('PASTE_YOUR')){ showToast('Apps Script URL not configured yet'); return; }
+
+  const payload = {
+    action: 'updateOwnerFields',
+    mobile: ownerFieldsMobile,
+    outcome: document.getElementById('outcomeSelect').value,
+    operatorSummary: document.getElementById('operatorSummaryInput').value.trim(),
+    reviewStatus: document.getElementById('reviewStatusSelect').value,
+    currentKnownLocality: document.getElementById('currentKnownLocalityInput').value.trim(),
+    currentKnownSociety: document.getElementById('currentKnownSocietyInput').value.trim(),
+    currentKnownLandmark: document.getElementById('currentKnownLandmarkInput').value.trim()
+  };
+
+  try{
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('Owner fields save failed: ' + res.status);
+    const data = await res.json();
+    if(!data || data.status !== 'ok') throw new Error('Owner fields save: unexpected response — ' + JSON.stringify(data));
+
+    closeOwnerFieldsEditor();
+    showToast('Notes saved');
+    await refreshDashboardData(); // pulls the just-saved values back from the Sheet
+  }catch(err){
+    console.warn('Owner fields save failed:', err);
+    showToast('Could not save — check your connection and try again');
+  }
+});
 
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -4583,7 +4827,7 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
     return;
   }
 
-  const header = ['Name', 'Mobile', 'Journey', 'First Visit', 'Last Visit', 'Visit Count', 'Favorite Item', 'Source'];
+  const header = ['Name', 'Mobile', 'Journey', 'First Visit', 'Last Visit', 'Visit Count', 'Favorite Item', 'Source', 'Last Outcome', 'Operator Summary', 'Review Status', 'Current Known Locality', 'Current Known Society', 'Current Known Landmark'];
   const rows = list.map(c => [
     c.name,
     c.mobile,
@@ -4592,7 +4836,13 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
     new Date(c.lastVisit).toISOString(),
     c.visitCount || 1,
     c.favoriteItem || '',
-    c.source || ''
+    c.source || '',
+    c.outcome || '',
+    c.operatorSummary || '',
+    c.reviewStatus || '',
+    c.currentKnownLocality || '',
+    c.currentKnownSociety || '',
+    c.currentKnownLandmark || ''
   ]);
 
   const csvContent = [header, ...rows]
