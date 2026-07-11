@@ -350,36 +350,58 @@ input{font-family:inherit;}
   padding:8px;
 }
 
-/* ---- Journey status bar — compact header card, directly below the
-   topbar (language/online row). Reuses the same #journeyStatusBar /
-   #journeyStatusCurrent / #changeJourneyBtn elements — layout/styling
-   only, no new Journey component. ---- */
-.journey-status-bar{
-  text-align:left;
+/* ---- Welcome Card — Visual hierarchy redesign. One calm card directly
+   below the Hero: Greeting + current browsing status + Change Journey.
+   Replaces the previous floating greeting text and the separate Journey
+   accordion — same tokens as every other .stone-card surface on this
+   screen (radius/border/shadow), no new styling pattern. Reuses
+   #dgGreetingText/#dgSubText/#journeyStatusCurrent/#changeJourneyBtn
+   exactly — updateDynamicGreeting()/updateJourneyStatusDisplay() untouched. ---- */
+.welcome-card{
   background:var(--stone-card);
   border:1px solid var(--stone-line);
   border-radius:var(--radius-md);
-  padding:12px 14px;
-  margin:10px 0 6px;
+  box-shadow:0 1px 2px rgba(28,24,21,0.04);
+  padding:14px 16px 12px;
+  margin-bottom:16px;
+  text-align:left;
 }
-.journey-status-row{
+.dg-greeting{
+  font-size:19px;
+  font-weight:700;
+  color:var(--ink);
+}
+.dg-sub{
+  font-size:13.5px;
+  color:var(--ink-soft);
+  margin-top:3px;
+  line-height:1.45;
+}
+.welcome-card-journey{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:10px;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--stone-line);
 }
-.journey-status-label{
-  font-size:12.5px;
-  color:var(--ink-soft);
-  margin:0;
+.welcome-card-journey-status{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-width:0;
 }
-.journey-status-current{
-  font-size:16px;
+.welcome-card-journey-status .jc-icon{font-size:15px; flex-shrink:0;}
+.welcome-card-journey-status .jc-current{
+  font-size:13.5px;
   font-weight:700;
   color:var(--ink);
-  margin-top:5px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.journey-status-bar #changeJourneyBtn{
+.welcome-card #changeJourneyBtn{
   background:none;
   border:none;
   color:var(--ember);
@@ -392,21 +414,54 @@ input{font-family:inherit;}
   flex-shrink:0;
 }
 
-/* ---- Dynamic greeting — time-of-day + Journey aware (Task 2) ---- */
-.dynamic-greeting{
-  text-align:left;
-  padding:4px 2px 10px;
+/* ==========================================================================
+   FIXED QUICK ACTIONS BAR — Visual hierarchy redesign. Not page navigation:
+   4 existing actions surfaced at thumb height so Reviews/FAQ/Register no
+   longer need to occupy above-the-fold space. Visible only on the primary
+   Menu screen (screen-menu); toggled in showScreen(). Every button calls a
+   function that already existed — see navRateUsBtn/navMessageBtn/
+   navAboutBtn/navJourneyBtn handlers near the bottom of the script
+   (openCustomerStoriesSheet/openRegisterOverlay/openInfoSheet/showScreen).
+   ========================================================================== */
+.bottom-nav{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:var(--max-w);
+  display:flex;
+  background:var(--stone-card);
+  border-top:1px solid var(--stone-line);
+  box-shadow:0 -6px 20px -12px rgba(28,24,21,0.18);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  z-index:130;
 }
-.dg-greeting{
-  font-size:19px;
-  font-weight:700;
+.bottom-nav.hidden{ display:none; }
+.bottom-nav-item{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  background:none;
+  border:none;
+  padding:6px 2px;
+}
+.bottom-nav-item:active{ opacity:0.6; }
+.bottom-nav-item .bn-icon{ font-size:18px; line-height:1; }
+.bottom-nav-item .bn-label{
+  font-size:10px;
+  font-weight:600;
   color:var(--ink);
+  white-space:nowrap;
 }
-.dg-sub{
-  font-size:13.5px;
-  color:var(--ink-soft);
-  margin-top:3px;
-  line-height:1.45;
+
+/* Room for the fixed Quick Actions Bar so it never covers the last card on
+   the Menu screen — every other screen keeps the original .screen padding. */
+#screen-menu{
+  padding-bottom:78px;
 }
 
 /* ---- Registration screen ---- */
@@ -991,148 +1046,6 @@ textarea.field-input{
   font-size:11px;
   flex-shrink:0;
 }
-
-/* ==========================================================================
-   REVIEW HERO CARD — Instagram-Stories-style single review, auto-rotating.
-   Highest trust-building element on the menu screen. Data-driven from
-   contentRegistry.featuredReviews via renderContent() — see script section.
-   Uses only existing design tokens so it matches the rest of the shell.
-   ========================================================================== */
-.review-hero{
-  margin-bottom:16px;
-  cursor:pointer;
-}
-.review-hero-bars{
-  display:flex;
-  gap:4px;
-  margin-bottom:8px;
-}
-.review-hero-bars .rh-bar{
-  flex:1;
-  height:2.5px;
-  border-radius:2px;
-  background:rgba(28,24,21,0.12);
-  overflow:hidden;
-}
-.review-hero-bars .rh-bar-fill{
-  display:block;
-  height:100%;
-  width:0%;
-  background:var(--ember);
-  border-radius:2px;
-}
-.review-hero-bars .rh-bar.done .rh-bar-fill{width:100%; transition:none;}
-.review-hero-bars .rh-bar.active .rh-bar-fill{width:100%; transition:width 5.5s linear;}
-
-.review-hero-card{
-  background:var(--stone-card);
-  border:1.5px solid var(--stone-line);
-  border-radius:var(--radius-lg);
-  padding:16px 18px 14px;
-  box-shadow:0 10px 26px -14px rgba(28,24,21,0.28);
-  transition:opacity 0.25s ease;
-}
-.review-hero-card.rh-fade{opacity:0;}
-
-.review-hero-top{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  margin-bottom:10px;
-}
-.review-hero-avatar{
-  width:30px;
-  height:30px;
-  border-radius:50%;
-  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
-  color:var(--marble);
-  font-size:12px;
-  font-weight:800;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-shrink:0;
-}
-.review-hero-author{
-  flex:1;
-  min-width:0;
-  font-size:13px;
-  font-weight:700;
-  color:var(--ink);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.review-hero-stars{
-  font-size:11px;
-  color:var(--gold-deep);
-  letter-spacing:1px;
-  flex-shrink:0;
-}
-.review-hero-quote{
-  font-size:14.5px;
-  line-height:1.5;
-  color:var(--ink);
-  display:-webkit-box;
-  -webkit-line-clamp:3;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
-}
-.review-hero-tap-hint{
-  margin-top:10px;
-  font-size:11px;
-  font-weight:700;
-  color:var(--ember-deep);
-}
-
-/* ==========================================================================
-   EXPANDABLE EXPLAINER — "What is TKG Signature Gravy?"
-   Collapsed by default; expands in place (no overlay) so first-time
-   visitors can satisfy curiosity without leaving the menu screen.
-   Reuses the same menu.edu* / menu.hookPunch translation keys as the
-   info sheet, so there is one source of truth for the copy.
-   ========================================================================== */
-.explainer{
-  margin-bottom:16px;
-  background:var(--stone-card);
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-md);
-  box-shadow:0 1px 2px rgba(28,24,21,0.04);
-  overflow:hidden;
-}
-.explainer-toggle{
-  width:100%;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:13px 14px;
-  background:none;
-  border:none;
-  text-align:left;
-  font-size:13.5px;
-  font-weight:700;
-  color:var(--ink);
-}
-.explainer-toggle .et-icon{font-size:16px; flex-shrink:0;}
-.explainer-toggle .et-label{flex:1; min-width:0;}
-.explainer-toggle .et-chevron{
-  flex-shrink:0;
-  color:var(--ink-soft);
-  font-size:12px;
-  transition:transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.explainer.open .explainer-toggle .et-chevron{transform:rotate(180deg);}
-.explainer-body{
-  max-height:0;
-  overflow:hidden;
-  transition:max-height 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.explainer.open .explainer-body{max-height:340px;}
-.explainer-body-inner{
-  padding:0 14px 16px;
-}
-.explainer-body-inner .info-sheet-line{font-size:12.5px;}
-.explainer-body-inner .info-sheet-punch{margin-top:10px;}
 
 /* ==========================================================================
    CATEGORY TABS — real switching, Signature default, no page reload
@@ -2175,30 +2088,6 @@ textarea.field-input{
   <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
   <section class="screen" id="screen-menu">
 
-    <!-- ============ JOURNEY STATUS BAR — moved here from the bottom of
-         the Menu page. Reuses the existing Journey selector/state (no new
-         Journey logic, no new storage) — #changeJourneyBtn is the same
-         element/handler that used to live at the bottom, just relocated;
-         #journeyStatusCurrent is set via updateJourneyStatusDisplay(),
-         wired alongside updateJourneyHint() in the same 3 places
-         (selectJourney, setLanguage, initial load). ============ -->
-    <div class="journey-status-bar" id="journeyStatusBar">
-      <div class="journey-status-row">
-        <p class="journey-status-label" data-i18n="journey.browsingAs">📍 You're browsing as</p>
-        <button type="button" id="changeJourneyBtn" data-i18n="journey.changeLink">Change Journey ›</button>
-      </div>
-      <div class="journey-status-current" id="journeyStatusCurrent"></div>
-    </div>
-
-    <!-- ============ DYNAMIC GREETING — time-of-day + Journey-aware.
-         Text-only, no new Journey logic; reuses the existing translation
-         system and is refreshed at the same 3 wiring points as the
-         Journey status bar/hint above. ============ -->
-    <div class="dynamic-greeting" id="dynamicGreeting">
-      <div class="dg-greeting" id="dgGreetingText"></div>
-      <div class="dg-sub" id="dgSubText"></div>
-    </div>
-
     <!-- ============ HERO — short, scannable in seconds ============ -->
     <div class="app-hero">
       <div class="app-hero-row">
@@ -2233,36 +2122,24 @@ textarea.field-input{
       </div>
     </div>
 
-    <!-- ============ REVIEW HERO CARD — Instagram-Stories-style, single
-         review at a time, auto-rotating. Fully data-driven from
-         contentRegistry.featuredReviews via renderContent() (see script
-         section below). Tapping anywhere opens the Customer Stories sheet. ===== -->
-    <div class="review-hero" id="reviewHero" role="button" tabindex="0" aria-label="View customer reviews">
-      <div class="review-hero-bars" id="reviewHeroBars"></div>
-      <div class="review-hero-card" id="reviewHeroCard">
-        <div class="review-hero-top">
-          <span class="review-hero-avatar" id="reviewHeroAvatar"></span>
-          <span class="review-hero-author" id="reviewHeroAuthor"></span>
-          <span class="review-hero-stars" id="reviewHeroStars"></span>
+    <!-- ============ BELOW-HERO BROWSING CONTEXT — Sprint: Production UI
+    <!-- ============ WELCOME CARD — Visual hierarchy redesign. One card,
+         directly below the Hero: Greeting + current browsing status +
+         Change Journey. Replaces the separate floating greeting text and
+         the standalone Journey accordion from the previous pass — this is
+         a single calm unit, not two stacked components. Same elements/
+         wiring as before (#dgGreetingText/#dgSubText/#journeyStatusCurrent/
+         #changeJourneyBtn — updateDynamicGreeting()/updateJourneyStatusDisplay()
+         untouched), just one container instead of two. ============ -->
+    <div class="welcome-card" id="welcomeCard">
+      <div class="dg-greeting" id="dgGreetingText"></div>
+      <div class="dg-sub" id="dgSubText"></div>
+      <div class="welcome-card-journey">
+        <div class="welcome-card-journey-status">
+          <span class="jc-icon">📍</span>
+          <span class="jc-current" id="journeyStatusCurrent"></span>
         </div>
-        <div class="review-hero-quote" id="reviewHeroQuote"></div>
-        <div class="review-hero-tap-hint" data-i18n="reviews.viewMore">Tap to read more reviews</div>
-      </div>
-    </div>
-
-    <!-- ============ EXPANDABLE EXPLAINER — collapsed by default ============ -->
-    <div class="explainer" id="explainer" data-journey="exploring">
-      <button type="button" class="explainer-toggle" id="explainerToggle" aria-expanded="false">
-        <span class="et-icon">❓</span>
-        <span class="et-label" data-i18n="menu.explainerToggle">What is TKG Signature Gravy?</span>
-        <span class="et-chevron">▾</span>
-      </button>
-      <div class="explainer-body" id="explainerBody">
-        <div class="explainer-body-inner">
-          <div class="info-sheet-line" data-i18n="menu.eduLine1">TKG's signature cheese gravy is freshly prepared over real coal heat using vegetables, herbs, spices and milk to create a rich smoky flavour.</div>
-          <div class="info-sheet-line" data-i18n="menu.eduLine2">Unlike traditional gravies, it is served separately with coal-roasted Khichiya for dipping, allowing you to enjoy every bite your own way.</div>
-          <div class="info-sheet-punch" data-i18n-html="menu.hookPunch">Not poured on top.<br>Dip. Scoop. Enjoy.</div>
-        </div>
+        <button type="button" id="changeJourneyBtn" data-i18n="journey.changeLink">Change Journey ›</button>
       </div>
     </div>
 
@@ -2435,9 +2312,9 @@ textarea.field-input{
     </div>
 
     <!-- Journey Progression — friendly contextual suggestion, text-only.
-         The Change action itself now lives in the Journey status bar at
-         the top of this screen (see #journeyStatusBar) — this is just the
-         small helper line, reusing the existing #journeyHint mechanism. -->
+         The Change action itself now lives in the Welcome Card at the top
+         of this screen (see #welcomeCard) — this is just the small helper
+         line, reusing the existing #journeyHint mechanism. -->
     <div class="change-journey-link">
       <p id="journeyHint" style="font-size:12px; color:var(--ink-soft); text-align:center; margin-bottom:6px;"></p>
     </div>
@@ -2605,6 +2482,37 @@ textarea.field-input{
   </div>
 
 </div>
+
+<!-- ============ FIXED QUICK ACTIONS BAR — Visual hierarchy redesign.
+     Starts hidden (class="hidden") since the very first paint is the
+     Customer Journey screen, not the Menu — showScreen() reveals it the
+     moment screen-menu becomes active and hides it everywhere else. Every
+     button below opens something that already existed elsewhere on the
+     page — Rate Us/Reviews (openCustomerStoriesSheet, previously reached
+     by tapping the review teaser card), Message Us (openRegisterOverlay,
+     the existing registration/contact overlay), About TKG (openInfoSheet,
+     the existing ⓘ info sheet — previously also duplicated inline as the
+     "What is TKG Signature Gravy?" FAQ card, now told in one place only),
+     Journey (showScreen('screen-journey'), same destination as Change
+     Journey). ============ -->
+<nav class="bottom-nav hidden" id="bottomNav">
+  <button type="button" class="bottom-nav-item" id="navRateUsBtn">
+    <span class="bn-icon">⭐</span>
+    <span class="bn-label">Rate Us</span>
+  </button>
+  <button type="button" class="bottom-nav-item" id="navMessageBtn">
+    <span class="bn-icon">💬</span>
+    <span class="bn-label">Message Us</span>
+  </button>
+  <button type="button" class="bottom-nav-item" id="navAboutBtn">
+    <span class="bn-icon">❓</span>
+    <span class="bn-label">About TKG</span>
+  </button>
+  <button type="button" class="bottom-nav-item" id="navJourneyBtn">
+    <span class="bn-icon">📍</span>
+    <span class="bn-label">Journey</span>
+  </button>
+</nav>
 
 <div class="toast" id="toast"></div>
 
@@ -3697,6 +3605,11 @@ function showScreen(id){
   // showScreen()'s own behavior above this line is untouched.
   if(id === 'screen-menu'){ startTasteDiscoveryTimer(); }
   else{ cancelTasteDiscoveryTimer(); }
+  // Sprint: Production UI Patch — fixed bottom nav only belongs on the
+  // primary Menu screen (Objective 4); hidden on the Journey picker, Owner
+  // Dashboard, and every overlay-backed screen.
+  const bottomNavEl = document.getElementById('bottomNav');
+  if(bottomNavEl) bottomNavEl.classList.toggle('hidden', id !== 'screen-menu');
 }
 
 // ---------------------------------------------------------------------------
@@ -3945,81 +3858,15 @@ function buildCtaFooter({ heading, buttonText, href, showStars = false }){
 }
 
 // ---------------------------------------------------------------------------
-// REVIEW HERO CARD — Instagram-Stories-style, single review at a time,
-// auto-rotating every 5.5s. Fully data-driven from
-// contentRegistry.featuredReviews via renderContent(). Tapping anywhere opens the Customer
-// Stories content sheet (all reviews + Google Review CTA). Review quote
-// text is shown exactly as written — never run through the translation
-// system; only surrounding UI chrome (tap hint, sheet title, CTA) is
+// CUSTOMER STORIES SHEET — all reviews + Google Review CTA. Reached from the
+// Quick Actions Bar's "Rate Us" button (see navRateUsBtn below) now that the
+// single-review teaser card no longer lives in the primary content flow.
+// Review quote text is shown exactly as written — never run through the
+// translation system; only surrounding UI chrome (sheet title, CTA) is
 // translated.
 // ---------------------------------------------------------------------------
-const REVIEW_HERO_INTERVAL_MS = 5500;
-let reviewHeroIndex = 0;
-let reviewHeroTimer = null;
-
 function getInitials(name){
   return String(name || '').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
-}
-
-function renderReviewHeroCard(index){
-  const r = renderContent('featuredReviews')[index];
-  if(!r) return;
-  document.getElementById('reviewHeroAvatar').textContent = getInitials(r.authorName);
-  document.getElementById('reviewHeroAuthor').textContent = r.authorName;
-  document.getElementById('reviewHeroStars').textContent = '★'.repeat(r.rating || 5);
-  document.getElementById('reviewHeroQuote').textContent = r.quoteText;
-}
-
-function renderReviewHeroBars(activeIndex, total){
-  const barsEl = document.getElementById('reviewHeroBars');
-  barsEl.innerHTML = '';
-  for(let i = 0; i < total; i++){
-    const bar = document.createElement('span');
-    bar.className = 'rh-bar' + (i < activeIndex ? ' done' : '');
-    const fill = document.createElement('span');
-    fill.className = 'rh-bar-fill';
-    bar.appendChild(fill);
-    barsEl.appendChild(bar);
-  }
-  // Trigger the active bar's fill transition on the next frame — starting
-  // it in the same paint as adding the element would just jump to 100%.
-  requestAnimationFrame(() => {
-    const activeBar = barsEl.children[activeIndex];
-    if(activeBar) activeBar.classList.add('active');
-  });
-}
-
-function showReviewHeroSlide(index){
-  const card = document.getElementById('reviewHeroCard');
-  card.classList.add('rh-fade');
-  setTimeout(() => {
-    renderReviewHeroCard(index);
-    card.classList.remove('rh-fade');
-  }, 220);
-  renderReviewHeroBars(index, renderContent('featuredReviews').length);
-}
-
-function advanceReviewHero(){
-  const total = renderContent('featuredReviews').length;
-  if(total === 0) return;
-  reviewHeroIndex = (reviewHeroIndex + 1) % total;
-  showReviewHeroSlide(reviewHeroIndex);
-}
-
-function startReviewHeroRotation(){
-  const reviewHeroEl = document.getElementById('reviewHero');
-  const total = renderContent('featuredReviews').length;
-  if(total === 0){
-    // Graceful degrade — no active reviews in the registry, hide the whole
-    // component instead of showing an empty card.
-    if(reviewHeroEl) reviewHeroEl.style.display = 'none';
-    return;
-  }
-  reviewHeroIndex = 0;
-  renderReviewHeroCard(0);
-  renderReviewHeroBars(0, total);
-  if(reviewHeroTimer) clearInterval(reviewHeroTimer);
-  reviewHeroTimer = setInterval(advanceReviewHero, REVIEW_HERO_INTERVAL_MS);
 }
 
 function openCustomerStoriesSheet(){
@@ -4047,25 +3894,22 @@ function openCustomerStoriesSheet(){
   });
 }
 
-const reviewHeroEl = document.getElementById('reviewHero');
-reviewHeroEl.addEventListener('click', openCustomerStoriesSheet);
-reviewHeroEl.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter' || e.key === ' '){
-    e.preventDefault();
-    openCustomerStoriesSheet();
-  }
+// ---------------------------------------------------------------------------
+// FIXED QUICK ACTIONS BAR — every handler below calls a function that
+// already existed elsewhere on the page; nothing new is being built here,
+// only new entry points into it (see the comment above the <nav> markup).
+// ---------------------------------------------------------------------------
+document.getElementById('navRateUsBtn').addEventListener('click', () => {
+  openCustomerStoriesSheet();
 });
-
-startReviewHeroRotation();
-
-// ---------------------------------------------------------------------------
-// EXPANDABLE EXPLAINER — "What is TKG Signature Gravy?" inline on the menu
-// ---------------------------------------------------------------------------
-const explainer = document.getElementById('explainer');
-const explainerToggle = document.getElementById('explainerToggle');
-explainerToggle.addEventListener('click', () => {
-  const isOpen = explainer.classList.toggle('open');
-  explainerToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+document.getElementById('navMessageBtn').addEventListener('click', () => {
+  openRegisterOverlay(); // same registration/contact overlay as Register & Get Updates
+});
+document.getElementById('navAboutBtn').addEventListener('click', () => {
+  openInfoSheet(); // same About/FAQ sheet as the ⓘ button in the Hero
+});
+document.getElementById('navJourneyBtn').addEventListener('click', () => {
+  showScreen('screen-journey'); // same destination as #changeJourneyBtn
 });
 
 // ---------------------------------------------------------------------------
