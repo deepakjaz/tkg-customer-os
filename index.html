@@ -350,6 +350,35 @@ input{font-family:inherit;}
   padding:8px;
 }
 
+/* ---- Business Status Card — live OPEN/CLOSED status. Sprint: Customer OS
+   UI Polish (item 2). Same surface tokens as every other .stone-card card
+   on this screen — no new palette. Icon/label/detail text are set by
+   refreshBusinessStatusCard() in the script; this only styles the shell. ---- */
+.business-status-card{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  box-shadow:0 1px 2px rgba(28,24,21,0.04);
+  padding:12px 16px;
+  margin-bottom:16px;
+}
+.bsc-icon{ font-size:17px; flex-shrink:0; }
+.bsc-label{
+  font-size:13.5px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  color:var(--ink);
+}
+.business-status-card[data-open="true"] .bsc-label{ color:var(--ember-deep); }
+.bsc-detail{
+  font-size:12.5px;
+  color:var(--ink-soft);
+  margin-top:1px;
+}
+
 /* ---- Welcome Card — Visual hierarchy redesign. One calm card directly
    below the Hero: Greeting + current browsing status + Change Journey.
    Replaces the previous floating greeting text and the separate Journey
@@ -959,6 +988,35 @@ textarea.field-input{
   50%{transform:translateY(-2px);}
   65%{transform:translateY(0);}
 }
+
+/* "Get Directions" as a primary action, footer only — Sprint: Customer OS
+   UI Polish, item 6. Reuses the exact .btn-primary tokens (gradient, shadow,
+   active state) already used elsewhere on this screen; no new visual
+   language, just applied to an <a> instead of a <button>. The Hero's own
+   small .directions-link chip is untouched — this modifier is additive and
+   only applies where the class is present. Destination/href unchanged. */
+.directions-link--primary{
+  width:100%;
+  justify-content:center;
+  gap:8px;
+  padding:15px 16px;
+  border-radius:var(--radius-md);
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  border:none;
+  color:var(--marble);
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  text-decoration:none;
+  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
+  transition:transform 0.12s ease, box-shadow 0.12s ease;
+}
+.directions-link--primary .dl-icon{width:18px; height:18px;}
+.directions-link--primary:active{
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  transform:translateY(1px) scale(0.99);
+  box-shadow:0 4px 10px -4px rgba(232,93,44,0.5);
+}
 .app-hero-headline{
   font-family:var(--font-display);
   font-weight:800;
@@ -1077,6 +1135,18 @@ textarea.field-input{
 }
 .menu-tab:active{transform:scale(0.97);}
 
+/* Gentle discoverability cue for the Traditional tab — most of each 13s
+   cycle is completely at rest; a soft glow ring appears briefly once per
+   cycle, never a continuous flash. Stops the moment the tab is active
+   (selected), since its job is done once someone has found it. */
+@keyframes tab-discoverable-pulse{
+  0%, 88%, 100%{ box-shadow:0 1px 2px rgba(28,24,21,0.04), 0 0 0 0 rgba(232,93,44,0); }
+  94%{ box-shadow:0 1px 2px rgba(28,24,21,0.04), 0 0 0 5px rgba(232,93,44,0.16); }
+}
+.menu-tab[data-cat="traditional"]:not(.active){
+  animation:tab-discoverable-pulse 13s ease-in-out infinite;
+}
+
 /* ==========================================================================
    MENU SECTIONS — gentle slide+fade on category switch
    ========================================================================== */
@@ -1114,13 +1184,15 @@ textarea.field-input{
 
 .footer-meta{
   display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-wrap:wrap;
+  flex-direction:column;
+  align-items:stretch;
   gap:10px;
   margin-top:18px;
   padding-top:14px;
   border-top:1px solid var(--stone-line);
+}
+.footer-meta .hours-note{
+  text-align:center;
 }
 .hours-note{
   font-size:12px;
@@ -2122,7 +2194,21 @@ textarea.field-input{
       </div>
     </div>
 
-    <!-- ============ BELOW-HERO BROWSING CONTEXT — Sprint: Production UI
+    <!-- ============ BUSINESS STATUS CARD — Sprint: Customer OS UI Polish,
+         item 2. Live open/closed status computed client-side from the
+         configured schedule (Fri/Sat/Sun, 6:30 PM–11:00 PM) — see
+         getBusinessStatus_()/refreshBusinessStatusCard() in the script.
+         No backend/schema involved: purely a presentational read of the
+         device's local clock, refreshed on load and every minute so it
+         never goes stale during a long browsing session. ============ -->
+    <div class="business-status-card" id="businessStatusCard">
+      <span class="bsc-icon" id="businessStatusIcon">🟢</span>
+      <div class="bsc-text">
+        <div class="bsc-label" id="businessStatusLabel">OPEN NOW</div>
+        <div class="bsc-detail" id="businessStatusDetail"></div>
+      </div>
+    </div>
+
     <!-- ============ WELCOME CARD — Visual hierarchy redesign. One card,
          directly below the Hero: Greeting + current browsing status +
          Change Journey. Replaces the separate floating greeting text and
@@ -2267,7 +2353,7 @@ textarea.field-input{
 
     <div class="footer-meta" data-journey="planning">
       <span class="hours-note" data-i18n="menu.hours">Opens Fri/Sat/Sun · Evening to Late Night</span>
-      <a class="directions-link" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
+      <a class="directions-link directions-link--primary" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
         <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
         <span data-i18n="menu.getDirections">Get Directions</span>
       </a>
@@ -2285,17 +2371,11 @@ textarea.field-input{
       <a class="link-chip" id="googleReviewLink" href="#" target="_blank" rel="noopener" data-i18n="menu.googleReview" data-journey="atTKG">Google Review</a>
     </div>
 
-    <!-- Registration entry point — permanent Customer OS module, visible on
-         all three journeys (aligned with Permanent Modules principle,
-         Sprint 2.0). Previously gated to atTKG only; that gate has been
-         removed — never blocks menu access either way. -->
-    <div class="register-cta" id="registerCtaCard">
-      <div class="register-cta-text">
-        <div class="register-cta-title" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</div>
-        <div class="register-cta-sub" data-i18n="reg.ctaSub">Takes 10 seconds. No login, no OTP.</div>
-      </div>
-      <button class="btn-primary register-cta-btn" id="openRegisterBtn" data-i18n-html="reg.submitBtn">Register &amp; Get Updates</button>
-    </div>
+    <!-- Registration CTA card removed (Sprint: Customer OS UI Polish, item 1)
+         — duplicated the Quick Actions footer's "Message Us" button, which
+         already opens the exact same openRegisterOverlay() flow. Nothing
+         about registration itself changed; this only removes the extra
+         visual entry point on the Menu page. -->
 
     <!-- Sprint 2.0 — Taste Discovery reminder. Contextual module (Planning /
          Exploring journeys only, per roadmap). data-journey handles the
@@ -3655,6 +3735,7 @@ function selectJourney(journey){
   updateJourneyHint(journey);
   updateJourneyStatusDisplay(journey);
   updateDynamicGreeting(journey);
+  refreshBusinessStatusCard();
   showScreen('screen-menu');
 }
 
@@ -3681,16 +3762,89 @@ function updateJourneyStatusDisplay(journey){
   el.textContent = JOURNEY_VALUES.includes(journey) ? (dict.journey[journey] || '') : '';
 }
 
+// ---------------------------------------------------------------------------
+// BUSINESS STATUS — Sprint: Customer OS UI Polish, item 2. Pure client-side
+// presentation: reads the device's local clock against the configured
+// schedule below. No backend/Apps Script/sync involvement at all — this is
+// display-only and safe to get wrong without any data consequence, so it
+// intentionally uses the device's own clock/timezone rather than a server
+// call. Also feeds the greeting fix in item 3 (see getGreetingTimeKey_).
+// ---------------------------------------------------------------------------
+const BUSINESS_DAYS_ = [5, 6, 0]; // Fri, Sat, Sun — JS Date.getDay(): Sun=0..Sat=6
+const BUSINESS_OPEN_MINUTES_ = 18 * 60 + 30;  // 6:30 PM
+const BUSINESS_CLOSE_MINUTES_ = 23 * 60;      // 11:00 PM
+
+function getBusinessStatus_(now){
+  now = now || new Date();
+  const day = now.getDay();
+  const minutesNow = now.getHours() * 60 + now.getMinutes();
+  const isBusinessDay = BUSINESS_DAYS_.indexOf(day) !== -1;
+  const isOpen = isBusinessDay && minutesNow >= BUSINESS_OPEN_MINUTES_ && minutesNow < BUSINESS_CLOSE_MINUTES_;
+  return { isOpen: isOpen, minutesNow: minutesNow, day: day };
+}
+
+// Finds how many days from now (0 = today) until the next business day,
+// treating "today" as valid only if opening time hasn't passed yet.
+function daysUntilNextBusinessDay_(now){
+  for(let i = 0; i < 7; i++){
+    const checkDay = (now.getDay() + i) % 7;
+    if(BUSINESS_DAYS_.indexOf(checkDay) === -1) continue;
+    if(i === 0){
+      const minutesNow = now.getHours() * 60 + now.getMinutes();
+      if(minutesNow < BUSINESS_OPEN_MINUTES_) return 0; // still time today
+      continue; // today's window already started/passed — look further ahead
+    }
+    return i;
+  }
+  return 0; // unreachable given 3 business days a week, but keeps this total
+}
+
+function refreshBusinessStatusCard(){
+  const cardEl = document.getElementById('businessStatusCard');
+  const iconEl = document.getElementById('businessStatusIcon');
+  const labelEl = document.getElementById('businessStatusLabel');
+  const detailEl = document.getElementById('businessStatusDetail');
+  if(!cardEl || !iconEl || !labelEl || !detailEl) return;
+
+  const dict = (translations[currentLang] || translations.en).hours;
+  const now = new Date();
+  const status = getBusinessStatus_(now);
+
+  cardEl.setAttribute('data-open', status.isOpen ? 'true' : 'false');
+
+  if(status.isOpen){
+    iconEl.textContent = '🟢';
+    labelEl.textContent = dict.openNow;
+    detailEl.textContent = dict.todayHours;
+  }else{
+    const daysAhead = daysUntilNextBusinessDay_(now);
+    const nextDate = new Date(now);
+    nextDate.setDate(now.getDate() + daysAhead);
+    const dayName = dict.dayNames[nextDate.getDay()];
+    iconEl.textContent = '🔴';
+    labelEl.textContent = dict.closedNow;
+    detailEl.textContent = dict.seeYouAt.replace('{day}', dayName);
+  }
+}
+
 // Dynamic greeting (top of Menu page) — time-of-day greeting + a short
 // Journey-aware line underneath. Text-only, no new Journey logic; reuses
 // the existing translations system/currentLang. Re-run on language switch
 // and on every journey change, same as the two functions above.
+//
+// Sprint: Customer OS UI Polish, item 3 — fixed bands (Morning 6–11:59am,
+// Afternoon 12–4:59pm, Evening 5pm onward) plus the required safety rule:
+// while the stall is actually OPEN, never fall through to "Good Night" —
+// late business hours (up to 11pm) still read as evening, and even after
+// 11pm the greeting stays "evening" for as long as getBusinessStatus_()
+// says open (e.g. schedule edge cases), only becoming "Good Night" once
+// it's both late AND closed.
 function getGreetingTimeKey_(){
   const h = new Date().getHours();
-  if(h >= 5 && h < 12) return 'morning';
+  if(h >= 6 && h < 12) return 'morning';
   if(h >= 12 && h < 17) return 'afternoon';
-  if(h >= 17 && h < 21) return 'evening';
-  return 'night';
+  if(h >= 17 && h < 23) return 'evening'; // covers the full 6:30–11pm business window
+  return getBusinessStatus_().isOpen ? 'evening' : 'night';
 }
 function updateDynamicGreeting(journey){
   const greetEl = document.getElementById('dgGreetingText');
@@ -3702,6 +3856,16 @@ function updateDynamicGreeting(journey){
   const journeyKey = JOURNEY_VALUES.includes(journey) ? journey : 'exploring';
   subEl.innerHTML = g[journeyKey] || '';
 }
+
+// Sprint: Customer OS UI Polish, item 2 — "should update automatically."
+// Re-checks the clock every 60s so a device left open across the
+// open/close boundary (or across a greeting band) never shows stale text
+// without needing a reload. journey is read fresh each tick rather than
+// captured, since it can change independently via selectJourney().
+setInterval(() => {
+  refreshBusinessStatusCard();
+  updateDynamicGreeting(getStoredJourney());
+}, 60000);
 
 document.querySelectorAll('.journey-option[data-choice]').forEach(btn => {
   btn.addEventListener('click', () => selectJourney(btn.dataset.choice));
@@ -3933,7 +4097,9 @@ function closeRegisterOverlay(){
   regOverlay.classList.remove('show');
 }
 
-document.getElementById('openRegisterBtn').addEventListener('click', openRegisterOverlay);
+// openRegisterBtn/registerCtaCard removed (Sprint: Customer OS UI Polish,
+// item 1) — openRegisterOverlay is still reached via the Quick Actions
+// footer's "Message Us" button (see navMessageBtn handler further down).
 document.getElementById('closeRegisterBtn').addEventListener('click', closeRegisterOverlay);
 overlayBackdrop.addEventListener('click', closeRegisterOverlay);
 
@@ -5092,6 +5258,15 @@ const translations = {
       planning: "Can't wait to welcome you.",
       exploring: "Welcome!<br>Let's explore what makes TKG special."
     },
+    // Sprint: Customer OS UI Polish, item 2 — Business Status Card. Additive
+    // namespace; dayNames is indexed exactly like JS Date.getDay() (0=Sun).
+    hours: {
+      openNow: 'OPEN NOW',
+      closedNow: 'CLOSED NOW',
+      todayHours: 'Today: 6:30 PM – 11:00 PM',
+      seeYouAt: 'See you {day} at 6:30 PM',
+      dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    },
     // Sprint 2.0 — Taste Discovery Engine. New namespace, additive only.
     taste: {
       reminderTitle: '🍽️ Not sure what to order?',
@@ -5242,6 +5417,13 @@ const translations = {
       planning: 'તમારું સ્વાગત કરવા આતુર છીએ.',
       exploring: 'સ્વાગત છે!<br>ચાલો જોઈએ TKG ને ખાસ શું બનાવે છે.'
     },
+    hours: {
+      openNow: 'હમણાં ખુલ્લું છે',
+      closedNow: 'હમણાં બંધ છે',
+      todayHours: 'આજે: સાંજે 6:30 – રાત્રે 11:00',
+      seeYouAt: '{day}ના રોજ સાંજે 6:30 વાગ્યે મળીશું',
+      dayNames: ['રવિવાર', 'સોમવાર', 'મંગળવાર', 'બુધવાર', 'ગુરુવાર', 'શુક્રવાર', 'શનિવાર']
+    },
     taste: {
       reminderTitle: '🍽️ શું ઓર્ડર કરવું એ વિચારવામાં અટવાયા છો?',
       reminderSub: 'રિલેક્સ... બસ ૨ નાની વાત કહો ને બાકી બધું અમે સંભાળી લઈશું.',
@@ -5391,6 +5573,13 @@ const translations = {
       planning: 'आपका स्वागत करने के लिए बेताब हैं।',
       exploring: 'स्वागत है!<br>चलिए देखते हैं TKG को क्या खास बनाता है।'
     },
+    hours: {
+      openNow: 'अभी खुला है',
+      closedNow: 'अभी बंद है',
+      todayHours: 'आज: शाम 6:30 – रात 11:00',
+      seeYouAt: '{day} को शाम 6:30 बजे मिलते हैं',
+      dayNames: ['रविवार', 'सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार']
+    },
     taste: {
       reminderTitle: '🍽️ समझ नहीं आ रहा क्या ऑर्डर करें?',
       reminderSub: 'रिलैक्स... बस २ छोटे जवाब दीजिए, बाकी सब हम संभाल लेंगे।',
@@ -5464,6 +5653,7 @@ function setLanguage(lang){
     updateJourneyStatusDisplay(storedJourneyForLang);
     updateDynamicGreeting(storedJourneyForLang);
   }
+  refreshBusinessStatusCard(); // language affects hours.* strings too
 }
 
 // ---------------------------------------------------------------------------
@@ -5566,6 +5756,7 @@ if(storedJourney){
   updateJourneyHint(storedJourney);
   updateJourneyStatusDisplay(storedJourney);
   updateDynamicGreeting(storedJourney);
+  refreshBusinessStatusCard();
   showScreen('screen-menu');
 }else{
   let hasStoredLanguage = false;
