@@ -4724,21 +4724,34 @@ function renderDashboard(){
 // carries both `locality` and `journey` per event (see JOURNEY ANALYTICS
 // EVENT SCHEMA in AppsScript.gs) — this only changes how the existing data
 // is grouped for display.
+// Matches a bare decimal number like "21.1442097" — a raw latitude/
+// longitude value that ended up in the Locality column from an older
+// version of the app (current reverseGeocode/resolveBusinessLocality/
+// resolveSuratCohortLocality code never does this — coordinates are only
+// ever geocoding input, never an output value). Filtered out here at
+// display time rather than in the Sheet, so no data is deleted — this is
+// purely "don't show a coordinate as if it were a place name."
+const COORDINATE_LOOKING_LOCALITY_RE_ = /^-?\d+(\.\d+)?$/;
+
 function renderTopAreas(journeyEvents){
   const counts = {}; // { locality: { atTKG: n, planning: n, exploring: n } }
   journeyEvents.forEach(e => {
     const locality = (e.locality || '').trim();
     if(!locality) return; // ignore blank Localities entirely — never show "Unknown"
+    if(COORDINATE_LOOKING_LOCALITY_RE_.test(locality)) return; // legacy bad-data row — see above
     if(!counts[locality]) counts[locality] = { atTKG: 0, planning: 0, exploring: 0 };
     if(e.journey === 'atTKG') counts[locality].atTKG++;
     else if(e.journey === 'planning') counts[locality].planning++;
     else if(e.journey === 'exploring') counts[locality].exploring++;
   });
 
+  // No cap: every locality with at least one event is shown, sorted by
+  // volume. Previously capped at the top 5 by count, which is exactly why
+  // Adajan/Salabatpura/Virar East (1 event each, today) weren't appearing —
+  // they were tied at the bottom with everything else and lost the cut.
   const sorted = Object.entries(counts)
     .map(([locality, c]) => [locality, c, c.atTKG + c.planning + c.exploring])
-    .sort((a, b) => b[2] - a[2])
-    .slice(0, 5);
+    .sort((a, b) => b[2] - a[2]);
 
   const container = document.getElementById('topAreasList');
 
