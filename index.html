@@ -11,6 +11,21 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+<script>
+// Applied here (before <style>/body) rather than in the main script at the
+// bottom of the file, so a returning visitor who picked Large/Small never
+// sees a flash of default-size text first. Kept intentionally tiny — just
+// reads localStorage and sets the root font-size; the full Aa control UI
+// and its click handling live in the main script alongside everything else.
+(function(){
+  try{
+    var scale = localStorage.getItem('tkg_font_scale');
+    var sizes = { small: '92%', medium: '100%', large: '115%' };
+    document.documentElement.style.fontSize = sizes[scale] || sizes.medium;
+  }catch(e){}
+})();
+</script>
+
 <style>
 /* ==========================================================================
    TOKENS
@@ -25,19 +40,20 @@
   --ember-card:     #2A1E17;
   --ember-card-top: #32241B;
   --marble:         #FAF7F2;
-  --marble-dim:     #EFEAE1;
-  --marble-warm:    #FBF4EA;
+  --marble-dim:     #EEEEEC;
+  --marble-warm:    #F7F6F3;
+
   --grey-line:      #3D2E24;
 
   /* ---- LIGHT PALETTE — the customer-facing shell, cards, sheets.
      White/warm-ivory marble base, charcoal text, ember reserved for
      small accents per direction: "subtle, charcoal does the heavy lifting." ---- */
-  --stone-base:      #F4F1EC;   /* shell background base, warm off-white */
+  --stone-base:      #F6F6F5;   /* shell background base — neutral, barely-there cool grey */
   --stone-card:      #FFFFFF;   /* cards sit a shade lighter than the shell */
-  --stone-card-alt:  #FBF9F5;   /* secondary card tone for subtle layering */
-  --stone-vein:      #C7BFB2;   /* marble crack-vein color, warm grey */
-  --stone-vein-soft: #DCD5C8;
-  --stone-line:      #E3DDD2;   /* hairline borders on light surfaces */
+  --stone-card-alt:  #FBFBFA;   /* secondary card tone for subtle layering */
+  --stone-vein:      #C9C9C7;   /* marble crack-vein color — neutral grey, no warm bias */
+  --stone-vein-soft: #DCDCDA;
+  --stone-line:      #E4E4E2;   /* hairline borders on light surfaces */
   --ink:             #1C1815;   /* primary text \u2014 near-black, warm */
   --ink-soft:        #6B6256;   /* secondary text, warm grey-brown */
   --ink-faint:       #9C9286;   /* tertiary text, placeholders */
@@ -103,8 +119,6 @@ input{font-family:inherit;}
   display:flex;
   flex-direction:column;
   background-image:
-    /* warm gold pooling, top \u2014 sampled from the TKG logo's coal-ring halo */
-    radial-gradient(ellipse 110% 40% at 50% 0%, rgba(250,198,70,0.07), transparent 60%),
     /* fracture-point convergences \u2014 small darker clusters where veins meet */
     radial-gradient(ellipse 18% 10% at 78% 14%, rgba(120,108,92,0.16), transparent 70%),
     radial-gradient(ellipse 14% 8% at 14% 62%, rgba(120,108,92,0.13), transparent 70%),
@@ -118,31 +132,16 @@ input{font-family:inherit;}
     linear-gradient(140deg, transparent 84%, rgba(124,112,96,0.09) 84.4%, transparent 85%),
     /* fine paper-like grain, very low opacity */
     repeating-linear-gradient(0deg, rgba(28,24,21,0.01) 0px, rgba(28,24,21,0.01) 1px, transparent 1px, transparent 3px);
-  background-attachment:fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, local;
+  background-attachment:fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, local;
 }
 
-/* Ambient warmth — a soft gold-amber glow low in the shell, matched to
-   the TKG logo's halo color, evoking light pooling near a coal grill
-   against the white stone. Opacity-only animation (GPU-cheap), disabled
-   automatically under prefers-reduced-motion. */
-.shell::before{
-  content:'';
-  position:fixed;
-  left:50%;
-  bottom:-6%;
-  transform:translateX(-50%);
-  width:140%;
-  max-width:600px;
-  height:38%;
-  background:radial-gradient(ellipse at center, rgba(250,198,70,0.06), transparent 72%);
-  pointer-events:none;
-  z-index:0;
-  animation:ember-breathe 7s ease-in-out infinite;
-}
-@keyframes ember-breathe{
-  0%, 100%{opacity:0.5;}
-  50%{opacity:1;}
-}
+/* Ambient warm glow removed (was .shell::before, an animated gold radial
+   spanning 140% width x 38% height at the bottom of every screen, plus a
+   110%x40% gold pooling layer at the top of the shell above) \u2014 neither was
+   actually scoped to the logo/coal-ring area, so they washed warmth across
+   the entire page instead. TKG's warmth now lives only in the logo itself
+   and brand accents (buttons, active states) against a neutral marble
+   shell. */
 
 /* ==========================================================================
    TOP BAR — wordmark + ember status dot (signature element)
@@ -155,18 +154,32 @@ input{font-family:inherit;}
 }
 .wordmark{
   font-family:var(--font-display);
-  font-weight:800;
-  font-size:22px;
-  letter-spacing:0.06em;
   color:var(--ink);
   display:flex;
-  align-items:baseline;
-  gap:7px;
+  align-items:center;
+  gap:8px;
+}
+.wordmark-logo{
+  width:32px;
+  height:32px;
+  flex-shrink:0;
+  display:block;
+}
+.wordmark-text{
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  line-height:1.15;
+}
+.wordmark-text span.main{
+  font-weight:800;
+  font-size:1.125rem;
+  letter-spacing:0.06em;
 }
 .wordmark span.sub{
   font-family:var(--font-body);
   font-weight:500;
-  font-size:10px;
+  font-size:0.625rem;
   letter-spacing:0.18em;
   color:var(--ink-soft);
   text-transform:uppercase;
@@ -176,7 +189,7 @@ input{font-family:inherit;}
   display:flex;
   align-items:center;
   gap:7px;
-  font-size:11px;
+  font-size:0.6875rem;
   letter-spacing:0.04em;
   color:var(--ink-soft);
   padding:6px 10px;
@@ -193,7 +206,7 @@ input{font-family:inherit;}
   display:flex;
   align-items:center;
   gap:4px;
-  font-size:11.5px;
+  font-size:0.7188rem;
   font-weight:700;
   letter-spacing:0.02em;
   color:var(--ember-deep);
@@ -203,6 +216,18 @@ input{font-family:inherit;}
   border:1px solid rgba(232,93,44,0.28);
   transition:background 0.15s ease, border-color 0.15s ease;
 }
+.text-size-btn{
+  font-size:0.7188rem;
+  font-weight:700;
+  letter-spacing:0.01em;
+  color:var(--ember-deep);
+  padding:6px 11px;
+  border-radius:20px;
+  background:rgba(232,93,44,0.07);
+  border:1px solid rgba(232,93,44,0.28);
+  transition:background 0.15s ease, border-color 0.15s ease;
+}
+.text-size-btn:active, .lang-btn:active{background:rgba(232,93,44,0.14);}
 .lang-btn:active{background:rgba(232,93,44,0.14);}
 .lang-btn.attention{animation:lang-btn-attention 2.2s ease-in-out 1;}
 @keyframes lang-btn-attention{
@@ -230,7 +255,7 @@ input{font-family:inherit;}
 .lang-sheet-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:18px;
+  font-size:1.125rem;
   color:var(--ink);
   text-align:center;
   margin:6px 0 16px;
@@ -248,8 +273,8 @@ input{font-family:inherit;}
   color:var(--ink);
   box-shadow:0 1px 2px rgba(28,24,21,0.06);
 }
-.lang-option-native{font-size:15px; font-weight:700;}
-.lang-option-check{opacity:0; color:var(--ember); font-weight:800; font-size:16px;}
+.lang-option-native{font-size:0.9375rem; font-weight:700;}
+.lang-option-check{opacity:0; color:var(--ember); font-weight:800; font-size:1rem;}
 .lang-option.selected{border-color:var(--ember);}
 .lang-option.selected .lang-option-check{opacity:1;}
 .ember-dot{
@@ -300,12 +325,12 @@ input{font-family:inherit;}
 .journey-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:22px;
+  font-size:1.375rem;
   color:var(--ink);
   margin-bottom:8px;
 }
 .journey-subtitle{
-  font-size:14px;
+  font-size:0.875rem;
   color:var(--ink-soft);
 }
 .journey-options{
@@ -320,7 +345,7 @@ input{font-family:inherit;}
   border-radius:var(--radius-lg);
   border:1px solid var(--stone-line);
   background:var(--stone-card);
-  font-size:16px;
+  font-size:1rem;
   font-weight:600;
   color:var(--ink);
   box-shadow:0 2px 8px -4px rgba(28,24,21,0.08);
@@ -343,7 +368,7 @@ input{font-family:inherit;}
   background:none;
   border:none;
   color:var(--grey-warm);
-  font-size:12px;
+  font-size:0.75rem;
   letter-spacing:0.05em;
   text-decoration:underline;
   text-decoration-color:var(--grey-line);
@@ -365,16 +390,16 @@ input{font-family:inherit;}
   padding:12px 16px;
   margin-bottom:16px;
 }
-.bsc-icon{ font-size:17px; flex-shrink:0; }
+.bsc-icon{ font-size:1.0625rem; flex-shrink:0; }
 .bsc-label{
-  font-size:13.5px;
+  font-size:0.8438rem;
   font-weight:700;
   letter-spacing:0.02em;
   color:var(--ink);
 }
 .business-status-card[data-open="true"] .bsc-label{ color:var(--ember-deep); }
 .bsc-detail{
-  font-size:12.5px;
+  font-size:0.7812rem;
   color:var(--ink-soft);
   margin-top:1px;
 }
@@ -396,12 +421,12 @@ input{font-family:inherit;}
   text-align:left;
 }
 .dg-greeting{
-  font-size:19px;
+  font-size:1.1875rem;
   font-weight:700;
   color:var(--ink);
 }
 .dg-sub{
-  font-size:13.5px;
+  font-size:0.8438rem;
   color:var(--ink-soft);
   margin-top:3px;
   line-height:1.45;
@@ -421,9 +446,9 @@ input{font-family:inherit;}
   gap:7px;
   min-width:0;
 }
-.welcome-card-journey-status .jc-icon{font-size:15px; flex-shrink:0;}
+.welcome-card-journey-status .jc-icon{font-size:0.9375rem; flex-shrink:0;}
 .welcome-card-journey-status .jc-current{
-  font-size:13.5px;
+  font-size:0.8438rem;
   font-weight:700;
   color:var(--ink);
   white-space:nowrap;
@@ -435,7 +460,7 @@ input{font-family:inherit;}
   border:none;
   color:var(--ember);
   font-weight:600;
-  font-size:12.5px;
+  font-size:0.7812rem;
   text-decoration:underline;
   text-decoration-color:var(--ember);
   padding:2px 0;
@@ -462,7 +487,7 @@ input{font-family:inherit;}
   display:flex;
   background:var(--stone-card);
   border-top:1px solid var(--stone-line);
-  box-shadow:0 -6px 20px -12px rgba(28,24,21,0.18);
+  box-shadow:0 -1px 3px rgba(28,24,21,0.05);
   padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
   z-index:130;
 }
@@ -479,9 +504,9 @@ input{font-family:inherit;}
   padding:6px 2px;
 }
 .bottom-nav-item:active{ opacity:0.6; }
-.bottom-nav-item .bn-icon{ font-size:18px; line-height:1; }
+.bottom-nav-item .bn-icon{ font-size:1.125rem; line-height:1; }
 .bottom-nav-item .bn-label{
-  font-size:10px;
+  font-size:0.625rem;
   font-weight:600;
   color:var(--ink);
   white-space:nowrap;
@@ -499,7 +524,7 @@ input{font-family:inherit;}
   margin-bottom:28px;
 }
 .hero-eyebrow{
-  font-size:11px;
+  font-size:0.6875rem;
   letter-spacing:0.2em;
   text-transform:uppercase;
   color:var(--gold);
@@ -509,7 +534,7 @@ input{font-family:inherit;}
 .hero-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:30px;
+  font-size:1.875rem;
   line-height:1.15;
   letter-spacing:-0.01em;
   color:var(--ink);
@@ -520,7 +545,7 @@ input{font-family:inherit;}
 }
 .hero-sub{
   margin-top:10px;
-  font-size:14px;
+  font-size:0.875rem;
   color:var(--ink-soft);
   line-height:1.5;
 }
@@ -538,7 +563,7 @@ input{font-family:inherit;}
 .field-group{margin-bottom:16px;}
 .field-label{
   display:block;
-  font-size:12px;
+  font-size:0.75rem;
   font-weight:700;
   letter-spacing:0.04em;
   color:var(--ink);
@@ -552,7 +577,7 @@ input{font-family:inherit;}
   border:1.5px solid #E2DDD3;
   background:#FFFFFF;
   color:var(--ink);
-  font-size:16px;
+  font-size:1rem;
   outline:none;
   transition:border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -565,7 +590,7 @@ input{font-family:inherit;}
   border-color:var(--danger);
 }
 .field-error{
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--danger);
   margin-top:6px;
   display:none;
@@ -587,15 +612,15 @@ textarea.field-input{
   text-align:center;
   padding:6px 0 18px;
 }
-.thanks-icon{font-size:34px; margin-bottom:8px;}
+.thanks-icon{font-size:2.125rem; margin-bottom:8px;}
 .thanks-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:20px;
+  font-size:1.25rem;
   color:var(--ink);
 }
 .thanks-sub{
-  font-size:13px;
+  font-size:0.8125rem;
   color:var(--ink-soft);
   margin-top:6px;
   line-height:1.5;
@@ -616,21 +641,21 @@ textarea.field-input{
   font-family:inherit;
   cursor:pointer;
 }
-.action-card .ac-icon{font-size:22px; flex-shrink:0;}
+.action-card .ac-icon{font-size:1.375rem; flex-shrink:0;}
 .action-card .ac-text{flex:1; min-width:0;}
 .action-card .ac-title{
-  font-size:13.5px;
+  font-size:0.8438rem;
   font-weight:700;
   color:var(--ink);
 }
 .action-card .ac-sub{
-  font-size:11px;
+  font-size:0.6875rem;
   color:var(--grey-warm);
   margin-top:2px;
   line-height:1.4;
 }
 .action-card .ac-go{
-  font-size:11px;
+  font-size:0.6875rem;
   font-weight:700;
   color:var(--ember);
   white-space:nowrap;
@@ -644,7 +669,7 @@ textarea.field-input{
   border:none;
   background:linear-gradient(180deg, var(--ember-bright), var(--ember));
   color:var(--marble);
-  font-size:16px;
+  font-size:1rem;
   font-weight:700;
   letter-spacing:0.02em;
   box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
@@ -655,7 +680,7 @@ textarea.field-input{
 
 .consent-line{
   margin-top:14px;
-  font-size:11.5px;
+  font-size:0.7188rem;
   color:var(--grey-warm);
   text-align:center;
   line-height:1.5;
@@ -669,14 +694,14 @@ textarea.field-input{
 .trust-item{
   flex:1;
   text-align:center;
-  font-size:10.5px;
+  font-size:0.6562rem;
   color:var(--grey-warm);
   letter-spacing:0.03em;
 }
 .trust-item .ti-mark{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:13px;
+  font-size:0.8125rem;
   color:var(--gold);
   display:block;
   margin-bottom:3px;
@@ -691,7 +716,7 @@ textarea.field-input{
   background:none;
   border:none;
   color:var(--grey-warm);
-  font-size:12px;
+  font-size:0.75rem;
   letter-spacing:0.05em;
   text-decoration:underline;
   text-decoration-color:var(--grey-line);
@@ -708,11 +733,11 @@ textarea.field-input{
   border-radius:var(--radius-md);
   padding:11px 14px;
   margin-bottom:16px;
-  font-size:13px;
+  font-size:0.8125rem;
   color:var(--gold-deep);
 }
 .welcome-chip.show{display:flex;}
-.welcome-chip .wc-icon{font-size:16px;}
+.welcome-chip .wc-icon{font-size:1rem;}
 
 /* ==========================================================================
    REGISTRATION OVERLAY (bottom sheet, optional, never blocks the menu)
@@ -764,7 +789,7 @@ textarea.field-input{
   text-transform:none;
   letter-spacing:0;
   color:var(--grey-warm);
-  font-size:11px;
+  font-size:0.6875rem;
 }
 
 /* ==========================================================================
@@ -798,11 +823,11 @@ textarea.field-input{
 .product-preview-name{
   font-family:var(--font-display);
   font-weight:700;
-  font-size:19px;
+  font-size:1.1875rem;
   color:var(--ink);
 }
 .product-preview-desc{
-  font-size:13.5px;
+  font-size:0.8438rem;
   color:var(--ink-soft);
   line-height:1.5;
   margin-top:6px;
@@ -810,7 +835,7 @@ textarea.field-input{
 .product-preview-price{
   margin-top:14px;
   text-align:left;
-  font-size:16px;
+  font-size:1rem;
 }
 .product-preview-price .price-large{
   margin-top:3px;
@@ -827,7 +852,7 @@ textarea.field-input{
   border:1.5px solid #E2DDD3;
   background:#FFFFFF;
   color:var(--ink);
-  font-size:12.5px;
+  font-size:0.7812rem;
   font-weight:600;
 }
 .source-chip.selected{
@@ -850,7 +875,7 @@ textarea.field-input{
 .content-sheet-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:19px;
+  font-size:1.1875rem;
   color:var(--ink);
   margin-bottom:14px;
 }
@@ -861,7 +886,7 @@ textarea.field-input{
 .cs-empty-state{
   padding:30px 10px;
   text-align:center;
-  font-size:13.5px;
+  font-size:0.8438rem;
   color:var(--ink-soft);
 }
 .cs-review-card{
@@ -883,7 +908,7 @@ textarea.field-input{
   border-radius:50%;
   background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
   color:var(--marble);
-  font-size:11px;
+  font-size:0.6875rem;
   font-weight:800;
   display:flex;
   align-items:center;
@@ -893,18 +918,18 @@ textarea.field-input{
 .cs-review-author{
   flex:1;
   min-width:0;
-  font-size:12.5px;
+  font-size:0.7812rem;
   font-weight:700;
   color:var(--ink);
 }
 .cs-review-stars{
-  font-size:10.5px;
+  font-size:0.6562rem;
   color:var(--gold-deep);
   letter-spacing:1px;
   flex-shrink:0;
 }
 .cs-review-quote{
-  font-size:13.5px;
+  font-size:0.8438rem;
   line-height:1.5;
   color:var(--ink);
 }
@@ -917,13 +942,13 @@ textarea.field-input{
 }
 .content-sheet-footer.hidden{display:none;}
 .cs-footer-stars{
-  font-size:16px;
+  font-size:1rem;
   color:var(--gold-deep);
   letter-spacing:2px;
   margin-bottom:6px;
 }
 .cs-footer-heading{
-  font-size:14px;
+  font-size:0.875rem;
   font-weight:700;
   color:var(--ink);
   margin-bottom:12px;
@@ -937,7 +962,7 @@ textarea.field-input{
   border-radius:var(--radius-md);
   background:linear-gradient(180deg, var(--ember-bright), var(--ember));
   color:var(--marble);
-  font-size:14.5px;
+  font-size:0.9062rem;
   font-weight:700;
   box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
 }
@@ -957,7 +982,7 @@ textarea.field-input{
   margin-bottom:8px;
 }
 .app-hero-hours{
-  font-size:11.5px;
+  font-size:0.7188rem;
   letter-spacing:0.08em;
   text-transform:uppercase;
   color:var(--grey-warm);
@@ -967,7 +992,7 @@ textarea.field-input{
   display:flex;
   align-items:center;
   gap:4px;
-  font-size:11.5px;
+  font-size:0.7188rem;
   font-weight:700;
   color:var(--ember-deep);
   text-decoration:underline;
@@ -1004,7 +1029,7 @@ textarea.field-input{
   background:linear-gradient(180deg, var(--ember-bright), var(--ember));
   border:none;
   color:var(--marble);
-  font-size:15px;
+  font-size:0.9375rem;
   font-weight:700;
   letter-spacing:0.02em;
   text-decoration:none;
@@ -1025,18 +1050,18 @@ textarea.field-input{
 }
 .app-hero-headline .line-coal{
   display:block;
-  font-size:21px;
+  font-size:1.3125rem;
   color:var(--ink-soft);
 }
 .app-hero-headline .line-gravy{
   display:block;
-  font-size:42px;
+  font-size:2.625rem;
   color:var(--ember-deep);
   margin:2px 0;
 }
 .app-hero-headline .line-khichiya{
   display:block;
-  font-size:17px;
+  font-size:1.0625rem;
   font-weight:600;
   color:var(--ink-soft);
 }
@@ -1053,7 +1078,7 @@ textarea.field-input{
   background:rgba(28,24,21,0.035);
   border:1px solid var(--stone-line);
   color:var(--ink-soft);
-  font-size:14px;
+  font-size:0.875rem;
   font-weight:700;
   display:flex;
   align-items:center;
@@ -1067,7 +1092,7 @@ textarea.field-input{
    instead of repeating it as a separate line, so the hero reads in two
    beats (headline, then story) instead of three. */
 .hero-story-label{
-  font-size:11px;
+  font-size:0.6875rem;
   font-weight:700;
   color:var(--gold-deep);
   margin-top:10px;
@@ -1091,17 +1116,17 @@ textarea.field-input{
   display:flex;
   align-items:center;
   gap:5px;
-  font-size:10.5px;
+  font-size:0.6562rem;
   font-weight:700;
   letter-spacing:0.02em;
   color:var(--ink-soft);
   white-space:nowrap;
   flex-shrink:0;
 }
-.hero-story-strip .story-step .step-icon{font-size:13px; line-height:1;}
+.hero-story-strip .story-step .step-icon{font-size:0.8125rem; line-height:1;}
 .hero-story-strip .story-arrow{
   color:var(--stone-vein);
-  font-size:11px;
+  font-size:0.6875rem;
   flex-shrink:0;
 }
 
@@ -1120,7 +1145,7 @@ textarea.field-input{
   background:var(--stone-card);
   border:1px solid var(--stone-line);
   color:var(--ink-soft);
-  font-size:13px;
+  font-size:0.8125rem;
   font-weight:700;
   letter-spacing:0.01em;
   text-align:center;
@@ -1163,7 +1188,7 @@ textarea.field-input{
 }
 
 .menu-section-label{
-  font-size:11.5px;
+  font-size:0.7188rem;
   letter-spacing:0.08em;
   text-transform:uppercase;
   font-weight:700;
@@ -1172,7 +1197,7 @@ textarea.field-input{
 }
 
 .jain-tag{
-  font-size:9.5px;
+  font-size:0.5938rem;
   letter-spacing:0.04em;
   text-transform:none;
   font-weight:700;
@@ -1195,7 +1220,7 @@ textarea.field-input{
   text-align:center;
 }
 .hours-note{
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--ink-soft);
 }
 .phone-note{
@@ -1204,7 +1229,7 @@ textarea.field-input{
   justify-content:center;
   gap:5px;
   margin-top:8px;
-  font-size:12.5px;
+  font-size:0.7812rem;
   font-weight:700;
   color:var(--ink);
   text-decoration:none;
@@ -1218,12 +1243,12 @@ textarea.field-input{
 .info-sheet-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:19px;
+  font-size:1.1875rem;
   color:var(--ink);
   margin-bottom:12px;
 }
 .info-sheet-line{
-  font-size:13px;
+  font-size:0.8125rem;
   color:var(--ink-soft);
   line-height:1.6;
   margin-bottom:10px;
@@ -1235,7 +1260,7 @@ textarea.field-input{
   background:rgba(232,93,44,0.07);
   border:1px solid rgba(232,93,44,0.22);
   border-radius:var(--radius-md);
-  font-size:13px;
+  font-size:0.8125rem;
   font-weight:700;
   color:var(--ember-deep);
   text-align:center;
@@ -1243,7 +1268,7 @@ textarea.field-input{
 .info-sheet-jain{
   display:inline-block;
   margin-top:14px;
-  font-size:11.5px;
+  font-size:0.7188rem;
   font-weight:700;
   color:var(--success);
   background:rgba(92,138,92,0.12);
@@ -1261,7 +1286,7 @@ textarea.field-input{
   margin-top:16px;
 }
 .extra-chip{
-  font-size:11px;
+  font-size:0.6875rem;
   font-weight:600;
   color:var(--ink-soft);
   background:var(--stone-card);
@@ -1294,7 +1319,7 @@ textarea.field-input{
   background:var(--stone-card);
   border:1px solid var(--stone-line);
   color:var(--ink);
-  font-size:12.5px;
+  font-size:0.7812rem;
   font-weight:600;
   text-decoration:none;
   box-shadow:0 1px 2px rgba(28,24,21,0.05);
@@ -1321,11 +1346,11 @@ textarea.field-input{
 .register-cta-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:16px;
+  font-size:1rem;
   color:var(--ink);
 }
 .register-cta-sub{
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--ink-soft);
   margin-top:3px;
 }
@@ -1345,17 +1370,17 @@ textarea.field-input{
 .taste-result-name{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:17px;
+  font-size:1.0625rem;
   color:var(--ink);
   margin-bottom:4px;
 }
 .taste-result-desc{
-  font-size:13px;
+  font-size:0.8125rem;
   color:var(--ink-soft);
   margin-bottom:8px;
 }
 .taste-result-price{
-  font-size:14px;
+  font-size:0.875rem;
   font-weight:700;
   color:var(--ink);
 }
@@ -1408,20 +1433,20 @@ textarea.field-input{
   flex-wrap:wrap;
 }
 .menu-item-name{
-  font-size:15.5px;
+  font-size:0.9688rem;
   font-weight:800;
   color:var(--ink);
   letter-spacing:-0.01em;
 }
 .menu-item-desc{
-  font-size:11.5px;
+  font-size:0.7188rem;
   color:#8A8278;
   line-height:1.35;
   margin-top:3px;
 }
 .menu-item-tag{
   display:inline-block;
-  font-size:9px;
+  font-size:0.5625rem;
   letter-spacing:0.05em;
   text-transform:uppercase;
   font-weight:700;
@@ -1433,7 +1458,7 @@ textarea.field-input{
 .menu-item-price{
   font-family:var(--font-mono);
   font-weight:700;
-  font-size:14px;
+  font-size:0.875rem;
   color:var(--ember-deep);
   white-space:nowrap;
   text-align:right;
@@ -1441,7 +1466,7 @@ textarea.field-input{
 }
 .menu-item-price .price-large{
   display:block;
-  font-size:11px;
+  font-size:0.6875rem;
   color:var(--grey-warm);
   font-weight:600;
   margin-top:1px;
@@ -1457,7 +1482,7 @@ textarea.field-input{
   color:var(--grey-warm);
   padding:12px 22px;
   border-radius:var(--radius-md);
-  font-size:13px;
+  font-size:0.8125rem;
   font-weight:600;
 }
 
@@ -1473,7 +1498,7 @@ textarea.field-input{
 .dash-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:22px;
+  font-size:1.375rem;
   color:var(--marble);
 }
 .dash-close{
@@ -1482,7 +1507,7 @@ textarea.field-input{
   color:var(--grey-warm);
   width:34px; height:34px;
   border-radius:50%;
-  font-size:16px;
+  font-size:1rem;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -1495,7 +1520,7 @@ textarea.field-input{
 .dash-section-label{
   font-family:var(--font-display);
   font-weight:700;
-  font-size:12.5px;
+  font-size:0.7812rem;
   color:var(--gold-bright);
   letter-spacing:0.05em;
   margin:4px 0 8px;
@@ -1511,7 +1536,7 @@ textarea.field-input{
 .pin-gate p{
   text-align:center;
   color:var(--grey-warm);
-  font-size:13px;
+  font-size:0.8125rem;
 }
 .pin-input{
   width:100%;
@@ -1520,7 +1545,7 @@ textarea.field-input{
   border:1.5px solid var(--grey-line);
   background:var(--ember-card);
   color:var(--marble);
-  font-size:20px;
+  font-size:1.25rem;
   letter-spacing:0.3em;
   text-align:center;
   outline:none;
@@ -1543,17 +1568,17 @@ textarea.field-input{
 .stat-num{
   font-family:var(--font-mono);
   font-weight:700;
-  font-size:26px;
+  font-size:1.625rem;
   color:var(--gold-bright);
   line-height:1;
 }
 .stat-label{
-  font-size:11px;
+  font-size:0.6875rem;
   color:var(--grey-warm);
   margin-top:6px;
   letter-spacing:0.03em;
 }
-.stat-card.full .stat-num{font-size:20px; color:var(--ember-bright);}
+.stat-card.full .stat-num{font-size:1.25rem; color:var(--ember-bright);}
 
 .dash-actions{
   display:flex;
@@ -1569,7 +1594,7 @@ textarea.field-input{
   border:1.5px solid var(--grey-line);
   background:var(--ember-card);
   color:var(--marble);
-  font-size:14px;
+  font-size:0.875rem;
   margin-bottom:12px;
   outline:none;
 }
@@ -1593,9 +1618,9 @@ textarea.field-input{
   border-radius:var(--radius-sm);
   padding:12px 13px;
 }
-.cust-info .cust-name{font-size:13.5px; font-weight:700; color:var(--marble);}
-.cust-info .cust-mobile{font-size:11.5px; color:var(--grey-warm); font-family:var(--font-mono); margin-top:2px;}
-.cust-info .cust-tags{font-size:10.5px; color:var(--gold); margin-top:3px;}
+.cust-info .cust-name{font-size:0.8438rem; font-weight:700; color:var(--marble);}
+.cust-info .cust-mobile{font-size:0.7188rem; color:var(--grey-warm); font-family:var(--font-mono); margin-top:2px;}
+.cust-info .cust-tags{font-size:0.6562rem; color:var(--gold); margin-top:3px;}
 
 .locality-breakdown{
   padding:10px 0;
@@ -1603,7 +1628,7 @@ textarea.field-input{
 }
 .locality-breakdown:last-child{ border-bottom:none; }
 .locality-breakdown-name{
-  font-size:13px;
+  font-size:0.8125rem;
   font-weight:600;
   color:var(--marble);
   margin-bottom:4px;
@@ -1611,7 +1636,7 @@ textarea.field-input{
 .locality-breakdown-row{
   display:flex;
   justify-content:space-between;
-  font-size:12px;
+  font-size:0.75rem;
   color:var(--marble);
   opacity:0.85;
   padding:1px 0;
@@ -1626,13 +1651,13 @@ textarea.field-input{
 .cust-meta{text-align:right;}
 .cust-meta .cust-visits{
   font-family:var(--font-mono);
-  font-size:13px;
+  font-size:0.8125rem;
   color:var(--gold-bright);
   font-weight:700;
 }
-.cust-meta .cust-last{font-size:10px; color:var(--grey-warm); margin-top:2px;}
+.cust-meta .cust-last{font-size:0.625rem; color:var(--grey-warm); margin-top:2px;}
 .cust-meta .pending-tag{
-  font-size:9px;
+  font-size:0.5625rem;
   color:var(--ember-bright);
   text-transform:uppercase;
   letter-spacing:0.04em;
@@ -1643,7 +1668,7 @@ textarea.field-input{
   background:none;
   border:none;
   color:var(--gold);
-  font-size:10.5px;
+  font-size:0.6562rem;
   font-weight:600;
   padding:2px 0;
   cursor:pointer;
@@ -1653,7 +1678,7 @@ textarea.field-input{
   text-align:center;
   padding:40px 10px;
   color:var(--grey-warm);
-  font-size:13px;
+  font-size:0.8125rem;
 }
 
 /* ==========================================================================
@@ -1668,7 +1693,7 @@ textarea.field-input{
   color:var(--charcoal);
   padding:13px 20px;
   border-radius:var(--radius-md);
-  font-size:13px;
+  font-size:0.8125rem;
   font-weight:600;
   box-shadow:0 12px 30px -8px rgba(28,24,21,0.35), 0 2px 8px rgba(28,24,21,0.12);
   opacity:0;
@@ -1698,7 +1723,7 @@ textarea.field-input{
   border-top:1px solid var(--stone-line);
   border-radius:18px 18px 0 0;
   padding:16px 18px calc(16px + env(safe-area-inset-bottom, 0px));
-  box-shadow:0 -8px 30px rgba(28,24,21,0.18);
+  box-shadow:0 -1px 4px rgba(28,24,21,0.08);
   transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   z-index:140;
   display:flex;
@@ -1715,18 +1740,18 @@ textarea.field-input{
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:20px;
+  font-size:1.25rem;
   background:var(--stone-base);
   border:1px solid var(--stone-line);
 }
 .install-text{flex:1; min-width:0;}
 .install-title{
-  font-size:13.5px;
+  font-size:0.8438rem;
   font-weight:700;
   color:var(--ink);
 }
 .install-sub{
-  font-size:11.5px;
+  font-size:0.7188rem;
   color:var(--ink-soft);
   margin-top:2px;
   line-height:1.4;
@@ -1743,7 +1768,7 @@ textarea.field-input{
   border:none;
   background:var(--ember);
   color:var(--marble);
-  font-size:12px;
+  font-size:0.75rem;
   font-weight:700;
   white-space:nowrap;
 }
@@ -1751,7 +1776,7 @@ textarea.field-input{
   background:none;
   border:none;
   color:var(--ink-soft);
-  font-size:11px;
+  font-size:0.6875rem;
   padding:4px 6px;
 }
 
@@ -1765,8 +1790,15 @@ textarea.field-input{
 
   <!-- ============ TOP BAR ============ -->
   <div class="topbar">
-    <div class="wordmark">TKG <span class="sub">The Khichiya Gravy</span></div>
+    <div class="wordmark">
+      <img class="wordmark-logo" src="./icon-192.png" alt="TKG">
+      <div class="wordmark-text">
+        <span class="main">TKG</span>
+        <span class="sub">The Khichiya Gravy</span>
+      </div>
+    </div>
     <div class="topbar-right">
+      <button type="button" class="text-size-btn" id="textSizeBtn" aria-label="Change text size">Aa</button>
       <button type="button" class="lang-btn" id="langBtn" aria-label="Change language">🌐 <span id="langBtnLabel">EN</span></button>
       <div class="status-pill" id="statusPill" data-state="online">
         <span class="ember-dot" id="emberDot"></span>
@@ -1802,7 +1834,7 @@ textarea.field-input{
 
     <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
       <div class="hero-eyebrow" data-i18n="reg.eyebrow">Stay in the loop</div>
-      <h1 class="hero-title" style="font-size:24px;" data-i18n-html="reg.title">Register &amp; Get <em>Updates.</em></h1>
+      <h1 class="hero-title" style="font-size:1.5rem;" data-i18n-html="reg.title">Register &amp; Get <em>Updates.</em></h1>
       <p class="hero-sub" data-i18n="reg.sub">Takes 10 seconds. We'll remember you next time you visit.</p>
     </div>
 
@@ -1863,7 +1895,7 @@ textarea.field-input{
     <div class="reg-overlay-handle"></div>
 
     <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
-      <h1 class="hero-title" style="font-size:22px;" data-i18n="feedback.title">❤️ How was your TKG experience?</h1>
+      <h1 class="hero-title" style="font-size:1.375rem;" data-i18n="feedback.title">❤️ How was your TKG experience?</h1>
     </div>
 
     <form class="reg-card" id="feedbackForm" novalidate>
@@ -1893,7 +1925,7 @@ textarea.field-input{
 
     <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
       <div class="hero-eyebrow">Owner Notes</div>
-      <h1 class="hero-title" style="font-size:22px;" id="ownerFieldsCustName">Customer</h1>
+      <h1 class="hero-title" style="font-size:1.375rem;" id="ownerFieldsCustName">Customer</h1>
       <p class="hero-sub" id="ownerFieldsCustMobile"></p>
     </div>
 
@@ -2008,7 +2040,7 @@ textarea.field-input{
     <div class="reg-overlay-handle"></div>
 
     <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
-      <h1 class="hero-title" style="font-size:22px;" data-i18n="taste.title">🍽️ Not sure what to order?</h1>
+      <h1 class="hero-title" style="font-size:1.375rem;" data-i18n="taste.title">🍽️ Not sure what to order?</h1>
       <p class="hero-sub" data-i18n="taste.sub">2 quick taps and we'll pick for you.</p>
     </div>
 
@@ -2119,22 +2151,22 @@ textarea.field-input{
 
     <div class="geo-preview" aria-hidden="true" style="display:flex; gap:10px; margin:16px 0 2px; pointer-events:none; user-select:none; opacity:0.55; filter:saturate(0.7);">
       <div class="geo-preview-card" style="flex:1; background:var(--stone-base); border:1px solid var(--marble-dim); border-radius:12px; padding:9px;">
-        <div style="height:40px; border-radius:8px; background:var(--marble-dim); display:flex; align-items:center; justify-content:center; font-size:18px;">🍛</div>
+        <div style="height:40px; border-radius:8px; background:var(--marble-dim); display:flex; align-items:center; justify-content:center; font-size:1.125rem;">🍛</div>
         <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:8px; width:80%;"></div>
         <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:5px; width:55%;"></div>
       </div>
       <div class="geo-preview-card" style="flex:1; background:var(--stone-base); border:1px solid var(--marble-dim); border-radius:12px; padding:9px;">
-        <div style="height:40px; border-radius:8px; background:var(--marble-dim); display:flex; align-items:center; justify-content:center; font-size:18px;">🥟</div>
+        <div style="height:40px; border-radius:8px; background:var(--marble-dim); display:flex; align-items:center; justify-content:center; font-size:1.125rem;">🥟</div>
         <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:8px; width:70%;"></div>
         <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:5px; width:45%;"></div>
       </div>
       <div class="geo-preview-card" style="flex:1; background:var(--stone-base); border:1px solid var(--marble-dim); border-radius:12px; padding:9px;">
-        <div style="height:40px; border-radius:8px; background:var(--marble-dim); display:flex; align-items:center; justify-content:center; font-size:18px;">🧀</div>
+        <div style="height:40px; border-radius:8px; background:var(--marble-dim); display:flex; align-items:center; justify-content:center; font-size:1.125rem;">🧀</div>
         <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:8px; width:75%;"></div>
         <div style="height:6px; border-radius:3px; background:var(--marble-dim); margin-top:5px; width:50%;"></div>
       </div>
     </div>
-    <p class="hero-sub" data-i18n="geo.previewCaption" style="font-size:11px; text-align:center; opacity:0.7; margin-top:0;">You'll reach the menu right after you make your choice.</p>
+    <p class="hero-sub" data-i18n="geo.previewCaption" style="font-size:0.6875rem; text-align:center; opacity:0.7; margin-top:0;">You'll reach the menu right after you make your choice.</p>
 
     <button type="button" class="btn-primary" id="geoConsentContinueBtn" style="width:100%; margin-top:14px;" data-i18n="geo.continueBtn">Continue</button>
   </div>
@@ -2396,7 +2428,7 @@ textarea.field-input{
          of this screen (see #welcomeCard) — this is just the small helper
          line, reusing the existing #journeyHint mechanism. -->
     <div class="change-journey-link">
-      <p id="journeyHint" style="font-size:12px; color:var(--ink-soft); text-align:center; margin-bottom:6px;"></p>
+      <p id="journeyHint" style="font-size:0.75rem; color:var(--ink-soft); text-align:center; margin-bottom:6px;"></p>
     </div>
 
     <div class="owner-link">
@@ -2439,7 +2471,7 @@ textarea.field-input{
          look; only reachable once already unlocked (see ownerSettingsBtn).
          No Apps Script involved — localStorage only. -->
     <div class="pin-gate hidden" id="ownerSettingsPanel">
-      <p id="ownerSettingsMessage">⚙ Owner Settings<br><span style="color:var(--grey-line); font-size:11px;">Change your Owner PIN</span></p>
+      <p id="ownerSettingsMessage">⚙ Owner Settings<br><span style="color:var(--grey-line); font-size:0.6875rem;">Change your Owner PIN</span></p>
       <div id="settingsCurrentPinWrap">
         <input class="pin-input" id="settingsCurrentPin" type="password" inputmode="numeric" maxlength="6" placeholder="Current PIN">
       </div>
@@ -2475,13 +2507,13 @@ textarea.field-input{
       <div class="dash-section-label">🚶 Journey Analytics (Lifetime)</div>
       <div class="stat-grid">
         <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
             <span>🟢 At TKG</span><span id="statJourneyAnalyticsAtTKG">0</span>
           </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
             <span>🟡 Planning</span><span id="statJourneyAnalyticsPlanning">0</span>
           </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
             <span>⚪ Exploring</span><span id="statJourneyAnalyticsExploring">0</span>
           </div>
         </div>
@@ -2513,22 +2545,22 @@ textarea.field-input{
           <div class="stat-label">Pending Registration Sync</div>
         </div>
         <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
             <span>🟢 At TKG Today</span><span id="statJourneyEventsAtTKG">0</span>
           </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
             <span>🟡 Planning Today</span><span id="statJourneyEventsPlanning">0</span>
           </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--marble);">
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
             <span>⚪ Exploring Today</span><span id="statJourneyEventsExploring">0</span>
           </div>
         </div>
         <div class="stat-card full">
           <div>
             <div class="stat-label" style="margin-top:0;">Last synced</div>
-            <div style="font-size:12px; color:var(--marble); font-family:var(--font-mono); margin-top:3px;" id="lastSyncedAt">—</div>
+            <div style="font-size:0.75rem; color:var(--marble); font-family:var(--font-mono); margin-top:3px;" id="lastSyncedAt">—</div>
           </div>
-          <button class="btn-secondary" id="forceSyncBtn" style="padding:9px 14px; font-size:12px;">Sync Registrations</button>
+          <button class="btn-secondary" id="forceSyncBtn" style="padding:9px 14px; font-size:0.75rem;">Sync Registrations</button>
         </div>
       </div>
 
@@ -4554,7 +4586,7 @@ function enterForcedPinChange(){
   document.getElementById('dashContent').classList.add('hidden');
   document.getElementById('dashContent').style.display = 'none';
   document.getElementById('ownerSettingsMessage').innerHTML =
-    '⚠ Set a new Owner PIN<br><span style="color:var(--grey-line); font-size:11px;">For security, you must set a new PIN before continuing.</span>';
+    '⚠ Set a new Owner PIN<br><span style="color:var(--grey-line); font-size:0.6875rem;">For security, you must set a new PIN before continuing.</span>';
   document.getElementById('settingsCurrentPinWrap').style.display = 'none';
   document.getElementById('settingsCancelBtn').style.display = 'none';
   document.getElementById('settingsCurrentPin').value = '';
@@ -4571,7 +4603,7 @@ document.getElementById('ownerSettingsBtn').addEventListener('click', () => {
   document.getElementById('dashContent').classList.add('hidden');
   document.getElementById('dashContent').style.display = 'none';
   document.getElementById('ownerSettingsMessage').innerHTML =
-    '⚙ Owner Settings<br><span style="color:var(--grey-line); font-size:11px;">Change your Owner PIN</span>';
+    '⚙ Owner Settings<br><span style="color:var(--grey-line); font-size:0.6875rem;">Change your Owner PIN</span>';
   document.getElementById('settingsCurrentPinWrap').style.display = '';
   document.getElementById('settingsCancelBtn').style.display = '';
   document.getElementById('settingsCurrentPin').value = '';
@@ -5063,8 +5095,22 @@ function isIos(){
     || (/macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 }
 
+// The install banner and the Quick Actions bar are both fixed to the
+// bottom of the screen and were built independently, with no awareness of
+// each other — when the banner showed, it stacked visually on top of the
+// bar (rounded corners + a heavy shadow over a flat bar), which is what
+// read as a messy "layered" bottom. Fix: whichever one is up, only one is
+// ever visible — the bar hides for as long as the banner is shown, and
+// showScreen()'s own bottomNav-visibility logic (screen-menu only) takes
+// back over the moment the banner is dismissed.
+function setBottomNavHiddenForInstallBanner_(hidden){
+  const bottomNavEl = document.getElementById('bottomNav');
+  if(bottomNavEl) bottomNavEl.classList.toggle('hidden', hidden);
+}
+
 function dismissInstallBanner(persist){
   installBanner.classList.remove('show');
+  setBottomNavHiddenForInstallBanner_(document.getElementById('screen-menu').classList.contains('active') ? false : true);
   if(persist){
     try{ localStorage.setItem(INSTALL_DISMISSED_KEY, 'true'); }catch(e){}
   }
@@ -5085,6 +5131,7 @@ function showInstallBanner(){
     installActionBtn.textContent = dict.install.androidBtn;
     installActionBtn.classList.remove('hidden');
     installBanner.classList.add('show');
+    setBottomNavHiddenForInstallBanner_(true);
   }else if(isIos()){
     // iOS Safari — no programmatic install, show manual instructions instead
     installTitle.textContent = dict.install.iosTitle;
@@ -5092,6 +5139,7 @@ function showInstallBanner(){
     installActionBtn.textContent = dict.install.iosBtn;
     installActionBtn.classList.remove('hidden');
     installBanner.classList.add('show');
+    setBottomNavHiddenForInstallBanner_(true);
   }
   // Any other platform/browser: beforeinstallprompt never fired, not iOS —
   // skip entirely rather than show a dead-end button.
@@ -5681,6 +5729,43 @@ function openLangSheet(){
   clearLangBtnAttention();
 }
 document.getElementById('langBtn').addEventListener('click', openLangSheet);
+
+// ---------------------------------------------------------------------------
+// TEXT SIZE (Small/Medium/Large) — "naturally follow the phone's text size"
+// isn't reliably possible across platforms for an installed PWA (Android
+// partially honors the OS accessibility font scale for relative units;
+// iOS's WKWebView does not expose Dynamic Type/Larger Text to web content
+// at all), so this manual Aa toggle next to the language button is the
+// agreed fallback. Cycles Small → Medium → Large → Small on tap. Every
+// font-size in the stylesheet is in rem, so changing the root font-size
+// here scales all of them together in one place — nothing else to touch
+// per screen. The <head> inline script applies whatever was last chosen
+// immediately on load, before this file's own script runs, so there's no
+// flash of the wrong size for a returning visitor.
+// ---------------------------------------------------------------------------
+const FONT_SCALE_KEY_ = 'tkg_font_scale';
+const FONT_SCALES_ = { small: '92%', medium: '100%', large: '115%' };
+const FONT_SCALE_ORDER_ = ['small', 'medium', 'large'];
+const FONT_SCALE_TOAST_ = { small: 'Text size: Small', medium: 'Text size: Medium', large: 'Text size: Large' };
+
+function getFontScale_(){
+  try{
+    const v = localStorage.getItem(FONT_SCALE_KEY_);
+    return FONT_SCALES_[v] ? v : 'medium';
+  }catch(e){ return 'medium'; }
+}
+function setFontScale_(scale){
+  document.documentElement.style.fontSize = FONT_SCALES_[scale] || FONT_SCALES_.medium;
+  try{ localStorage.setItem(FONT_SCALE_KEY_, scale); }catch(e){}
+}
+
+document.getElementById('textSizeBtn').addEventListener('click', () => {
+  const current = getFontScale_();
+  const next = FONT_SCALE_ORDER_[(FONT_SCALE_ORDER_.indexOf(current) + 1) % FONT_SCALE_ORDER_.length];
+  setFontScale_(next);
+  showToast(FONT_SCALE_TOAST_[next]);
+});
+
 function closeLangSheet(){
   langBackdrop.classList.remove('show');
   langSheet.classList.remove('show');
