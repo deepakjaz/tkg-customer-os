@@ -472,6 +472,18 @@
   // copying the text to the clipboard on browsers without navigator.share
   // (mainly desktop) so the button still does something everywhere.
   // ---------------------------------------------------------------------
+  // ---------------------------------------------------------------------
+  // SHARE TO FRIENDS — pure virality, no name/mobile involved at all.
+  // Web Share API opens the device's native share sheet (WhatsApp,
+  // Instagram, SMS, etc.) pre-filled with the score AND a link back to
+  // the TKG menu, so a friend who taps the shared link lands on TKG's
+  // own page — not just a bare number with nowhere to go. Falls back to
+  // copying text+link to the clipboard on browsers without
+  // navigator.share (mainly desktop) so the button still does something
+  // everywhere.
+  // ---------------------------------------------------------------------
+  var TKG_MENU_URL = 'https://tkg-customer-os.vercel.app/';
+
   function shareText(){
     return 'I scored ' + score + ' on TKG\'s Khichiya Runner! 🔥 Can you beat it?';
   }
@@ -479,9 +491,9 @@
   shareBtn.addEventListener('click', function(){
     var text = shareText();
     if(navigator.share){
-      navigator.share({ text: text }).catch(function(){});
+      navigator.share({ title: 'Khichiya Runner — TKG', text: text, url: TKG_MENU_URL }).catch(function(){});
     }else if(navigator.clipboard){
-      navigator.clipboard.writeText(text).then(function(){
+      navigator.clipboard.writeText(text + '\n' + TKG_MENU_URL).then(function(){
         shareBtn.textContent = '✓ Copied!';
         setTimeout(function(){ shareBtn.textContent = '📤 Share to friends'; }, 1600);
       });
