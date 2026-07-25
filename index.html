@@ -2091,6 +2091,29 @@ textarea.field-input{
 
   </div>
 
+  <!-- Khichiya Runner teaser overlay — mirrors the Taste Discovery overlay's
+       structure (backdrop + reg-overlay panel) exactly. Contains only a
+       looping demo animation (see khichiyaRunnerDemo canvas + JS below),
+       never the real game logic — tapping "Let's Play" navigates to the
+       separate khichiya-runner.html page. -->
+  <div class="overlay-backdrop" id="khichiyaRunnerBackdrop"></div>
+  <div class="reg-overlay" id="khichiyaRunnerOverlay">
+
+    <div class="reg-overlay-handle"></div>
+
+    <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
+      <h1 class="hero-title" style="font-size:1.375rem;" id="khichiyaRunnerOverlayTitle">🔥 Khichiya Runner</h1>
+      <p class="hero-sub" id="khichiyaRunnerOverlaySub">Jump the Khichiya over the coal — miss one and it burns!</p>
+    </div>
+
+    <div class="reg-card" style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+      <canvas id="khichiyaRunnerDemo" width="280" height="120" style="width:100%; max-width:280px; height:auto; border-radius:12px; background:var(--marble, #F6F6F5); display:block;"></canvas>
+      <button type="button" class="btn-primary" id="khichiyaRunnerPlayBtn" style="width:100%;">🏃 Let's Play</button>
+      <button type="button" class="btn-secondary" id="khichiyaRunnerCloseBtn" style="width:100%;">Maybe Later</button>
+    </div>
+
+  </div>
+
   <!-- ============ GENERIC CONTENT SHEET ============
        Reusable bottom sheet for any content-registry-driven block.
        Used by Review Hero Card (Phase A). Later phases (FAQ, Weekend
@@ -2423,6 +2446,22 @@ textarea.field-input{
         <div class="register-cta-sub" data-i18n="taste.reminderSub">2 quick taps and we'll pick for you.</div>
       </div>
       <button class="btn-secondary register-cta-btn" id="openTasteDiscoveryBtn" data-i18n="taste.reminderBtn">Find My Item</button>
+    </div>
+
+    <!-- Khichiya Runner reminder — playful engagement card, contextual per
+         journey status via data-journey (same generic gating mechanism as
+         everything else, see applyJourneyVisibility). Text is swapped by
+         updateKhichiyaRunnerCardText() to fit each journey (waiting at
+         TKG / considering a first visit / just exploring). Opens a small
+         teaser overlay with a looping demo animation — NOT the real game;
+         the actual game is the separate khichiya-runner.html page, opened
+         only when the player taps "Let's Play" inside that overlay. -->
+    <div class="register-cta" id="khichiyaRunnerReminderCard" data-journey="atTKG,planning,exploring">
+      <div class="register-cta-text">
+        <div class="register-cta-title" id="khichiyaRunnerCardTitle">🔥 Bored? Play Khichiya Runner</div>
+        <div class="register-cta-sub" id="khichiyaRunnerCardSub">Jump the Khichiya over the coal.</div>
+      </div>
+      <button class="btn-secondary register-cta-btn" id="openKhichiyaRunnerBtn">Let's Play</button>
     </div>
 
     <!-- Journey Progression — friendly contextual suggestion, text-only.
@@ -3766,6 +3805,7 @@ function selectJourney(journey){
   recordJourneyEvent(journey); // anonymous analytics — independent of tkg_journey/tkg_customers
   applyJourneyVisibility(journey);
   updateTasteDiscoveryReminderVisibility(); // re-apply completed-hide on top of the fresh journey gate
+  updateKhichiyaRunnerCardText(journey);
   updateJourneyHint(journey);
   updateJourneyStatusDisplay(journey);
   updateDynamicGreeting(journey);
@@ -4419,6 +4459,150 @@ function closeTasteDiscoveryOverlay(){
 
 tasteDiscoveryBackdrop.addEventListener('click', closeTasteDiscoveryOverlay);
 document.getElementById('openTasteDiscoveryBtn').addEventListener('click', openTasteDiscoveryOverlay);
+
+// ---------------------------------------------------------------------
+// Khichiya Runner reminder — mirrors the Taste Discovery open/close
+// pattern exactly (same backdrop+overlay show/hide via .show class). No
+// auto-popup timer like Taste Discovery has — this one only opens when
+// the customer taps the card, never automatically.
+// ---------------------------------------------------------------------
+const khichiyaRunnerBackdrop = document.getElementById('khichiyaRunnerBackdrop');
+const khichiyaRunnerOverlay = document.getElementById('khichiyaRunnerOverlay');
+const khichiyaRunnerCardTitle = document.getElementById('khichiyaRunnerCardTitle');
+const khichiyaRunnerCardSub = document.getElementById('khichiyaRunnerCardSub');
+const khichiyaRunnerOverlayTitle = document.getElementById('khichiyaRunnerOverlayTitle');
+const khichiyaRunnerOverlaySub = document.getElementById('khichiyaRunnerOverlaySub');
+
+// Journey-specific copy — same three states as everywhere else in the
+// app (atTKG / planning / exploring). Falls back to the exploring copy
+// for any unrecognized value so the card is never left blank.
+const KHICHIYA_RUNNER_COPY = {
+  atTKG: {
+    card: ['🔥 Waiting for your order?', 'Play Khichiya Runner while you wait.'],
+    overlay: ['🔥 Khichiya Runner', 'Waiting for your order? Jump the Khichiya over the coal!']
+  },
+  planning: {
+    card: ['🔥 Play now, save on your first visit', 'Beat your score for a first-visit discount.'],
+    overlay: ['🔥 Khichiya Runner', 'Play now — beat your score and get a discount on your first visit!']
+  },
+  exploring: {
+    card: ['🔥 Bored? Play Khichiya Runner', 'Jump the Khichiya over the coal.'],
+    overlay: ['🔥 Khichiya Runner', 'Just for fun — jump the Khichiya over the coal!']
+  }
+};
+
+function updateKhichiyaRunnerCardText(journey){
+  const copy = KHICHIYA_RUNNER_COPY[journey] || KHICHIYA_RUNNER_COPY.exploring;
+  if(khichiyaRunnerCardTitle) khichiyaRunnerCardTitle.textContent = copy.card[0];
+  if(khichiyaRunnerCardSub) khichiyaRunnerCardSub.textContent = copy.card[1];
+  if(khichiyaRunnerOverlayTitle) khichiyaRunnerOverlayTitle.textContent = copy.overlay[0];
+  if(khichiyaRunnerOverlaySub) khichiyaRunnerOverlaySub.textContent = copy.overlay[1];
+}
+
+// ---------------------------------------------------------------------
+// Demo loop — a short, scripted animation only, NOT the real game (no
+// score, no losing, no input). Runs solely while the overlay is open;
+// started on open and cancelled on close so it never burns battery in
+// the background. Draws a simple hopping shape over two "coal" marks on
+// a fixed 3-second loop, purely to illustrate the jump motion.
+// ---------------------------------------------------------------------
+let khichiyaRunnerDemoRAF = null;
+
+function startKhichiyaRunnerDemo(){
+  const canvas = document.getElementById('khichiyaRunnerDemo');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const GROUND_Y = 90;
+  const PLAYER_X = 60;
+  const SPAWN_X = 300;   // off-canvas right, where coal appears
+  const DESPAWN_X = -20; // off-canvas left, where it disappears
+  const CYCLE_MS = 2000; // full loop length
+  const JUMP_MS = 500;
+  // Two coal pieces, offset by half the cycle, so one is always
+  // approaching while the other has just passed — reads as continuous
+  // motion rather than a single obstacle popping in and out.
+  const PHASES = [0, CYCLE_MS / 2];
+  const SPEED = (SPAWN_X - DESPAWN_X) / CYCLE_MS; // px per ms
+  // Local time (within a piece's own cycle) at which it reaches the
+  // player's x position — this is exactly when the jump must peak.
+  const ARRIVAL_LOCAL_MS = (SPAWN_X - PLAYER_X) / SPEED;
+
+  function coalX(localMs){
+    return SPAWN_X - SPEED * localMs;
+  }
+
+  function jumpOffset(tMs){
+    for(const phase of PHASES){
+      const local = (tMs + phase) % CYCLE_MS;
+      const p = (local - (ARRIVAL_LOCAL_MS - JUMP_MS / 2)) / JUMP_MS;
+      if(p >= 0 && p <= 1) return Math.sin(p * Math.PI) * 30;
+    }
+    return 0;
+  }
+
+  function draw(now){
+    const t = now % CYCLE_MS;
+    ctx.clearRect(0, 0, W, H);
+
+    // ground
+    ctx.strokeStyle = '#D8D2CC';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y);
+    ctx.lineTo(W, GROUND_Y);
+    ctx.stroke();
+
+    // coal — scrolls right to left toward the khichiya, same direction
+    // of travel as the real game
+    ctx.fillStyle = '#3A2A22';
+    for(const phase of PHASES){
+      const local = (t + phase) % CYCLE_MS;
+      const x = coalX(local);
+      ctx.beginPath(); ctx.ellipse(x, GROUND_Y - 6, 9, 6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x + 16, GROUND_Y - 6, 9, 6, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // player (simple orange khichiya blob), fixed x, jumps as coal arrives
+    const y = GROUND_Y - 14 - jumpOffset(t);
+    ctx.fillStyle = '#E85D2C';
+    ctx.beginPath();
+    ctx.ellipse(PLAYER_X, y, 14, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    khichiyaRunnerDemoRAF = requestAnimationFrame(draw);
+  }
+
+  khichiyaRunnerDemoRAF = requestAnimationFrame(draw);
+}
+
+function stopKhichiyaRunnerDemo(){
+  if(khichiyaRunnerDemoRAF){ cancelAnimationFrame(khichiyaRunnerDemoRAF); khichiyaRunnerDemoRAF = null; }
+}
+
+function openKhichiyaRunnerOverlay(){
+  khichiyaRunnerBackdrop.classList.add('show');
+  khichiyaRunnerOverlay.classList.add('show');
+  startKhichiyaRunnerDemo();
+}
+
+function closeKhichiyaRunnerOverlay(){
+  khichiyaRunnerBackdrop.classList.remove('show');
+  khichiyaRunnerOverlay.classList.remove('show');
+  stopKhichiyaRunnerDemo();
+}
+
+khichiyaRunnerBackdrop.addEventListener('click', closeKhichiyaRunnerOverlay);
+document.getElementById('openKhichiyaRunnerBtn').addEventListener('click', openKhichiyaRunnerOverlay);
+document.getElementById('khichiyaRunnerCloseBtn').addEventListener('click', closeKhichiyaRunnerOverlay);
+
+// "Let's Play" — leaves the app for the separate khichiya-runner.html
+// page (same tab, so the browser/PWA back action returns here). Deliberately
+// not embedded — the game stays its own isolated file, per the earlier
+// decision not to merge it into index.html.
+document.getElementById('khichiyaRunnerPlayBtn').addEventListener('click', () => {
+  window.location.href = 'khichiya-runner.html';
+});
 
 // Step 1 — style
 document.querySelectorAll('[data-taste-style]').forEach(btn => {
@@ -5853,6 +6037,7 @@ const storedJourney = getStoredJourney();
 if(storedJourney){
   applyJourneyVisibility(storedJourney);
   updateTasteDiscoveryReminderVisibility(); // re-apply completed-hide on top of the fresh journey gate
+  updateKhichiyaRunnerCardText(storedJourney);
   updateJourneyHint(storedJourney);
   updateJourneyStatusDisplay(storedJourney);
   updateDynamicGreeting(storedJourney);
