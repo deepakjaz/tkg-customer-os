@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Khichiya Runner — TKG</title>
+<style>
+  :root{
+    --stone-base:#F6F6F5;
+    --stone-card:#FFFFFF;
+    --stone-line:#E4E4E2;
+    --ink:#1C1815;
+    --ink-soft:#6B6256;
+    --ember:#E85D2C;
+    --ember-bright:#F3763F;
+    --ember-deep:#B8431D;
+    --gold:#D9A441;
+    --charcoal:#2A211C;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; height:100%;}
+  body{
+    background:var(--stone-base);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    font-family:-apple-system, "Segoe UI", Roboto, sans-serif;
+    color:var(--ink);
+  }
+  .frame{
+    width:100%;
+    max-width:420px;
+    padding:18px;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    font-weight:600;
+    text-align:center;
+    margin-bottom:4px;
+  }
+  h1{
+    font-size:20px;
+    font-weight:800;
+    text-align:center;
+    margin:0 0 14px;
+    color:var(--ink);
+  }
+  .game-card{
+    background:var(--stone-card);
+    border:1px solid var(--stone-line);
+    border-radius:16px;
+    box-shadow:0 1px 2px rgba(28,24,21,0.05);
+    padding:12px;
+  }
+  .hud{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:0 4px 10px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+  }
+  .hud .score-val{
+    font-size:18px;
+    color:var(--ember-deep);
+    font-weight:800;
+  }
+  .canvas-wrap{
+    position:relative;
+    border-radius:12px;
+    overflow:hidden;
+    border:1px solid var(--stone-line);
+  }
+  canvas{
+    display:block;
+    width:100%;
+    height:auto;
+    background:linear-gradient(180deg, #FBF9F6 0%, #F3EFE9 100%);
+  }
+  .overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    background:rgba(246,246,245,0.88);
+    text-align:center;
+    padding:20px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .overlay.hidden{display:none;}
+  .overlay .big{
+    font-size:22px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .overlay .sub{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    max-width:260px;
+    line-height:1.4;
+  }
+  .overlay .burnt{
+    font-size:34px;
+    line-height:1;
+  }
+  .btn{
+    margin-top:6px;
+    padding:12px 26px;
+    border-radius:10px;
+    border:none;
+    background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+    color:#fff;
+    font-size:15px;
+    font-weight:700;
+    box-shadow:0 8px 18px -6px rgba(232,93,44,0.5);
+  }
+  .btn:active{transform:translateY(1px) scale(0.98);}
+  .action-row{
+    display:flex;
+    gap:8px;
+    margin-top:4px;
+    width:100%;
+    max-width:280px;
+  }
+  .btn-ghost{
+    flex:1;
+    padding:10px 8px;
+    border-radius:10px;
+    border:1px solid var(--stone-line);
+    background:var(--stone-card);
+    color:var(--ink);
+    font-size:12.5px;
+    font-weight:700;
+  }
+  .btn-ghost:active{background:var(--stone-base);}
+  .text-input{
+    width:100%;
+    max-width:240px;
+    padding:11px 12px;
+    border-radius:10px;
+    border:1px solid var(--stone-line);
+    background:var(--stone-card);
+    font-size:14px;
+    color:var(--ink);
+  }
+  .text-input:focus{outline:none; border-color:var(--ember);}
+  .foot-note{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:12px;
+    line-height:1.5;
+  }
+  .foot-note b{color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="eyebrow">TKG · Prototype</div>
+  <h1>🔥 Khichiya Runner</h1>
+
+  <div class="game-card">
+    <div class="hud">
+      <span>BEST <span class="score-val" id="bestVal">0</span></span>
+      <span>SCORE <span class="score-val" id="scoreVal">0</span></span>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="game" width="720" height="480"></canvas>
+
+      <div class="overlay" id="startOverlay">
+        <div class="big">Ready to roast?</div>
+        <div class="sub">Jump the Khichiya over the coal. Miss one, and it burns.</div>
+        <button class="btn" id="startBtn">Tap to play</button>
+      </div>
+
+      <div class="overlay hidden" id="overOverlay">
+        <div class="burnt" id="burntEmoji">🔥</div>
+        <div class="big" id="overTitle">Burnt!</div>
+        <div class="sub" id="overSub">Score: 0</div>
+        <button class="btn" id="retryBtn">Play again</button>
+        <div class="action-row">
+          <button class="btn-ghost" id="shareBtn">📤 Share to friends</button>
+          <button class="btn-ghost" id="submitBtn">🏆 Submit for reward</button>
+        </div>
+      </div>
+
+      <div class="overlay hidden" id="submitOverlay">
+        <div class="big">Submit your score</div>
+        <div class="sub">Only needed if you want to claim a reward — sharing to friends never asks for this.</div>
+        <input class="text-input" id="submitName" type="text" placeholder="Your name" maxlength="40">
+        <input class="text-input" id="submitMobile" type="tel" inputmode="numeric" placeholder="Mobile number" maxlength="10">
+        <button class="btn" id="submitConfirmBtn">Submit</button>
+        <button class="btn-ghost" id="submitCancelBtn">Cancel</button>
+      </div>
+
+      <div class="overlay hidden" id="submittedOverlay">
+        <div class="big">🎉 Got it!</div>
+        <div class="sub" id="submittedSub">Show this screen at the counter to check your score.</div>
+        <button class="btn" id="submittedCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot-note">
+    <b>Tap the game, press Space, or ArrowUp to jump.</b><br>
+    Submitted scores are saved to the Sheet now — leaderboard and reward-claim logic is still the next step.
+  </div>
+</div>
+
+<script>
+(function(){
+  // Same Apps Script deployment index.html uses — additive new sheet/action,
+  // no redeploy-breaking changes to the existing endpoints.
+  var APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
+
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  var CSS_W = 720, CSS_H = 480;
+  canvas.width = CSS_W * DPR;
+  canvas.height = CSS_H * DPR;
+  ctx.scale(DPR, DPR);
+
+  var GROUND_Y = 375; // was 250 at CSS_H 320 (same ~0.78 sky ratio, scaled to 480)
+
+  var scoreEl = document.getElementById('scoreVal');
+  var bestEl = document.getElementById('bestVal');
+  var startOverlay = document.getElementById('startOverlay');
+  var overOverlay = document.getElementById('overOverlay');
+  var overSub = document.getElementById('overSub');
+  var overTitle = document.getElementById('overTitle');
+  var burntEmoji = document.getElementById('burntEmoji');
+  var startBtn = document.getElementById('startBtn');
+  var retryBtn = document.getElementById('retryBtn');
+  var shareBtn = document.getElementById('shareBtn');
+  var submitBtn = document.getElementById('submitBtn');
+  var submitOverlay = document.getElementById('submitOverlay');
+  var submitName = document.getElementById('submitName');
+  var submitMobile = document.getElementById('submitMobile');
+  var submitConfirmBtn = document.getElementById('submitConfirmBtn');
+  var submitCancelBtn = document.getElementById('submitCancelBtn');
+  var submittedOverlay = document.getElementById('submittedOverlay');
+  var submittedSub = document.getElementById('submittedSub');
+  var submittedCloseBtn = document.getElementById('submittedCloseBtn');
+
+  var best = 0; // in-memory only for this prototype — real app will use localStorage
+  bestEl.textContent = best;
+
+  var state = 'idle'; // idle | running | over
+  var player, obstacles, score, speed, spawnTimer, spawnEvery, elapsed;
+
+  function resetGame(){
+    player = {
+      x: 70,
+      y: GROUND_Y - 34,
+      w: 34,
+      h: 34,
+      vy: 0,
+      onGround: true,
+      burnt: false
+    };
+    obstacles = [];
+    score = 0;
+    speed = 260;      // px/sec
+    spawnEvery = 1.35; // seconds
+    spawnTimer = 0;
+    elapsed = 0;
+  }
+
+  var GRAVITY = 1500;
+  var JUMP_V = -620;
+
+  function jump(){
+    if(state === 'idle'){
+      startGame();
+      return;
+    }
+    if(state !== 'running') return;
+    if(player.onGround){
+      player.vy = JUMP_V;
+      player.onGround = false;
+    }
+  }
+
+  function startGame(){
+    resetGame();
+    state = 'running';
+    startOverlay.classList.add('hidden');
+    overOverlay.classList.add('hidden');
+    lastTime = null;
+    requestAnimationFrame(loop);
+  }
+
+  function endGame(){
+    state = 'over';
+    player.burnt = true;
+    if(score > best){
+      best = score;
+      bestEl.textContent = best;
+    }
+    overSub.textContent = 'Score: ' + score + (score >= best && score > 0 ? '  —  new best!' : '');
+    overTitle.textContent = 'Burnt!';
+    burntEmoji.textContent = '🔥';
+    setTimeout(function(){
+      overOverlay.classList.remove('hidden');
+    }, 260);
+  }
+
+  function spawnObstacle(){
+    var h = 26 + Math.random() * 22;
+    var w = 22 + Math.random() * 14;
+    obstacles.push({ x: CSS_W + 20, y: GROUND_Y - h, w: w, h: h });
+    // occasionally spawn a close second lump to force a bigger jump
+    if(Math.random() < 0.18){
+      obstacles.push({ x: CSS_W + 20 + w + 14, y: GROUND_Y - h, w: w, h: h });
+    }
+  }
+
+  function rectsOverlap(a, b){
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function drawGround(){
+    ctx.strokeStyle = '#D8D3C8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y);
+    ctx.lineTo(CSS_W, GROUND_Y);
+    ctx.stroke();
+  }
+
+  function drawPlayer(){
+    var cx = player.x + player.w / 2;
+    var cy = player.y + player.h / 2;
+    var r = player.w / 2;
+
+    ctx.save();
+    if(player.burnt){
+      ctx.fillStyle = '#2A211C';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(232,93,44,0.55)';
+      for(var i=0;i<5;i++){
+        ctx.beginPath();
+        var ang = Math.random() * Math.PI * 2;
+        var rr = r * (0.3 + Math.random()*0.5);
+        ctx.arc(cx + Math.cos(ang)*rr*0.4, cy + Math.sin(ang)*rr*0.4, 2 + Math.random()*2, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }else{
+      var grad = ctx.createRadialGradient(cx - r*0.3, cy - r*0.3, r*0.2, cx, cy, r);
+      grad.addColorStop(0, '#F0C878');
+      grad.addColorStop(1, '#C98B3D');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(154,98,36,0.55)';
+      var speckles = [[-0.3,-0.1],[0.2,-0.3],[0.35,0.2],[-0.15,0.35],[0.05,0.05]];
+      for(var s=0;s<speckles.length;s++){
+        ctx.beginPath();
+        ctx.arc(cx + speckles[s][0]*r*1.4, cy + speckles[s][1]*r*1.4, 1.6, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawObstacle(o){
+    ctx.save();
+    ctx.fillStyle = '#241B16';
+    roundRect(o.x, o.y, o.w, o.h, 5);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(232,93,44,0.55)';
+    roundRect(o.x + o.w*0.18, o.y + o.h*0.15, o.w*0.28, o.h*0.22, 3);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function roundRect(x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  var lastTime = null;
+
+  function loop(t){
+    if(lastTime === null) lastTime = t;
+    var dt = Math.min((t - lastTime) / 1000, 0.033);
+    lastTime = t;
+
+    ctx.clearRect(0, 0, CSS_W, CSS_H);
+    drawGround();
+
+    if(state === 'running'){
+      elapsed += dt;
+      score = Math.floor(elapsed * 18);
+      scoreEl.textContent = score;
+
+      speed = 260 + Math.min(elapsed * 9, 220);
+      spawnEvery = Math.max(0.55, 1.35 - elapsed * 0.015);
+
+      player.vy += GRAVITY * dt;
+      player.y += player.vy * dt;
+      if(player.y >= GROUND_Y - player.h){
+        player.y = GROUND_Y - player.h;
+        player.vy = 0;
+        player.onGround = true;
+      }
+
+      spawnTimer += dt;
+      if(spawnTimer >= spawnEvery){
+        spawnTimer = 0;
+        spawnObstacle();
+      }
+
+      for(var i = obstacles.length - 1; i >= 0; i--){
+        obstacles[i].x -= speed * dt;
+        if(obstacles[i].x + obstacles[i].w < -10) obstacles.splice(i, 1);
+      }
+
+      var playerBox = { x: player.x + 4, y: player.y + 4, w: player.w - 8, h: player.h - 8 };
+      for(var j = 0; j < obstacles.length; j++){
+        if(rectsOverlap(playerBox, obstacles[j])){
+          endGame();
+          break;
+        }
+      }
+    }
+
+    for(var k = 0; k < obstacles.length; k++) drawObstacle(obstacles[k]);
+    drawPlayer();
+
+    if(state === 'running' || state === 'over') requestAnimationFrame(loop);
+  }
+
+  resetGame();
+  drawGround();
+  drawPlayer();
+
+  startBtn.addEventListener('click', startGame);
+  retryBtn.addEventListener('click', startGame);
+  canvas.addEventListener('pointerdown', jump);
+  window.addEventListener('keydown', function(e){
+    if(e.code === 'Space' || e.code === 'ArrowUp'){
+      e.preventDefault();
+      jump();
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // SHARE TO FRIENDS — pure virality, no name/mobile involved at all.
+  // Web Share API opens the device's native share sheet (WhatsApp,
+  // Instagram, SMS, etc.) pre-filled with the score. Falls back to
+  // copying the text to the clipboard on browsers without navigator.share
+  // (mainly desktop) so the button still does something everywhere.
+  // ---------------------------------------------------------------------
+  function shareText(){
+    return 'I scored ' + score + ' on TKG\'s Khichiya Runner! 🔥 Can you beat it?';
+  }
+
+  shareBtn.addEventListener('click', function(){
+    var text = shareText();
+    if(navigator.share){
+      navigator.share({ text: text }).catch(function(){});
+    }else if(navigator.clipboard){
+      navigator.clipboard.writeText(text).then(function(){
+        shareBtn.textContent = '✓ Copied!';
+        setTimeout(function(){ shareBtn.textContent = '📤 Share to friends'; }, 1600);
+      });
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // SUBMIT FOR REWARD — separate from sharing on purpose. Only this path
+  // ever asks for a name/mobile, and only because claiming a reward
+  // requires being able to check it later. Sends to the "Khichiya Runner
+  // Scores" sheet via submitScore() below — no leaderboard/claim logic
+  // yet, this is just a durable log of what was submitted.
+  // ---------------------------------------------------------------------
+  submitBtn.addEventListener('click', function(){
+    overOverlay.classList.add('hidden');
+    submitName.value = '';
+    submitMobile.value = '';
+    submitOverlay.classList.remove('hidden');
+  });
+
+  submitCancelBtn.addEventListener('click', function(){
+    submitOverlay.classList.add('hidden');
+    overOverlay.classList.remove('hidden');
+  });
+
+  submitConfirmBtn.addEventListener('click', function(){
+    var name = submitName.value.trim();
+    var mobile = submitMobile.value.trim();
+    if(!name || !mobile){
+      submitName.style.borderColor = name ? 'var(--stone-line)' : 'var(--ember)';
+      submitMobile.style.borderColor = mobile ? 'var(--stone-line)' : 'var(--ember)';
+      return;
+    }
+    submitScore(name, mobile, score);
+  });
+
+  // ---------------------------------------------------------------------
+  // Sends the submission to the same Apps Script deployment index.html
+  // uses (additive 'submitRunnerScore' action, own sheet). The on-screen
+  // "Got it!" confirmation is shown either way, since staff verify by
+  // matching this screen against the Sheet at the counter — same
+  // offline-tolerant trust model as the rest of the app. If the request
+  // fails (no signal, etc.) that's logged and surfaced quietly in the
+  // confirmation text rather than blocking the player.
+  // ---------------------------------------------------------------------
+  function submitScore(name, mobile, scoreVal){
+    submitConfirmBtn.disabled = true;
+    submitConfirmBtn.textContent = 'Submitting…';
+
+    var payload = { action: 'submitRunnerScore', name: name, mobile: mobile, score: scoreVal, ts: new Date().toISOString() };
+
+    var request = (APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1)
+      ? Promise.reject(new Error('not configured'))
+      : fetch(APP_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight on Apps Script
+          body: JSON.stringify(payload)
+        }).then(function(res){
+          if(!res.ok) throw new Error('Submit failed: ' + res.status);
+          return res.json();
+        });
+
+    request
+      .then(function(){
+        showSubmitted(name, scoreVal, true);
+      })
+      .catch(function(err){
+        console.warn('Runner score submit failed, showing local confirmation anyway:', err);
+        showSubmitted(name, scoreVal, false);
+      })
+      .finally(function(){
+        submitConfirmBtn.disabled = false;
+        submitConfirmBtn.textContent = 'Submit';
+      });
+  }
+
+  function showSubmitted(name, scoreVal, synced){
+    submitOverlay.classList.add('hidden');
+    submittedSub.textContent = synced
+      ? (name + ', your score of ' + scoreVal + ' is noted. Show this screen at the counter to check it.')
+      : (name + ', your score of ' + scoreVal + ' is on this screen — show it at the counter. (Couldn\'t reach the server just now, so ask staff to note it down too, just in case.)');
+    submittedOverlay.classList.remove('hidden');
+  }
+
+  submittedCloseBtn.addEventListener('click', function(){
+    submittedOverlay.classList.add('hidden');
+  });
+})();
+</script>
+
+</body>
+</html>
