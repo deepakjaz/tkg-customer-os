@@ -1,0 +1,2729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>TKG — Owner Dashboard</title>
+<meta name="theme-color" content="#0B0B0C">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="TKG Owner Dashboard — staff-only, PIN-gated">
+<style>
+/* ==========================================================================
+   TOKENS
+   White marble / Coal ember orange / Black charcoal / Warm gold
+   ========================================================================== */
+:root{
+  /* ---- DARK PALETTE \u2014 used by the Owner Dashboard (#screen-dash).
+     Re-calibrated to the TKG logo's own charcoal (sampled directly from
+     the logo file: a warm red-brown black, not a neutral grey-black). ---- */
+  --charcoal:       #160F0C;
+  --charcoal-soft:  #221813;
+  --ember-card:     #2A1E17;
+  --ember-card-top: #32241B;
+  --marble:         #FAF7F2;
+  --marble-dim:     #EEEEEC;
+  --marble-warm:    #F7F6F3;
+
+  --grey-line:      #3D2E24;
+
+  /* ---- LIGHT PALETTE — the customer-facing shell, cards, sheets.
+     White/warm-ivory marble base, charcoal text, ember reserved for
+     small accents per direction: "subtle, charcoal does the heavy lifting." ---- */
+  --stone-base:      #F6F6F5;   /* shell background base — neutral, barely-there cool grey */
+  --stone-card:      #FFFFFF;   /* cards sit a shade lighter than the shell */
+  --stone-card-alt:  #FBFBFA;   /* secondary card tone for subtle layering */
+  --stone-vein:      #C9C9C7;   /* marble crack-vein color — neutral grey, no warm bias */
+  --stone-vein-soft: #DCDCDA;
+  --stone-line:      #E4E4E2;   /* hairline borders on light surfaces */
+  --ink:             #1C1815;   /* primary text \u2014 near-black, warm */
+  --ink-soft:        #6B6256;   /* secondary text, warm grey-brown */
+  --ink-faint:       #9C9286;   /* tertiary text, placeholders */
+
+  /* ---- ACCENTS \u2014 shared by both palettes, used sparingly on light ---- */
+  --ember:          #E85D2C;
+  --ember-bright:   #FF7A45;
+  --ember-deep:     #B8431D;
+  --ember-glow:     #FAC646;   /* sampled from the TKG logo halo \u2014 warm gold-amber */
+  --gold:           #C9A24B;
+  --gold-bright:    #E0C170;
+  --gold-deep:      #8F7430;   /* new \u2014 readable gold-on-white for text */
+  --grey-warm:      #8A8278;
+  --success:        #4C7A4C;   /* slightly deepened for readability on white */
+  --danger:         #B5392F;   /* slightly deepened for readability on white */
+
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --max-w: 430px;
+
+  --font-display: 'Charcoal-Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{
+  background:var(--stone-base);
+  color:var(--ink);
+  font-family:var(--font-body);
+  -webkit-tap-highlight-color:transparent;
+  height:100%;
+}
+body{
+  display:flex;
+  justify-content:center;
+  min-height:100vh;
+  min-height:100dvh;
+}
+button{font-family:inherit; cursor:pointer;}
+input{font-family:inherit;}
+::selection{background:var(--ember); color:var(--marble);}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+}
+
+/* ==========================================================================
+   SHELL — white/warm-ivory marble, inspired by the stall counter.
+   Built entirely from CSS gradients: no image asset, no HTTP request,
+   scales cleanly at any density. Charcoal vein lines at varied angles
+   (not repeating, so it doesn't look like a pattern) plus two small
+   "fracture point" convergences echo the photographed reference.
+   ========================================================================== */
+.shell{
+  width:100%;
+  max-width:var(--max-w);
+  min-height:100vh;
+  min-height:100dvh;
+  background:var(--stone-base);
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  background-image:
+    /* fracture-point convergences \u2014 small darker clusters where veins meet */
+    radial-gradient(ellipse 18% 10% at 78% 14%, rgba(120,108,92,0.16), transparent 70%),
+    radial-gradient(ellipse 14% 8% at 14% 62%, rgba(120,108,92,0.13), transparent 70%),
+    /* branching crack veins \u2014 varied angles so they read as organic, not a repeating pattern */
+    linear-gradient(124deg, transparent 11%, rgba(124,112,96,0.10) 11.4%, transparent 12%),
+    linear-gradient(124deg, transparent 11.6%, rgba(124,112,96,0.07) 12%, transparent 12.6%),
+    linear-gradient(82deg, transparent 31%, rgba(124,112,96,0.09) 31.4%, transparent 32%),
+    linear-gradient(96deg, transparent 47%, rgba(124,112,96,0.08) 47.3%, transparent 47.9%),
+    linear-gradient(151deg, transparent 58%, rgba(124,112,96,0.10) 58.4%, transparent 59%),
+    linear-gradient(67deg, transparent 69%, rgba(124,112,96,0.08) 69.4%, transparent 70%),
+    linear-gradient(140deg, transparent 84%, rgba(124,112,96,0.09) 84.4%, transparent 85%),
+    /* fine paper-like grain, very low opacity */
+    repeating-linear-gradient(0deg, rgba(28,24,21,0.01) 0px, rgba(28,24,21,0.01) 1px, transparent 1px, transparent 3px);
+  background-attachment:fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, local;
+}
+
+/* Ambient warm glow removed (was .shell::before, an animated gold radial
+   spanning 140% width x 38% height at the bottom of every screen, plus a
+   110%x40% gold pooling layer at the top of the shell above) \u2014 neither was
+   actually scoped to the logo/coal-ring area, so they washed warmth across
+   the entire page instead. TKG's warmth now lives only in the logo itself
+   and brand accents (buttons, active states) against a neutral marble
+   shell. */
+
+/* ==========================================================================
+   TOP BAR — wordmark + ember status dot (signature element)
+   ========================================================================== */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px 20px 14px;
+}
+.wordmark{
+  font-family:var(--font-display);
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.wordmark-logo{
+  width:32px;
+  height:32px;
+  flex-shrink:0;
+  display:block;
+  border-radius:50%;
+  object-fit:cover;
+}
+.wordmark-text{
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  line-height:1.15;
+}
+.wordmark-text span.main{
+  font-weight:800;
+  font-size:1.125rem;
+  letter-spacing:0.06em;
+}
+.wordmark span.sub{
+  font-family:var(--font-body);
+  font-weight:500;
+  font-size:0.625rem;
+  letter-spacing:0.18em;
+  color:var(--ink-soft);
+  text-transform:uppercase;
+}
+
+.status-pill{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:0.6875rem;
+  letter-spacing:0.04em;
+  color:var(--ink-soft);
+  padding:6px 10px;
+  border-radius:20px;
+  background:rgba(28,24,21,0.035);
+  border:1px solid var(--stone-line);
+}
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.lang-btn{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-size:0.7188rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+  color:var(--ember-deep);
+  padding:6px 11px;
+  border-radius:20px;
+  background:rgba(232,93,44,0.07);
+  border:1px solid rgba(232,93,44,0.28);
+  transition:background 0.15s ease, border-color 0.15s ease;
+}
+.text-size-btn{
+  font-size:0.7188rem;
+  font-weight:700;
+  letter-spacing:0.01em;
+  color:var(--ember-deep);
+  padding:6px 11px;
+  border-radius:20px;
+  background:rgba(232,93,44,0.07);
+  border:1px solid rgba(232,93,44,0.28);
+  transition:background 0.15s ease, border-color 0.15s ease;
+}
+.text-size-btn:active, .lang-btn:active{background:rgba(232,93,44,0.14);}
+.lang-btn:active{background:rgba(232,93,44,0.14);}
+.lang-btn.attention{animation:lang-btn-attention 2.2s ease-in-out 1;}
+@keyframes lang-btn-attention{
+  0%, 100%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
+  25%{box-shadow:0 0 0 5px rgba(232,93,44,0.16);}
+  50%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
+  75%{box-shadow:0 0 0 5px rgba(232,93,44,0.1);}
+}
+
+.lang-sheet{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translate(-50%, calc(100% + 60px));
+  width:100%;
+  max-width:var(--max-w);
+  background:var(--stone-base);
+  border-radius:22px 22px 0 0;
+  padding:10px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  box-shadow:0 -10px 40px rgba(28,24,21,0.18);
+  transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index:160;
+}
+.lang-sheet.show{transform:translate(-50%, 0);}
+.lang-sheet-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.125rem;
+  color:var(--ink);
+  text-align:center;
+  margin:6px 0 16px;
+}
+.lang-option{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--stone-card);
+  border:1.5px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  padding:15px 16px;
+  margin-bottom:10px;
+  color:var(--ink);
+  box-shadow:0 1px 2px rgba(28,24,21,0.06);
+}
+.lang-option-native{font-size:0.9375rem; font-weight:700;}
+.lang-option-check{opacity:0; color:var(--ember); font-weight:800; font-size:1rem;}
+.lang-option.selected{border-color:var(--ember);}
+.lang-option.selected .lang-option-check{opacity:1;}
+.ember-dot{
+  width:8px; height:8px;
+  border-radius:50%;
+  background:var(--success);
+  box-shadow:0 0 0 0 rgba(92,138,92,0.6);
+  flex-shrink:0;
+}
+.status-pill[data-state="offline"] .ember-dot{
+  background:var(--ember);
+  animation:ember-pulse 1.6s ease-in-out infinite;
+}
+.status-pill[data-state="syncing"] .ember-dot{
+  background:var(--gold);
+  animation:ember-pulse 0.9s ease-in-out infinite;
+}
+@keyframes ember-pulse{
+  0%{box-shadow:0 0 0 0 rgba(232,93,44,0.55);}
+  70%{box-shadow:0 0 0 6px rgba(232,93,44,0);}
+  100%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
+}
+
+/* ==========================================================================
+   SCREENS
+   ========================================================================== */
+.screen{
+  flex:1;
+  display:none;
+  flex-direction:column;
+  padding:0 20px 28px;
+  animation:fade-in 0.35s ease;
+}
+.screen.active{display:flex;}
+#screen-dash{background:var(--charcoal);}
+@keyframes fade-in{
+  from{opacity:0; transform:translateY(6px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* ---- Customer Journey (Screen 1) — first interaction, offline-only.
+   Reuses .screen / showScreen() as-is. No new UI-switching mechanism. ---- */
+.journey-intro{
+  margin-top:32px;
+  margin-bottom:28px;
+  text-align:center;
+}
+.journey-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.375rem;
+  color:var(--ink);
+  margin-bottom:8px;
+}
+.journey-subtitle{
+  font-size:0.875rem;
+  color:var(--ink-soft);
+}
+.journey-options{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.journey-option{
+  width:100%;
+  text-align:left;
+  padding:18px 20px;
+  border-radius:var(--radius-lg);
+  border:1px solid var(--stone-line);
+  background:var(--stone-card);
+  font-size:1rem;
+  font-weight:600;
+  color:var(--ink);
+  box-shadow:0 2px 8px -4px rgba(28,24,21,0.08);
+  transition:transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.journey-option:active{
+  transform:translateY(1px) scale(0.99);
+  border-color:var(--ember);
+  box-shadow:0 1px 4px -2px rgba(28,24,21,0.1);
+}
+
+/* Subtle, non-intrusive affordance to revisit the Customer Journey choice —
+   styled to match .owner-link exactly (same weight, same "quiet utility
+   link" treatment) so it never competes visually with primary content. */
+.change-journey-link{
+  text-align:center;
+  padding-top:8px;
+}
+.change-journey-link button{
+  background:none;
+  border:none;
+  color:var(--grey-warm);
+  font-size:0.75rem;
+  letter-spacing:0.05em;
+  text-decoration:underline;
+  text-decoration-color:var(--grey-line);
+  padding:8px;
+}
+
+/* ---- Business Status Card — live OPEN/CLOSED status. Sprint: Customer OS
+   UI Polish (item 2). Same surface tokens as every other .stone-card card
+   on this screen — no new palette. Icon/label/detail text are set by
+   refreshBusinessStatusCard() in the script; this only styles the shell. ---- */
+.business-status-card{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  box-shadow:0 1px 2px rgba(28,24,21,0.04);
+  padding:12px 16px;
+  margin-bottom:16px;
+}
+.bsc-icon{ font-size:1.0625rem; flex-shrink:0; }
+.bsc-label{
+  font-size:0.8438rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+  color:var(--ink);
+}
+.business-status-card[data-open="true"] .bsc-label{ color:var(--ember-deep); }
+.bsc-detail{
+  font-size:0.7812rem;
+  color:var(--ink-soft);
+  margin-top:1px;
+}
+
+/* ---- Welcome Card — Visual hierarchy redesign. One calm card directly
+   below the Hero: Greeting + current browsing status + Change Journey.
+   Replaces the previous floating greeting text and the separate Journey
+   accordion — same tokens as every other .stone-card surface on this
+   screen (radius/border/shadow), no new styling pattern. Reuses
+   #dgGreetingText/#dgSubText/#journeyStatusCurrent/#changeJourneyBtn
+   exactly — updateDynamicGreeting()/updateJourneyStatusDisplay() untouched. ---- */
+.welcome-card{
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  box-shadow:0 1px 2px rgba(28,24,21,0.04);
+  padding:14px 16px 12px;
+  margin-bottom:16px;
+  text-align:left;
+}
+.dg-greeting{
+  font-size:1.1875rem;
+  font-weight:700;
+  color:var(--ink);
+}
+.dg-sub{
+  font-size:0.8438rem;
+  color:var(--ink-soft);
+  margin-top:3px;
+  line-height:1.45;
+}
+.welcome-card-journey{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--stone-line);
+}
+.welcome-card-journey-status{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-width:0;
+}
+.welcome-card-journey-status .jc-icon{font-size:0.9375rem; flex-shrink:0;}
+.welcome-card-journey-status .jc-current{
+  font-size:0.8438rem;
+  font-weight:700;
+  color:var(--ink);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.welcome-card #changeJourneyBtn{
+  background:none;
+  border:none;
+  color:var(--ember);
+  font-weight:600;
+  font-size:0.7812rem;
+  text-decoration:underline;
+  text-decoration-color:var(--ember);
+  padding:2px 0;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+/* ==========================================================================
+   FIXED QUICK ACTIONS BAR — Visual hierarchy redesign. Not page navigation:
+   4 existing actions surfaced at thumb height so Reviews/FAQ/Register no
+   longer need to occupy above-the-fold space. Visible only on the primary
+   Menu screen (screen-menu); toggled in showScreen(). Every button calls a
+   function that already existed — see navRateUsBtn/navMessageBtn/
+   navAboutBtn/navJourneyBtn handlers near the bottom of the script
+   (openCustomerStoriesSheet/openRegisterOverlay/openInfoSheet/showScreen).
+   ========================================================================== */
+.bottom-nav{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:var(--max-w);
+  display:flex;
+  background:var(--stone-card);
+  border-top:1px solid var(--stone-line);
+  box-shadow:0 -1px 3px rgba(28,24,21,0.05);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  z-index:130;
+}
+.bottom-nav.hidden{ display:none; }
+.bottom-nav-item{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  background:none;
+  border:none;
+  padding:6px 2px;
+}
+.bottom-nav-item:active{ opacity:0.6; }
+.bottom-nav-item .bn-icon{ font-size:1.125rem; line-height:1; }
+.bottom-nav-item .bn-label{
+  font-size:0.625rem;
+  font-weight:600;
+  color:var(--ink);
+  white-space:nowrap;
+}
+
+/* Room for the fixed Quick Actions Bar so it never covers the last card on
+   the Menu screen — every other screen keeps the original .screen padding. */
+#screen-menu{
+  padding-bottom:78px;
+}
+
+/* ---- Registration screen ---- */
+.hero-block{
+  margin-top:6px;
+  margin-bottom:28px;
+}
+.hero-eyebrow{
+  font-size:0.6875rem;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--gold);
+  font-weight:600;
+  margin-bottom:10px;
+}
+.hero-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.875rem;
+  line-height:1.15;
+  letter-spacing:-0.01em;
+  color:var(--ink);
+}
+.hero-title em{
+  color:var(--ember);
+  font-style:normal;
+}
+.hero-sub{
+  margin-top:10px;
+  font-size:0.875rem;
+  color:var(--ink-soft);
+  line-height:1.5;
+}
+
+.reg-card{
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  padding:24px 20px 22px;
+  box-shadow:
+    0 1px 2px rgba(28,24,21,0.06),
+    0 10px 28px -12px rgba(28,24,21,0.16);
+  border-top:3px solid var(--ember);
+}
+.field-group{margin-bottom:16px;}
+.field-label{
+  display:block;
+  font-size:0.75rem;
+  font-weight:700;
+  letter-spacing:0.04em;
+  color:var(--ink);
+  margin-bottom:7px;
+  text-transform:uppercase;
+}
+.field-input{
+  width:100%;
+  padding:14px 14px;
+  border-radius:var(--radius-md);
+  border:1.5px solid #E2DDD3;
+  background:#FFFFFF;
+  color:var(--ink);
+  font-size:1rem;
+  outline:none;
+  transition:border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.field-input::placeholder{color:#B7AFA3;}
+.field-input:focus{
+  border-color:var(--ember);
+  box-shadow:0 0 0 3px rgba(232,93,44,0.16);
+}
+.field-input.invalid{
+  border-color:var(--danger);
+}
+.field-error{
+  font-size:0.75rem;
+  color:var(--danger);
+  margin-top:6px;
+  display:none;
+  font-weight:500;
+}
+.field-error.show{display:block;}
+
+textarea.field-input{
+  min-height:96px;
+  resize:vertical;
+  font-family:inherit;
+  line-height:1.5;
+}
+
+/* ==========================================================================
+   FEEDBACK OVERLAY — post check-in, optional, never blocks the menu
+   ========================================================================== */
+.thanks-block{
+  text-align:center;
+  padding:6px 0 18px;
+}
+.thanks-icon{font-size:2.125rem; margin-bottom:8px;}
+.thanks-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.25rem;
+  color:var(--ink);
+}
+.thanks-sub{
+  font-size:0.8125rem;
+  color:var(--ink-soft);
+  margin-top:6px;
+  line-height:1.5;
+}
+
+.action-card{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  background:#FFFFFF;
+  border:1.5px solid #E2DDD3;
+  border-radius:var(--radius-md);
+  padding:14px;
+  margin-bottom:10px;
+  text-decoration:none;
+  text-align:left;
+  font-family:inherit;
+  cursor:pointer;
+}
+.action-card .ac-icon{font-size:1.375rem; flex-shrink:0;}
+.action-card .ac-text{flex:1; min-width:0;}
+.action-card .ac-title{
+  font-size:0.8438rem;
+  font-weight:700;
+  color:var(--ink);
+}
+.action-card .ac-sub{
+  font-size:0.6875rem;
+  color:var(--grey-warm);
+  margin-top:2px;
+  line-height:1.4;
+}
+.action-card .ac-go{
+  font-size:0.6875rem;
+  font-weight:700;
+  color:var(--ember);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+.btn-primary{
+  width:100%;
+  padding:16px;
+  border-radius:var(--radius-md);
+  border:none;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  color:var(--marble);
+  font-size:1rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
+  transition:transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-primary:active{transform:translateY(1px) scale(0.99); box-shadow:0 4px 10px -4px rgba(232,93,44,0.5);}
+.btn-primary:disabled{opacity:0.55; box-shadow:none;}
+
+.consent-line{
+  margin-top:14px;
+  font-size:0.7188rem;
+  color:var(--grey-warm);
+  text-align:center;
+  line-height:1.5;
+}
+
+.trust-row{
+  display:flex;
+  gap:10px;
+  margin-top:22px;
+}
+.trust-item{
+  flex:1;
+  text-align:center;
+  font-size:0.6562rem;
+  color:var(--grey-warm);
+  letter-spacing:0.03em;
+}
+.trust-item .ti-mark{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:0.8125rem;
+  color:var(--gold);
+  display:block;
+  margin-bottom:3px;
+}
+
+.owner-link{
+  margin-top:auto;
+  padding-top:24px;
+  text-align:center;
+}
+.owner-link button{
+  background:none;
+  border:none;
+  color:var(--grey-warm);
+  font-size:0.75rem;
+  letter-spacing:0.05em;
+  text-decoration:underline;
+  text-decoration-color:var(--grey-line);
+  padding:8px;
+}
+
+/* ---- Welcome-back chip (returning customer) ---- */
+.welcome-chip{
+  display:none;
+  align-items:center;
+  gap:10px;
+  background:rgba(201,162,75,0.1);
+  border:1px solid rgba(201,162,75,0.35);
+  border-radius:var(--radius-md);
+  padding:11px 14px;
+  margin-bottom:16px;
+  font-size:0.8125rem;
+  color:var(--gold-deep);
+}
+.welcome-chip.show{display:flex;}
+.welcome-chip .wc-icon{font-size:1rem;}
+
+/* ==========================================================================
+   REGISTRATION OVERLAY (bottom sheet, optional, never blocks the menu)
+   ========================================================================== */
+.overlay-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(28,24,21,0.45);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease;
+  z-index:150;
+}
+.overlay-backdrop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.reg-overlay{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translate(-50%, calc(100% + 60px));
+  width:100%;
+  max-width:var(--max-w);
+  max-height:88vh;
+  overflow-y:auto;
+  background:var(--stone-base);
+  border-radius:22px 22px 0 0;
+  padding:10px 20px 28px;
+  box-shadow:0 -10px 40px rgba(28,24,21,0.22);
+  transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index:160;
+  -webkit-overflow-scrolling:touch;
+}
+.reg-overlay.show{
+  transform:translate(-50%, 0);
+}
+.reg-overlay-handle{
+  width:40px;
+  height:4px;
+  border-radius:3px;
+  background:var(--grey-line);
+  margin:8px auto 16px;
+}
+
+.optional-tag{
+  font-weight:500;
+  text-transform:none;
+  letter-spacing:0;
+  color:var(--grey-warm);
+  font-size:0.6875rem;
+}
+
+/* ==========================================================================
+   PRODUCT PREVIEW — bottom sheet, opened by tapping a Menu item card.
+   Reuses .overlay-backdrop / .reg-overlay / .reg-overlay-handle as-is (same
+   component already used by Registration/Language/Content sheets) — no new
+   sheet mechanics, just this preview's own content inside it.
+   ========================================================================== */
+.product-preview-media{
+  width:100%;
+  aspect-ratio:4/3;
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  background:var(--stone-card-alt);
+}
+.product-preview-media img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.product-preview-body{
+  padding-top:16px;
+}
+.product-preview-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.product-preview-name{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:1.1875rem;
+  color:var(--ink);
+}
+.product-preview-desc{
+  font-size:0.8438rem;
+  color:var(--ink-soft);
+  line-height:1.5;
+  margin-top:6px;
+}
+.product-preview-price{
+  margin-top:14px;
+  text-align:left;
+  font-size:1rem;
+}
+.product-preview-price .price-large{
+  margin-top:3px;
+}
+
+.source-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.source-chip{
+  padding:9px 14px;
+  border-radius:20px;
+  border:1.5px solid #E2DDD3;
+  background:#FFFFFF;
+  color:var(--ink);
+  font-size:0.7812rem;
+  font-weight:600;
+}
+.source-chip.selected{
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
+}
+
+/* ==========================================================================
+   GENERIC CONTENT SHEET — reusable bottom sheet for any content-registry-
+   driven block (Reviews now; FAQ / Weekend Special / Featured Products /
+   Announcements later). Built on the existing .reg-overlay bottom-sheet
+   pattern — only the inner layout classes below are new.
+   ========================================================================== */
+.content-sheet{
+  max-height:82vh;
+  display:flex;
+  flex-direction:column;
+}
+.content-sheet-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.1875rem;
+  color:var(--ink);
+  margin-bottom:14px;
+}
+.content-sheet-body{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.cs-empty-state{
+  padding:30px 10px;
+  text-align:center;
+  font-size:0.8438rem;
+  color:var(--ink-soft);
+}
+.cs-review-card{
+  background:var(--stone-card-alt);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  padding:13px 14px;
+  margin-bottom:10px;
+}
+.cs-review-top{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:7px;
+}
+.cs-review-avatar{
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
+  color:var(--marble);
+  font-size:0.6875rem;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.cs-review-author{
+  flex:1;
+  min-width:0;
+  font-size:0.7812rem;
+  font-weight:700;
+  color:var(--ink);
+}
+.cs-review-stars{
+  font-size:0.6562rem;
+  color:var(--gold-deep);
+  letter-spacing:1px;
+  flex-shrink:0;
+}
+.cs-review-quote{
+  font-size:0.8438rem;
+  line-height:1.5;
+  color:var(--ink);
+}
+
+.content-sheet-footer{
+  margin-top:6px;
+  padding-top:14px;
+  border-top:1px solid var(--stone-line);
+  text-align:center;
+}
+.content-sheet-footer.hidden{display:none;}
+.cs-footer-stars{
+  font-size:1rem;
+  color:var(--gold-deep);
+  letter-spacing:2px;
+  margin-bottom:6px;
+}
+.cs-footer-heading{
+  font-size:0.875rem;
+  font-weight:700;
+  color:var(--ink);
+  margin-bottom:12px;
+}
+.cs-footer-btn{
+  display:inline-block;
+  width:100%;
+  text-align:center;
+  text-decoration:none;
+  padding:14px;
+  border-radius:var(--radius-md);
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  color:var(--marble);
+  font-size:0.9062rem;
+  font-weight:700;
+  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
+}
+
+/* ==========================================================================
+   APP HERO — short, scan-in-seconds, replaces the old stacked-cards hero
+   ========================================================================== */
+.app-hero{
+  padding-top:2px;
+  margin-bottom:14px;
+}
+.app-hero-meta{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:8px;
+}
+.app-hero-hours{
+  font-size:0.7188rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--grey-warm);
+  font-weight:600;
+}
+.directions-link{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-size:0.7188rem;
+  font-weight:700;
+  color:var(--ember-deep);
+  text-decoration:underline;
+  text-decoration-color:rgba(184,67,29,0.4);
+  text-underline-offset:2px;
+  padding:3px 9px 3px 7px;
+  border-radius:20px;
+  background:rgba(232,93,44,0.08);
+  border:1px solid rgba(232,93,44,0.25);
+}
+.directions-link .dl-icon{width:12px; height:12px; flex-shrink:0;}
+.directions-link:active{background:rgba(232,93,44,0.16);}
+.directions-link.attention{animation:directions-bounce 1.8s ease-in-out 1;}
+@keyframes directions-bounce{
+  0%, 100%{transform:translateY(0);}
+  20%{transform:translateY(-3px);}
+  35%{transform:translateY(0);}
+  50%{transform:translateY(-2px);}
+  65%{transform:translateY(0);}
+}
+
+/* "Get Directions" as a primary action, footer only — Sprint: Customer OS
+   UI Polish, item 6. Reuses the exact .btn-primary tokens (gradient, shadow,
+   active state) already used elsewhere on this screen; no new visual
+   language, just applied to an <a> instead of a <button>. The Hero's own
+   small .directions-link chip is untouched — this modifier is additive and
+   only applies where the class is present. Destination/href unchanged. */
+.directions-link--primary{
+  width:100%;
+  justify-content:center;
+  gap:8px;
+  padding:15px 16px;
+  border-radius:var(--radius-md);
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  border:none;
+  color:var(--marble);
+  font-size:0.9375rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+  text-decoration:none;
+  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
+  transition:transform 0.12s ease, box-shadow 0.12s ease;
+}
+.directions-link--primary .dl-icon{width:18px; height:18px;}
+.directions-link--primary:active{
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  transform:translateY(1px) scale(0.99);
+  box-shadow:0 4px 10px -4px rgba(232,93,44,0.5);
+}
+.app-hero-headline{
+  font-family:var(--font-display);
+  font-weight:800;
+  line-height:1.04;
+  letter-spacing:-0.01em;
+}
+.app-hero-headline .line-coal{
+  display:block;
+  font-size:1.3125rem;
+  color:var(--ink-soft);
+}
+.app-hero-headline .line-gravy{
+  display:block;
+  font-size:2.625rem;
+  color:var(--ember-deep);
+  margin:2px 0;
+}
+.app-hero-headline .line-khichiya{
+  display:block;
+  font-size:1.0625rem;
+  font-weight:600;
+  color:var(--ink-soft);
+}
+.app-hero-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.info-btn{
+  flex-shrink:0;
+  width:32px; height:32px;
+  border-radius:50%;
+  background:rgba(28,24,21,0.035);
+  border:1px solid var(--stone-line);
+  color:var(--ink-soft);
+  font-size:0.875rem;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:2px;
+}
+.info-btn:active{background:rgba(28,24,21,0.07);}
+
+/* Story strip — compact 3-step visual explainer directly beneath the
+   headline. Carries the "Gravy is the Hero" punch as its lead-in label
+   instead of repeating it as a separate line, so the hero reads in two
+   beats (headline, then story) instead of three. */
+.hero-story-label{
+  font-size:0.6875rem;
+  font-weight:700;
+  color:var(--gold-deep);
+  margin-top:10px;
+  margin-bottom:6px;
+  letter-spacing:0.01em;
+}
+.hero-story-strip{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:10px 12px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  overflow-x:auto;
+  scrollbar-width:none;
+  box-shadow:0 1px 2px rgba(28,24,21,0.05);
+}
+.hero-story-strip::-webkit-scrollbar{display:none;}
+.hero-story-strip .story-step{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:0.6562rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+  color:var(--ink-soft);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.hero-story-strip .story-step .step-icon{font-size:0.8125rem; line-height:1;}
+.hero-story-strip .story-arrow{
+  color:var(--stone-vein);
+  font-size:0.6875rem;
+  flex-shrink:0;
+}
+
+/* ==========================================================================
+   CATEGORY TABS — real switching, Signature default, no page reload
+   ========================================================================== */
+.menu-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+}
+.menu-tab{
+  flex:1;
+  padding:11px 10px;
+  border-radius:var(--radius-md);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  color:var(--ink-soft);
+  font-size:0.8125rem;
+  font-weight:700;
+  letter-spacing:0.01em;
+  text-align:center;
+  box-shadow:0 1px 2px rgba(28,24,21,0.04);
+  transition:background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+}
+.menu-tab.active{
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
+  box-shadow:0 4px 12px -4px rgba(232,93,44,0.4);
+}
+.menu-tab:active{transform:scale(0.97);}
+
+/* Gentle discoverability cue for the Traditional tab — most of each 13s
+   cycle is completely at rest; a soft glow ring appears briefly once per
+   cycle, never a continuous flash. Stops the moment the tab is active
+   (selected), since its job is done once someone has found it. */
+@keyframes tab-discoverable-pulse{
+  0%, 88%, 100%{ box-shadow:0 1px 2px rgba(28,24,21,0.04), 0 0 0 0 rgba(232,93,44,0); }
+  94%{ box-shadow:0 1px 2px rgba(28,24,21,0.04), 0 0 0 5px rgba(232,93,44,0.16); }
+}
+.menu-tab[data-cat="traditional"]:not(.active){
+  animation:tab-discoverable-pulse 13s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   MENU SECTIONS — gentle slide+fade on category switch
+   ========================================================================== */
+.menu-section{display:none;}
+.menu-section.active{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  animation:menu-fade 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes menu-fade{
+  from{opacity:0; transform:translateY(5px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+.menu-section-label{
+  font-size:0.7188rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--gold);
+  margin:6px 0 2px;
+}
+
+.jain-tag{
+  font-size:0.5938rem;
+  letter-spacing:0.04em;
+  text-transform:none;
+  font-weight:700;
+  color:var(--success);
+  background:rgba(92,138,92,0.12);
+  padding:2px 8px;
+  border-radius:10px;
+}
+
+.footer-meta{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:10px;
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid var(--stone-line);
+}
+.footer-meta .hours-note{
+  text-align:center;
+}
+.hours-note{
+  font-size:0.75rem;
+  color:var(--ink-soft);
+}
+.phone-note{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  margin-top:8px;
+  font-size:0.7812rem;
+  font-weight:700;
+  color:var(--ink);
+  text-decoration:none;
+}
+.phone-note .pn-icon{width:13px; height:13px; color:var(--ember-deep); flex-shrink:0;}
+.phone-note:active{color:var(--ember-deep);}
+
+/* ==========================================================================
+   INFO SHEET — education content, tucked behind the info button
+   ========================================================================== */
+.info-sheet-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.1875rem;
+  color:var(--ink);
+  margin-bottom:12px;
+}
+.info-sheet-line{
+  font-size:0.8125rem;
+  color:var(--ink-soft);
+  line-height:1.6;
+  margin-bottom:10px;
+}
+.info-sheet-line:last-of-type{margin-bottom:0;}
+.info-sheet-punch{
+  margin-top:14px;
+  padding:12px 14px;
+  background:rgba(232,93,44,0.07);
+  border:1px solid rgba(232,93,44,0.22);
+  border-radius:var(--radius-md);
+  font-size:0.8125rem;
+  font-weight:700;
+  color:var(--ember-deep);
+  text-align:center;
+}
+.info-sheet-jain{
+  display:inline-block;
+  margin-top:14px;
+  font-size:0.7188rem;
+  font-weight:700;
+  color:var(--success);
+  background:rgba(92,138,92,0.12);
+  padding:4px 11px;
+  border-radius:10px;
+}
+
+/* ==========================================================================
+   EXTRAS — compact chip row, replaces flour-note + notes-grid paragraphs
+   ========================================================================== */
+.extras-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:16px;
+}
+.extra-chip{
+  font-size:0.6875rem;
+  font-weight:600;
+  color:var(--ink-soft);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  padding:6px 12px;
+  border-radius:14px;
+}
+.extra-chip.jain{
+  color:var(--success);
+  border-color:rgba(76,122,76,0.3);
+  background:rgba(76,122,76,0.07);
+}
+.extra-chip .extra-chip-price{
+  font-family:var(--font-mono);
+  font-weight:700;
+  margin-left:4px;
+  color:var(--gold-deep);
+}
+
+.link-row{
+  display:flex;
+  gap:8px;
+  margin-top:16px;
+}
+.link-chip{
+  flex:1;
+  text-align:center;
+  padding:12px 10px;
+  border-radius:var(--radius-md);
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  color:var(--ink);
+  font-size:0.7812rem;
+  font-weight:600;
+  text-decoration:none;
+  box-shadow:0 1px 2px rgba(28,24,21,0.05);
+  transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.link-chip:active{
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
+}
+
+.register-cta{
+  margin-top:22px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  padding:18px 18px 16px;
+  border-top:3px solid var(--gold);
+  box-shadow:
+    0 1px 2px rgba(28,24,21,0.05),
+    0 6px 16px -8px rgba(28,24,21,0.12);
+}
+.register-cta-text{margin-bottom:12px;}
+.register-cta-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1rem;
+  color:var(--ink);
+}
+.register-cta-sub{
+  font-size:0.75rem;
+  color:var(--ink-soft);
+  margin-top:3px;
+}
+
+/* Sprint 2.0 — Taste Discovery Engine. New, additive only: reuses
+   .register-cta family for the reminder chip (see markup) and adds one
+   small new block for the in-overlay recommendation result. No existing
+   CSS above this point was modified. */
+.taste-result-card{
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  padding:16px 16px 14px;
+  border-top:3px solid var(--gold);
+  margin-bottom:6px;
+}
+.taste-result-name{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.0625rem;
+  color:var(--ink);
+  margin-bottom:4px;
+}
+.taste-result-desc{
+  font-size:0.8125rem;
+  color:var(--ink-soft);
+  margin-bottom:8px;
+}
+.taste-result-price{
+  font-size:0.875rem;
+  font-weight:700;
+  color:var(--ink);
+}
+
+/* ==========================================================================
+   PREMIUM MENU CARDS — rounded, soft shadow, name+price scannable at a glance
+   ========================================================================== */
+.menu-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  padding:16px;
+  box-shadow:
+    0 1px 2px rgba(28,24,21,0.06),
+    0 8px 20px -10px rgba(28,24,21,0.14);
+  transition:transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease;
+}
+.menu-item:active{
+  transform:scale(0.985);
+  box-shadow:
+    0 1px 2px rgba(28,24,21,0.05),
+    0 4px 10px -6px rgba(28,24,21,0.12);
+}
+.menu-item-thumb{
+  width:56px;
+  height:56px;
+  flex-shrink:0;
+  border-radius:var(--radius-sm);
+  background:var(--stone-base);
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.menu-item-thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.menu-item-info{flex:1; min-width:0;}
+.menu-item-top{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.menu-item-name{
+  font-size:0.9688rem;
+  font-weight:800;
+  color:var(--ink);
+  letter-spacing:-0.01em;
+}
+.menu-item-desc{
+  font-size:0.7188rem;
+  color:#8A8278;
+  line-height:1.35;
+  margin-top:3px;
+}
+.menu-item-tag{
+  display:inline-block;
+  font-size:0.5625rem;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  font-weight:700;
+  color:var(--ember-deep);
+  background:rgba(232,93,44,0.1);
+  padding:2px 7px;
+  border-radius:4px;
+}
+.menu-item-price{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:0.875rem;
+  color:var(--ember-deep);
+  white-space:nowrap;
+  text-align:right;
+  flex-shrink:0;
+}
+.menu-item-price .price-large{
+  display:block;
+  font-size:0.6875rem;
+  color:var(--grey-warm);
+  font-weight:600;
+  margin-top:1px;
+}
+
+.menu-footer{
+  margin-top:24px;
+  text-align:center;
+}
+.btn-secondary{
+  background:none;
+  border:1.5px solid var(--grey-line);
+  color:var(--grey-warm);
+  padding:12px 22px;
+  border-radius:var(--radius-md);
+  font-size:0.8125rem;
+  font-weight:600;
+}
+
+/* ==========================================================================
+   OWNER DASHBOARD
+   ========================================================================== */
+.dash-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+}
+.dash-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.375rem;
+  color:var(--marble);
+}
+.dash-close{
+  background:none;
+  border:1px solid var(--grey-line);
+  color:var(--grey-warm);
+  width:34px; height:34px;
+  border-radius:50%;
+  font-size:1rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.dash-header-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.dash-section-label{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:0.7812rem;
+  color:var(--gold-bright);
+  letter-spacing:0.05em;
+  margin:4px 0 8px;
+}
+
+.pin-gate{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  justify-content:center;
+  gap:16px;
+}
+.pin-gate p{
+  text-align:center;
+  color:var(--grey-warm);
+  font-size:0.8125rem;
+}
+.pin-input{
+  width:100%;
+  padding:16px;
+  border-radius:var(--radius-md);
+  border:1.5px solid var(--grey-line);
+  background:var(--ember-card);
+  color:var(--marble);
+  font-size:1.25rem;
+  letter-spacing:0.3em;
+  text-align:center;
+  outline:none;
+}
+.pin-input:focus{border-color:var(--ember);}
+
+.stat-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:18px;
+}
+.stat-card{
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  border-radius:var(--radius-md);
+  padding:16px 14px;
+}
+.stat-card.full{grid-column:1 / -1; display:flex; justify-content:space-between; align-items:center;}
+.stat-num{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:1.625rem;
+  color:var(--gold-bright);
+  line-height:1;
+}
+.stat-label{
+  font-size:0.6875rem;
+  color:var(--grey-warm);
+  margin-top:6px;
+  letter-spacing:0.03em;
+}
+.stat-card.full .stat-num{font-size:1.25rem; color:var(--ember-bright);}
+
+.dash-actions{
+  display:flex;
+  gap:10px;
+  margin-bottom:18px;
+}
+.dash-actions .btn-secondary{flex:1; padding:11px;}
+
+.search-box{
+  width:100%;
+  padding:12px 14px;
+  border-radius:var(--radius-md);
+  border:1.5px solid var(--grey-line);
+  background:var(--ember-card);
+  color:var(--marble);
+  font-size:0.875rem;
+  margin-bottom:12px;
+  outline:none;
+}
+.search-box:focus{border-color:var(--ember);}
+.search-box::placeholder{color:var(--grey-warm);}
+
+.cust-list{
+  flex:1;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  -webkit-overflow-scrolling:touch;
+}
+.cust-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  border-radius:var(--radius-sm);
+  padding:12px 13px;
+}
+.cust-info .cust-name{font-size:0.8438rem; font-weight:700; color:var(--marble);}
+.cust-info .cust-mobile{font-size:0.7188rem; color:var(--grey-warm); font-family:var(--font-mono); margin-top:2px;}
+.cust-info .cust-tags{font-size:0.6562rem; color:var(--gold); margin-top:3px;}
+
+.locality-breakdown{
+  padding:10px 0;
+  border-bottom:1px solid var(--grey-line);
+}
+.locality-breakdown:last-child{ border-bottom:none; }
+.locality-breakdown-name{
+  font-size:0.8125rem;
+  font-weight:600;
+  color:var(--marble);
+  margin-bottom:4px;
+}
+.locality-breakdown-row{
+  display:flex;
+  justify-content:space-between;
+  font-size:0.75rem;
+  color:var(--marble);
+  opacity:0.85;
+  padding:1px 0;
+}
+.locality-breakdown-total{
+  margin-top:3px;
+  padding-top:4px;
+  border-top:1px dashed var(--grey-line);
+  font-weight:600;
+  opacity:1;
+}
+.cust-meta{text-align:right;}
+.cust-meta .cust-visits{
+  font-family:var(--font-mono);
+  font-size:0.8125rem;
+  color:var(--gold-bright);
+  font-weight:700;
+}
+.cust-meta .cust-last{font-size:0.625rem; color:var(--grey-warm); margin-top:2px;}
+.cust-meta .pending-tag{
+  font-size:0.5625rem;
+  color:var(--ember-bright);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  margin-top:3px;
+}
+.owner-fields-btn{
+  margin-top:6px;
+  background:none;
+  border:none;
+  color:var(--gold);
+  font-size:0.6562rem;
+  font-weight:600;
+  padding:2px 0;
+  cursor:pointer;
+}
+
+.empty-state{
+  text-align:center;
+  padding:40px 10px;
+  color:var(--grey-warm);
+  font-size:0.8125rem;
+}
+
+/* ==========================================================================
+   TOAST
+   ========================================================================== */
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--marble);
+  color:var(--charcoal);
+  padding:13px 20px;
+  border-radius:var(--radius-md);
+  font-size:0.8125rem;
+  font-weight:600;
+  box-shadow:0 12px 30px -8px rgba(28,24,21,0.35), 0 2px 8px rgba(28,24,21,0.12);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+  z-index:200;
+  max-width:90%;
+  text-align:center;
+  border-left:4px solid var(--ember);
+}
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* ==========================================================================
+   INSTALL PROMPT — bottom banner, dismissible, platform-aware
+   ========================================================================== */
+.install-banner{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  transform:translate(-50%, calc(110% + 20px));
+  width:100%;
+  max-width:var(--max-w);
+  background:var(--stone-card);
+  border-top:1px solid var(--stone-line);
+  border-radius:18px 18px 0 0;
+  padding:16px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-shadow:0 -1px 4px rgba(28,24,21,0.08);
+  transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index:140;
+  display:flex;
+  align-items:center;
+  gap:13px;
+}
+.install-banner.show{
+  transform:translate(-50%, 0);
+}
+.install-icon{
+  width:42px; height:42px;
+  border-radius:11px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.25rem;
+  background:var(--stone-base);
+  border:1px solid var(--stone-line);
+}
+.install-text{flex:1; min-width:0;}
+.install-title{
+  font-size:0.8438rem;
+  font-weight:700;
+  color:var(--ink);
+}
+.install-sub{
+  font-size:0.7188rem;
+  color:var(--ink-soft);
+  margin-top:2px;
+  line-height:1.4;
+}
+.install-actions{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex-shrink:0;
+}
+.install-btn{
+  padding:9px 14px;
+  border-radius:var(--radius-sm);
+  border:none;
+  background:var(--ember);
+  color:var(--marble);
+  font-size:0.75rem;
+  font-weight:700;
+  white-space:nowrap;
+}
+.install-dismiss{
+  background:none;
+  border:none;
+  color:var(--ink-soft);
+  font-size:0.6875rem;
+  padding:4px 6px;
+}
+
+/* Utility */
+.hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="shell" id="shell">
+  <section class="screen active" id="screen-dash">
+
+    <div class="dash-header">
+      <h1 class="dash-title">Owner Dashboard</h1>
+      <div class="dash-header-actions">
+        <button class="dash-close" id="ownerSettingsBtn" title="Owner Settings" aria-label="Owner Settings">⚙</button>
+        <button class="dash-close" id="closeDashBtn">✕</button>
+      </div>
+    </div>
+
+    <!-- PIN gate -->
+    <div class="pin-gate" id="pinGate">
+      <p>Enter the owner PIN to continue.</p>
+      <input class="pin-input" id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+      <button class="btn-primary" id="pinSubmitBtn">Unlock</button>
+    </div>
+
+    <!-- Owner Settings — Change PIN. Reuses the exact dark pin-gate/pin-input
+         look; only reachable once already unlocked (see ownerSettingsBtn).
+         No Apps Script involved — localStorage only. -->
+    <div class="pin-gate hidden" id="ownerSettingsPanel">
+      <p id="ownerSettingsMessage">⚙ Owner Settings<br><span style="color:var(--grey-line); font-size:0.6875rem;">Change your Owner PIN</span></p>
+      <div id="settingsCurrentPinWrap">
+        <input class="pin-input" id="settingsCurrentPin" type="password" inputmode="numeric" maxlength="6" placeholder="Current PIN">
+      </div>
+      <input class="pin-input" id="settingsNewPin" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN">
+      <input class="pin-input" id="settingsConfirmPin" type="password" inputmode="numeric" maxlength="6" placeholder="Confirm New PIN">
+      <button class="btn-primary" id="settingsSavePinBtn">Save</button>
+      <button class="btn-secondary" id="settingsCancelBtn">Cancel</button>
+    </div>
+
+    <!-- Dashboard content -->
+    <div id="dashContent" class="hidden" style="display:none; flex-direction:column; flex:1; min-height:0;">
+
+      <div class="dash-section-label">📊 Lifetime Statistics</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">Total Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statRepeat">0</div>
+          <div class="stat-label">Returning Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statTotalVisits">0</div>
+          <div class="stat-label">Total Visits</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statAvgVisits">0</div>
+          <div class="stat-label">Average Visits</div>
+        </div>
+      </div>
+
+      <div class="dash-section-label">🚶 Journey Analytics (Lifetime)</div>
+      <div class="stat-grid">
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
+            <span>🟢 At TKG</span><span id="statJourneyAnalyticsAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
+            <span>🟡 Planning</span><span id="statJourneyAnalyticsPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
+            <span>⚪ Exploring</span><span id="statJourneyAnalyticsExploring">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-section-label">📍 Where Customers Come From</div>
+      <div class="stat-grid">
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div id="topAreasList"></div>
+        </div>
+      </div>
+
+      <div class="dash-section-label">📅 Today's Summary</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="statToday">0</div>
+          <div class="stat-label">New Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statReturningToday">0</div>
+          <div class="stat-label">Returning Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statVisitsToday">0</div>
+          <div class="stat-label">Visits Today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statPending">0</div>
+          <div class="stat-label">Pending Registration Sync</div>
+        </div>
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
+            <span>🟢 At TKG Today</span><span id="statJourneyEventsAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
+            <span>🟡 Planning Today</span><span id="statJourneyEventsPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
+            <span>⚪ Exploring Today</span><span id="statJourneyEventsExploring">0</span>
+          </div>
+        </div>
+        <div class="stat-card full">
+          <div>
+            <div class="stat-label" style="margin-top:0;">Last synced</div>
+            <div style="font-size:0.75rem; color:var(--marble); font-family:var(--font-mono); margin-top:3px;" id="lastSyncedAt">—</div>
+          </div>
+          <button class="btn-secondary" id="forceSyncBtn" style="padding:9px 14px; font-size:0.75rem;">Sync Registrations</button>
+        </div>
+      </div>
+
+      <div class="dash-actions">
+        <button class="btn-secondary" id="exportCsvBtn">Export CSV</button>
+        <button class="btn-secondary" id="refreshDashBtn">Refresh</button>
+      </div>
+
+      <div class="dash-section-label">👥 Recent Customers</div>
+      <input class="search-box" id="searchInput" type="text" placeholder="Search by name or mobile number...">
+
+      <div class="cust-list" id="custList">
+        <div class="empty-state">No customers yet.</div>
+      </div>
+
+    </div>
+
+  </section>
+  <div class="overlay-backdrop" id="ownerFieldsBackdrop"></div>
+  <div class="reg-overlay" id="ownerFieldsOverlay">
+
+    <div class="reg-overlay-handle"></div>
+
+    <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
+      <div class="hero-eyebrow">Owner Notes</div>
+      <h1 class="hero-title" style="font-size:1.375rem;" id="ownerFieldsCustName">Customer</h1>
+      <p class="hero-sub" id="ownerFieldsCustMobile"></p>
+    </div>
+
+    <form class="reg-card" id="ownerFieldsForm" novalidate>
+      <div class="field-group">
+        <label class="field-label" for="outcomeSelect">Last Outcome <span class="optional-tag">Optional</span></label>
+        <select class="field-input" id="outcomeSelect">
+          <option value="">— Not set —</option>
+          <option value="Dined">Dined</option>
+          <option value="Parcel">Parcel</option>
+          <option value="Review Left">Review Left</option>
+          <option value="Returning Customer">Returning Customer</option>
+          <option value="No Purchase">No Purchase</option>
+          <option value="Unknown">Unknown</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="operatorSummaryInput">Operator Summary <span class="optional-tag">Staff only</span></label>
+        <textarea class="field-input" id="operatorSummaryInput" maxlength="500" placeholder="Customer liked coal flavour. Asked for extra cheese. Will return with family."></textarea>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="reviewStatusSelect">Review Status <span class="optional-tag">Optional</span></label>
+        <select class="field-input" id="reviewStatusSelect">
+          <option value="">— Not set —</option>
+          <option value="Eligible">Eligible for Review</option>
+          <option value="Requested">Review Requested</option>
+          <option value="Completed">Review Completed</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Current Known Location <span class="optional-tag">Staff only</span></label>
+        <button type="button" class="btn-secondary" id="ownerFieldsSuggestBtn" style="width:100%; margin-bottom:10px;">📍 Suggest from this device's location</button>
+        <input class="field-input" id="currentKnownLocalityInput" type="text" placeholder="Locality, e.g. Vesu" maxlength="100" style="margin-bottom:8px;">
+        <input class="field-input" id="currentKnownSocietyInput" type="text" placeholder="Society, e.g. Happy Elegance" maxlength="100" style="margin-bottom:8px;">
+        <input class="field-input" id="currentKnownLandmarkInput" type="text" placeholder="Landmark, e.g. VR Mall" maxlength="100">
+        <p class="consent-line" id="ownerFieldsSuggestStatus" style="margin-top:8px;"></p>
+      </div>
+
+      <button type="submit" class="btn-primary" id="ownerFieldsSaveBtn">Save Notes</button>
+      <button type="button" class="btn-secondary" id="ownerFieldsCancelBtn" style="width:100%; margin-top:10px;">Cancel</button>
+    </form>
+
+  </div>
+<div class="toast" id="toast"></div>
+
+</div><!-- /.shell -->
+<script>
+// ---------------------------------------------------------------------------
+// TKG OWNER DASHBOARD — standalone page.
+// This is the exact same Dashboard that used to live as a screen inside
+// index.html (Customer OS), now split out to its own file/URL per Deepak's
+// request — no button in the customer menu leads here anymore; staff go
+// directly to this page's own address. Functionally identical: same PIN
+// storage (same-origin localStorage, shared with index.html), same Sheet
+// data via the same Apps Script deployment, same Owner Fields notes editor,
+// same CSV export. Nothing about the customer-facing app changed except
+// that this content — and the "Owner Dashboard" button that used to open
+// it — no longer lives there.
+// ---------------------------------------------------------------------------
+
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
+
+// ---------------------------------------------------------------------------
+// OWNER PIN — identical logic to what previously lived in index.html.
+// ---------------------------------------------------------------------------
+const OWNER_PIN_KEY = 'tkg_owner_pin';
+const OWNER_PIN_IS_DEFAULT_KEY = 'tkg_owner_pin_is_default';
+function getOwnerPin(){
+  try{
+    let pin = localStorage.getItem(OWNER_PIN_KEY);
+    if(!pin){
+      pin = '1234';
+      localStorage.setItem(OWNER_PIN_KEY, pin);
+      localStorage.setItem(OWNER_PIN_IS_DEFAULT_KEY, 'true');
+    }
+    return pin;
+  }catch(e){
+    return '1234';
+  }
+}
+function isOwnerPinDefault(){
+  try{ return localStorage.getItem(OWNER_PIN_IS_DEFAULT_KEY) === 'true'; }
+  catch(e){ return false; }
+}
+function setOwnerPin(pin){
+  try{
+    localStorage.setItem(OWNER_PIN_KEY, pin);
+    localStorage.removeItem(OWNER_PIN_IS_DEFAULT_KEY);
+  }catch(e){}
+}
+
+// ---------------------------------------------------------------------------
+// LOCAL CUSTOMER/JOURNEY DATA — read-only fallback for when the Sheet fetch
+// is offline/unavailable. Same localStorage keys index.html writes to (same
+// origin), so on a device that also runs the customer app, Pending Sync and
+// the offline fallback both reflect that device's real local queue.
+// ---------------------------------------------------------------------------
+const LS_KEY = 'tkg_customers';
+const JOURNEY_EVENTS_KEY = 'tkg_journey_events';
+
+function loadCustomers(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Failed to read local customers', e);
+    return [];
+  }
+}
+function saveCustomers(list){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(list)); }
+  catch(e){ console.error('Failed to save local customers', e); }
+}
+function normalizeMobile(mobile){
+  return String(mobile || '').replace(/[^\d]/g, '').replace(/^0+/, '').slice(-10);
+}
+function findCustomerIndex(list, mobile){
+  const target = normalizeMobile(mobile);
+  return list.findIndex(c => normalizeMobile(c.mobile) === target);
+}
+function loadJourneyEvents(){
+  try{
+    const raw = localStorage.getItem(JOURNEY_EVENTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Failed to read local journey events', e);
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// TOAST — identical to index.html's.
+// ---------------------------------------------------------------------------
+let toastTimer;
+function showToast(msg){
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+// "Close" now leaves this page entirely and returns to the TKG menu, since
+// the Dashboard is no longer a screen inside that same app.
+document.getElementById('closeDashBtn').addEventListener('click', () => {
+  window.location.href = 'index.html';
+});
+
+// ---------------------------------------------------------------------------
+// OWNER DASHBOARD — unchanged logic from index.html, just no longer behind
+// an in-app "Owner Dashboard" button; this whole page IS the Dashboard.
+// ---------------------------------------------------------------------------
+let dashUnlocked = false;
+let serverCustomers = null;
+let serverJourneyEvents = null;
+let dashDataInFlight = false;
+
+async function fetchServerCustomers(){
+  try{
+    const res = await fetch(APP_SCRIPT_URL);
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data && data.status === 'ok' && Array.isArray(data.customers)) ? data.customers : null;
+  }catch(err){
+    console.warn('fetchServerCustomers failed:', err);
+    return null;
+  }
+}
+async function fetchServerJourneyEvents(){
+  try{
+    const res = await fetch(APP_SCRIPT_URL + '?action=journeyAnalytics');
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data && data.status === 'ok' && Array.isArray(data.events)) ? data.events : null;
+  }catch(err){
+    console.warn('fetchServerJourneyEvents failed:', err);
+    return null;
+  }
+}
+async function refreshDashboardData(){
+  if(dashDataInFlight) return;
+  if(!navigator.onLine || APP_SCRIPT_URL.includes('PASTE_YOUR')){ renderDashboard(); return; }
+  dashDataInFlight = true;
+  try{
+    const [customers, events] = await Promise.all([fetchServerCustomers(), fetchServerJourneyEvents()]);
+    if(customers) serverCustomers = customers;
+    if(events) serverJourneyEvents = events;
+  }finally{
+    dashDataInFlight = false;
+    renderDashboard();
+  }
+}
+
+document.getElementById('pinSubmitBtn').addEventListener('click', unlockDashboard);
+document.getElementById('pinInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') unlockDashboard();
+});
+
+let forcePinChangeActive = false;
+
+function unlockDashboard(){
+  const val = document.getElementById('pinInput').value;
+  if(val === getOwnerPin()){
+    document.getElementById('pinInput').value = '';
+    if(isOwnerPinDefault()){
+      enterForcedPinChange();
+    }else{
+      dashUnlocked = true;
+      document.getElementById('pinGate').style.display = 'none';
+      document.getElementById('dashContent').classList.remove('hidden');
+      document.getElementById('dashContent').style.display = 'flex';
+      refreshDashboardData();
+    }
+  }else{
+    showToast('Incorrect PIN');
+    document.getElementById('pinInput').value = '';
+  }
+}
+
+function enterForcedPinChange(){
+  forcePinChangeActive = true;
+  document.getElementById('pinGate').style.display = 'none';
+  document.getElementById('dashContent').classList.add('hidden');
+  document.getElementById('dashContent').style.display = 'none';
+  document.getElementById('ownerSettingsMessage').innerHTML =
+    '⚠ Set a new Owner PIN<br><span style="color:var(--grey-line); font-size:0.6875rem;">For security, you must set a new PIN before continuing.</span>';
+  document.getElementById('settingsCurrentPinWrap').style.display = 'none';
+  document.getElementById('settingsCancelBtn').style.display = 'none';
+  document.getElementById('settingsCurrentPin').value = '';
+  document.getElementById('settingsNewPin').value = '';
+  document.getElementById('settingsConfirmPin').value = '';
+  document.getElementById('ownerSettingsPanel').classList.remove('hidden');
+  document.getElementById('ownerSettingsPanel').style.display = 'flex';
+}
+
+document.getElementById('ownerSettingsBtn').addEventListener('click', () => {
+  document.getElementById('dashContent').classList.add('hidden');
+  document.getElementById('dashContent').style.display = 'none';
+  document.getElementById('ownerSettingsMessage').innerHTML =
+    '⚙ Owner Settings<br><span style="color:var(--grey-line); font-size:0.6875rem;">Change your Owner PIN</span>';
+  document.getElementById('settingsCurrentPinWrap').style.display = '';
+  document.getElementById('settingsCancelBtn').style.display = '';
+  document.getElementById('settingsCurrentPin').value = '';
+  document.getElementById('settingsNewPin').value = '';
+  document.getElementById('settingsConfirmPin').value = '';
+  document.getElementById('ownerSettingsPanel').classList.remove('hidden');
+  document.getElementById('ownerSettingsPanel').style.display = 'flex';
+});
+
+document.getElementById('settingsCancelBtn').addEventListener('click', () => {
+  if(forcePinChangeActive) return;
+  document.getElementById('ownerSettingsPanel').classList.add('hidden');
+  document.getElementById('ownerSettingsPanel').style.display = 'none';
+  document.getElementById('dashContent').classList.remove('hidden');
+  document.getElementById('dashContent').style.display = 'flex';
+});
+
+document.getElementById('settingsSavePinBtn').addEventListener('click', () => {
+  const current = document.getElementById('settingsCurrentPin').value;
+  const next = document.getElementById('settingsNewPin').value;
+  const confirmVal = document.getElementById('settingsConfirmPin').value;
+
+  if(!forcePinChangeActive && current !== getOwnerPin()){
+    showToast('Current PIN is incorrect');
+    return;
+  }
+  if(!next || next.length < 4){
+    showToast('New PIN must be at least 4 digits');
+    return;
+  }
+  if(next !== confirmVal){
+    showToast('New PIN and Confirm PIN do not match');
+    return;
+  }
+  if(next === '1234'){
+    showToast('Choose a PIN other than the default 1234');
+    return;
+  }
+
+  setOwnerPin(next);
+  showToast('PIN updated');
+  document.getElementById('settingsCurrentPin').value = '';
+  document.getElementById('settingsNewPin').value = '';
+  document.getElementById('settingsConfirmPin').value = '';
+  document.getElementById('settingsCurrentPinWrap').style.display = '';
+  document.getElementById('settingsCancelBtn').style.display = '';
+  document.getElementById('ownerSettingsPanel').classList.add('hidden');
+  document.getElementById('ownerSettingsPanel').style.display = 'none';
+
+  const wasForced = forcePinChangeActive;
+  forcePinChangeActive = false;
+
+  dashUnlocked = true;
+  document.getElementById('dashContent').classList.remove('hidden');
+  document.getElementById('dashContent').style.display = 'flex';
+  if(wasForced) refreshDashboardData();
+});
+
+function getLocalDateStr_(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function renderDashboard(){
+  const list = serverCustomers || loadCustomers();
+  const journeyEvents = serverJourneyEvents || loadJourneyEvents();
+
+  const todayLocalStr = getLocalDateStr_(new Date());
+  const todayDateStr = new Date().toDateString();
+
+  const total = list.length;
+  const repeat = list.filter(c => (c.visitCount || 1) > 1).length;
+  const totalVisits = list.reduce((sum, c) => sum + (c.visitCount || 1), 0);
+  const avgVisits = total > 0 ? (totalVisits / total) : 0;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statRepeat').textContent = repeat;
+  document.getElementById('statTotalVisits').textContent = totalVisits;
+  document.getElementById('statAvgVisits').textContent = avgVisits.toFixed(2);
+
+  document.getElementById('statJourneyAnalyticsAtTKG').textContent = journeyEvents.filter(e => e.journey === 'atTKG').length;
+  document.getElementById('statJourneyAnalyticsPlanning').textContent = journeyEvents.filter(e => e.journey === 'planning').length;
+  document.getElementById('statJourneyAnalyticsExploring').textContent = journeyEvents.filter(e => e.journey === 'exploring').length;
+
+  renderTopAreas(journeyEvents);
+
+  const newToday = list.filter(c => new Date(c.firstVisit).toDateString() === todayDateStr).length;
+  const returningToday = list.filter(c =>
+    new Date(c.lastVisit).toDateString() === todayDateStr &&
+    new Date(c.firstVisit).toDateString() !== todayDateStr
+  ).length;
+  const visitsToday = list.filter(c => new Date(c.lastVisit).toDateString() === todayDateStr).length;
+  const pending = loadCustomers().filter(c => c.pendingSync).length;
+
+  document.getElementById('statToday').textContent = newToday;
+  document.getElementById('statReturningToday').textContent = returningToday;
+  document.getElementById('statVisitsToday').textContent = visitsToday;
+  document.getElementById('statPending').textContent = pending;
+
+  const todaysEvents = journeyEvents.filter(e => {
+    if(e.date) return e.date === todayLocalStr;
+    if(e.ts) return new Date(e.ts).toDateString() === todayDateStr;
+    return false;
+  });
+  document.getElementById('statJourneyEventsAtTKG').textContent = todaysEvents.filter(e => e.journey === 'atTKG').length;
+  document.getElementById('statJourneyEventsPlanning').textContent = todaysEvents.filter(e => e.journey === 'planning').length;
+  document.getElementById('statJourneyEventsExploring').textContent = todaysEvents.filter(e => e.journey === 'exploring').length;
+
+  let lastSynced = null;
+  try{ lastSynced = localStorage.getItem('tkg_last_synced'); }catch(e){}
+  document.getElementById('lastSyncedAt').textContent = lastSynced
+    ? new Date(lastSynced).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+    : 'Never';
+
+  renderCustomerList(list);
+}
+
+const COORDINATE_LOOKING_LOCALITY_RE_ = /^-?\d+(\.\d+)?$/;
+
+function renderTopAreas(journeyEvents){
+  const counts = {};
+  journeyEvents.forEach(e => {
+    const locality = (e.locality || '').trim();
+    if(!locality) return;
+    if(COORDINATE_LOOKING_LOCALITY_RE_.test(locality)) return;
+    if(!counts[locality]) counts[locality] = { atTKG: 0, planning: 0, exploring: 0 };
+    if(e.journey === 'atTKG') counts[locality].atTKG++;
+    else if(e.journey === 'planning') counts[locality].planning++;
+    else if(e.journey === 'exploring') counts[locality].exploring++;
+  });
+
+  const sorted = Object.entries(counts)
+    .map(([locality, c]) => [locality, c, c.atTKG + c.planning + c.exploring])
+    .sort((a, b) => b[2] - a[2]);
+
+  const container = document.getElementById('topAreasList');
+
+  if(sorted.length === 0){
+    container.innerHTML = '<div class="empty-state">No locality data yet.</div>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(([locality, c, total]) => `
+    <div class="locality-breakdown">
+      <div class="locality-breakdown-name">${escapeHtml(locality)}</div>
+      <div class="locality-breakdown-row"><span>🟢 At TKG</span><span>${c.atTKG}</span></div>
+      <div class="locality-breakdown-row"><span>🟡 Planning</span><span>${c.planning}</span></div>
+      <div class="locality-breakdown-row"><span>⚪ Exploring</span><span>${c.exploring}</span></div>
+      <div class="locality-breakdown-row locality-breakdown-total"><span>Total</span><span>${total}</span></div>
+    </div>
+  `).join('');
+}
+
+let lastRenderedCustomersByMobile = {};
+
+function renderCustomerList(list){
+  const sorted = [...list].sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit));
+  const container = document.getElementById('custList');
+
+  lastRenderedCustomersByMobile = {};
+  sorted.forEach(c => { lastRenderedCustomersByMobile[String(c.mobile)] = c; });
+
+  if(sorted.length === 0){
+    container.innerHTML = '<div class="empty-state">No customers yet. Once guests check in, they will appear here.</div>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(c => `
+    <div class="cust-row" data-name="${escapeHtml(c.name.toLowerCase())}" data-mobile="${c.mobile}">
+      <div class="cust-info">
+        <div class="cust-name">${escapeHtml(c.name)}</div>
+        <div class="cust-mobile">${c.mobile}</div>
+        ${c.favoriteItem || c.source ? `<div class="cust-tags">${c.favoriteItem ? escapeHtml(c.favoriteItem) : ''}${c.favoriteItem && c.source ? ' · ' : ''}${c.source ? escapeHtml(c.source) : ''}</div>` : ''}
+        ${c.outcome || c.reviewStatus || c.operatorSummary ? `<div class="cust-tags">${c.outcome ? escapeHtml(c.outcome) : ''}${c.outcome && c.reviewStatus ? ' · ' : ''}${c.reviewStatus ? escapeHtml(c.reviewStatus) : ''}${c.operatorSummary ? ' · 📝' : ''}</div>` : ''}
+        ${c.currentKnownLocality || c.currentKnownSociety || c.currentKnownLandmark ? `<div class="cust-tags">📍 ${[c.currentKnownLocality, c.currentKnownSociety, c.currentKnownLandmark].filter(Boolean).map(escapeHtml).join(' · ')}</div>` : ''}
+      </div>
+      <div class="cust-meta">
+        <div class="cust-visits">${c.visitCount || 1}x</div>
+        <div class="cust-last">${new Date(c.lastVisit).toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}</div>
+        ${c.pendingSync ? '<div class="pending-tag">Pending</div>' : ''}
+        <button type="button" class="owner-fields-btn" data-mobile="${c.mobile}">Notes ›</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ---------------------------------------------------------------------------
+// OWNER FIELDS EDITOR
+// ---------------------------------------------------------------------------
+const ownerFieldsBackdrop = document.getElementById('ownerFieldsBackdrop');
+const ownerFieldsOverlay = document.getElementById('ownerFieldsOverlay');
+const ownerFieldsForm = document.getElementById('ownerFieldsForm');
+let ownerFieldsMobile = '';
+
+function openOwnerFieldsEditor(mobile){
+  const c = lastRenderedCustomersByMobile[String(mobile)];
+  if(!c) return;
+  ownerFieldsMobile = String(mobile);
+  document.getElementById('ownerFieldsCustName').textContent = c.name || 'Customer';
+  document.getElementById('ownerFieldsCustMobile').textContent = c.mobile || '';
+  document.getElementById('outcomeSelect').value = c.outcome || '';
+  document.getElementById('operatorSummaryInput').value = c.operatorSummary || '';
+  document.getElementById('reviewStatusSelect').value = c.reviewStatus || '';
+  document.getElementById('currentKnownLocalityInput').value = c.currentKnownLocality || '';
+  document.getElementById('currentKnownSocietyInput').value = c.currentKnownSociety || '';
+  document.getElementById('currentKnownLandmarkInput').value = c.currentKnownLandmark || '';
+  document.getElementById('ownerFieldsSuggestStatus').textContent = '';
+  ownerFieldsBackdrop.classList.add('show');
+  ownerFieldsOverlay.classList.add('show');
+}
+function closeOwnerFieldsEditor(){
+  ownerFieldsBackdrop.classList.remove('show');
+  ownerFieldsOverlay.classList.remove('show');
+  ownerFieldsMobile = '';
+}
+
+document.getElementById('custList').addEventListener('click', (e) => {
+  const btn = e.target.closest('.owner-fields-btn');
+  if(!btn) return;
+  openOwnerFieldsEditor(btn.dataset.mobile);
+});
+
+ownerFieldsBackdrop.addEventListener('click', closeOwnerFieldsEditor);
+document.getElementById('ownerFieldsCancelBtn').addEventListener('click', closeOwnerFieldsEditor);
+
+// ---------------------------------------------------------------------------
+// LOCATION SUGGESTION — reverse-geocoding helpers, identical to index.html's.
+// ---------------------------------------------------------------------------
+const SURAT_COHORTS = [
+  { name: 'Vesu',   lat: 21.1447, lon: 72.7718, radiusMeters: 1800 },
+  { name: 'Piplod', lat: 21.1575, lon: 72.7755, radiusMeters: 1500 },
+  { name: 'Adajan', lat: 21.1940, lon: 72.7980, radiusMeters: 2000 },
+  { name: 'Pal',    lat: 21.1850, lon: 72.7761, radiusMeters: 1500 }
+];
+const SURAT_COHORT_MAX_MATCH_METERS = 4500;
+
+function haversineMeters(lat1, lon1, lat2, lon2){
+  const R = 6371000;
+  const toRad = (d) => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function resolveSuratCohortLocality(lat, lon){
+  let best = null;
+  let bestDist = Infinity;
+  for(const cohort of SURAT_COHORTS){
+    const dist = haversineMeters(lat, lon, cohort.lat, cohort.lon);
+    if(dist < bestDist){
+      bestDist = dist;
+      best = cohort;
+    }
+  }
+  if(best && bestDist <= SURAT_COHORT_MAX_MATCH_METERS) return best.name;
+  return '';
+}
+
+function resolveBusinessLocality(address){
+  const addr = address || {};
+  return addr.suburb || addr.neighbourhood || addr.city_district || addr.residential
+    || addr.borough || addr.quarter || addr.hamlet || addr.village || addr.town || '';
+}
+
+const TKG_GEO_RAW_LOG = false;
+
+function reverseGeocode(lat, lon){
+  return new Promise((resolve) => {
+    if(!('fetch' in window)){ resolve(null); return; }
+    const controller = ('AbortController' in window) ? new AbortController() : null;
+    const timeoutId = setTimeout(() => { if(controller) controller.abort(); resolve(null); }, 4000);
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`,
+      { signal: controller ? controller.signal : undefined, headers: { 'Accept-Language': 'en' } })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        clearTimeout(timeoutId);
+        if(TKG_GEO_RAW_LOG) console.log('[TKG GEO RAW] reverseGeocode (zoom=14) input:', { lat, lon }, 'response:', data);
+        const addr = (data && data.address) || {};
+        const locality = resolveBusinessLocality(addr);
+        const city = addr.city || addr.town || addr.village || addr.state_district || '';
+        resolve((locality || city) ? { locality: locality, city: city } : null);
+      })
+      .catch(() => { clearTimeout(timeoutId); resolve(null); });
+  });
+}
+
+function resolveNearbyLandmarkFallback(lat, lon){
+  return new Promise((resolve) => {
+    if(!('fetch' in window)){ resolve(''); return; }
+    const controller = ('AbortController' in window) ? new AbortController() : null;
+    const timeoutId = setTimeout(() => { if(controller) controller.abort(); resolve(''); }, 4000);
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+      { signal: controller ? controller.signal : undefined, headers: { 'Accept-Language': 'en' } })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        clearTimeout(timeoutId);
+        if(TKG_GEO_RAW_LOG) console.log('[TKG GEO RAW] resolveNearbyLandmarkFallback (zoom=18) input:', { lat, lon }, 'response:', data);
+        const addr = (data && data.address) || {};
+        const landmark = addr.attraction || addr.tourism || addr.leisure || addr.amenity
+          || addr.shop || addr.office || addr.historic || addr.building || (data && data.name) || '';
+        resolve(landmark);
+      })
+      .catch(() => { clearTimeout(timeoutId); resolve(''); });
+  });
+}
+
+function resolveOverpassLandmark(lat, lon){
+  return new Promise((resolve) => {
+    if(!('fetch' in window)){ resolve(''); return; }
+    const controller = ('AbortController' in window) ? new AbortController() : null;
+    const timeoutId = setTimeout(() => { if(controller) controller.abort(); resolve(''); }, 4000);
+    const query = '[out:json][timeout:4];(' +
+      `node(around:750,${lat},${lon})["shop"="mall"];` +
+      `way(around:750,${lat},${lon})["shop"="mall"];` +
+      `node(around:750,${lat},${lon})["amenity"="university"];` +
+      `way(around:750,${lat},${lon})["amenity"="university"];` +
+      `node(around:750,${lat},${lon})["amenity"="college"];` +
+      `way(around:750,${lat},${lon})["amenity"="college"];` +
+      `node(around:750,${lat},${lon})["amenity"="school"];` +
+      `way(around:750,${lat},${lon})["amenity"="school"];` +
+      `node(around:750,${lat},${lon})["tourism"="attraction"];` +
+      `node(around:750,${lat},${lon})["tourism"="aquarium"];` +
+      `node(around:750,${lat},${lon})["amenity"="hospital"];` +
+      `way(around:750,${lat},${lon})["amenity"="hospital"];` +
+      `node(around:750,${lat},${lon})["amenity"="place_of_worship"];` +
+      `way(around:750,${lat},${lon})["amenity"="place_of_worship"];` +
+      `node(around:750,${lat},${lon})["tourism"="hotel"];` +
+      `way(around:750,${lat},${lon})["tourism"="hotel"];` +
+      `node(around:750,${lat},${lon})["amenity"="cinema"];` +
+      `node(around:750,${lat},${lon})["railway"="station"];` +
+      `node(around:750,${lat},${lon})["amenity"="bus_station"];` +
+      `node(around:750,${lat},${lon})["amenity"="marketplace"];` +
+      `node(around:750,${lat},${lon})["shop"]["name"];` +
+      `way(around:750,${lat},${lon})["shop"]["name"];` +
+      `node(around:750,${lat},${lon})["office"]["name"];` +
+      `way(around:750,${lat},${lon})["office"]["name"];` +
+      `way(around:750,${lat},${lon})["building"]["name"];` +
+      `node(around:750,${lat},${lon})["building"]["name"];` +
+    ');out tags center 30;';
+    fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: 'data=' + encodeURIComponent(query),
+      signal: controller ? controller.signal : undefined
+    })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        clearTimeout(timeoutId);
+        if(TKG_GEO_RAW_LOG) console.log('[TKG GEO RAW] resolveOverpassLandmark input:', { lat, lon }, 'response:', data);
+        const elements = (data && Array.isArray(data.elements)) ? data.elements : [];
+
+        const isCuratedTag = (tags) => !!(
+          tags.shop || tags.office ||
+          ['university','college','school','hospital','place_of_worship','cinema','bus_station','marketplace']
+            .includes(tags.amenity) ||
+          ['attraction','aquarium','hotel'].includes(tags.tourism) ||
+          tags.railway === 'station'
+        );
+        const curated = elements.find(el => el && el.tags && el.tags.name && isCuratedTag(el.tags));
+        if(curated){ resolve(curated.tags.name); return; }
+
+        const namedBuildings = elements.filter(el => el && el.tags && el.tags.name && el.tags.building);
+        if(namedBuildings.length === 0){ resolve(''); return; }
+        let nearest = null, nearestDist = Infinity;
+        for(const el of namedBuildings){
+          const elLat = el.lat != null ? el.lat : (el.center && el.center.lat);
+          const elLon = el.lon != null ? el.lon : (el.center && el.center.lon);
+          if(elLat == null || elLon == null) continue;
+          const dist = haversineMeters(lat, lon, elLat, elLon);
+          if(dist < nearestDist){ nearestDist = dist; nearest = el; }
+        }
+        resolve(nearest ? nearest.tags.name : '');
+      })
+      .catch(() => { clearTimeout(timeoutId); resolve(''); });
+  });
+}
+
+async function resolveLandmark(lat, lon){
+  const overpassResult = await resolveOverpassLandmark(lat, lon);
+  if(overpassResult) return overpassResult;
+  return resolveNearbyLandmarkFallback(lat, lon);
+}
+
+document.getElementById('ownerFieldsSuggestBtn').addEventListener('click', () => {
+  const statusEl = document.getElementById('ownerFieldsSuggestStatus');
+  if(!('geolocation' in navigator)){
+    statusEl.textContent = 'Location is not available on this device.';
+    return;
+  }
+  statusEl.textContent = 'Getting this device\'s location…';
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude, lon = pos.coords.longitude;
+      statusEl.textContent = 'Looking up nearby locality and landmark…';
+      try{
+        const cohortLocality = resolveSuratCohortLocality(lat, lon);
+        const [geo, landmark] = await Promise.all([reverseGeocode(lat, lon), resolveLandmark(lat, lon)]);
+        const suggestedLocality = cohortLocality || (geo && geo.locality) || '';
+
+        if(suggestedLocality) document.getElementById('currentKnownLocalityInput').value = suggestedLocality;
+        if(landmark) document.getElementById('currentKnownLandmarkInput').value = landmark;
+
+        statusEl.textContent = (suggestedLocality || landmark)
+          ? 'Suggestion filled in below — review before saving.'
+          : 'No nearby locality or landmark found for this location.';
+      }catch(err){
+        console.warn('Owner fields location suggestion failed:', err);
+        statusEl.textContent = 'Could not resolve a suggestion — you can still enter it manually.';
+      }
+    },
+    () => { statusEl.textContent = 'Location permission denied or unavailable.'; },
+    { timeout: 8000 }
+  );
+});
+
+ownerFieldsForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if(!ownerFieldsMobile) return;
+  if(!navigator.onLine){ showToast('No internet connection right now'); return; }
+  if(APP_SCRIPT_URL.includes('PASTE_YOUR')){ showToast('Apps Script URL not configured yet'); return; }
+
+  const payload = {
+    action: 'updateOwnerFields',
+    mobile: ownerFieldsMobile,
+    outcome: document.getElementById('outcomeSelect').value,
+    operatorSummary: document.getElementById('operatorSummaryInput').value.trim(),
+    reviewStatus: document.getElementById('reviewStatusSelect').value,
+    currentKnownLocality: document.getElementById('currentKnownLocalityInput').value.trim(),
+    currentKnownSociety: document.getElementById('currentKnownSocietyInput').value.trim(),
+    currentKnownLandmark: document.getElementById('currentKnownLandmarkInput').value.trim()
+  };
+
+  try{
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('Owner fields save failed: ' + res.status);
+    const data = await res.json();
+    if(!data || data.status !== 'ok') throw new Error('Owner fields save: unexpected response — ' + JSON.stringify(data));
+
+    closeOwnerFieldsEditor();
+    showToast('Notes saved');
+    await refreshDashboardData();
+  }catch(err){
+    console.warn('Owner fields save failed:', err);
+    showToast('Could not save — check your connection and try again');
+  }
+});
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.cust-row').forEach(row => {
+    const matches = row.dataset.name.includes(q) || row.dataset.mobile.includes(q);
+    row.style.display = matches ? 'flex' : 'none';
+  });
+});
+
+document.getElementById('refreshDashBtn').addEventListener('click', async () => {
+  await refreshDashboardData();
+  showToast('Dashboard refreshed');
+});
+
+// ---------------------------------------------------------------------------
+// FORCE SYNC — pushes this device's own pending customer check-ins (if any
+// were made on this same device/browser via index.html) to the Sheet.
+// Simplified from index.html's attemptSync: no in-app status pill to update
+// here (this page has none), and always re-renders the Dashboard when done
+// instead of checking whether a "screen-dash" is active — this whole page
+// IS the Dashboard, so that check doesn't apply here.
+// ---------------------------------------------------------------------------
+let syncInFlight = false;
+
+async function attemptSyncFromDashboard(){
+  if(syncInFlight) return;
+  if(!navigator.onLine){ showToast('No internet connection right now'); return; }
+  if(APP_SCRIPT_URL.includes('PASTE_YOUR')) return;
+
+  const list = loadCustomers();
+  const pending = list.filter(c => c.pendingSync);
+  if(pending.length === 0){ showToast('Nothing pending on this device'); return; }
+
+  syncInFlight = true;
+  try{
+    const records = pending.map(c => ({
+      name: c.name,
+      mobile: c.mobile,
+      journey: c.journey || '',
+      visitDate: c.lastVisit,
+      favoriteItem: c.favoriteItem || '',
+      source: c.source || '',
+      feedback: c.feedback || ''
+    }));
+
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'sync', records: records })
+    });
+    if(!res.ok) throw new Error('Sync request failed: ' + res.status);
+
+    const freshList = loadCustomers();
+    pending.forEach(p => {
+      const i = findCustomerIndex(freshList, p.mobile);
+      if(i !== -1) freshList[i].pendingSync = false;
+    });
+    saveCustomers(freshList);
+    localStorage.setItem('tkg_last_synced', new Date().toISOString());
+  }catch(err){
+    console.warn('Dashboard-triggered sync failed:', err);
+  }finally{
+    syncInFlight = false;
+    renderDashboard();
+  }
+}
+
+document.getElementById('forceSyncBtn').addEventListener('click', () => {
+  attemptSyncFromDashboard().then(() => showToast('Sync attempted'));
+});
+
+// ---------------------------------------------------------------------------
+// CSV EXPORT
+// ---------------------------------------------------------------------------
+document.getElementById('exportCsvBtn').addEventListener('click', () => {
+  const list = serverCustomers || loadCustomers();
+  if(list.length === 0){
+    showToast('No data to export');
+    return;
+  }
+
+  const header = ['Name', 'Mobile', 'Journey', 'First Visit', 'Last Visit', 'Visit Count', 'Favorite Item', 'Source', 'Last Outcome', 'Operator Summary', 'Review Status', 'Current Known Locality', 'Current Known Society', 'Current Known Landmark'];
+  const rows = list.map(c => [
+    c.name,
+    c.mobile,
+    c.journey || '',
+    new Date(c.firstVisit).toISOString(),
+    new Date(c.lastVisit).toISOString(),
+    c.visitCount || 1,
+    c.favoriteItem || '',
+    c.source || '',
+    c.outcome || '',
+    c.operatorSummary || '',
+    c.reviewStatus || '',
+    c.currentKnownLocality || '',
+    c.currentKnownSociety || '',
+    c.currentKnownLandmark || ''
+  ]);
+
+  const csvContent = [header, ...rows]
+    .map(row => row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(','))
+    .join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tkg_customers_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('CSV exported');
+});
+
+// PIN gate is the default visible state (see .pin-gate CSS) — just focus it.
+document.getElementById('pinInput').focus();
+</script>
+</body>
+</html>
