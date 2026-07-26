@@ -1883,6 +1883,24 @@ textarea.field-input{
         </div>
       </div>
 
+      <div class="dash-section-label">🏆 Khichiya Runner Leaderboard</div>
+      <div class="stat-grid">
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;" id="runnerLeaderboardCard">
+          <div id="runnerLeaderboardEmpty" class="empty-state" style="display:none;">No scores submitted yet.</div>
+          <div id="runnerLeaderboardContent" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline;">
+              <span style="font-size:0.8125rem; color:var(--marble); font-weight:700;" id="runnerChampionName">—</span>
+              <span style="font-size:1.125rem; color:var(--ember-glow); font-weight:800;" id="runnerChampionScore">0</span>
+            </div>
+            <div style="font-size:0.6875rem; color:var(--grey-line); font-family:var(--font-mono); margin-top:2px;" id="runnerChampionMeta">—</div>
+            <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+              <button class="btn-secondary" id="claimRunnerScoreBtn" style="padding:9px 14px; font-size:0.75rem;">Claim</button>
+              <span style="font-size:0.75rem; color:var(--success); font-weight:700; display:none;" id="runnerClaimedBadge">✓ Claimed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="dash-actions">
         <button class="btn-secondary" id="exportCsvBtn">Export CSV</button>
         <button class="btn-secondary" id="refreshDashBtn">Refresh</button>
@@ -2088,14 +2106,29 @@ async function fetchServerJourneyEvents(){
     return null;
   }
 }
+// Leaderboard + Claim Logic sprint — full Khichiya Runner Scores log.
+async function fetchServerRunnerScores(){
+  try{
+    const res = await fetch(APP_SCRIPT_URL + '?action=runnerScores');
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data && data.status === 'ok' && Array.isArray(data.scores)) ? data.scores : null;
+  }catch(err){
+    console.warn('fetchServerRunnerScores failed:', err);
+    return null;
+  }
+}
+let serverRunnerScores = null;
+
 async function refreshDashboardData(){
   if(dashDataInFlight) return;
   if(!navigator.onLine || APP_SCRIPT_URL.includes('PASTE_YOUR')){ renderDashboard(); return; }
   dashDataInFlight = true;
   try{
-    const [customers, events] = await Promise.all([fetchServerCustomers(), fetchServerJourneyEvents()]);
+    const [customers, events, runnerScores] = await Promise.all([fetchServerCustomers(), fetchServerJourneyEvents(), fetchServerRunnerScores()]);
     if(customers) serverCustomers = customers;
     if(events) serverJourneyEvents = events;
+    if(runnerScores) serverRunnerScores = runnerScores;
   }finally{
     dashDataInFlight = false;
     renderDashboard();
@@ -2266,7 +2299,96 @@ function renderDashboard(){
     : 'Never';
 
   renderCustomerList(list);
+  renderRunnerLeaderboard(serverRunnerScores || []);
 }
+
+// ---------------------------------------------------------------------------
+// KHICHIYA RUNNER LEADERBOARD — Leaderboard + Claim Logic sprint.
+// Continuous leaderboard, no weekly/daily reset: the champion is simply
+// whichever submitted score is currently highest. Computed fresh from
+// serverRunnerScores every render — never stored/cached separately — so
+// this always reflects the latest Sheet state after a refresh/claim.
+// ---------------------------------------------------------------------------
+let currentChampion = null; // the exact row object currently rendered, kept for the Claim button handler
+
+function renderRunnerLeaderboard(scores){
+  const emptyEl = document.getElementById('runnerLeaderboardEmpty');
+  const contentEl = document.getElementById('runnerLeaderboardContent');
+  const claimBtn = document.getElementById('claimRunnerScoreBtn');
+  const claimedBadge = document.getElementById('runnerClaimedBadge');
+
+  if(!scores || scores.length === 0){
+    currentChampion = null;
+    emptyEl.style.display = '';
+    contentEl.style.display = 'none';
+    return;
+  }
+
+  let champion = scores[0];
+  for(let i = 1; i < scores.length; i++){
+    if(scores[i].score > champion.score) champion = scores[i];
+  }
+  currentChampion = champion;
+
+  emptyEl.style.display = 'none';
+  contentEl.style.display = '';
+  document.getElementById('runnerChampionName').textContent = champion.name || 'Unknown';
+  document.getElementById('runnerChampionScore').textContent = champion.score;
+  document.getElementById('runnerChampionMeta').textContent =
+    champion.mobile + ' · ' + champion.date + ' ' + champion.time;
+
+  if(champion.claimed){
+    claimBtn.style.display = 'none';
+    claimedBadge.style.display = '';
+    claimedBadge.textContent = '✓ Claimed' + (champion.claimedAt ? (' ' + new Date(champion.claimedAt).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })) : '');
+  }else{
+    claimBtn.style.display = '';
+    claimedBadge.style.display = 'none';
+  }
+}
+
+document.getElementById('claimRunnerScoreBtn').addEventListener('click', async () => {
+  if(!currentChampion) return;
+  if(!navigator.onLine){ showToast('No internet connection right now'); return; }
+  if(APP_SCRIPT_URL.includes('PASTE_YOUR')){ showToast('Apps Script URL not configured yet'); return; }
+
+  const confirmed = window.confirm(
+    'Mark ' + (currentChampion.name || 'this player') + '\'s score of ' + currentChampion.score + ' as claimed?\n\n' +
+    'Only do this after verifying their phone screen matches this record.'
+  );
+  if(!confirmed) return;
+
+  const claimBtn = document.getElementById('claimRunnerScoreBtn');
+  claimBtn.disabled = true;
+  claimBtn.textContent = 'Claiming…';
+
+  try{
+    const payload = {
+      action: 'claimRunnerScore',
+      mobile: currentChampion.mobile,
+      score: currentChampion.score,
+      date: currentChampion.date,
+      time: currentChampion.time
+    };
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('Claim request failed: ' + res.status);
+    const data = await res.json();
+    if(!data || data.status !== 'ok') throw new Error('Claim: unexpected response — ' + JSON.stringify(data));
+
+    showToast('Champion claimed');
+    await refreshDashboardData();
+  }catch(err){
+    console.warn('Claim runner score failed:', err);
+    showToast('Could not claim — check your connection and try again');
+  }finally{
+    claimBtn.disabled = false;
+    claimBtn.textContent = 'Claim';
+  }
+});
 
 const COORDINATE_LOOKING_LOCALITY_RE_ = /^-?\d+(\.\d+)?$/;
 

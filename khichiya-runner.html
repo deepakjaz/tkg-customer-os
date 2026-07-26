@@ -187,6 +187,7 @@
         <div class="burnt" id="burntEmoji">🔥</div>
         <div class="big" id="overTitle">Burnt!</div>
         <div class="sub" id="overSub">Score: 0</div>
+        <div class="sub" id="overStatus" style="display:none; font-weight:700; color:var(--ember-deep);"></div>
         <button class="btn" id="retryBtn">Play again</button>
         <div class="action-row">
           <button class="btn-ghost" id="shareBtn">📤 Share to friends</button>
@@ -223,6 +224,48 @@
   // no redeploy-breaking changes to the existing endpoints.
   var APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 
+  // ---------------------------------------------------------------------
+  // LEADERBOARD + CLAIM LOGIC — one continuous leaderboard, no
+  // weekly/daily reset. The "champion" is simply whichever submitted
+  // score is currently highest across the whole "Khichiya Runner Scores"
+  // sheet; claimed status lives on that same row. This game only ever
+  // READS that state (via doGet?action=runnerScores) to decide what to
+  // say at game-over — claiming itself only ever happens from the Owner
+  // Dashboard. Best-effort: if the fetch fails (offline, etc.) the game
+  // simply falls back to the plain original game-over flow rather than
+  // guessing, since it can't know who's on top or whether they're claimed.
+  // ---------------------------------------------------------------------
+  var leaderboardChampionScore = null; // null = unknown (fetch hasn't succeeded yet)
+  var leaderboardChampionClaimed = false;
+
+  function refreshLeaderboardState(){
+    if(APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
+    fetch(APP_SCRIPT_URL + '?action=runnerScores')
+      .then(function(res){ if(!res.ok) throw new Error('runnerScores fetch failed: ' + res.status); return res.json(); })
+      .then(function(data){
+        if(!data || data.status !== 'ok' || !Array.isArray(data.scores)) return;
+        var champion = null;
+        for(var i = 0; i < data.scores.length; i++){
+          var row = data.scores[i];
+          if(!champion || row.score > champion.score){
+            champion = row;
+          }
+        }
+        if(champion){
+          leaderboardChampionScore = champion.score;
+          leaderboardChampionClaimed = !!champion.claimed;
+        }else{
+          leaderboardChampionScore = 0;
+          leaderboardChampionClaimed = false;
+        }
+      })
+      .catch(function(err){
+        console.warn('refreshLeaderboardState failed, game-over will use the plain fallback flow:', err);
+      });
+  }
+
+  refreshLeaderboardState();
+
   var canvas = document.getElementById('game');
   var ctx = canvas.getContext('2d');
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -239,6 +282,7 @@
   var startOverlay = document.getElementById('startOverlay');
   var overOverlay = document.getElementById('overOverlay');
   var overSub = document.getElementById('overSub');
+  var overStatus = document.getElementById('overStatus');
   var overTitle = document.getElementById('overTitle');
   var burntEmoji = document.getElementById('burntEmoji');
   var startBtn = document.getElementById('startBtn');
@@ -312,9 +356,37 @@
     overSub.textContent = 'Score: ' + score + (score >= best && score > 0 ? '  —  new best!' : '');
     overTitle.textContent = 'Burnt!';
     burntEmoji.textContent = '🔥';
+    renderLeaderboardStatus();
     setTimeout(function(){
       overOverlay.classList.remove('hidden');
     }, 260);
+  }
+
+  // ---------------------------------------------------------------------
+  // Sets the small status line under the score at game-over, based on the
+  // leaderboard state fetched by refreshLeaderboardState(). Never blocks
+  // play either way — this is purely informational text alongside the
+  // existing Play again / Share / Submit buttons, all of which keep
+  // working exactly as before regardless of what this shows.
+  // ---------------------------------------------------------------------
+  function renderLeaderboardStatus(){
+    if(leaderboardChampionScore === null){
+      // Unknown state (offline, fetch still in flight, or failed) — say
+      // nothing rather than guess.
+      overStatus.style.display = 'none';
+      overStatus.textContent = '';
+      return;
+    }
+    if(score > leaderboardChampionScore){
+      overStatus.style.display = '';
+      overStatus.textContent = '🏆 New potential champion! Submit for reward to claim it.';
+    }else if(leaderboardChampionClaimed){
+      overStatus.style.display = '';
+      overStatus.textContent = 'The current champion has already been claimed — keep playing just for fun!';
+    }else{
+      overStatus.style.display = 'none';
+      overStatus.textContent = '';
+    }
   }
 
   function spawnObstacle(){
@@ -559,6 +631,7 @@
     request
       .then(function(){
         showSubmitted(name, scoreVal, true);
+        refreshLeaderboardState();
       })
       .catch(function(err){
         console.warn('Runner score submit failed, showing local confirmation anyway:', err);
