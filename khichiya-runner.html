@@ -193,6 +193,10 @@
           <button class="btn-ghost" id="shareBtn">📤 Share to friends</button>
           <button class="btn-ghost" id="submitBtn">🏆 Submit for reward</button>
         </div>
+        <div class="action-row">
+          <button class="btn-ghost" id="backToMenuBtn">🏠 Back to Menu</button>
+          <button class="btn-ghost" id="viewLeaderboardBtn">🏆 Leaderboard</button>
+        </div>
       </div>
 
       <div class="overlay hidden" id="submitOverlay">
@@ -289,6 +293,8 @@
   var retryBtn = document.getElementById('retryBtn');
   var shareBtn = document.getElementById('shareBtn');
   var submitBtn = document.getElementById('submitBtn');
+  var backToMenuBtn = document.getElementById('backToMenuBtn');
+  var viewLeaderboardBtn = document.getElementById('viewLeaderboardBtn');
   var submitOverlay = document.getElementById('submitOverlay');
   var submitName = document.getElementById('submitName');
   var submitMobile = document.getElementById('submitMobile');
@@ -529,6 +535,18 @@
 
   startBtn.addEventListener('click', startGame);
   retryBtn.addEventListener('click', startGame);
+
+  // Back to Menu — the default/primary way off this game-over screen back
+  // into the main app (same tab, so browser/PWA back history stays clean).
+  backToMenuBtn.addEventListener('click', function(){
+    window.location.href = 'index.html';
+  });
+
+  // View Leaderboard — secondary navigation, same-tab, to the standalone
+  // customer-facing leaderboard.html page.
+  viewLeaderboardBtn.addEventListener('click', function(){
+    window.location.href = 'leaderboard.html';
+  });
   canvas.addEventListener('pointerdown', jump);
   window.addEventListener('keydown', function(e){
     if(e.code === 'Space' || e.code === 'ArrowUp'){

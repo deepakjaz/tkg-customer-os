@@ -1345,6 +1345,12 @@ textarea.field-input{
     0 6px 16px -8px rgba(28,24,21,0.12);
 }
 .register-cta-text{margin-bottom:12px;}
+.leaderboard-btn{
+  background:var(--ember);
+  border-color:var(--ember);
+  color:var(--marble);
+  font-weight:700;
+}
 .register-cta-title{
   font-family:var(--font-display);
   font-weight:800;
@@ -2399,6 +2405,20 @@ textarea.field-input{
         <div class="register-cta-sub" id="khichiyaRunnerCardSub">Jump the Khichiya over the coal.</div>
       </div>
       <button class="btn-secondary register-cta-btn" id="openKhichiyaRunnerBtn">Let's Play</button>
+    </div>
+
+    <!-- Khichiya Runner Leaderboard — customer-facing (no PIN), occupying
+         the spot the old quiet .owner-link Dashboard link used to sit in
+         before Dashboard moved to its own PIN-gated page. Styled boldly
+         (filled ember CTA button) since this one is for customers, not
+         staff — opens leaderboard.html as its own separate page, same
+         pattern as khichiya-runner.html/dashboard.html. -->
+    <div class="register-cta" id="runnerLeaderboardCard" data-journey="atTKG,planning,exploring">
+      <div class="register-cta-text">
+        <div class="register-cta-title">🏆 Khichiya Runner Leaderboard</div>
+        <div class="register-cta-sub">See who's on top right now.</div>
+      </div>
+      <button type="button" class="register-cta-btn leaderboard-btn" id="openRunnerLeaderboardBtn">View Leaderboard</button>
     </div>
 
     <!-- Journey Progression — friendly contextual suggestion, text-only.
@@ -4405,6 +4425,14 @@ function closeKhichiyaRunnerOverlay(){
 khichiyaRunnerBackdrop.addEventListener('click', closeKhichiyaRunnerOverlay);
 document.getElementById('openKhichiyaRunnerBtn').addEventListener('click', openKhichiyaRunnerOverlay);
 document.getElementById('khichiyaRunnerCloseBtn').addEventListener('click', closeKhichiyaRunnerOverlay);
+
+// Khichiya Runner Leaderboard — leaves the app for the separate,
+// customer-facing leaderboard.html page (same tab, so browser/PWA back
+// returns here). No teaser overlay needed — the page itself is the
+// destination, same pattern as Dashboard's direct navigation.
+document.getElementById('openRunnerLeaderboardBtn').addEventListener('click', function(){
+  window.location.href = 'leaderboard.html';
+});
 
 // "Let's Play" — leaves the app for the separate khichiya-runner.html
 // page (same tab, so the browser/PWA back action returns here). Deliberately

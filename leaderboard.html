@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>TKG — Khichiya Runner Leaderboard</title>
+<meta name="theme-color" content="#F6F6F5">
+<meta name="description" content="Khichiya Runner — see who's on top right now">
+<style>
+/* ==========================================================================
+   TOKENS — same light/customer-facing palette as index.html, so this page
+   feels like part of the same app rather than a bolted-on admin screen.
+   ========================================================================== */
+:root{
+  --stone-base:      #F6F6F5;
+  --stone-card:      #FFFFFF;
+  --stone-card-alt:  #FBFBFA;
+  --stone-line:      #E4E4E2;
+  --ink:             #1C1815;
+  --ink-soft:        #6B6256;
+  --ink-faint:       #9C9286;
+
+  --ember:          #E85D2C;
+  --ember-bright:   #FF7A45;
+  --ember-deep:     #B8431D;
+  --ember-glow:     #FAC646;
+  --gold:           #C9A24B;
+  --gold-bright:    #E0C170;
+  --gold-deep:      #8F7430;
+  --grey-warm:      #8A8278;
+  --success:        #4C7A4C;
+  --marble:         #FAF7F2;
+
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --max-w: 430px;
+
+  --font-display: 'Charcoal-Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{
+  background:var(--stone-base);
+  color:var(--ink);
+  font-family:var(--font-body);
+  -webkit-tap-highlight-color:transparent;
+}
+body{
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  padding:20px 16px 40px;
+}
+.wrap{ width:100%; max-width:var(--max-w); }
+
+.back-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:none;
+  border:none;
+  color:var(--ink-soft);
+  font-size:0.8125rem;
+  font-weight:700;
+  padding:8px 0 16px;
+}
+.back-link:active{ opacity:0.6; }
+
+.lb-header{ text-align:center; margin-bottom:20px; }
+.lb-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.375rem;
+  color:var(--ink);
+}
+.lb-sub{
+  font-size:0.8125rem;
+  color:var(--ink-soft);
+  margin-top:4px;
+}
+
+.champion-card{
+  background:linear-gradient(180deg, var(--ember-glow), var(--gold-bright));
+  border-radius:var(--radius-lg);
+  padding:22px 20px;
+  text-align:center;
+  box-shadow:0 8px 24px -10px rgba(200,140,20,0.45);
+  margin-bottom:20px;
+}
+.champion-crown{ font-size:2rem; line-height:1; margin-bottom:6px; }
+.champion-name{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.25rem;
+  color:var(--ink);
+}
+.champion-score{
+  font-family:var(--font-mono);
+  font-weight:800;
+  font-size:2rem;
+  color:var(--ink);
+  margin-top:2px;
+}
+.champion-claimed-badge{
+  display:inline-block;
+  margin-top:8px;
+  background:rgba(28,24,21,0.12);
+  color:var(--ink);
+  font-size:0.6875rem;
+  font-weight:700;
+  padding:5px 12px;
+  border-radius:20px;
+  letter-spacing:0.02em;
+}
+
+.section-label{
+  font-size:0.75rem;
+  font-weight:700;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  margin:0 2px 10px;
+}
+
+.rank-list{
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  box-shadow:0 1px 2px rgba(28,24,21,0.05);
+}
+.rank-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px 16px;
+  border-bottom:1px solid var(--stone-line);
+}
+.rank-row:last-child{ border-bottom:none; }
+.rank-num{
+  font-family:var(--font-mono);
+  font-weight:800;
+  font-size:0.875rem;
+  color:var(--ink-faint);
+  width:22px;
+  flex-shrink:0;
+  text-align:center;
+}
+.rank-row.top1 .rank-num{ color:var(--gold-deep); }
+.rank-name{
+  flex:1;
+  min-width:0;
+  font-size:0.875rem;
+  font-weight:700;
+  color:var(--ink);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.rank-score{
+  font-family:var(--font-mono);
+  font-weight:800;
+  font-size:0.9375rem;
+  color:var(--ember-deep);
+  flex-shrink:0;
+}
+
+.empty-state{
+  text-align:center;
+  color:var(--ink-soft);
+  font-size:0.875rem;
+  padding:40px 20px;
+}
+.error-state{
+  text-align:center;
+  color:var(--ink-soft);
+  font-size:0.8125rem;
+  padding:20px;
+}
+.loading-state{
+  text-align:center;
+  color:var(--ink-faint);
+  font-size:0.8125rem;
+  padding:40px 20px;
+}
+
+.bottom-nav-link{
+  display:block;
+  text-align:center;
+  margin-top:24px;
+  padding:14px;
+  background:var(--ember);
+  color:var(--marble);
+  border:none;
+  border-radius:var(--radius-md);
+  font-size:0.875rem;
+  font-weight:700;
+  width:100%;
+}
+.bottom-nav-link:active{ opacity:0.85; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <button type="button" class="back-link" id="backToMenuTop">← Back to Menu</button>
+
+  <div class="lb-header">
+    <div class="lb-title">🏆 Khichiya Runner Leaderboard</div>
+    <div class="lb-sub">One continuous leaderboard — the top score holds the crown until someone beats it.</div>
+  </div>
+
+  <div id="loadingState" class="loading-state">Loading scores…</div>
+  <div id="errorState" class="error-state" style="display:none;">Couldn't load the leaderboard right now — check your connection and try refreshing.</div>
+  <div id="emptyState" class="empty-state" style="display:none;">No scores yet — be the first to play!</div>
+
+  <div id="lbContent" style="display:none;">
+    <div class="champion-card">
+      <div class="champion-crown">👑</div>
+      <div class="champion-name" id="championName">—</div>
+      <div class="champion-score" id="championScore">0</div>
+      <div class="champion-claimed-badge" id="championClaimedBadge" style="display:none;">✓ Reward claimed</div>
+    </div>
+
+    <div class="section-label">Top scores</div>
+    <div class="rank-list" id="rankList"></div>
+  </div>
+
+  <button type="button" class="bottom-nav-link" id="backToMenuBottom">Back to Menu</button>
+
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Standalone, customer-facing Leaderboard page — no PIN. Reads the same
+// "Khichiya Runner Scores" sheet the game writes to and the Owner Dashboard
+// claims from (via doGet?action=runnerScores), but never writes anything —
+// this page is read-only by design.
+//
+// Ranking: best score per player (deduped by normalized mobile, since a
+// player can submit multiple times), sorted descending, top 10 shown. The
+// champion card highlights whoever currently holds the single highest
+// score overall — same continuous-leaderboard model as the game/Dashboard,
+// no weekly/daily reset.
+//
+// Privacy note: mobile numbers are staff-only information (visible on the
+// Owner Dashboard for verifying a claim) and are deliberately never shown
+// on this public page — only the name the player typed in and their score.
+// ---------------------------------------------------------------------------
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
+
+function normalizeMobileClient_(mobile){
+  return String(mobile || '').replace(/[^\d]/g, '').replace(/^0+/, '').slice(-10);
+}
+
+function escapeHtml_(str){
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+async function loadLeaderboard(){
+  const loadingEl = document.getElementById('loadingState');
+  const errorEl = document.getElementById('errorState');
+  const emptyEl = document.getElementById('emptyState');
+  const contentEl = document.getElementById('lbContent');
+
+  loadingEl.style.display = '';
+  errorEl.style.display = 'none';
+  emptyEl.style.display = 'none';
+  contentEl.style.display = 'none';
+
+  try{
+    const res = await fetch(APP_SCRIPT_URL + '?action=runnerScores');
+    if(!res.ok) throw new Error('Request failed: ' + res.status);
+    const data = await res.json();
+    if(!data || data.status !== 'ok' || !Array.isArray(data.scores)) throw new Error('Unexpected response');
+
+    loadingEl.style.display = 'none';
+
+    if(data.scores.length === 0){
+      emptyEl.style.display = '';
+      return;
+    }
+
+    // Best score per player (deduped by normalized mobile).
+    const bestByMobile = new Map();
+    data.scores.forEach((row) => {
+      const key = normalizeMobileClient_(row.mobile);
+      const existing = bestByMobile.get(key);
+      if(!existing || row.score > existing.score){
+        bestByMobile.set(key, row);
+      }
+    });
+
+    const ranked = Array.from(bestByMobile.values()).sort((a, b) => b.score - a.score);
+    const top10 = ranked.slice(0, 10);
+    const champion = ranked[0];
+
+    document.getElementById('championName').textContent = champion.name || 'Unknown';
+    document.getElementById('championScore').textContent = champion.score;
+    const claimedBadge = document.getElementById('championClaimedBadge');
+    claimedBadge.style.display = champion.claimed ? '' : 'none';
+
+    const rankListEl = document.getElementById('rankList');
+    rankListEl.innerHTML = top10.map((row, i) => {
+      const rank = i + 1;
+      return '<div class="rank-row' + (rank === 1 ? ' top1' : '') + '">' +
+        '<span class="rank-num">' + rank + '</span>' +
+        '<span class="rank-name">' + escapeHtml_(row.name || 'Unknown') + (rank === 1 ? ' 👑' : '') + '</span>' +
+        '<span class="rank-score">' + row.score + '</span>' +
+      '</div>';
+    }).join('');
+
+    contentEl.style.display = '';
+  }catch(err){
+    console.warn('loadLeaderboard failed:', err);
+    loadingEl.style.display = 'none';
+    errorEl.style.display = '';
+  }
+}
+
+document.getElementById('backToMenuTop').addEventListener('click', function(){
+  window.location.href = 'index.html';
+});
+document.getElementById('backToMenuBottom').addEventListener('click', function(){
+  window.location.href = 'index.html';
+});
+
+loadLeaderboard();
+</script>
+</body>
+</html>
