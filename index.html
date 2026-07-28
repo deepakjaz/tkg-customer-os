@@ -2157,6 +2157,51 @@ textarea.field-input{
     </div>
   </section>
 
+  <!-- ============ SCREEN 1b: AT TKG QUICK ROUTER — Sprint: Journey
+       Friction Fixes, item B. Shown only for the atTKG journey, in place of
+       jumping straight to the Menu. No location, no long form — one tap
+       decides whether this visit is about ordering or leaving a review.
+       Reuses .journey-intro/.journey-options exactly, no new CSS. ======== -->
+  <section class="screen" id="screen-attkg-choice">
+    <div class="journey-intro">
+      <div class="journey-title" id="attkgChoiceGreeting" data-i18n="attkgChoice.title">👋 Hey there!</div>
+      <div class="journey-subtitle" data-i18n="attkgChoice.subtitle">What would you like to do?</div>
+    </div>
+    <div class="journey-options">
+      <button type="button" class="journey-option" id="attkgSeeMenuBtn" data-i18n="attkgChoice.seeMenu">📋 See Menu to Order</button>
+      <button type="button" class="journey-option" id="attkgRateUsBtn" data-i18n="attkgChoice.rateUs">⭐ Rate Us</button>
+    </div>
+  </section>
+
+  <!-- ============ RATE US QUICK CAPTURE — Sprint: Journey Friction Fixes,
+       item B. Only ever shown to a device we don't already know. Two
+       fields, nothing else — asked at the exact moment there's an action
+       (leaving a review) to justify asking. Reuses .overlay-backdrop/
+       .reg-overlay/.reg-card exactly like every other sheet. ============ -->
+  <div class="overlay-backdrop" id="rateUsCaptureBackdrop"></div>
+  <div class="reg-overlay" id="rateUsCaptureOverlay">
+    <div class="reg-overlay-handle"></div>
+    <div class="hero-block" style="margin-top:0; margin-bottom:18px;">
+      <div class="hero-eyebrow" data-i18n="rateUsCapture.eyebrow">Almost there</div>
+      <h1 class="hero-title" style="font-size:1.5rem;" data-i18n="rateUsCapture.title">Quick, before you go</h1>
+      <p class="hero-sub" data-i18n="rateUsCapture.sub">So we can thank you properly — then straight to Google.</p>
+    </div>
+    <form class="reg-card" id="rateUsCaptureForm" novalidate>
+      <div class="field-group">
+        <label class="field-label" for="rateUsNameInput" data-i18n="reg.nameLabel">Your Name</label>
+        <input class="field-input" id="rateUsNameInput" type="text" placeholder="e.g. Rohan Patel" autocomplete="name" maxlength="60" data-i18n-placeholder="reg.namePlaceholder">
+        <div class="field-error" id="rateUsNameError" data-i18n="reg.nameError">Please enter your name</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="rateUsMobileInput" data-i18n="reg.mobileLabel">Mobile Number</label>
+        <input class="field-input" id="rateUsMobileInput" type="tel" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" maxlength="10" data-i18n-placeholder="reg.mobilePlaceholder">
+        <div class="field-error" id="rateUsMobileError" data-i18n="reg.mobileError">Please enter a valid 10-digit number</div>
+      </div>
+      <button type="submit" class="btn-primary" id="rateUsCaptureSubmitBtn" data-i18n="rateUsCapture.submitBtn">Continue to Google Review</button>
+      <button type="button" class="btn-secondary" id="rateUsCaptureCloseBtn" style="width:100%; margin-top:10px;" data-i18n="reg.notNow">Not Now</button>
+    </form>
+  </div>
+
   <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
   <section class="screen" id="screen-menu">
 
@@ -2712,6 +2757,29 @@ function renderContent(type){
 const LS_KEY = 'tkg_customers';
 const LS_SESSION_KEY = 'tkg_current_session';
 
+// Sprint: Journey Friction Fixes, item B — "remembered player" identity,
+// per device. Separate from tkg_customers (which is the full guest list,
+// shaped for sync) — this is just a pointer to "who is using this device,"
+// set the moment checkInCustomer succeeds via ANY path (main Registration
+// form, Rate Us quick-capture, or any future entry point), so no path has
+// to ask a known device twice.
+const MY_IDENTITY_KEY = 'tkg_my_identity';
+
+function getMyIdentity(){
+  try{
+    const raw = localStorage.getItem(MY_IDENTITY_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){
+    return null;
+  }
+}
+
+function setMyIdentity(name, mobile){
+  try{
+    localStorage.setItem(MY_IDENTITY_KEY, JSON.stringify({ name: name, mobile: normalizeMobile(mobile) }));
+  }catch(e){}
+}
+
 // ---------------------------------------------------------------------------
 // STORAGE HELPERS
 // ---------------------------------------------------------------------------
@@ -2800,6 +2868,7 @@ function checkInCustomer(name, mobile, favoriteItem, source){
   }
 
   saveCustomers(list);
+  setMyIdentity(record.name, record.mobile); // Sprint: Journey Friction Fixes, item B
 
   sessionStorage.setItem(LS_SESSION_KEY, JSON.stringify({ name: record.name, visitCount: record.visitCount, isReturning }));
 
@@ -3003,6 +3072,10 @@ document.getElementById('geoConsentContinueBtn').addEventListener('click', () =>
 // explanation again (fire-and-forget, non-blocking) if permission hasn't
 // been confirmed granted yet.
 function offerLocationExplanationIfNeeded(){
+  // Sprint: Journey Friction Fixes, item B — atTKG is fully location-free,
+  // so this second location nudge (previously fired again at Registration)
+  // must not fire for it either.
+  if(getStoredJourney() === 'atTKG') return;
   if('permissions' in navigator && navigator.permissions && navigator.permissions.query){
     navigator.permissions.query({ name: 'geolocation' })
       .then(status => { if(status.state !== 'granted') showGeoConsent(() => {}); })
@@ -3289,6 +3362,23 @@ async function resolveLandmark(lat, lon){
 // permission allows it, the GPS + reverse-geocode chain) has fully finished
 // — never before.
 function recordJourneyEvent(journey){
+  // Sprint: Journey Friction Fixes, item B — atTKG never asks for location.
+  // A customer who's already standing at the stall has nothing useful to
+  // capture here, and asking anyway was the exact friction being removed.
+  // Planning/Exploring are completely untouched below.
+  if(journey === 'atTKG'){
+    const events = loadJourneyEvents();
+    events.push({
+      journey: journey,
+      ts: new Date().toISOString(),
+      pendingSync: true,
+      locality: 'Not Applicable — At TKG',
+      landmark: 'Not Applicable — At TKG'
+    });
+    saveJourneyEvents(events);
+    attemptJourneyEventSync();
+    return;
+  }
   ensureLocationConsent(async (loc, reason) => {
     const events = loadJourneyEvents();
     const event = { journey: journey, ts: new Date().toISOString(), pendingSync: true };
@@ -3672,8 +3762,121 @@ function selectJourney(journey){
   updateJourneyStatusDisplay(journey);
   updateDynamicGreeting(journey);
   refreshBusinessStatusCard();
-  showScreen('screen-menu');
+  if(journey === 'atTKG'){
+    enterAtTkgChoiceScreen();
+  }else{
+    showScreen('screen-menu');
+  }
 }
+
+// ---------------------------------------------------------------------------
+// AT TKG QUICK ROUTER — Sprint: Journey Friction Fixes, item B. One tap
+// decides "menu" or "rate us" for a customer on the atTKG journey, with no
+// location ask and no long form in the way. Reuses showScreen()/.screen
+// exactly as-is, same mechanism as every other screen in this app.
+// ---------------------------------------------------------------------------
+function enterAtTkgChoiceScreen(){
+  const greetingEl = document.getElementById('attkgChoiceGreeting');
+  const identity = getMyIdentity();
+  if(greetingEl){
+    const dict = translations[currentLang] || translations.en;
+    const baseTitle = (dict.attkgChoice && dict.attkgChoice.title) || translations.en.attkgChoice.title;
+    greetingEl.textContent = (identity && identity.name)
+      ? `👋 Hey ${identity.name.split(' ')[0]}!`
+      : baseTitle;
+  }
+  showScreen('screen-attkg-choice');
+}
+
+document.getElementById('attkgSeeMenuBtn').addEventListener('click', () => {
+  showScreen('screen-menu');
+});
+
+const rateUsCaptureBackdrop = document.getElementById('rateUsCaptureBackdrop');
+const rateUsCaptureOverlay = document.getElementById('rateUsCaptureOverlay');
+const rateUsCaptureForm = document.getElementById('rateUsCaptureForm');
+const rateUsNameInput = document.getElementById('rateUsNameInput');
+const rateUsMobileInput = document.getElementById('rateUsMobileInput');
+const rateUsNameError = document.getElementById('rateUsNameError');
+const rateUsMobileError = document.getElementById('rateUsMobileError');
+
+function openRateUsCapture(){
+  rateUsCaptureBackdrop.classList.add('show');
+  rateUsCaptureOverlay.classList.add('show');
+}
+function closeRateUsCapture(){
+  rateUsCaptureBackdrop.classList.remove('show');
+  rateUsCaptureOverlay.classList.remove('show');
+}
+document.getElementById('rateUsCaptureCloseBtn').addEventListener('click', closeRateUsCapture);
+rateUsCaptureBackdrop.addEventListener('click', closeRateUsCapture);
+
+// Marks a customer's local-only reviewStatus as 'Requested' the moment they
+// head to Google — this is the field the data-model comment above marks
+// RESERVED for Phase 2 (Review Growth System), distinct from the sheet's
+// separate staff-owned Review_Status column. We can't confirm they actually
+// post a review, only that they were sent to do so — same trust model
+// already used elsewhere in this app (e.g. leaderboard claims).
+function markReviewRequested(mobile){
+  const list = loadCustomers();
+  const idx = findCustomerIndex(list, mobile);
+  if(idx !== -1){
+    list[idx].reviewStatus = 'Requested';
+    list[idx].pendingSync = true;
+    saveCustomers(list);
+    attemptSync();
+  }
+}
+
+function goToGoogleReview(mobile){
+  markReviewRequested(mobile);
+  window.open(GOOGLE_REVIEW_URL, '_blank');
+}
+
+document.getElementById('attkgRateUsBtn').addEventListener('click', () => {
+  const identity = getMyIdentity();
+  if(identity && identity.mobile){
+    // Known device — never asked again. Keep the visit record's journey
+    // fresh (same as every other check-in call) and go straight to Google.
+    checkInCustomer(identity.name, identity.mobile, '', 'atTKG-rateus');
+    goToGoogleReview(identity.mobile);
+  }else{
+    openRateUsCapture();
+  }
+});
+
+rateUsCaptureForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  let valid = true;
+
+  const name = rateUsNameInput.value.trim();
+  const mobile = rateUsMobileInput.value.trim();
+
+  if(name.length < 2){
+    rateUsNameInput.classList.add('invalid');
+    rateUsNameError.classList.add('show');
+    valid = false;
+  }else{
+    rateUsNameInput.classList.remove('invalid');
+    rateUsNameError.classList.remove('show');
+  }
+
+  if(mobile.length !== 10){
+    rateUsMobileInput.classList.add('invalid');
+    rateUsMobileError.classList.add('show');
+    valid = false;
+  }else{
+    rateUsMobileInput.classList.remove('invalid');
+    rateUsMobileError.classList.remove('show');
+  }
+
+  if(!valid) return;
+
+  checkInCustomer(name, mobile, '', 'atTKG-rateus');
+  closeRateUsCapture();
+  rateUsCaptureForm.reset();
+  goToGoogleReview(mobile);
+});
 
 // Small, non-intrusive helper line shown above the Change link — reflects
 // whichever journey is currently active. Re-run on language switch too
@@ -4838,7 +5041,23 @@ const translations = {
       savePromptSaveBtn: 'Save My Taste',
       savePromptLaterBtn: 'Maybe Later'
     },
-    langSheetTitle: 'Choose Language'
+    langSheetTitle: 'Choose Language',
+    // Sprint: Journey Friction Fixes, item B — At TKG quick router + Rate Us
+    // capture. English only for now; gu/hi fall back to the static English
+    // text already in the HTML (see applyTranslations' missing-key
+    // behavior) until these are translated.
+    attkgChoice: {
+      title: '👋 Hey there!',
+      subtitle: 'What would you like to do?',
+      seeMenu: '📋 See Menu to Order',
+      rateUs: '⭐ Rate Us'
+    },
+    rateUsCapture: {
+      eyebrow: 'Almost there',
+      title: 'Quick, before you go',
+      sub: 'So we can thank you properly — then straight to Google.',
+      submitBtn: 'Continue to Google Review'
+    }
   },
 
   gu: {
@@ -5345,7 +5564,11 @@ if(storedJourney){
   updateJourneyStatusDisplay(storedJourney);
   updateDynamicGreeting(storedJourney);
   refreshBusinessStatusCard();
-  showScreen('screen-menu');
+  if(storedJourney === 'atTKG'){
+    enterAtTkgChoiceScreen();
+  }else{
+    showScreen('screen-menu');
+  }
 }else{
   let hasStoredLanguage = false;
   try{ hasStoredLanguage = !!localStorage.getItem(LANG_KEY); }catch(e){}
