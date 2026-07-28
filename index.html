@@ -3605,12 +3605,41 @@ function showScreen(id){
 // the menu, pre-filtered to their path.
 // ---------------------------------------------------------------------------
 const JOURNEY_KEY = 'tkg_journey';
+const JOURNEY_TS_KEY = 'tkg_journey_ts';
 const JOURNEY_VALUES = ['atTKG', 'planning', 'exploring'];
+
+// Sprint: Journey Friction Fixes, item A — a stored journey now has a
+// per-type "freshness window." atTKG expires quickest since a customer's
+// physical location changes fastest; planning expires after a day; exploring
+// never expires (a browsing customer's context doesn't go stale the way
+// physical presence does). null = no expiry at all.
+const JOURNEY_RESET_MS = {
+  atTKG: 4 * 60 * 60 * 1000,      // 4 hours
+  planning: 24 * 60 * 60 * 1000,  // 24 hours
+  exploring: null                  // never resets
+};
 
 function getStoredJourney(){
   try{
     const v = localStorage.getItem(JOURNEY_KEY);
-    return JOURNEY_VALUES.includes(v) ? v : null;
+    if(!JOURNEY_VALUES.includes(v)) return null;
+
+    const windowMs = JOURNEY_RESET_MS[v];
+    if(windowMs != null){
+      const tsRaw = localStorage.getItem(JOURNEY_TS_KEY);
+      const ts = tsRaw ? parseInt(tsRaw, 10) : NaN;
+      if(!ts || (Date.now() - ts) > windowMs){
+        // Expired — clear it so this device is treated as fresh, exactly
+        // like a first-time visitor (same path the "no journey stored yet"
+        // branch at the bottom of this script already handles).
+        try{
+          localStorage.removeItem(JOURNEY_KEY);
+          localStorage.removeItem(JOURNEY_TS_KEY);
+        }catch(e){}
+        return null;
+      }
+    }
+    return v;
   }catch(e){
     return null;
   }
@@ -3631,7 +3660,10 @@ function applyJourneyVisibility(journey){
 
 function selectJourney(journey){
   if(!JOURNEY_VALUES.includes(journey)) return;
-  try{ localStorage.setItem(JOURNEY_KEY, journey); }catch(e){}
+  try{
+    localStorage.setItem(JOURNEY_KEY, journey);
+    localStorage.setItem(JOURNEY_TS_KEY, String(Date.now()));
+  }catch(e){}
   recordJourneyEvent(journey); // anonymous analytics — independent of tkg_journey/tkg_customers
   applyJourneyVisibility(journey);
   updateTasteDiscoveryReminderVisibility(); // re-apply completed-hide on top of the fresh journey gate
