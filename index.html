@@ -55,11 +55,13 @@
      White/warm-ivory marble base, charcoal text, ember reserved for
      small accents per direction: "subtle, charcoal does the heavy lifting." ---- */
   --stone-base:      #F6F6F5;   /* shell background base — neutral, barely-there cool grey */
-  --stone-card:      #FFFFFF;   /* cards sit a shade lighter than the shell */
-  --stone-card-alt:  #FBFBFA;   /* secondary card tone for subtle layering */
+  --stone-card:      rgba(255,255,255,0.62);   /* glass card — translucent, paired with backdrop-filter blur */
+  --stone-card-alt:  rgba(255,255,255,0.5);   /* glass card, secondary layer — slightly more see-through */
   --stone-vein:      #C9C9C7;   /* marble crack-vein color — neutral grey, no warm bias */
   --stone-vein-soft: #DCDCDA;
-  --stone-line:      #E4E4E2;   /* hairline borders on light surfaces */
+  --stone-line:      rgba(255,255,255,0.65);   /* glass edge highlight instead of a flat hairline */
+  --stone-divider:   rgba(28,24,21,0.14);   /* dashed dividers on translucent glass \u2014 needs to read as a line against the ticket strip's own see-through background, so kept independent of --stone-line (glass-card border) */
+  --glass-blur:      18px;
   --ink:             #1C1815;   /* primary text \u2014 near-black, warm */
   --ink-soft:        #6B6256;   /* secondary text, warm grey-brown */
   --ink-faint:       #9C9286;   /* tertiary text, placeholders */
@@ -84,6 +86,32 @@
   --font-display: 'Charcoal-Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
+
+  --icon-inline:     18px;  /* icons sitting beside/above short label text — pills, ticket strip, directions, phone */
+  --icon-standalone: 28px;  /* icons that ARE the tap target — bottom nav */
+
+  /* ---- Bottom-nav icon colors. Star uses a gradient (see navStarGrad def
+     at the icon itself) instead of a flat token. Message/About go
+     monochrome ink per Deepak's direction; Journey reuses the app's
+     existing semantic danger-red (already means "alert/closed" elsewhere)
+     rather than a new one-off hex, matching the common Google-Maps-pin
+     red he asked for. ---- */
+  --nav-message: var(--ink);
+  --nav-journey: var(--danger);
+
+  /* ---- Glass lamination depth \u2014 makes a card read as a floating pane of
+     glass rather than a flat panel with a thin outline. Three layers in one
+     box-shadow: (1) inset top highlight, the light catching the top inner
+     edge of the glass; (2) inset bottom shade, giving the glass a felt
+     thickness; (3) a warm ember-tinted ambient glow further out for real
+     depth, instead of a generic neutral-grey shadow; (4) a tight, close
+     contact shadow that grounds the card so it doesn't look like it's
+     hovering with no relation to the surface under it. ---- */
+  --glass-depth:
+    inset 0 1px 0 rgba(255,255,255,0.65),
+    inset 0 -1px 0 rgba(28,24,21,0.05),
+    0 16px 32px -16px rgba(184,67,29,0.30),
+    0 3px 10px -4px rgba(28,24,21,0.16);
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -165,33 +193,22 @@ input{font-family:inherit;}
   align-items:center;
   gap:8px;
 }
-.wordmark-logo{
-  width:30px;
-  height:30px;
-  flex-shrink:0;
-  display:block;
-  border-radius:50%;
-  object-fit:cover;
-}
-.wordmark-text{
-  display:flex;
-  flex-direction:column;
-  gap:1px;
-  line-height:1.15;
-}
-.wordmark-text span.main{
-  font-weight:800;
-  font-size:1.125rem;
-  letter-spacing:0.06em;
-}
-.wordmark span.sub{
+.topbar-tagline{
   font-family:var(--font-body);
-  font-weight:500;
-  font-size:0.625rem;
-  letter-spacing:0.18em;
+  font-weight:700;
+  font-size:0.75rem;
+  line-height:1.25;
   color:var(--ink-soft);
-  text-transform:uppercase;
+  max-width:60vw;
 }
+.topbar-tagline.tt-glow{
+  animation:tt-glow-pulse 2.2s ease-out 1;
+}
+@keyframes tt-glow-pulse{
+  0%{ color:var(--ember-deep); text-shadow:0 0 10px rgba(232,93,44,0.55); }
+  100%{ color:var(--ink-soft); text-shadow:none; }
+}
+
 
 .status-pill{
   display:flex;
@@ -274,6 +291,8 @@ input{font-family:inherit;}
   align-items:center;
   justify-content:space-between;
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1.5px solid var(--stone-line);
   border-radius:var(--radius-md);
   padding:15px 16px;
@@ -495,6 +514,8 @@ input{font-family:inherit;}
   width:100%;
   max-width:360px;
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border-radius:var(--radius-lg);
   padding:18px;
   max-height:90vh;
@@ -546,6 +567,8 @@ input{font-family:inherit;}
   border-radius:var(--radius-lg);
   border:1px solid var(--stone-line);
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   font-size:1rem;
   font-weight:600;
   color:var(--ink);
@@ -585,6 +608,8 @@ input{font-family:inherit;}
   align-items:center;
   gap:10px;
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:var(--radius-md);
   box-shadow:0 1px 2px rgba(28,24,21,0.04);
@@ -605,70 +630,6 @@ input{font-family:inherit;}
   margin-top:1px;
 }
 
-/* ---- Welcome Card — Visual hierarchy redesign. One calm card directly
-   below the Hero: Greeting + current browsing status + Change Journey.
-   Replaces the previous floating greeting text and the separate Journey
-   accordion — same tokens as every other .stone-card surface on this
-   screen (radius/border/shadow), no new styling pattern. Reuses
-   #dgGreetingText/#dgSubText/#journeyStatusCurrent/#changeJourneyBtn
-   exactly — updateDynamicGreeting()/updateJourneyStatusDisplay() untouched. ---- */
-.welcome-card{
-  background:var(--stone-card);
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-md);
-  box-shadow:0 1px 2px rgba(28,24,21,0.04);
-  padding:14px 16px 12px;
-  margin-bottom:16px;
-  text-align:left;
-}
-.dg-greeting{
-  font-size:1.1875rem;
-  font-weight:700;
-  color:var(--ink);
-}
-.dg-sub{
-  font-size:0.8438rem;
-  color:var(--ink-soft);
-  margin-top:3px;
-  line-height:1.45;
-}
-.welcome-card-journey{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-top:12px;
-  padding-top:12px;
-  border-top:1px solid var(--stone-line);
-}
-.welcome-card-journey-status{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  min-width:0;
-}
-.welcome-card-journey-status .jc-icon{font-size:0.9375rem; flex-shrink:0;}
-.welcome-card-journey-status .jc-current{
-  font-size:0.8438rem;
-  font-weight:700;
-  color:var(--ink);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.welcome-card #changeJourneyBtn{
-  background:none;
-  border:none;
-  color:var(--ember);
-  font-weight:600;
-  font-size:0.7812rem;
-  text-decoration:underline;
-  text-decoration-color:var(--ember);
-  padding:2px 0;
-  white-space:nowrap;
-  flex-shrink:0;
-}
-
 /* ==========================================================================
    TICKET HEADER REDESIGN — Sprint: Menu Header & Item Cards Redesign.
    Replaces the earlier collapsing-header approach entirely: rather than
@@ -686,6 +647,8 @@ input{font-family:inherit;}
   display:flex;
   align-items:center;
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:20px;
   padding:2px;
@@ -716,7 +679,7 @@ input{font-family:inherit;}
 .settings-pill-divider{
   width:1px;
   height:20px;
-  background:var(--stone-line);
+  background:var(--stone-divider);
 }
 
 /* -- Compact hero: one centered block instead of the old 3-line headline
@@ -725,34 +688,60 @@ input{font-family:inherit;}
   text-align:center;
   padding:6px 4px 14px;
 }
-.app-hero-eyebrow{
-  font-size:0.6875rem;
-  letter-spacing:0.07em;
-  text-transform:uppercase;
-  color:var(--ink-soft);
-  margin-bottom:2px;
+.hero-greeting-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:5px;
 }
-.app-hero-eyebrow .eyebrow-sep{margin:0 5px; opacity:0.6;}
-.app-hero-headline-compact{
+.hero-logo-large{
+  width:64px;
+  height:64px;
+  flex-shrink:0;
+  border-radius:50%;
+  object-fit:cover;
+}
+.hero-greeting-line{
+  font-size:0.75rem;
+  color:var(--ink-soft);
+  text-align:left;
+}
+.greeting-headline-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:2px;
+  cursor:pointer;
+}
+.greeting-icon{
+  width:26px;
+  height:26px;
+  flex-shrink:0;
+  transform-origin:50% 85%;
+}
+.greeting-icon.gi-tap{ animation:gi-pop 0.45s ease-out 1; }
+@keyframes gi-pop{
+  0%{ transform:scale(1) rotate(0deg); }
+  35%{ transform:scale(1.18) rotate(-10deg); }
+  65%{ transform:scale(1.05) rotate(7deg); }
+  100%{ transform:scale(1) rotate(0deg); }
+}
+#dgGreetingText{
   font-family:var(--font-display);
   font-size:1.75rem;
   font-weight:800;
   color:var(--ember);
   line-height:1.1;
-  margin:0;
 }
-.hero-greeting-line{
-  font-size:0.75rem;
-  color:var(--ink-soft);
-  margin-top:5px;
-}
-.hero-greeting-line #dgSubText{margin-left:4px;}
+.hero-greeting-line #dgSubText{margin-left:0;}
 
 /* -- Ticket strip: Open/Closed + Hours + Journey as one boarding-pass-style
       row with dashed dividers, instead of two separate stacked cards -- */
 .ticket-strip{
   display:flex;
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:var(--radius-md);
   overflow:hidden;
@@ -763,6 +752,7 @@ input{font-family:inherit;}
   display:flex;
   flex-direction:column;
   align-items:center;
+  justify-content:center;
   gap:2px;
   padding:9px 6px;
   background:none;
@@ -773,16 +763,19 @@ input{font-family:inherit;}
 }
 .ticket-divider{
   width:0;
-  border-left:1px dashed var(--stone-line);
+  border-left:1px dashed var(--stone-divider);
   margin:8px 0;
 }
-.ticket-seg-icon{font-size:0.9375rem; line-height:1;}
+.ticket-seg-icon{width:var(--icon-inline); height:var(--icon-inline); flex-shrink:0;}
+.ticket-seg-icon.status-dot{
+  width:9px; height:9px;
+  border-radius:50%;
+  background:var(--success);
+}
+#businessStatusCard[data-open="false"] .status-dot{background:var(--danger);}
 .ticket-seg-label{
   font-size:0.7188rem;
   font-weight:700;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
   max-width:100%;
 }
 #changeJourneyBtn .ticket-seg-label{color:var(--ember);}
@@ -804,7 +797,7 @@ input{font-family:inherit;}
   font-weight:600;
   text-decoration:none;
 }
-.ticket-strip-footer .tsf-directions .dl-icon{width:12px; height:12px;}
+.ticket-strip-footer .tsf-directions .dl-icon{width:var(--icon-inline); height:var(--icon-inline);}
 
 /* -- Menu item cards: warm tinted overlay unifies photo quality across
       items instead of showing raw photos large/prominent; bestseller
@@ -878,6 +871,8 @@ input{font-family:inherit;}
   max-width:var(--max-w);
   display:flex;
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border-top:1px solid var(--stone-line);
   box-shadow:0 -1px 3px rgba(28,24,21,0.05);
   padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
@@ -896,7 +891,7 @@ input{font-family:inherit;}
   padding:6px 2px;
 }
 .bottom-nav-item:active{ opacity:0.6; }
-.bottom-nav-item .bn-icon{ font-size:1.125rem; line-height:1; }
+.bottom-nav-item .bn-icon{ width:var(--icon-standalone); height:var(--icon-standalone); display:block; margin:0 auto; }
 .bottom-nav-item .bn-label{
   font-size:0.625rem;
   font-weight:600;
@@ -944,6 +939,8 @@ input{font-family:inherit;}
 
 .reg-card{
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:var(--radius-lg);
   padding:24px 20px 22px;
@@ -1196,6 +1193,8 @@ textarea.field-input{
   border-radius:var(--radius-md);
   overflow:hidden;
   background:var(--stone-card-alt);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
 }
 .product-preview-media img{
   width:100%;
@@ -1319,6 +1318,8 @@ textarea.field-input{
 }
 .cs-review-card{
   background:var(--stone-card-alt);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:var(--radius-md);
   padding:13px 14px;
@@ -1352,7 +1353,12 @@ textarea.field-input{
 }
 .cs-review-stars{
   font-size:0.6562rem;
-  color:var(--gold-deep);
+  background:linear-gradient(180deg, #FFD873 0%, #F5A623 55%, #C97B0E 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 1.5px rgba(245,166,35,0.35));
   letter-spacing:1px;
   flex-shrink:0;
 }
@@ -1371,7 +1377,12 @@ textarea.field-input{
 .content-sheet-footer.hidden{display:none;}
 .cs-footer-stars{
   font-size:1rem;
-  color:var(--gold-deep);
+  background:linear-gradient(180deg, #FFD873 0%, #F5A623 55%, #C97B0E 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 2px rgba(245,166,35,0.35));
   letter-spacing:2px;
   margin-bottom:6px;
 }
@@ -1431,7 +1442,7 @@ textarea.field-input{
   background:rgba(232,93,44,0.08);
   border:1px solid rgba(232,93,44,0.25);
 }
-.directions-link .dl-icon{width:12px; height:12px; flex-shrink:0;}
+.directions-link .dl-icon{width:var(--icon-inline); height:var(--icon-inline); flex-shrink:0;}
 .directions-link:active{background:rgba(232,93,44,0.16);}
 .directions-link.attention{animation:directions-bounce 1.8s ease-in-out 1;}
 @keyframes directions-bounce{
@@ -1464,7 +1475,7 @@ textarea.field-input{
   box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
   transition:transform 0.12s ease, box-shadow 0.12s ease;
 }
-.directions-link--primary .dl-icon{width:18px; height:18px;}
+.directions-link--primary .dl-icon{width:var(--icon-inline); height:var(--icon-inline);}
 .directions-link--primary:active{
   background:linear-gradient(180deg, var(--ember-bright), var(--ember));
   transform:translateY(1px) scale(0.99);
@@ -1529,34 +1540,35 @@ textarea.field-input{
 }
 .hero-story-strip{
   display:flex;
-  align-items:center;
-  gap:6px;
+  align-items:flex-start;
+  gap:6px 8px;
   padding:10px 12px;
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:var(--radius-md);
-  overflow-x:auto;
-  scrollbar-width:none;
   box-shadow:0 1px 2px rgba(28,24,21,0.05);
   margin-bottom:12px;
 }
-.hero-story-strip::-webkit-scrollbar{display:none;}
 .hero-story-strip .story-step{
   display:flex;
-  align-items:center;
+  align-items:flex-start;
   gap:5px;
+  flex:1 1 0;
+  min-width:0;
   font-size:0.6562rem;
   font-weight:700;
   letter-spacing:0.02em;
   color:var(--ink-soft);
-  white-space:nowrap;
-  flex-shrink:0;
+  white-space:normal;
 }
-.hero-story-strip .story-step .step-icon{font-size:0.8125rem; line-height:1;}
+.hero-story-strip .story-step .step-icon{width:var(--icon-inline); height:var(--icon-inline); flex-shrink:0; margin-top:1px;}
 .hero-story-strip .story-arrow{
   color:var(--stone-vein);
   font-size:0.6875rem;
   flex-shrink:0;
+  align-self:center;
 }
 
 /* Story-progress bar for the REVIEW TEASER (not the pill strip above) —
@@ -1595,6 +1607,8 @@ textarea.field-input{
    consistency with the sheet it opens into. */
 .review-teaser-card{
   background:var(--stone-card-alt);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:var(--radius-md);
   padding:13px 14px;
@@ -1689,7 +1703,7 @@ textarea.field-input{
   color:var(--ink);
   text-decoration:none;
 }
-.phone-note .pn-icon{width:13px; height:13px; color:var(--ember-deep); flex-shrink:0;}
+.phone-note .pn-icon{width:var(--icon-inline); height:var(--icon-inline); color:var(--ember-deep); flex-shrink:0;}
 .phone-note:active{color:var(--ember-deep);}
 
 /* ==========================================================================
@@ -1745,6 +1759,8 @@ textarea.field-input{
   font-weight:600;
   color:var(--ink-soft);
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   padding:6px 12px;
   border-radius:14px;
@@ -1772,6 +1788,8 @@ textarea.field-input{
   padding:12px 10px;
   border-radius:var(--radius-md);
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   color:var(--ink);
   font-size:0.7812rem;
@@ -1794,12 +1812,12 @@ textarea.field-input{
 .fun-activity-card{
   margin-top:22px;
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:var(--radius-lg);
   overflow:hidden;
-  box-shadow:
-    0 1px 2px rgba(28,24,21,0.05),
-    0 6px 16px -8px rgba(28,24,21,0.12);
+  box-shadow:var(--glass-depth);
 }
 .fun-activity-header{padding:14px 16px 8px;}
 .fun-activity-title{
@@ -1849,6 +1867,8 @@ textarea.field-input{
 .register-cta{
   margin-top:22px;
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:var(--radius-lg);
   padding:18px 18px 16px;
@@ -1882,6 +1902,8 @@ textarea.field-input{
    CSS above this point was modified. */
 .taste-result-card{
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:var(--radius-lg);
   padding:16px 16px 14px;
@@ -1915,12 +1937,12 @@ textarea.field-input{
   align-items:flex-start;
   gap:12px;
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border:1px solid var(--stone-line);
   border-radius:var(--radius-lg);
   padding:16px;
-  box-shadow:
-    0 1px 2px rgba(28,24,21,0.06),
-    0 8px 20px -10px rgba(28,24,21,0.14);
+  box-shadow:var(--glass-depth);
   transition:transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease;
 }
 .menu-item:active{
@@ -2241,6 +2263,8 @@ textarea.field-input{
   width:100%;
   max-width:var(--max-w);
   background:var(--stone-card);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
   border-top:1px solid var(--stone-line);
   border-radius:18px 18px 0 0;
   padding:16px 18px calc(16px + env(safe-area-inset-bottom, 0px));
@@ -2312,11 +2336,7 @@ textarea.field-input{
   <!-- ============ TOP BAR ============ -->
   <div class="topbar">
     <div class="wordmark">
-      <img class="wordmark-logo" src="./icon-192.png" alt="TKG">
-      <div class="wordmark-text">
-        <span class="main">TKG</span>
-        <span class="sub">The Khichiya Gravy</span>
-      </div>
+      <div class="topbar-tagline" id="topbarTagline"></div>
     </div>
     <div class="topbar-right settings-pill">
       <button type="button" class="text-size-btn settings-pill-item" id="textSizeBtn" aria-label="Change text size">
@@ -2387,8 +2407,8 @@ textarea.field-input{
           <option value="Classic Khichiya" data-i18n="menu.classicKhichiya.name">Classic Khichiya</option>
           <option value="Masala Khichiya" data-i18n="menu.masalaKhichiya.name">Masala Khichiya</option>
           <option value="Cheese Masala Khichiya" data-i18n="menu.cheeseMasalaKhichiya.name">Cheese Masala Khichiya</option>
-          <option value="Signature Gravy Khichiya" data-i18n="menu.signatureGravy.name">Signature Gravy Khichiya</option>
-          <option value="Cheesy Signature Gravy Khichiya" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Gravy Khichiya</option>
+          <option value="Signature Khichiya Gravy" data-i18n="menu.signatureGravy.name">Signature Khichiya Gravy</option>
+          <option value="Cheesy Signature Khichiya Gravy" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Khichiya Gravy</option>
         </select>
       </div>
 
@@ -2733,15 +2753,15 @@ textarea.field-input{
          hero.line*/hero.statement i18n keys reused as-is (EN/GU/HI all
          still work), just recombined into a shorter read. ============ -->
     <div class="app-hero app-hero-compact">
-      <div class="app-hero-eyebrow">
-        <span data-i18n="hero.lineCoal">Coal-Cooked</span>
-        <span class="eyebrow-sep">·</span>
-        <span data-i18n="hero.lineKhichiya">Khichiya for Dipping</span>
-      </div>
-      <h1 class="app-hero-headline-compact" data-i18n="hero.lineGravy">Cheesy Gravy</h1>
-      <div class="hero-greeting-line">
-        <span id="dgGreetingText"></span>
-        <span id="dgSubText"></span>
+      <div class="hero-greeting-row">
+        <img class="hero-logo-large" src="./icon-192.png" alt="TKG">
+        <div class="hero-greeting-line">
+          <div class="greeting-headline-row" id="greetingHeadlineRow">
+            <svg class="greeting-icon" id="greetingIcon" viewBox="0 0 24 24" aria-hidden="true"></svg>
+            <span id="dgGreetingText"></span>
+          </div>
+          <span id="dgSubText"></span>
+        </div>
       </div>
     </div>
 
@@ -2753,11 +2773,11 @@ textarea.field-input{
          tap — no new review logic, just a compact entry point into it.
          Populated by renderReviewTeaser() (see JS). ============ -->
     <div class="hero-story-strip">
-      <span class="story-step"><span class="step-icon">🔥</span>Coal-Cooked</span>
+      <span class="story-step"><svg class="step-icon" viewBox="0 0 24 24"><path fill="#E85D2C" d="M12 2c-3 4-6 7-6 11a6 6 0 0012 0c0-2-1-3-2-4 .5 2-1 3-2 2 1-3-1-5-2-9z"/></svg>Coal-Cooked</span>
       <span class="story-arrow">→</span>
-      <span class="story-step"><span class="step-icon">🧀</span>Cheesy Gravy</span>
+      <span class="story-step"><svg class="step-icon" viewBox="0 0 24 24"><path fill="#E8A93A" d="M3 10l7-6 3 2.5L16 4l5 6-1 9H4z"/></svg>Cheesy Gravy</span>
       <span class="story-arrow">→</span>
-      <span class="story-step"><span class="step-icon">🥣</span>Khichiya for Dipping</span>
+      <span class="story-step"><svg class="step-icon" viewBox="0 0 24 24"><path fill="#4A90C4" d="M4 11h16a1 1 0 011 1 9 9 0 01-18 0 1 1 0 011-1zm3-2c0-3 2-5 5-5s5 2 5 5H7z"/></svg>Khichiya for Dipping</span>
     </div>
 
     <!-- ============ TICKET STRIP — Sprint: Menu Header & Item Cards
@@ -2770,24 +2790,23 @@ textarea.field-input{
          the strip, so nothing functional is lost. ============ -->
     <div class="ticket-strip">
       <div class="ticket-seg" id="businessStatusCard" data-open="true">
-        <span class="ticket-seg-icon" id="businessStatusIcon">🟢</span>
+        <span class="ticket-seg-icon status-dot" id="businessStatusIcon"></span>
         <span class="ticket-seg-label" id="businessStatusLabel">OPEN NOW</span>
       </div>
       <div class="ticket-divider"></div>
       <div class="ticket-seg">
-        <span class="ticket-seg-icon">🕐</span>
-        <span class="ticket-seg-label" data-i18n="menu.hours">Open on Fri/Sat/Sun· Evening to Late Night</span>
+        <span class="ticket-seg-label">Fri / Sat / Sun</span>
       </div>
       <div class="ticket-divider"></div>
       <button type="button" class="ticket-seg" id="changeJourneyBtn">
-        <span class="ticket-seg-icon jc-icon">📍</span>
+        <svg class="ticket-seg-icon jc-icon" viewBox="0 0 24 24"><path fill="var(--danger)" d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12zm0-9a3 3 0 110-6 3 3 0 010 6z"/></svg>
         <span class="ticket-seg-label jc-current" id="journeyStatusCurrent"></span>
       </button>
     </div>
     <div class="ticket-strip-footer">
       <span id="businessStatusDetail"></span>
       <a class="tsf-directions" id="directionsLink" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
-        <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        <svg class="dl-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12zm0-9a3 3 0 110-6 3 3 0 010 6z"/></svg>
         <span data-i18n="menu.getDirections">Get Directions</span>
       </a>
     </div>
@@ -2807,12 +2826,12 @@ textarea.field-input{
     <div class="menu-section" id="cat-signature">
       <div class="menu-item" data-recipe="signatureGravyBase">
         <div class="menu-item-thumb">
-          <img src="assets/products/signature-gravy.webp" width="56" height="56" alt="Signature Gravy Khichiya" loading="lazy" decoding="async">
+          <img src="assets/products/signature-gravy.webp" width="56" height="56" alt="Signature Khichiya Gravy" loading="lazy" decoding="async">
           <span class="menu-item-tag thumb-ribbon" data-i18n="menu.bestseller">Bestseller</span>
         </div>
         <div class="menu-item-info">
           <div class="menu-item-top">
-            <span class="menu-item-name" data-i18n="menu.signatureGravy.name">Signature Gravy Khichiya</span>
+            <span class="menu-item-name" data-i18n="menu.signatureGravy.name">Signature Khichiya Gravy</span>
           </div>
           <div class="menu-item-desc" data-i18n="menu.signatureGravy.descShort">Creamy coal-cooked cheese gravy, served for dipping.</div>
           <div class="jain-line"><span class="jl-icon">🌿</span><span data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span></div>
@@ -2824,11 +2843,11 @@ textarea.field-input{
       </div>
       <div class="menu-item" data-recipe="signatureGravyBase">
         <div class="menu-item-thumb">
-          <img src="assets/products/cheesy-signature.webp" width="56" height="56" alt="Cheesy Signature Gravy Khichiya" loading="lazy" decoding="async">
+          <img src="assets/products/cheesy-signature.webp" width="56" height="56" alt="Cheesy Signature Khichiya Gravy" loading="lazy" decoding="async">
         </div>
         <div class="menu-item-info">
           <div class="menu-item-top">
-            <span class="menu-item-name" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Gravy Khichiya</span>
+            <span class="menu-item-name" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Khichiya Gravy</span>
           </div>
           <div class="menu-item-desc" data-i18n="menu.cheesySignatureGravy.descShort">Extra cheese, even richer and creamier.</div>
           <div class="jain-line"><span class="jl-icon">🌿</span><span data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span></div>
@@ -2936,7 +2955,7 @@ textarea.field-input{
     </div>
 
     <a class="phone-note" href="tel:+919510100950">
-      <svg class="pn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      <svg class="pn-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M6.6 10.8a15.3 15.3 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11 11 0 003.5.55 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11 11 0 00.55 3.5 1 1 0 01-.25 1z"/></svg>
       <span data-i18n="menu.callUs">+91 95101 00950</span>
     </a>
 
@@ -2952,7 +2971,7 @@ textarea.field-input{
          that row. Same destination/link as the small header chip; this is
          just a second, more prominent entry point. -->
     <a class="directions-link directions-link--primary" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener" style="margin:10px 0 0;">
-      <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      <svg class="dl-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12zm0-9a3 3 0 110-6 3 3 0 010 6z"/></svg>
       <span data-i18n="menu.getDirections">Get Directions</span>
     </a>
 
@@ -3129,19 +3148,28 @@ textarea.field-input{
      Journey). ============ -->
 <nav class="bottom-nav hidden" id="bottomNav">
   <button type="button" class="bottom-nav-item" id="navRateUsBtn">
-    <span class="bn-icon">⭐</span>
+    <svg class="bn-icon" viewBox="0 0 24 24" style="filter:drop-shadow(0 0 2.5px rgba(245,166,35,0.45));">
+      <defs>
+        <linearGradient id="navStarGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFD873"/>
+          <stop offset="55%" stop-color="#F5A623"/>
+          <stop offset="100%" stop-color="#C97B0E"/>
+        </linearGradient>
+      </defs>
+      <path fill="url(#navStarGrad)" d="M12 2.5l2.9 6.3 6.9.7-5.2 4.6 1.6 6.8L12 17.3 5.8 20.9l1.6-6.8-5.2-4.6 6.9-.7z"/>
+    </svg>
     <span class="bn-label">Rate Us</span>
   </button>
   <button type="button" class="bottom-nav-item" id="navMessageBtn">
-    <span class="bn-icon">💬</span>
+    <svg class="bn-icon" viewBox="0 0 24 24"><path fill="var(--nav-message)" d="M12 3C6.48 3 2 6.58 2 11c0 2.21 1.19 4.2 3.09 5.61-.16.9-.58 2.16-1.5 3.29a.5.5 0 00.54.8c1.68-.4 3.03-1.1 3.96-1.67A12.6 12.6 0 0012 19c5.52 0 10-3.58 10-8s-4.48-8-10-8z"/></svg>
     <span class="bn-label">Message Us</span>
   </button>
   <button type="button" class="bottom-nav-item" id="navAboutBtn">
-    <span class="bn-icon">❓</span>
+    <img class="bn-icon" src="./icon-192.png" alt="TKG">
     <span class="bn-label">About TKG</span>
   </button>
   <button type="button" class="bottom-nav-item" id="navJourneyBtn">
-    <span class="bn-icon">📍</span>
+    <svg class="bn-icon" viewBox="0 0 24 24"><path fill="var(--nav-journey)" d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12zm0-9a3 3 0 110-6 3 3 0 010 6z"/></svg>
     <span class="bn-label">Journey</span>
   </button>
 </nav>
@@ -3168,7 +3196,7 @@ textarea.field-input{
      firstVisit: "2026-06-23T10:15:00.000Z",
      lastVisit:  "2026-06-23T10:15:00.000Z",
      visitCount: 1,
-     favoriteItem: "Cheesey Gravy Khichiya (Mini)", // optional, "" if skipped
+     favoriteItem: "Cheesey Khichiya Gravy (Mini)", // optional, "" if skipped
      source: "Instagram",         // optional, "" if skipped
      reviewStatus: "",            // RESERVED for Phase 2 (Review Growth System)
      rating: "",                  // RESERVED for Phase 2 — no UI yet
@@ -3335,6 +3363,12 @@ const contentRegistry = {
   mustTry: [],            // reserved — Phase B
   weekendSpecials: [],    // reserved — Phase F
   faq: [],                // reserved — Phase E
+  // Tagline — one short trend/current-affairs one-liner, Sheet-managed by
+  // hand (same low-cost pattern as featuredReviews, no live AI/API). This
+  // sample line is only ever a fallback if the Sheet tab is empty/unreachable.
+  tagline: [
+    { id: 'tag-001', status: 'active', order: 1, startDate: null, endDate: null, text: 'Fresh, hot, and worth the wait.' }
+  ],
   polls: [],               // reserved — Phase D
   educationalPosts: [],    // reserved — future
   announcements: []        // reserved — future
@@ -3394,6 +3428,28 @@ function loadFeaturedReviewsFromSheet(){
     });
 }
 loadFeaturedReviewsFromSheet();
+
+// ---------------------------------------------------------------------------
+// Tagline sprint — same Sheet-driven, no-live-API pattern as
+// loadFeaturedReviewsFromSheet above. One short trending/current-affairs
+// one-liner, updated by hand in the Sheet whenever Deepak wants a new line.
+// Falls back to contentRegistry.tagline's sample line if the fetch fails or
+// the Sheet tab is empty.
+// ---------------------------------------------------------------------------
+function loadTaglineFromSheet(){
+  if(APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
+  fetch(APP_SCRIPT_URL + '?action=tagline')
+    .then(res => { if(!res.ok) throw new Error('tagline fetch failed: ' + res.status); return res.json(); })
+    .then(data => {
+      if(!data || data.status !== 'ok' || !Array.isArray(data.tagline) || data.tagline.length === 0) return;
+      contentRegistry.tagline = data.tagline;
+      renderTagline();
+    })
+    .catch(err => {
+      console.warn('loadTaglineFromSheet failed, keeping sample tagline:', err);
+    });
+}
+loadTaglineFromSheet();
 
 // ---------------------------------------------------------------------------
 // TKG MOMENTS — customer photo/Instagram-moment gallery. Fullscreen
@@ -4868,14 +4924,19 @@ function updateJourneyHint(journey){
 }
 
 // Journey status bar (top of Menu page) — shows the currently active
-// journey using the same translated labels already used on the Customer
-// Journey screen itself (journey.atTKG/planning/exploring). Re-run on
-// language switch (see setLanguage) exactly like updateJourneyHint above.
+// journey using a short, emoji-free label (journey.atTKGShort/
+// planningShort/exploringShort) distinct from the emoji-prefixed labels
+// used on the Customer Journey selection screen (journey.atTKG/planning/
+// exploring) — the emoji circle was redundant here since a journey pin
+// icon already sits right next to this text. Re-run on language switch
+// (see setLanguage) exactly like updateJourneyHint above.
+const JOURNEY_STATUS_SHORT_KEYS = { atTKG: 'atTKGShort', planning: 'planningShort', exploring: 'exploringShort' };
 function updateJourneyStatusDisplay(journey){
   const el = document.getElementById('journeyStatusCurrent');
   if(!el) return;
   const dict = translations[currentLang] || translations.en;
-  el.textContent = JOURNEY_VALUES.includes(journey) ? (dict.journey[journey] || '') : '';
+  const key = JOURNEY_STATUS_SHORT_KEYS[journey];
+  el.textContent = key ? (dict.journey[key] || '') : '';
 }
 
 // ---------------------------------------------------------------------------
@@ -4929,7 +4990,6 @@ function refreshBusinessStatusCard(){
   cardEl.setAttribute('data-open', status.isOpen ? 'true' : 'false');
 
   if(status.isOpen){
-    iconEl.textContent = '🟢';
     labelEl.textContent = dict.openNow;
     detailEl.textContent = dict.todayHours;
   }else{
@@ -4937,7 +4997,6 @@ function refreshBusinessStatusCard(){
     const nextDate = new Date(now);
     nextDate.setDate(now.getDate() + daysAhead);
     const dayName = dict.dayNames[nextDate.getDay()];
-    iconEl.textContent = '🔴';
     labelEl.textContent = dict.closedNow;
     detailEl.textContent = dict.seeYouAt.replace('{day}', dayName);
   }
@@ -4962,16 +5021,32 @@ function getGreetingTimeKey_(){
   if(h >= 17 && h < 23) return 'evening'; // covers the full 6:30–11pm business window
   return getBusinessStatus_().isOpen ? 'evening' : 'night';
 }
+const GREETING_ICONS_ = {
+  morning:   '<path fill="#E8A93A" d="M12 4a1 1 0 011 1v1a1 1 0 01-2 0V5a1 1 0 011-1zm0 4a4 4 0 110 8 4 4 0 010-8zm7.07-.93a1 1 0 011.4 1.44l-.7.7a1 1 0 01-1.42-1.42zM4.53 7.07a1 1 0 011.42 1.42l-.7.7A1 1 0 013.83 7.8zM4 12a1 1 0 011-1h1a1 1 0 010 2H5a1 1 0 01-1-1zm14 0a1 1 0 011-1h1a1 1 0 010 2h-1a1 1 0 01-1-1zM5.23 17.36a1 1 0 011.42 0 1 1 0 010 1.42l-.7.7a1 1 0 01-1.42-1.42zm12.12 0l.7.7a1 1 0 01-1.42 1.42l-.7-.7a1 1 0 011.42-1.42zM12 19a1 1 0 011 1v1a1 1 0 01-2 0v-1a1 1 0 011-1z"/>',
+  afternoon: '<path fill="#E8A93A" d="M12 4a1 1 0 011 1v1a1 1 0 01-2 0V5a1 1 0 011-1zm0 4a4 4 0 110 8 4 4 0 010-8zm7.07-.93a1 1 0 011.4 1.44l-.7.7a1 1 0 01-1.42-1.42zM4.53 7.07a1 1 0 011.42 1.42l-.7.7A1 1 0 013.83 7.8zM4 12a1 1 0 011-1h1a1 1 0 010 2H5a1 1 0 01-1-1zm14 0a1 1 0 011-1h1a1 1 0 010 2h-1a1 1 0 01-1-1zM5.23 17.36a1 1 0 011.42 0 1 1 0 010 1.42l-.7.7a1 1 0 01-1.42-1.42zm12.12 0l.7.7a1 1 0 01-1.42 1.42l-.7-.7a1 1 0 011.42-1.42zM12 19a1 1 0 011 1v1a1 1 0 01-2 0v-1a1 1 0 011-1z"/>',
+  evening:   '<path fill="#E8935A" d="M12 5a1 1 0 011 1v4a1 1 0 01-2 0V6a1 1 0 011-1zm6.36 2.64a1 1 0 010 1.42l-.7.7a1 1 0 01-1.42-1.42l.7-.7a1 1 0 011.42 0zm-13.42 0a1 1 0 011.42 0l.7.7a1 1 0 01-1.42 1.42l-.7-.7a1 1 0 010-1.42zM12 9a4 4 0 013.9 5H8.1A4 4 0 0112 9zM3 15a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zm3 3a1 1 0 011-1h10a1 1 0 010 2H7a1 1 0 01-1-1z"/>',
+  night:     '<path fill="#7C8AB8" d="M14.5 3a8 8 0 108.4 12.2A9 9 0 0114.5 3z"/><circle cx="19" cy="7" r="0.9" fill="#B7BFDE"/><circle cx="16.5" cy="10.5" r="0.6" fill="#B7BFDE"/>'
+};
 function updateDynamicGreeting(journey){
   const greetEl = document.getElementById('dgGreetingText');
   const subEl = document.getElementById('dgSubText');
+  const iconEl = document.getElementById('greetingIcon');
   if(!greetEl || !subEl) return;
   const dict = translations[currentLang] || translations.en;
   const g = dict.greeting || translations.en.greeting;
-  greetEl.textContent = g[getGreetingTimeKey_()];
+  const timeKey = getGreetingTimeKey_();
+  greetEl.textContent = g[timeKey];
+  if(iconEl) iconEl.innerHTML = GREETING_ICONS_[timeKey] || GREETING_ICONS_.morning;
   const journeyKey = JOURNEY_VALUES.includes(journey) ? journey : 'exploring';
   subEl.innerHTML = g[journeyKey] || '';
 }
+document.getElementById('greetingHeadlineRow')?.addEventListener('click', () => {
+  const iconEl = document.getElementById('greetingIcon');
+  if(!iconEl) return;
+  iconEl.classList.remove('gi-tap');
+  void iconEl.offsetWidth;
+  iconEl.classList.add('gi-tap');
+});
 
 // Sprint: Customer OS UI Polish, item 2 — "should update automatically."
 // Re-checks the clock every 60s so a device left open across the
@@ -5264,6 +5339,26 @@ document.getElementById('reviewTeaserCard')?.addEventListener('keydown', (e) => 
   if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openCustomerStoriesSheet(); }
 });
 
+// Top-bar tagline — one short line in the slot that used to hold the small
+// logo + "TKG / The Khichiya Gravy" text. Glows briefly whenever it (re)renders
+// with a different line than last shown, to draw the eye without being a
+// permanent distraction. Sample fallback until loadTaglineFromSheet() succeeds.
+let lastTaglineText = null;
+function renderTagline(){
+  const el = document.getElementById('topbarTagline');
+  if(!el) return;
+  const items = renderContent('tagline');
+  if(!items.length) return;
+  const text = items[0].text || '';
+  el.textContent = text;
+  if(text !== lastTaglineText){
+    el.classList.remove('tt-glow');
+    void el.offsetWidth; // restart animation if it's already mid-glow
+    el.classList.add('tt-glow');
+    lastTaglineText = text;
+  }
+}
+
 function openCustomerStoriesSheet(){
   const dict = translations[currentLang] || translations.en;
   const footerHtml = buildCtaFooter({
@@ -5542,8 +5637,8 @@ let tasteLastRecommendedItemKey = null;
 // existing Favorite Item dropdown in the registration form (#favoriteItemInput)
 // — reused as-is, no new registration fields, no backend changes.
 const TASTE_ITEM_TO_REG_VALUE_ = {
-  signatureGravy: 'Signature Gravy Khichiya',
-  cheesySignatureGravy: 'Cheesy Signature Gravy Khichiya',
+  signatureGravy: 'Signature Khichiya Gravy',
+  cheesySignatureGravy: 'Cheesy Signature Khichiya Gravy',
   classicKhichiya: 'Classic Khichiya',
   cheeseMasalaKhichiya: 'Cheese Masala Khichiya'
 };
@@ -6053,8 +6148,8 @@ const translations = {
       classicKhichiya: { name:'Classic Khichiya', desc:'Freshly coal-roasted Khichiya finished with real Amul butter and our signature spice blend. Simple, crispy and always a good call.', descShort:'Butter and our signature spice blend.', price:'Mini ₹50<br>Large ₹60', priceLarge:'Large ₹60' },
       masalaKhichiya: { name:'Masala Khichiya', desc:'Coal-roasted Khichiya layered with chutney, fresh vegetables, chana dal and sev — a perfect mix in every bite.', descShort:'Chutney, fresh veg, chana dal and sev.', price:'Mini ₹80<br>Large ₹120', priceMini:'Mini ₹80', priceLarge:'Large ₹120' },
       cheeseMasalaKhichiya: { name:'Cheese Masala Khichiya', desc:'Our classic Masala Khichiya, loaded with melted cheese on top for an extra indulgent bite.', descShort:'Masala Khichiya loaded with melted cheese.', price:'Mini ₹100<br>Large ₹140', priceMini:'Mini ₹100', priceLarge:'Large ₹140' },
-      signatureGravy: { name:'Signature Gravy Khichiya', desc:'Our signature cheese gravy, slow-cooked over coal with vegetables, herbs and milk. Served with coal-roasted Khichiya for dipping.', descShort:'Creamy coal-cooked cheese gravy, for dipping.', price:'Mini ₹140<br>Large ₹180', priceMini:'Mini ₹140', priceLarge:'Large ₹180' },
-      cheesySignatureGravy: { name:'Cheesy Signature Gravy Khichiya', desc:'Our Signature Gravy, loaded with extra cheese on top for an even creamier, richer bite.', descShort:'Extra cheese, even creamier and richer.', price:'Mini ₹160<br>Large ₹200', priceMini:'Mini ₹160', priceLarge:'Large ₹200' },
+      signatureGravy: { name:'Signature Khichiya Gravy', desc:'Our signature cheese gravy, slow-cooked over coal with vegetables, herbs and milk. Served with coal-roasted Khichiya for dipping.', descShort:'Creamy coal-cooked cheese gravy, for dipping.', price:'Mini ₹140<br>Large ₹180', priceMini:'Mini ₹140', priceLarge:'Large ₹180' },
+      cheesySignatureGravy: { name:'Cheesy Signature Khichiya Gravy', desc:'Our Signature Gravy, loaded with extra cheese on top for an even creamier, richer bite.', descShort:'Extra cheese, even creamier and richer.', price:'Mini ₹160<br>Large ₹200', priceMini:'Mini ₹160', priceLarge:'Large ₹200' },
       extraCheese: { name:'Cheese', desc:'Extra cheese melted right into your gravy.', descShort:'Extra melted cheese.' },
       extraGravy: { name:'Extra Gravy', desc:'One more bowl of the hero product — for when the Khichiya runs out first.', descShort:'One more bowl of our signature gravy.' },
       extraKhichiya: { name:'Extra Khichiya', desc:'One more coal-roasted Khichiya — for when the gravy outlasts the first one.', descShort:'One more coal-roasted Khichiya.', priceMini:'Mini ₹50', priceLarge:'Large ₹60' }
@@ -6086,6 +6181,9 @@ const translations = {
       atTKG: "🟢 I'm at the stall right now",
       planning: '🟡 Planning my visit for later',
       exploring: '⚪ Just exploring the menu',
+      atTKGShort: "At the stall",
+      planningShort: 'Planning a visit',
+      exploringShort: 'Exploring',
       browsingAs: "📍 You're browsing as",
       changeLink: 'Change Journey ›',
       hintAtTKG: 'Enjoy your food 😄 If your plans change, you can update your status anytime.',
@@ -6095,10 +6193,10 @@ const translations = {
     // Task 3 — Dynamic Greeting. Time-of-day greeting + a short Journey-aware
     // line underneath, shown at the top of the Menu page. Additive namespace.
     greeting: {
-      morning: '👋 Good Morning!',
-      afternoon: '👋 Good Afternoon!',
-      evening: '👋 Good Evening!',
-      night: '👋 Good Night!',
+      morning: 'Good Morning!',
+      afternoon: 'Good Afternoon!',
+      evening: 'Good Evening!',
+      night: 'Good Night!',
       atTKG: 'Enjoy your meal 😄',
       planning: "Can't wait to welcome you.",
       exploring: "Welcome!<br>Let's explore what makes TKG special."
@@ -6242,8 +6340,8 @@ const translations = {
       classicKhichiya: { name:'ક્લાસિક ખીચીયા', desc:'લાઇવ કોલસા પર શેકેલા ખીચીયા, શુદ્ધ અમૂલ બટર અને અમારા ખાસ મસાલા સાથે. એકદમ ક્રિસ્પી ને મસ્ત ટેસ્ટ.', descShort:'બટર અને અમારા ખાસ મસાલા સાથે.', price:'મિની ₹50<br>લાર્જ ₹60', priceLarge:'લાર્જ ₹60' },
       masalaKhichiya: { name:'મસાલા ખીચીયા', desc:'કોલસા પર શેકેલા ખીચીયા, ચટણી, તાજા શાકભાજી, ચણાની દાળ અને સેવના પરફેક્ટ લેયર સાથે.', descShort:'ચટણી, તાજા શાકભાજી, ચણાની દાળ અને સેવ.', price:'મિની ₹80<br>લાર્જ ₹120', priceMini:'મિની ₹80', priceLarge:'લાર્જ ₹120' },
       cheeseMasalaKhichiya: { name:'ચીઝ મસાલા ખીચીયા', desc:'અમારા પરંપરાગત મસાલા ખીચીયા પર ઉપરથી નાખેલું ભરપૂર ચીઝ.', descShort:'મસાલા ખીચીયા પર ભરપૂર ઓગળેલું ચીઝ.', price:'મિની ₹100<br>લાર્જ ₹140', priceMini:'મિની ₹100', priceLarge:'લાર્જ ₹140' },
-      signatureGravy: { name:'સિગ્નેચર ગ્રેવી ખીચીયા', desc:'શાકભાજી, હર્બ્સ અને દૂધ સાથે કોલસા પર ધીમી આંચે રાંધેલી ખાસ ચીઝ ગ્રેવી. સાથે ખાવા માટે શેકેલા ખીચીયા.', descShort:'ક્રીમી કોલ-કૂક્ડ ચીઝ ગ્રેવી, ડિપિંગ માટે.', price:'મિની ₹140<br>લાર્જ ₹180', priceMini:'મિની ₹140', priceLarge:'લાર્જ ₹180' },
-      cheesySignatureGravy: { name:'ચીઝી સિગ્નેચર ગ્રેવી ખીચીયા', desc:'અમારી સિગ્નેચર ગ્રેવી, ઉપરથી એક્સ્ટ્રા ચીઝ લોડ કરેલું, જેથી સ્વાદ વધુ ક્રીમી અને જોરદાર લાગે.', descShort:'વધારે ચીઝ, વધુ ક્રીમી અને જોરદાર સ્વાદ.', price:'મિની ₹160<br>લાર્જ ₹200', priceMini:'મિની ₹160', priceLarge:'લાર્જ ₹200' },
+      signatureGravy: { name:'સિગ્નેચર ખીચીયા ગ્રેવી', desc:'શાકભાજી, હર્બ્સ અને દૂધ સાથે કોલસા પર ધીમી આંચે રાંધેલી ખાસ ચીઝ ગ્રેવી. સાથે ખાવા માટે શેકેલા ખીચીયા.', descShort:'ક્રીમી કોલ-કૂક્ડ ચીઝ ગ્રેવી, ડિપિંગ માટે.', price:'મિની ₹140<br>લાર્જ ₹180', priceMini:'મિની ₹140', priceLarge:'લાર્જ ₹180' },
+      cheesySignatureGravy: { name:'ચીઝી સિગ્નેચર ખીચીયા ગ્રેવી', desc:'અમારી સિગ્નેચર ગ્રેવી, ઉપરથી એક્સ્ટ્રા ચીઝ લોડ કરેલું, જેથી સ્વાદ વધુ ક્રીમી અને જોરદાર લાગે.', descShort:'વધારે ચીઝ, વધુ ક્રીમી અને જોરદાર સ્વાદ.', price:'મિની ₹160<br>લાર્જ ₹200', priceMini:'મિની ₹160', priceLarge:'લાર્જ ₹200' },
       extraCheese: { name:'ચીઝ', desc:'તમારી ગ્રેવીમાં એક્સ્ટ્રા ચીઝ.', descShort:'ગ્રેવીમાં ઓગળેલું વધારાનું ચીઝ.' },
       extraGravy: { name:'એક્સ્ટ્રા ગ્રેવી', desc:'અમારી મેઇન ગ્રેવીનો વધુ એક બાઉલ — જ્યારે ખીચીયા વહેલા પતી જાય ત્યારે.', descShort:'અમારી સિગ્નેચર ગ્રેવી વધુ.' },
       extraKhichiya: { name:'એક્સ્ટ્રા ખીચીયા', desc:'એક એક્સ્ટ્રા કોલસા પર શેકેલા ખીચીયા — જ્યારે ગ્રેવી વધી જાય ત્યારે.', descShort:'એક વધુ કોલસા પર શેકેલા ખીચીયા.', priceMini:'મિની ₹50', priceLarge:'લાર્જ ₹60' }
@@ -6275,6 +6373,9 @@ const translations = {
       atTKG: '🟢 હું અત્યારે સ્ટોલ પર જ ઉભો છું',
       planning: '🟡 બસ રસ્તામાં જ છું, હમણાં આવીશ',
       exploring: '⚪ બસ એમ જ મેનૂ જોઈ રહ્યો છું',
+      atTKGShort: 'સ્ટોલ પર',
+      planningShort: 'મુલાકાતનું આયોજન',
+      exploringShort: 'જોઈ રહ્યા છીએ',
       browsingAs: '📍 તમે આ રીતે જોઈ રહ્યા છો',
       changeLink: 'સ્ટેટસ બદલો ›',
       hintAtTKG: 'જમવાની મજા લો 😄 પ્લાન બદલાય તો, ગમે ત્યારે તમારું સ્ટેટસ બદલી શકો છો.',
@@ -6282,10 +6383,10 @@ const translations = {
       hintExploring: 'આજે આવવાનું વિચારો છો? તમે ગમે ત્યારે તમારું સ્ટેટસ બદલી શકો છો.'
     },
     greeting: {
-      morning: '👋 સુપ્રભાત!',
-      afternoon: '👋 નમસ્કાર!',
-      evening: '👋 ગુડ ઇવનિંગ!',
-      night: '👋 શુભ રાત્રી!',
+      morning: 'સુપ્રભાત!',
+      afternoon: 'નમસ્કાર!',
+      evening: 'ગુડ ઇવનિંગ!',
+      night: 'શુભ રાત્રી!',
       atTKG: 'જમવાની મજા લો 😄',
       planning: 'તમારું સ્વાગત કરવા આતુર છીએ.',
       exploring: 'સ્વાગત છે!<br>ચાલો જોઈએ TKG ને ખાસ શું બનાવે છે.'
@@ -6398,8 +6499,8 @@ const translations = {
       classicKhichiya: { name:'क्लासिक खीचीया', desc:'लाइव कोयले पर सिंके हुए खीचीया, शुद्ध अमूल बटर और हमारे खास मसाले के साथ। सिंपल, क्रिस्पी और एकदम मस्त टेस्ट।', descShort:'बटर और हमारे खास मसाले के साथ।', price:'मिनी ₹50<br>लार्ज ₹60', priceLarge:'लार्ज ₹60' },
       masalaKhichiya: { name:'मसाला खीचीया', desc:'कोयले पर सिंके हुए खीचीया, चटनी, ताज़ी सब्ज़ियों, चने की दाल और बारीक सेव के ज़बरदस्त लेयर के साथ।', descShort:'चटनी, ताज़ी सब्ज़ियाँ, चना दाल और सेव।', price:'मिनी ₹80<br>लार्ज ₹120', priceMini:'मिनी ₹80', priceLarge:'लार्ज ₹120' },
       cheeseMasalaKhichiya: { name:'चीज़ मसाला खीचीया', desc:'हमारे पारंपरिक मसाला खीचीया पर ऊपर से डाला हुआ भरपूर मेल्टेड चीज़।', descShort:'ऊपर से भरपूर पिघला हुआ चीज़।', price:'मिनी ₹100<br>लार्ज ₹140', priceMini:'मिनी ₹100', priceLarge:'लार्ज ₹140' },
-      signatureGravy: { name:'सिग्नेचर ग्रेवी खीचीया', desc:'ताज़ी सब्ज़ियों, हर्ब्स और दूध के साथ कोयले पर धीमी आंच में पकी खास चीज़ ग्रेवी। साथ में खाने के लिए शेके हुए खीचीया।', descShort:'क्रीमी कोयले पर पकी चीज़ ग्रेवी, डिप करने के लिए।', price:'मिनी ₹140<br>लार्ज ₹180', priceMini:'मिनी ₹140', priceLarge:'लार्ज ₹180' },
-      cheesySignatureGravy: { name:'चीज़ी सिग्नेचर ग्रेवी खीचीया', desc:'हमारी सिग्नेचर ग्रेवी, ऊपर से एक्स्ट्रा चीज़ लोड किया हुआ, ताकि टेस्ट और भी क्रीमी और ज़बरदस्त लगे।', descShort:'एक्स्ट्रा चीज़ के साथ और भी क्रीमी स्वाद।', price:'मिनी ₹160<br>लार्ज ₹200', priceMini:'मिनी ₹160', priceLarge:'लार्ज ₹200' },
+      signatureGravy: { name:'सिग्नेचर खीचीया ग्रेवी', desc:'ताज़ी सब्ज़ियों, हर्ब्स और दूध के साथ कोयले पर धीमी आंच में पकी खास चीज़ ग्रेवी। साथ में खाने के लिए शेके हुए खीचीया।', descShort:'क्रीमी कोयले पर पकी चीज़ ग्रेवी, डिप करने के लिए।', price:'मिनी ₹140<br>लार्ज ₹180', priceMini:'मिनी ₹140', priceLarge:'लार्ज ₹180' },
+      cheesySignatureGravy: { name:'चीज़ी सिग्नेचर खीचीया ग्रेवी', desc:'हमारी सिग्नेचर ग्रेवी, ऊपर से एक्स्ट्रा चीज़ लोड किया हुआ, ताकि टेस्ट और भी क्रीमी और ज़बरदस्त लगे।', descShort:'एक्स्ट्रा चीज़ के साथ और भी क्रीमी स्वाद।', price:'मिनी ₹160<br>लार्ज ₹200', priceMini:'मिनी ₹160', priceLarge:'लार्ज ₹200' },
       extraCheese: { name:'चीज़', desc:'आपकी ग्रेवी में एक्स्ट्रा चीज़।', descShort:'ग्रेवी में एक्स्ट्रा चीज़।' },
       extraGravy: { name:'एक्स्ट्रा ग्रेवी', desc:'हमारी मुख्य ग्रेवी का एक और बाउल — जब खीचीया पहले खत्म हो जाए तब के लिए।', descShort:'थोड़ी और सिग्नेचर ग्रेवी।' },
       extraKhichiya: { name:'एक्स्ट्रा खीचीया', desc:'एक एक्स्ट्रा कोयले पर सिंके हुए खीचीया — जब ग्रेवी खीचीया से ज़्यादा चले तब के लिए।', descShort:'एक और कोयले पर सिकी हुई खीचीया।', priceMini:'मिनी ₹50', priceLarge:'लार्ज ₹60' }
@@ -6431,6 +6532,9 @@ const translations = {
       atTKG: '🟢 मैं अभी स्टॉल पर ही खड़ा हूँ',
       planning: '🟡 बस रास्ते में हूँ, अभी पहुँचता हूँ',
       exploring: '⚪ बस ऐसे ही मेनू देख रहा हूँ',
+      atTKGShort: 'स्टॉल पर',
+      planningShort: 'मुलाकात की योजना',
+      exploringShort: 'देख रहे हैं',
       browsingAs: '📍 आप इस तरह देख रहे हैं',
       changeLink: 'स्टेटस बदलें ›',
       hintAtTKG: 'खाने का मज़ा लीजिए 😄 प्लान बदले तो, कभी भी अपना स्टेटस बदल सकते हैं।',
@@ -6438,10 +6542,10 @@ const translations = {
       hintExploring: 'आज आने का सोच रहे हैं? आप कभी भी अपना स्टेटस बदल सकते हैं।'
     },
     greeting: {
-      morning: '👋 सुप्रभात!',
-      afternoon: '👋 नमस्कार!',
-      evening: '👋 गुड इवनिंग!',
-      night: '👋 शुभ रात्रि!',
+      morning: 'सुप्रभात!',
+      afternoon: 'नमस्कार!',
+      evening: 'गुड इवनिंग!',
+      night: 'शुभ रात्रि!',
       atTKG: 'खाने का मज़ा लीजिए 😄',
       planning: 'आपका स्वागत करने के लिए बेताब हैं।',
       exploring: 'स्वागत है!<br>चलिए देखते हैं TKG को क्या खास बनाता है।'
@@ -6643,6 +6747,7 @@ document.querySelectorAll('.lang-option').forEach(opt => {
 });
 applyTranslations();
 renderReviewTeaser();
+renderTagline();
 attemptSync();
 
 // ---------------------------------------------------------------------------
