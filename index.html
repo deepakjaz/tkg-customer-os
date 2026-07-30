@@ -1538,6 +1538,7 @@ textarea.field-input{
   overflow-x:auto;
   scrollbar-width:none;
   box-shadow:0 1px 2px rgba(28,24,21,0.05);
+  margin-bottom:12px;
 }
 .hero-story-strip::-webkit-scrollbar{display:none;}
 .hero-story-strip .story-step{
@@ -1556,6 +1557,62 @@ textarea.field-input{
   color:var(--stone-vein);
   font-size:0.6875rem;
   flex-shrink:0;
+}
+
+/* Story-progress bar for the REVIEW TEASER (not the pill strip above) —
+   one segment per loaded review. Behaves like an IG story: the active
+   segment fills over REVIEW_TEASER_DURATION then auto-advances to the
+   next review; already-seen segments stay fully filled. Rebuilt by
+   renderReviewTeaser() each time the review index or review data changes. */
+.review-teaser-progress{
+  display:flex;
+  gap:4px;
+  margin-top:14px;
+}
+.review-teaser-progress .rtp-seg{
+  flex:1;
+  height:2.5px;
+  border-radius:2px;
+  background:var(--stone-line);
+  overflow:hidden;
+}
+.review-teaser-progress .rtp-seg span{
+  display:block;
+  height:100%;
+  width:0%;
+  border-radius:2px;
+  background:var(--ember);
+}
+.review-teaser-progress .rtp-seg.seen span{width:100%;}
+.review-teaser-progress .rtp-seg.active span{animation:rtp-fill 5s linear forwards;}
+@keyframes rtp-fill{ to{ width:100%; } }
+
+/* Single-review teaser card — restores the pre-redesign "one review,
+   tap for more" card. Deliberately shows nothing but the review itself
+   (avatar/name/stars + one truncated line + a view-more prompt); the
+   full list still lives in openCustomerStoriesSheet() and this just
+   opens that same sheet on tap. Reuses .cs-review-* tokens for visual
+   consistency with the sheet it opens into. */
+.review-teaser-card{
+  background:var(--stone-card-alt);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  padding:13px 14px;
+  margin-top:6px;
+  cursor:pointer;
+  transition:transform 0.12s ease;
+}
+.review-teaser-card:active{transform:scale(0.99);}
+.review-teaser-card .cs-review-quote{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.review-teaser-viewmore{
+  margin-top:7px;
+  font-size:0.7188rem;
+  font-weight:700;
+  color:var(--ember-deep);
 }
 
 /* ==========================================================================
@@ -2688,6 +2745,21 @@ textarea.field-input{
       </div>
     </div>
 
+    <!-- ============ STORY STRIP + REVIEW TEASER — restored (previously
+         removed during the header redesign; CSS/i18n strings had been left
+         behind unused). Story strip is purely decorative. The review teaser
+         shows ONE truncated review (real Sheet data once available, sample
+         fallback until then) and opens the existing full Rate-Us sheet on
+         tap — no new review logic, just a compact entry point into it.
+         Populated by renderReviewTeaser() (see JS). ============ -->
+    <div class="hero-story-strip">
+      <span class="story-step"><span class="step-icon">🔥</span>Coal-Cooked</span>
+      <span class="story-arrow">→</span>
+      <span class="story-step"><span class="step-icon">🧀</span>Cheesy Gravy</span>
+      <span class="story-arrow">→</span>
+      <span class="story-step"><span class="step-icon">🥣</span>Khichiya for Dipping</span>
+    </div>
+
     <!-- ============ TICKET STRIP — Sprint: Menu Header & Item Cards
          Redesign. Replaces the separate Business Status Card + Welcome
          Card's journey row with one boarding-pass-style strip. Same IDs/
@@ -2719,6 +2791,11 @@ textarea.field-input{
         <span data-i18n="menu.getDirections">Get Directions</span>
       </a>
     </div>
+
+    <!-- Story-progress bar for the review teaser — one segment per review,
+         auto-advances like an IG story. Built/updated by renderReviewTeaser(). -->
+    <div class="review-teaser-progress" id="reviewTeaserProgress"></div>
+    <div class="review-teaser-card" id="reviewTeaserCard" role="button" tabindex="0"></div>
 
     <!-- ============ MENU (tabs + items + extras) — grouped under one
          data-journey gate since the journey spec lists "Menu" as a single
@@ -2856,10 +2933,6 @@ textarea.field-input{
 
     <div class="footer-meta" data-journey="planning">
       <span class="hours-note" data-i18n="menu.hours">Opens Fri/Sat/Sun · Evening to Late Night</span>
-      <a class="directions-link directions-link--primary" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
-        <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
-        <span data-i18n="menu.getDirections">Get Directions</span>
-      </a>
     </div>
 
     <a class="phone-note" href="tel:+919510100950">
@@ -2873,6 +2946,15 @@ textarea.field-input{
       <a class="link-chip" id="instaLink" href="#" target="_blank" rel="noopener" data-i18n="menu.instagram" data-journey="planning,exploring">Instagram</a>
       <a class="link-chip" id="googleReviewLink" href="#" target="_blank" rel="noopener" data-i18n="menu.googleReview" data-journey="atTKG">Google Review</a>
     </div>
+
+    <!-- Get Directions — moved back below the WhatsApp/Instagram/Google
+         Review row per Deepak's request (2026-07-31), full-width to span
+         that row. Same destination/link as the small header chip; this is
+         just a second, more prominent entry point. -->
+    <a class="directions-link directions-link--primary" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener" style="margin:10px 0 0;">
+      <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      <span data-i18n="menu.getDirections">Get Directions</span>
+    </a>
 
     <!-- Registration CTA card removed (Sprint: Customer OS UI Polish, item 1)
          — duplicated the Quick Actions footer's "Message Us" button, which
@@ -3305,6 +3387,7 @@ function loadFeaturedReviewsFromSheet(){
     .then(data => {
       if(!data || data.status !== 'ok' || !Array.isArray(data.reviews) || data.reviews.length === 0) return;
       contentRegistry.featuredReviews = data.reviews;
+      renderReviewTeaser();
     })
     .catch(err => {
       console.warn('loadFeaturedReviewsFromSheet failed, keeping sample reviews:', err);
@@ -5131,6 +5214,56 @@ function getInitials(name){
   return String(name || '').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
+// Compact single-review teaser — sits above the Menu. Shows one review at a
+// time with an IG-story-style progress bar above it (one segment per
+// review); each segment fills over REVIEW_TEASER_DURATION, then auto-
+// advances to the next review, looping back to the first after the last.
+// Tapping the card opens the same full openCustomerStoriesSheet() below.
+// Re-run after real reviews load from the Sheet so it swaps sample -> real
+// without a page refresh.
+const REVIEW_TEASER_DURATION = 5000;
+let reviewTeaserIdx = 0;
+let reviewTeaserTimer = null;
+
+function renderReviewTeaser(){
+  const card = document.getElementById('reviewTeaserCard');
+  const progress = document.getElementById('reviewTeaserProgress');
+  if(!card || !progress) return;
+  const reviews = renderContent('featuredReviews');
+  if(reviewTeaserTimer){ clearTimeout(reviewTeaserTimer); reviewTeaserTimer = null; }
+  if(!reviews.length){ card.style.display = 'none'; progress.style.display = 'none'; return; }
+  if(reviewTeaserIdx >= reviews.length) reviewTeaserIdx = 0;
+
+  card.style.display = '';
+  progress.style.display = reviews.length > 1 ? '' : 'none';
+  progress.innerHTML = reviews.map((_, i) => {
+    const state = i < reviewTeaserIdx ? 'seen' : (i === reviewTeaserIdx ? 'active' : '');
+    return '<div class="rtp-seg ' + state + '"><span></span></div>';
+  }).join('');
+
+  const r = reviews[reviewTeaserIdx];
+  const dict = translations[currentLang] || translations.en;
+  card.innerHTML =
+    '<div class="cs-review-top">' +
+      '<span class="cs-review-avatar">' + escapeHtml(getInitials(r.authorName)) + '</span>' +
+      '<span class="cs-review-author">' + escapeHtml(r.authorName) + '</span>' +
+      '<span class="cs-review-stars">' + '★'.repeat(r.rating || 5) + '</span>' +
+    '</div>' +
+    '<div class="cs-review-quote">' + escapeHtml(r.quoteText) + '</div>' +
+    '<div class="review-teaser-viewmore">' + escapeHtml(dict.reviews.viewMore) + '</div>';
+
+  if(reviews.length > 1){
+    reviewTeaserTimer = setTimeout(() => {
+      reviewTeaserIdx = (reviewTeaserIdx + 1) % reviews.length;
+      renderReviewTeaser();
+    }, REVIEW_TEASER_DURATION);
+  }
+}
+document.getElementById('reviewTeaserCard')?.addEventListener('click', () => openCustomerStoriesSheet());
+document.getElementById('reviewTeaserCard')?.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openCustomerStoriesSheet(); }
+});
+
 function openCustomerStoriesSheet(){
   const dict = translations[currentLang] || translations.en;
   const footerHtml = buildCtaFooter({
@@ -6509,6 +6642,7 @@ document.querySelectorAll('.lang-option').forEach(opt => {
   opt.classList.toggle('selected', opt.dataset.lang === currentLang);
 });
 applyTranslations();
+renderReviewTeaser();
 attemptSync();
 
 // ---------------------------------------------------------------------------
