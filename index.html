@@ -8,6 +8,12 @@
 <meta name="description" content="The Khichiya Gravy — menu, registration and visit tracking">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon-192.png">
+<!-- TKG Moments — Instagram's own embed script, loads a single public post
+     as a real embedded card from just its link. No API key/app needed
+     (tokenless again as of Meta's June 2026 change). Loaded async/globally
+     since screen-moments is reached via in-page navigation, not a fresh
+     page load. -->
+<script async src="https://www.instagram.com/embed.js"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -332,6 +338,186 @@ input{font-family:inherit;}
   margin-top:8px;
 }
 .journey-back-link:active{ opacity:0.6; }
+
+/* ---- TKG Moments (fullscreen vertical-swipe photo/Instagram viewer) ---- */
+#screen-moments{ padding:0 !important; }
+.moments-topbar{
+  position:fixed;
+  top:0; left:0; right:0;
+  z-index:20;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+  background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0));
+  pointer-events:none;
+}
+.moments-back-btn{
+  pointer-events:auto;
+  background:rgba(28,24,21,0.45);
+  border:none;
+  color:#fff;
+  font-size:0.8125rem;
+  font-weight:700;
+  padding:8px 14px;
+  border-radius:20px;
+}
+.moments-back-btn:active{ opacity:0.7; }
+.moments-stat{
+  pointer-events:auto;
+  color:#fff;
+  font-size:0.75rem;
+  font-weight:700;
+  background:rgba(28,24,21,0.45);
+  padding:8px 14px;
+  border-radius:20px;
+}
+.moments-viewer{
+  position:fixed;
+  inset:0;
+  overflow-y:auto;
+  scroll-snap-type:y mandatory;
+  background:#000;
+  -webkit-overflow-scrolling:touch;
+}
+.moments-slide{
+  position:relative;
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:#000;
+}
+.moments-slide-media{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.moments-slide-gradient{
+  position:absolute;
+  left:0; right:0; bottom:0;
+  height:40%;
+  background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+  pointer-events:none;
+}
+.moments-slide-caption{
+  position:absolute;
+  left:16px; right:76px; bottom:calc(env(safe-area-inset-bottom, 0px) + 28px);
+  color:#fff;
+  font-size:0.9375rem;
+  line-height:1.4;
+  text-shadow:0 1px 4px rgba(0,0,0,0.4);
+}
+.moments-slide-actions{
+  position:absolute;
+  right:14px; bottom:calc(env(safe-area-inset-bottom, 0px) + 28px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+  z-index:5;
+}
+.moments-heart-btn, .moments-share-btn{
+  background:none;
+  border:none;
+  font-size:1.875rem;
+  line-height:1;
+  color:#fff;
+  filter:drop-shadow(0 1px 4px rgba(0,0,0,0.5));
+  transition:transform 0.18s ease;
+}
+.moments-heart-btn.liked{ transform:scale(1.2); }
+.moments-heart-btn:active, .moments-share-btn:active{ transform:scale(0.9); }
+.moments-slide-embed{
+  background:#000;
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  overflow-y:auto;
+}
+.moments-empty, .moments-loading{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:#fff;
+  background:#000;
+  font-size:0.875rem;
+  padding:32px 16px;
+  z-index:10;
+}
+.moments-fab-row{
+  position:fixed;
+  left:16px; right:16px;
+  bottom:calc(env(safe-area-inset-bottom, 0px) + 16px);
+  z-index:20;
+  display:flex;
+  gap:10px;
+}
+.moments-fab{
+  flex:1;
+  background:var(--ember);
+  color:#fff;
+  border:none;
+  border-radius:24px;
+  padding:13px;
+  font-size:0.8125rem;
+  font-weight:700;
+  box-shadow:0 6px 16px -6px rgba(0,0,0,0.5);
+}
+.moments-fab:active{ opacity:0.85; }
+.moments-fab-secondary{
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(4px);
+}
+.moments-compose-overlay{
+  position:fixed;
+  inset:0;
+  z-index:30;
+  background:rgba(0,0,0,0.75);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.moments-compose-overlay.hidden{ display:none; }
+.moments-compose-card{
+  width:100%;
+  max-width:360px;
+  background:var(--stone-card);
+  border-radius:var(--radius-lg);
+  padding:18px;
+  max-height:90vh;
+  max-height:90dvh;
+  overflow-y:auto;
+}
+.moments-compose-preview{
+  width:100%;
+  max-height:280px;
+  object-fit:cover;
+  border-radius:var(--radius-md);
+  margin-bottom:14px;
+  display:block;
+}
+.moments-status{
+  font-size:0.75rem;
+  color:var(--ink-soft);
+  margin-top:8px;
+  min-height:1em;
+}
+.moments-status.error{ color:var(--ember-deep, #B8431D); }
+.moments-status.success{ color:var(--success, #4C7A4C); }
+
 .journey-intro{
   margin-top:32px;
   margin-bottom:28px;
@@ -2694,6 +2880,25 @@ textarea.field-input{
          about registration itself changed; this only removes the extra
          visual entry point on the Menu page. -->
 
+    <!-- ============ TKG MOMENTS — customer photo/Instagram-moment gallery.
+         Standalone entry card, same visual language as Fun Activity, sitting
+         just above it. Opens screen-moments (see JS + new screen below). ==== -->
+    <div class="fun-activity-card">
+      <div class="fun-activity-header">
+        <div class="fun-activity-title">📸 TKG Moments</div>
+        <div class="fun-activity-sub">Snapped something good? Share it — or see what others clicked.</div>
+      </div>
+      <div class="fun-activity-row">
+        <button type="button" class="fun-activity-row-btn" id="openMomentsBtn">
+          <span class="far-text">
+            <span class="far-title">View the gallery</span>
+            <span class="far-sub">Upload a photo, or share your Instagram moment.</span>
+          </span>
+          <span class="far-chevron">›</span>
+        </button>
+      </div>
+    </div>
+
     <!-- ============ FUN ACTIVITY — Sprint: Fun Activity Card Consolidation.
          One card, three rows, instead of three separate floating cards
          (Taste Discovery / Khichiya Runner / Leaderboard) that were taking
@@ -2747,6 +2952,58 @@ textarea.field-input{
       <p id="journeyHint" style="font-size:0.75rem; color:var(--ink-soft); text-align:center; margin-bottom:6px;"></p>
     </div>
 
+  </section>
+
+  <!-- ============ SCREEN: TKG MOMENTS — customer photo/Instagram-moment
+       gallery. Fullscreen vertical-swipe viewer (Reels-style). Own photos
+       get the full custom treatment (floating heart/share, caption) since
+       we control that HTML completely; a pasted Instagram link renders as
+       Instagram's own real embed — no custom buttons overlaid on it, since
+       that widget doesn't allow it — just our back control around it. Two
+       ways in: upload a photo directly (goes to Drive via Apps Script,
+       only the resulting link is ever stored), or paste a link to a
+       moment already posted on the customer's own Instagram. No approval
+       queue for now — everything submitted publishes immediately. ==== -->
+  <section class="screen" id="screen-moments">
+    <div class="moments-topbar">
+      <button type="button" class="moments-back-btn" id="momentsBackBtn">← Back</button>
+      <div class="moments-stat" id="momentsStat"></div>
+    </div>
+
+    <div class="moments-viewer" id="momentsViewer"></div>
+    <div class="moments-empty" id="momentsEmptyState" style="display:none;">No moments yet — be the first to share one!</div>
+    <div class="moments-loading" id="momentsLoadingState">Loading gallery…</div>
+
+    <div class="moments-fab-row">
+      <input type="file" accept="image/*" capture="environment" id="momentsFileInput" style="display:none;">
+      <button type="button" class="moments-fab" id="momentsUploadBtn">📷 Share Yours</button>
+      <button type="button" class="moments-fab moments-fab-secondary" id="momentsLinkFabBtn">🔗 Paste IG Link</button>
+    </div>
+
+    <!-- Compose step — shown only after a photo is picked, so the customer
+         sees their own photo before deciding whether to add a caption.
+         Nothing is uploaded until they tap Post here. -->
+    <div class="moments-compose-overlay hidden" id="momentsComposeOverlay">
+      <div class="moments-compose-card">
+        <img class="moments-compose-preview" id="momentsComposePreview" alt="Your photo">
+        <label class="field-label" for="momentsCaptionInput">Add a caption? (optional)</label>
+        <input class="field-input" id="momentsCaptionInput" type="text" placeholder="Say something about this moment" maxlength="200">
+        <div class="moments-status" id="momentsUploadStatus"></div>
+        <button type="button" class="btn-primary" id="momentsComposePostBtn" style="width:100%; margin-top:10px;">Post</button>
+        <button type="button" class="btn-secondary" id="momentsComposeCancelBtn" style="width:100%; margin-top:8px;">Cancel</button>
+      </div>
+    </div>
+
+    <div class="moments-compose-overlay hidden" id="momentsLinkOverlay">
+      <div class="moments-compose-card">
+        <div class="journey-title" style="font-size:1.0625rem; margin-bottom:12px;">Share your Instagram moment</div>
+        <label class="field-label" for="momentsLinkInput">Paste the link to your post or reel</label>
+        <input class="field-input" id="momentsLinkInput" type="url" placeholder="https://www.instagram.com/p/..." maxlength="300">
+        <div class="moments-status" id="momentsLinkStatus"></div>
+        <button type="button" class="btn-primary" id="momentsLinkSubmitBtn" style="width:100%; margin-top:10px;">Add to Gallery</button>
+        <button type="button" class="btn-secondary" id="momentsLinkCancelBtn" style="width:100%; margin-top:8px;">Cancel</button>
+      </div>
+    </div>
   </section>
 
   <!-- ============ INFO SHEET — education content, behind the ⓘ button ============ -->
@@ -2954,10 +3211,13 @@ document.getElementById('googleReviewLink').href = GOOGLE_REVIEW_URL;
 // renderContent() comment below. Do not add per-item translation handling
 // here yet; that's a Content OS-era decision, not a Phase A/B one.
 //
-// NOTE: featuredReviews below is SAMPLE/PLACEHOLDER data for development —
-// replace with real customer reviews before this ships to production.
-// Reviews are intentionally NOT translated (see quoteText) — authenticity
-// over localization. Only surrounding UI chrome uses the translations system.
+// NOTE: featuredReviews below is now only a FALLBACK — real reviews are
+// fetched from the Sheet on load (see loadFeaturedReviewsFromSheet() below
+// renderContent()) and replace this array whenever that fetch succeeds.
+// This sample data only ever shows if that fetch fails or the Sheet tab is
+// still empty. Reviews are intentionally NOT translated (see quoteText) —
+// authenticity over localization. Only surrounding UI chrome uses the
+// translations system.
 // ---------------------------------------------------------------------------
 const contentRegistry = {
   featuredReviews: [
@@ -3026,6 +3286,337 @@ function renderContent(type){
     })
     .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 }
+
+// ---------------------------------------------------------------------------
+// Google Reviews sprint — replaces the hardcoded SAMPLE/PLACEHOLDER
+// featuredReviews above with Deepak's real, Sheet-managed reviews (kept
+// current by hand from a periodic Google Takeout export of his Business
+// Profile — no live API, no ongoing cost). Fire-and-forget on load: the
+// Review Hero Card is only ever opened on demand (openCustomerStoriesSheet,
+// well after page load), so there's no rendering to block on. On any
+// failure (offline, not configured yet, empty sheet) contentRegistry simply
+// keeps its built-in sample reviews — same offline-safe fallback pattern
+// used everywhere else in this file.
+// ---------------------------------------------------------------------------
+function loadFeaturedReviewsFromSheet(){
+  if(APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
+  fetch(APP_SCRIPT_URL + '?action=featuredReviews')
+    .then(res => { if(!res.ok) throw new Error('featuredReviews fetch failed: ' + res.status); return res.json(); })
+    .then(data => {
+      if(!data || data.status !== 'ok' || !Array.isArray(data.reviews) || data.reviews.length === 0) return;
+      contentRegistry.featuredReviews = data.reviews;
+    })
+    .catch(err => {
+      console.warn('loadFeaturedReviewsFromSheet failed, keeping sample reviews:', err);
+    });
+}
+loadFeaturedReviewsFromSheet();
+
+// ---------------------------------------------------------------------------
+// TKG MOMENTS — customer photo/Instagram-moment gallery. Fullscreen
+// vertical-swipe viewer. Two submission paths (direct photo upload via
+// Apps Script -> Drive, or pasting a link to a moment already posted on
+// the customer's own Instagram, embedded client-side via Instagram's own
+// embed.js) feeding one shared, newest-first feed. No approval queue for
+// now — everything submitted publishes immediately.
+// ---------------------------------------------------------------------------
+const momentsBackBtn = document.getElementById('momentsBackBtn');
+const momentsStat = document.getElementById('momentsStat');
+const momentsViewer = document.getElementById('momentsViewer');
+const momentsEmptyState = document.getElementById('momentsEmptyState');
+const momentsLoadingState = document.getElementById('momentsLoadingState');
+const momentsFileInput = document.getElementById('momentsFileInput');
+const momentsUploadBtn = document.getElementById('momentsUploadBtn');
+const momentsLinkFabBtn = document.getElementById('momentsLinkFabBtn');
+const momentsComposeOverlay = document.getElementById('momentsComposeOverlay');
+const momentsComposePreview = document.getElementById('momentsComposePreview');
+const momentsCaptionInput = document.getElementById('momentsCaptionInput');
+const momentsUploadStatus = document.getElementById('momentsUploadStatus');
+const momentsComposePostBtn = document.getElementById('momentsComposePostBtn');
+const momentsComposeCancelBtn = document.getElementById('momentsComposeCancelBtn');
+const momentsLinkOverlay = document.getElementById('momentsLinkOverlay');
+const momentsLinkInput = document.getElementById('momentsLinkInput');
+const momentsLinkStatus = document.getElementById('momentsLinkStatus');
+const momentsLinkSubmitBtn = document.getElementById('momentsLinkSubmitBtn');
+const momentsLinkCancelBtn = document.getElementById('momentsLinkCancelBtn');
+
+document.getElementById('openMomentsBtn').addEventListener('click', () => {
+  showScreen('screen-moments');
+  loadMoments();
+  loadMomentsStat();
+});
+
+momentsBackBtn.addEventListener('click', () => {
+  showScreen('screen-menu');
+});
+
+function setMomentsStatus(el, text, kind){
+  el.textContent = text || '';
+  el.classList.remove('error', 'success');
+  if(kind) el.classList.add(kind);
+}
+
+// ---------------------------------------------------------------------------
+// Honest community stat — real registered-customer count + real total game
+// plays, added together and shown plainly labeled ("part of the TKG
+// story"), never attached to any single photo as if it were that photo's
+// like count. Both counts already come from existing, already-public GET
+// actions — no new endpoint needed. Best-effort: if either fetch fails,
+// the stat line is simply left blank rather than guessed at.
+// ---------------------------------------------------------------------------
+async function loadMomentsStat(){
+  momentsStat.textContent = '';
+  try{
+    const [customersRes, scoresRes] = await Promise.all([
+      fetch(APP_SCRIPT_URL + '?action=customers'),
+      fetch(APP_SCRIPT_URL + '?action=runnerScores')
+    ]);
+    const customersData = await customersRes.json();
+    const scoresData = await scoresRes.json();
+    const customerCount = (customersData && Array.isArray(customersData.customers)) ? customersData.customers.length : 0;
+    const playCount = (scoresData && Array.isArray(scoresData.scores)) ? scoresData.scores.length : 0;
+    const total = customerCount + playCount;
+    if(total > 0){
+      momentsStat.textContent = '🔥 ' + total + '+ part of the TKG story';
+    }
+  }catch(err){
+    console.warn('loadMomentsStat failed, leaving stat blank:', err);
+  }
+}
+
+// Local-only "liked" memory, same pattern as the menu's item-heart
+// localStorage use — purely a personal toggle so a moment you've tapped
+// still shows filled if you scroll back to it, not a real shared count.
+const MOMENTS_LIKED_KEY = 'tkg_liked_moments';
+function getLikedMomentIds(){
+  try{ return new Set(JSON.parse(localStorage.getItem(MOMENTS_LIKED_KEY) || '[]')); }
+  catch(e){ return new Set(); }
+}
+function toggleLikedMomentId(id){
+  const liked = getLikedMomentIds();
+  if(liked.has(id)) liked.delete(id); else liked.add(id);
+  try{ localStorage.setItem(MOMENTS_LIKED_KEY, JSON.stringify(Array.from(liked))); }catch(e){}
+  return liked.has(id);
+}
+
+async function loadMoments(){
+  momentsLoadingState.style.display = '';
+  momentsEmptyState.style.display = 'none';
+  momentsViewer.innerHTML = '';
+
+  try{
+    const res = await fetch(APP_SCRIPT_URL + '?action=moments');
+    if(!res.ok) throw new Error('moments fetch failed: ' + res.status);
+    const data = await res.json();
+    if(!data || data.status !== 'ok' || !Array.isArray(data.moments)) throw new Error('Unexpected response');
+
+    momentsLoadingState.style.display = 'none';
+
+    if(data.moments.length === 0){
+      momentsEmptyState.style.display = '';
+      return;
+    }
+
+    const likedIds = getLikedMomentIds();
+    // Newest first.
+    const ordered = data.moments.slice().reverse();
+
+    momentsViewer.innerHTML = ordered.map(m => {
+      if(m.type === 'photo' && m.imageUrl){
+        const isLiked = likedIds.has(m.id);
+        return '<div class="moments-slide">' +
+          '<img class="moments-slide-media" src="' + escapeHtml(m.imageUrl) + '" alt="TKG moment" loading="lazy">' +
+          '<div class="moments-slide-gradient"></div>' +
+          (m.caption ? '<div class="moments-slide-caption">' + escapeHtml(m.caption) + '</div>' : '') +
+          '<div class="moments-slide-actions">' +
+            '<button type="button" class="moments-heart-btn' + (isLiked ? ' liked' : '') + '" data-id="' + escapeHtml(m.id) + '">' + (isLiked ? '❤️' : '🤍') + '</button>' +
+            '<button type="button" class="moments-share-btn" data-url="' + escapeHtml(m.imageUrl) + '">📤</button>' +
+          '</div>' +
+        '</div>';
+      }
+      if(m.type === 'instagram' && m.instagramUrl){
+        return '<div class="moments-slide">' +
+          '<div class="moments-slide-embed"><blockquote class="instagram-media" data-instgrm-permalink="' +
+            escapeHtml(m.instagramUrl) + '" data-instgrm-version="14"></blockquote></div>' +
+        '</div>';
+      }
+      return '';
+    }).join('');
+
+    // Ask Instagram's embed script to render any new blockquotes just
+    // inserted above. Guarded since embed.js loads async and may not have
+    // attached window.instgrm yet on a very first, very fast visit.
+    if(window.instgrm && window.instgrm.Embeds){
+      window.instgrm.Embeds.process();
+    }
+
+    // Wire the heart/share buttons just rendered (delegation not needed —
+    // the whole viewer is rebuilt fresh on every loadMoments() call).
+    momentsViewer.querySelectorAll('.moments-heart-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const nowLiked = toggleLikedMomentId(btn.dataset.id);
+        btn.textContent = nowLiked ? '❤️' : '🤍';
+        btn.classList.toggle('liked', nowLiked);
+      });
+    });
+    momentsViewer.querySelectorAll('.moments-share-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const url = btn.dataset.url;
+        if(navigator.share){
+          navigator.share({ title: 'TKG Moments', text: 'Check out this moment at TKG!', url: url }).catch(() => {});
+        }else if(navigator.clipboard){
+          navigator.clipboard.writeText(url);
+          showToast('Link copied!');
+        }
+      });
+    });
+  }catch(err){
+    console.warn('loadMoments failed:', err);
+    momentsLoadingState.style.display = 'none';
+    momentsEmptyState.style.display = '';
+    momentsEmptyState.textContent = "Couldn't load the gallery right now — check your connection and try again.";
+  }
+}
+
+// Resizes/compresses a photo client-side before upload (max 1280px on the
+// long edge, JPEG ~0.82 quality) — keeps the upload fast and the Apps
+// Script payload well within its size limits, regardless of how large the
+// original phone photo is.
+function resizeImageForUpload(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Could not load image'));
+      img.onload = () => {
+        const maxDim = 1280;
+        let { width, height } = img;
+        if(width > height && width > maxDim){
+          height = Math.round(height * (maxDim / width));
+          width = maxDim;
+        }else if(height > maxDim){
+          width = Math.round(width * (maxDim / height));
+          height = maxDim;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Upload flow — two steps, not one. Picking a photo no longer uploads
+// immediately: it opens the Compose card so the customer sees their own
+// photo first and can optionally add a caption before anything is sent.
+// Nothing reaches the backend until they tap Post.
+// ---------------------------------------------------------------------------
+let momentsPendingImageBase64 = null;
+
+momentsUploadBtn.addEventListener('click', () => {
+  momentsFileInput.click();
+});
+
+momentsFileInput.addEventListener('change', async () => {
+  const file = momentsFileInput.files && momentsFileInput.files[0];
+  momentsFileInput.value = ''; // allow picking the same file again later
+  if(!file) return;
+
+  try{
+    momentsPendingImageBase64 = await resizeImageForUpload(file);
+    momentsComposePreview.src = momentsPendingImageBase64;
+    momentsCaptionInput.value = '';
+    setMomentsStatus(momentsUploadStatus, '');
+    momentsComposeOverlay.classList.remove('hidden');
+  }catch(err){
+    console.warn('Could not read/resize photo:', err);
+  }
+});
+
+momentsComposeCancelBtn.addEventListener('click', () => {
+  momentsPendingImageBase64 = null;
+  momentsComposeOverlay.classList.add('hidden');
+});
+
+momentsComposePostBtn.addEventListener('click', async () => {
+  if(!momentsPendingImageBase64) return;
+
+  momentsComposePostBtn.disabled = true;
+  setMomentsStatus(momentsUploadStatus, 'Posting…');
+
+  try{
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight on Apps Script
+      body: JSON.stringify({
+        action: 'uploadMoment',
+        imageBase64: momentsPendingImageBase64,
+        mimeType: 'image/jpeg',
+        caption: momentsCaptionInput.value.trim()
+      })
+    });
+    if(!res.ok) throw new Error('Upload failed: ' + res.status);
+    const data = await res.json();
+    if(!data || data.status !== 'ok') throw new Error('Upload not recorded');
+
+    momentsPendingImageBase64 = null;
+    momentsComposeOverlay.classList.add('hidden');
+    loadMoments();
+    loadMomentsStat();
+  }catch(err){
+    console.warn('Moment photo upload failed:', err);
+    setMomentsStatus(momentsUploadStatus, "Couldn't upload right now — check your connection and try again.", 'error');
+  }finally{
+    momentsComposePostBtn.disabled = false;
+  }
+});
+
+momentsLinkFabBtn.addEventListener('click', () => {
+  momentsLinkInput.value = '';
+  setMomentsStatus(momentsLinkStatus, '');
+  momentsLinkOverlay.classList.remove('hidden');
+});
+
+momentsLinkCancelBtn.addEventListener('click', () => {
+  momentsLinkOverlay.classList.add('hidden');
+});
+
+momentsLinkSubmitBtn.addEventListener('click', async () => {
+  const url = momentsLinkInput.value.trim();
+  if(!url || url.indexOf('instagram.com') === -1){
+    setMomentsStatus(momentsLinkStatus, 'Please paste a valid Instagram post/reel link.', 'error');
+    return;
+  }
+
+  momentsLinkSubmitBtn.disabled = true;
+  setMomentsStatus(momentsLinkStatus, 'Adding…');
+
+  try{
+    const res = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'submitMomentLink', instagramUrl: url })
+    });
+    if(!res.ok) throw new Error('Submit failed: ' + res.status);
+    const data = await res.json();
+    if(!data || data.status !== 'ok') throw new Error('Link not recorded');
+
+    momentsLinkOverlay.classList.add('hidden');
+    loadMoments();
+    loadMomentsStat();
+  }catch(err){
+    console.warn('Moment link submit failed:', err);
+    setMomentsStatus(momentsLinkStatus, "Couldn't add that right now — check your connection and try again.", 'error');
+  }finally{
+    momentsLinkSubmitBtn.disabled = false;
+  }
+});
 
 const LS_KEY = 'tkg_customers';
 const LS_SESSION_KEY = 'tkg_current_session';
