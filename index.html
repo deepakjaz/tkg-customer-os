@@ -166,7 +166,7 @@ input{font-family:inherit;}
     linear-gradient(140deg, transparent 84%, rgba(124,112,96,0.09) 84.4%, transparent 85%),
     /* fine paper-like grain, very low opacity */
     repeating-linear-gradient(0deg, rgba(28,24,21,0.01) 0px, rgba(28,24,21,0.01) 1px, transparent 1px, transparent 3px);
-  background-attachment:fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, local;
+  background-attachment:scroll, scroll, scroll, scroll, scroll, scroll, scroll, scroll, local;
 }
 
 /* Ambient warm glow removed (was .shell::before, an animated gold radial
@@ -1936,9 +1936,7 @@ textarea.field-input{
   justify-content:space-between;
   align-items:flex-start;
   gap:12px;
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
+  background:rgba(255,255,255,0.86);
   border:1px solid var(--stone-line);
   border-radius:var(--radius-lg);
   padding:16px;
