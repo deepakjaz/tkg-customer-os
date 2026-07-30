@@ -160,8 +160,8 @@ input{font-family:inherit;}
   gap:8px;
 }
 .wordmark-logo{
-  width:32px;
-  height:32px;
+  width:30px;
+  height:30px;
   flex-shrink:0;
   display:block;
   border-radius:50%;
@@ -469,6 +469,197 @@ input{font-family:inherit;}
   white-space:nowrap;
   flex-shrink:0;
 }
+
+/* ==========================================================================
+   TICKET HEADER REDESIGN — Sprint: Menu Header & Item Cards Redesign.
+   Replaces the earlier collapsing-header approach entirely: rather than
+   hiding content on scroll (animation-dependent, risked glitches across 3
+   languages/2 text sizes), the header is now naturally short enough that
+   nothing needs to hide. Same underlying elements/IDs as before
+   (businessStatusCard/Icon/Label/Detail, journeyStatusCurrent,
+   changeJourneyBtn, dgGreetingText/dgSubText, directionsLink,
+   textSizeBtn/langBtn) — only the layout around them changed.
+   ========================================================================== */
+
+/* -- Settings pill (Aa + Language grouped, so they read as two distinct
+      settings instead of two identical-looking circular icon buttons) -- */
+.settings-pill{
+  display:flex;
+  align-items:center;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:20px;
+  padding:2px;
+}
+.settings-pill-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:1px;
+  background:none;
+  border:none;
+  padding:4px 11px;
+  color:var(--ink);
+}
+.settings-pill-item .spi-value{
+  font-size:0.75rem;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:2px;
+}
+.settings-pill-item .spi-caption{
+  font-size:0.5rem;
+  letter-spacing:0.04em;
+  color:var(--ink-soft);
+  font-weight:600;
+}
+.settings-pill-divider{
+  width:1px;
+  height:20px;
+  background:var(--stone-line);
+}
+
+/* -- Compact hero: one centered block instead of the old 3-line headline
+      + separate tagline + separate icon-trail row -- */
+.app-hero-compact{
+  text-align:center;
+  padding:6px 4px 14px;
+}
+.app-hero-eyebrow{
+  font-size:0.6875rem;
+  letter-spacing:0.07em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin-bottom:2px;
+}
+.app-hero-eyebrow .eyebrow-sep{margin:0 5px; opacity:0.6;}
+.app-hero-headline-compact{
+  font-family:var(--font-display);
+  font-size:1.75rem;
+  font-weight:800;
+  color:var(--ember);
+  line-height:1.1;
+  margin:0;
+}
+.hero-greeting-line{
+  font-size:0.75rem;
+  color:var(--ink-soft);
+  margin-top:5px;
+}
+.hero-greeting-line #dgSubText{margin-left:4px;}
+
+/* -- Ticket strip: Open/Closed + Hours + Journey as one boarding-pass-style
+      row with dashed dividers, instead of two separate stacked cards -- */
+.ticket-strip{
+  display:flex;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  box-shadow:0 1px 2px rgba(28,24,21,0.04);
+}
+.ticket-seg{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  padding:9px 6px;
+  background:none;
+  border:none;
+  color:var(--ink);
+  text-align:center;
+  min-width:0;
+}
+.ticket-divider{
+  width:0;
+  border-left:1px dashed var(--stone-line);
+  margin:8px 0;
+}
+.ticket-seg-icon{font-size:0.9375rem; line-height:1;}
+.ticket-seg-label{
+  font-size:0.7188rem;
+  font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+}
+#changeJourneyBtn .ticket-seg-label{color:var(--ember);}
+#changeJourneyBtn .ticket-seg-label::after{content:' \203A'; font-weight:700;}
+.ticket-strip-footer{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin-top:6px;
+  font-size:0.7188rem;
+  color:var(--ink-soft);
+}
+.ticket-strip-footer .tsf-directions{
+  display:flex;
+  align-items:center;
+  gap:3px;
+  color:var(--ember);
+  font-weight:600;
+  text-decoration:none;
+}
+.ticket-strip-footer .tsf-directions .dl-icon{width:12px; height:12px;}
+
+/* -- Menu item cards: warm tinted overlay unifies photo quality across
+      items instead of showing raw photos large/prominent; bestseller
+      becomes a small corner ribbon on the image, not inline text next to
+      the name; Jain becomes an icon+short line instead of a text pill. -- */
+.menu-item-thumb{position:relative; overflow:hidden;}
+.menu-item-thumb::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(160deg, rgba(232,93,44,0.28), rgba(22,15,12,0.32));
+  mix-blend-mode:multiply;
+  pointer-events:none;
+}
+.thumb-ribbon{
+  position:absolute;
+  top:4px;
+  left:4px;
+  z-index:1;
+  background:var(--ember);
+  color:var(--marble);
+  font-size:0.5rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+  padding:2px 6px;
+  border-radius:5px;
+  text-transform:uppercase;
+}
+.jain-line{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  margin-top:5px;
+  font-size:0.6875rem;
+  color:var(--ink-soft);
+}
+.jain-line .jl-icon{font-size:0.75rem;}
+.menu-item-side{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+  flex-shrink:0;
+}
+.menu-item-heart{
+  font-size:1.0625rem;
+  color:var(--grey-warm);
+  background:none;
+  border:none;
+  line-height:1;
+  padding:0;
+}
+.menu-item-heart.liked{color:var(--ember);}
+
 
 /* ==========================================================================
    FIXED QUICK ACTIONS BAR — Visual hierarchy redesign. Not page navigation:
@@ -843,6 +1034,42 @@ textarea.field-input{
   margin-top:3px;
 }
 
+/* Sprint: Menu Header & Item Cards Redesign — "How it's made" + "What's
+   inside", shown only for items with recipe data (productPreviewRecipe
+   stays .hidden otherwise, same pattern as productPreviewBadge). */
+.product-preview-recipe{
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid var(--stone-line);
+}
+.ppr-label{
+  font-size:0.625rem;
+  font-weight:700;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin-bottom:4px;
+}
+.ppr-label:not(:first-child){margin-top:12px;}
+.ppr-how{
+  font-size:0.8125rem;
+  color:var(--ink);
+  line-height:1.5;
+}
+.ppr-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.ppr-chip{
+  font-size:0.6875rem;
+  background:var(--stone-base);
+  border:1px solid var(--stone-line);
+  border-radius:20px;
+  padding:4px 10px;
+  color:var(--ink);
+}
+
 .source-chips{
   display:flex;
   flex-wrap:wrap;
@@ -1133,60 +1360,30 @@ textarea.field-input{
 }
 
 /* ==========================================================================
-   CATEGORY TABS — real switching, Signature default, no page reload
+   MENU SECTIONS — Sprint: UI Simplification. Previously tab-gated (only one
+   category visible at a time, switched via .menu-tab clicks); removed
+   because the "Traditional" tab was often missed. Both categories now flow
+   as one plain list, separated by a heading (see .menu-section-heading
+   below) rather than a click.
    ========================================================================== */
-.menu-tabs{
-  display:flex;
-  gap:8px;
-  margin-bottom:16px;
-}
-.menu-tab{
-  flex:1;
-  padding:11px 10px;
-  border-radius:var(--radius-md);
-  background:var(--stone-card);
-  border:1px solid var(--stone-line);
-  color:var(--ink-soft);
-  font-size:0.8125rem;
-  font-weight:700;
-  letter-spacing:0.01em;
-  text-align:center;
-  box-shadow:0 1px 2px rgba(28,24,21,0.04);
-  transition:background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
-}
-.menu-tab.active{
-  background:var(--ember);
-  border-color:var(--ember);
-  color:var(--marble);
-  box-shadow:0 4px 12px -4px rgba(232,93,44,0.4);
-}
-.menu-tab:active{transform:scale(0.97);}
-
-/* Gentle discoverability cue for the Traditional tab — most of each 13s
-   cycle is completely at rest; a soft glow ring appears briefly once per
-   cycle, never a continuous flash. Stops the moment the tab is active
-   (selected), since its job is done once someone has found it. */
-@keyframes tab-discoverable-pulse{
-  0%, 88%, 100%{ box-shadow:0 1px 2px rgba(28,24,21,0.04), 0 0 0 0 rgba(232,93,44,0); }
-  94%{ box-shadow:0 1px 2px rgba(28,24,21,0.04), 0 0 0 5px rgba(232,93,44,0.16); }
-}
-.menu-tab[data-cat="traditional"]:not(.active){
-  animation:tab-discoverable-pulse 13s ease-in-out infinite;
-}
-
-/* ==========================================================================
-   MENU SECTIONS — gentle slide+fade on category switch
-   ========================================================================== */
-.menu-section{display:none;}
-.menu-section.active{
+.menu-section{
   display:flex;
   flex-direction:column;
   gap:10px;
-  animation:menu-fade 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
-@keyframes menu-fade{
-  from{opacity:0; transform:translateY(5px);}
-  to{opacity:1; transform:translateY(0);}
+
+.menu-section-heading{
+  font-size:1.0625rem;
+  font-weight:800;
+  color:var(--ink);
+  margin:18px 0 2px;
+  padding-top:4px;
+  border-top:1px solid var(--stone-line);
+}
+.menu-section-heading:first-child{
+  margin-top:6px;
+  padding-top:0;
+  border-top:none;
 }
 
 .menu-section-label{
@@ -1331,6 +1528,66 @@ textarea.field-input{
   background:var(--ember);
   border-color:var(--ember);
   color:var(--marble);
+}
+
+/* ==========================================================================
+   FUN ACTIVITY CARD — Sprint: Fun Activity Card Consolidation. One card,
+   three rows (Taste Discovery / Khichiya Runner / Leaderboard), replacing
+   three separate .register-cta cards that were taking up too much scroll.
+   ========================================================================== */
+.fun-activity-card{
+  margin-top:22px;
+  background:var(--stone-card);
+  border:1px solid var(--stone-line);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  box-shadow:
+    0 1px 2px rgba(28,24,21,0.05),
+    0 6px 16px -8px rgba(28,24,21,0.12);
+}
+.fun-activity-header{padding:14px 16px 8px;}
+.fun-activity-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:0.9688rem;
+  color:var(--ink);
+}
+.fun-activity-sub{
+  font-size:0.75rem;
+  color:var(--ink-soft);
+  margin-top:2px;
+}
+.fun-activity-row{border-top:1px solid var(--stone-line);}
+.fun-activity-row--accent{background:rgba(232,93,44,0.05);}
+.fun-activity-row-btn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:none;
+  border:none;
+  padding:13px 16px;
+  text-align:left;
+}
+.fun-activity-row-btn:active{background:rgba(28,24,21,0.03);}
+.fun-activity-row--accent .fun-activity-row-btn:active{background:rgba(232,93,44,0.08);}
+.far-text{flex:1; min-width:0;}
+.far-title{
+  display:block;
+  font-size:0.8438rem;
+  font-weight:700;
+  color:var(--ink);
+}
+.far-sub{
+  display:block;
+  font-size:0.7188rem;
+  color:var(--ink-soft);
+  margin-top:2px;
+}
+.far-chevron{
+  font-size:1.125rem;
+  color:var(--grey-warm);
+  flex-shrink:0;
 }
 
 .register-cta{
@@ -1805,13 +2062,16 @@ textarea.field-input{
         <span class="sub">The Khichiya Gravy</span>
       </div>
     </div>
-    <div class="topbar-right">
-      <button type="button" class="text-size-btn" id="textSizeBtn" aria-label="Change text size">Aa</button>
-      <button type="button" class="lang-btn" id="langBtn" aria-label="Change language">🌐 <span id="langBtnLabel">EN</span></button>
-      <div class="status-pill" id="statusPill" data-state="online">
-        <span class="ember-dot" id="emberDot"></span>
-        <span id="statusText">Online</span>
-      </div>
+    <div class="topbar-right settings-pill">
+      <button type="button" class="text-size-btn settings-pill-item" id="textSizeBtn" aria-label="Change text size">
+        <span class="spi-value">Aa</span>
+        <span class="spi-caption" data-i18n="header.textSizeCaption">TEXT SIZE</span>
+      </button>
+      <div class="settings-pill-divider"></div>
+      <button type="button" class="lang-btn settings-pill-item" id="langBtn" aria-label="Change language">
+        <span class="spi-value">🌐 <span id="langBtnLabel">EN</span></span>
+        <span class="spi-caption" data-i18n="header.languageCaption">LANGUAGE</span>
+      </button>
     </div>
   </div>
 
@@ -2093,6 +2353,12 @@ textarea.field-input{
       </div>
       <div class="product-preview-desc" id="productPreviewDesc"></div>
       <div class="menu-item-price product-preview-price" id="productPreviewPrice"></div>
+      <div class="product-preview-recipe hidden" id="productPreviewRecipe">
+        <div class="ppr-label" data-i18n="preview.howMade">How it's made</div>
+        <div class="ppr-how" id="productPreviewHow"></div>
+        <div class="ppr-label" data-i18n="preview.whatsInside">What's inside</div>
+        <div class="ppr-chips" id="productPreviewChips"></div>
+      </div>
     </div>
     <button type="button" class="btn-secondary" id="productPreviewCloseBtn" style="width:100%; margin-top:16px;" data-i18n="thanks.closeBtn">Close</button>
   </div>
@@ -2205,73 +2471,53 @@ textarea.field-input{
   <!-- ============ SCREEN 2: MENU (default screen, no wall) ============ -->
   <section class="screen" id="screen-menu">
 
-    <!-- ============ HERO — short, scannable in seconds ============ -->
-    <div class="app-hero">
-      <div class="app-hero-row">
-        <div style="flex:1; min-width:0;">
-          <div class="app-hero-meta">
-            <span class="app-hero-hours" data-i18n="menu.hours">Open on Fri/Sat/Sun· Evening to Late Night</span>
-            <a class="directions-link" id="directionsLink" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
-              <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
-              <span data-i18n="menu.getDirections">Get Directions</span>
-            </a>
-          </div>
-          <h1 class="app-hero-headline">
-            <span class="line-coal" data-i18n="hero.lineCoal">Coal-Cooked</span>
-            <span class="line-gravy" data-i18n="hero.lineGravy">Cheesy Gravy</span>
-            <span class="line-khichiya" data-i18n="hero.lineKhichiya">Khichiya for Dipping</span>
-          </h1>
-        </div>
-        <button type="button" class="info-btn" id="openInfoBtn" aria-label="About TKG">ⓘ</button>
+    <!-- ============ COMPACT HERO — one centered block replaces the old
+         3-line headline + separate tagline + separate icon-trail row.
+         hero.line*/hero.statement i18n keys reused as-is (EN/GU/HI all
+         still work), just recombined into a shorter read. ============ -->
+    <div class="app-hero app-hero-compact">
+      <div class="app-hero-eyebrow">
+        <span data-i18n="hero.lineCoal">Coal-Cooked</span>
+        <span class="eyebrow-sep">·</span>
+        <span data-i18n="hero.lineKhichiya">Khichiya for Dipping</span>
       </div>
-
-      <!-- Compact story strip — visual 3-step explainer, reuses existing
-           hero.line* translation keys so it works in EN/GU/HI for free.
-           The label above carries the old standalone statement line's
-           message, so the hero now reads in two beats, not three. -->
-      <div class="hero-story-label" data-i18n="hero.statement">🔥 The Gravy is the Hero</div>
-      <div class="hero-story-strip" aria-hidden="true">
-        <div class="story-step"><span class="step-icon">🔥</span><span data-i18n="hero.lineCoal">Coal-Cooked</span></div>
-        <span class="story-arrow">→</span>
-        <div class="story-step"><span class="step-icon">🧀</span><span data-i18n="hero.lineGravy">Cheesy Gravy</span></div>
-        <span class="story-arrow">→</span>
-        <div class="story-step"><span class="step-icon">🥣</span><span data-i18n="hero.lineKhichiya">Khichiya for Dipping</span></div>
+      <h1 class="app-hero-headline-compact" data-i18n="hero.lineGravy">Cheesy Gravy</h1>
+      <div class="hero-greeting-line">
+        <span id="dgGreetingText"></span>
+        <span id="dgSubText"></span>
       </div>
     </div>
 
-    <!-- ============ BUSINESS STATUS CARD — Sprint: Customer OS UI Polish,
-         item 2. Live open/closed status computed client-side from the
-         configured schedule (Fri/Sat/Sun, 6:30 PM–11:00 PM) — see
-         getBusinessStatus_()/refreshBusinessStatusCard() in the script.
-         No backend/schema involved: purely a presentational read of the
-         device's local clock, refreshed on load and every minute so it
-         never goes stale during a long browsing session. ============ -->
-    <div class="business-status-card" id="businessStatusCard">
-      <span class="bsc-icon" id="businessStatusIcon">🟢</span>
-      <div class="bsc-text">
-        <div class="bsc-label" id="businessStatusLabel">OPEN NOW</div>
-        <div class="bsc-detail" id="businessStatusDetail"></div>
+    <!-- ============ TICKET STRIP — Sprint: Menu Header & Item Cards
+         Redesign. Replaces the separate Business Status Card + Welcome
+         Card's journey row with one boarding-pass-style strip. Same IDs/
+         wiring as before (businessStatusCard/Icon/Label/Detail —
+         refreshBusinessStatusCard(); journeyStatusCurrent/changeJourneyBtn —
+         updateJourneyStatusDisplay()) — only the surrounding layout changed.
+         Hours detail + Get Directions moved to a small footer line under
+         the strip, so nothing functional is lost. ============ -->
+    <div class="ticket-strip">
+      <div class="ticket-seg" id="businessStatusCard" data-open="true">
+        <span class="ticket-seg-icon" id="businessStatusIcon">🟢</span>
+        <span class="ticket-seg-label" id="businessStatusLabel">OPEN NOW</span>
       </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-seg">
+        <span class="ticket-seg-icon">🕐</span>
+        <span class="ticket-seg-label" data-i18n="menu.hours">Open on Fri/Sat/Sun· Evening to Late Night</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <button type="button" class="ticket-seg" id="changeJourneyBtn">
+        <span class="ticket-seg-icon jc-icon">📍</span>
+        <span class="ticket-seg-label jc-current" id="journeyStatusCurrent"></span>
+      </button>
     </div>
-
-    <!-- ============ WELCOME CARD — Visual hierarchy redesign. One card,
-         directly below the Hero: Greeting + current browsing status +
-         Change Journey. Replaces the separate floating greeting text and
-         the standalone Journey accordion from the previous pass — this is
-         a single calm unit, not two stacked components. Same elements/
-         wiring as before (#dgGreetingText/#dgSubText/#journeyStatusCurrent/
-         #changeJourneyBtn — updateDynamicGreeting()/updateJourneyStatusDisplay()
-         untouched), just one container instead of two. ============ -->
-    <div class="welcome-card" id="welcomeCard">
-      <div class="dg-greeting" id="dgGreetingText"></div>
-      <div class="dg-sub" id="dgSubText"></div>
-      <div class="welcome-card-journey">
-        <div class="welcome-card-journey-status">
-          <span class="jc-icon">📍</span>
-          <span class="jc-current" id="journeyStatusCurrent"></span>
-        </div>
-        <button type="button" id="changeJourneyBtn" data-i18n="journey.changeLink">Change Journey ›</button>
-      </div>
+    <div class="ticket-strip-footer">
+      <span id="businessStatusDetail"></span>
+      <a class="tsf-directions" id="directionsLink" href="https://maps.app.goo.gl/C3obkGTKXWuAuWqT6" target="_blank" rel="noopener">
+        <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        <span data-i18n="menu.getDirections">Get Directions</span>
+      </a>
     </div>
 
     <!-- ============ MENU (tabs + items + extras) — grouped under one
@@ -2279,29 +2525,27 @@ textarea.field-input{
          unit for the planning/exploring paths. Internal tab-switching IDs/
          JS are untouched; this is purely a visibility wrapper. ============ -->
     <div id="menuJourneySection">
-    <!-- ============ CATEGORY TABS — Signature default, instant switch ============ -->
-    <div class="menu-tabs" id="menuTabs">
-      <button type="button" class="menu-tab active" data-cat="signature" data-i18n="menu.family2TitleShort">Signature</button>
-      <button type="button" class="menu-tab" data-cat="traditional" data-i18n="menu.family1TitleShort">Traditional</button>
-    </div>
-
-    <!-- ===== SIGNATURE (default) ===== -->
-    <div class="menu-section active" id="cat-signature">
-      <div class="menu-item">
+    <!-- ===== SIGNATURE ===== -->
+    <div class="menu-section-heading" data-i18n="menu.family2TitleShort">Signature</div>
+    <div class="menu-section" id="cat-signature">
+      <div class="menu-item" data-recipe="signatureGravyBase">
         <div class="menu-item-thumb">
           <img src="assets/products/signature-gravy.webp" width="56" height="56" alt="Signature Gravy Khichiya" loading="lazy" decoding="async">
+          <span class="menu-item-tag thumb-ribbon" data-i18n="menu.bestseller">Bestseller</span>
         </div>
         <div class="menu-item-info">
           <div class="menu-item-top">
             <span class="menu-item-name" data-i18n="menu.signatureGravy.name">Signature Gravy Khichiya</span>
-            <span class="menu-item-tag" data-i18n="menu.bestseller">Bestseller</span>
           </div>
           <div class="menu-item-desc" data-i18n="menu.signatureGravy.descShort">Creamy coal-cooked cheese gravy, served for dipping.</div>
-          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+          <div class="jain-line"><span class="jl-icon">🌿</span><span data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span></div>
         </div>
-        <div class="menu-item-price"><span data-i18n="menu.signatureGravy.priceMini">Mini ₹140</span><span class="price-large" data-i18n="menu.signatureGravy.priceLarge">Large ₹180</span></div>
+        <div class="menu-item-side">
+          <div class="menu-item-price"><span data-i18n="menu.signatureGravy.priceMini">Mini ₹140</span><span class="price-large" data-i18n="menu.signatureGravy.priceLarge">Large ₹180</span></div>
+          <button type="button" class="menu-item-heart" data-item-id="signatureGravy" aria-label="Save this item">♡</button>
+        </div>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" data-recipe="signatureGravyBase">
         <div class="menu-item-thumb">
           <img src="assets/products/cheesy-signature.webp" width="56" height="56" alt="Cheesy Signature Gravy Khichiya" loading="lazy" decoding="async">
         </div>
@@ -2310,9 +2554,65 @@ textarea.field-input{
             <span class="menu-item-name" data-i18n="menu.cheesySignatureGravy.name">Cheesy Signature Gravy Khichiya</span>
           </div>
           <div class="menu-item-desc" data-i18n="menu.cheesySignatureGravy.descShort">Extra cheese, even richer and creamier.</div>
-          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
+          <div class="jain-line"><span class="jl-icon">🌿</span><span data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span></div>
         </div>
-        <div class="menu-item-price"><span data-i18n="menu.cheesySignatureGravy.priceMini">Mini ₹160</span><span class="price-large" data-i18n="menu.cheesySignatureGravy.priceLarge">Large ₹200</span></div>
+        <div class="menu-item-side">
+          <div class="menu-item-price"><span data-i18n="menu.cheesySignatureGravy.priceMini">Mini ₹160</span><span class="price-large" data-i18n="menu.cheesySignatureGravy.priceLarge">Large ₹200</span></div>
+          <button type="button" class="menu-item-heart" data-item-id="cheesySignatureGravy" aria-label="Save this item">♡</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== TRADITIONAL ===== -->
+    <div class="menu-section-heading" data-i18n="menu.family1TitleShort">Traditional</div>
+    <div class="menu-section" id="cat-traditional">
+      <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/classic-khichiya.webp" width="56" height="56" alt="Classic Khichiya" loading="lazy" decoding="async">
+        </div>
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.classicKhichiya.name">Classic Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.classicKhichiya.descShort">Butter and our signature spice blend.</div>
+        </div>
+        <div class="menu-item-side">
+          <div class="menu-item-price"><span data-i18n="menu.priceMini">Mini ₹50</span><span class="price-large" data-i18n="menu.classicKhichiya.priceLarge">Large ₹60</span></div>
+          <button type="button" class="menu-item-heart" data-item-id="classicKhichiya" aria-label="Save this item">♡</button>
+        </div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/masala-khichiya.webp" width="56" height="56" alt="Masala Khichiya" loading="lazy" decoding="async">
+        </div>
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.masalaKhichiya.name">Masala Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.masalaKhichiya.descShort">Chutney, fresh veg, chana dal, sev.</div>
+          <div class="jain-line"><span class="jl-icon">🌿</span><span data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span></div>
+        </div>
+        <div class="menu-item-side">
+          <div class="menu-item-price"><span data-i18n="menu.masalaKhichiya.priceMini">Mini ₹80</span><span class="price-large" data-i18n="menu.masalaKhichiya.priceLarge">Large ₹120</span></div>
+          <button type="button" class="menu-item-heart" data-item-id="masalaKhichiya" aria-label="Save this item">♡</button>
+        </div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-thumb">
+          <img src="assets/products/cheese-masala.webp" width="56" height="56" alt="Cheese Masala Khichiya" loading="lazy" decoding="async">
+        </div>
+        <div class="menu-item-info">
+          <div class="menu-item-top">
+            <span class="menu-item-name" data-i18n="menu.cheeseMasalaKhichiya.name">Cheese Masala Khichiya</span>
+          </div>
+          <div class="menu-item-desc" data-i18n="menu.cheeseMasalaKhichiya.descShort">Masala Khichiya topped with melted cheese.</div>
+          <div class="jain-line"><span class="jl-icon">🌿</span><span data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span></div>
+        </div>
+        <div class="menu-item-side">
+          <div class="menu-item-price"><span data-i18n="menu.cheeseMasalaKhichiya.priceMini">Mini ₹100</span><span class="price-large" data-i18n="menu.cheeseMasalaKhichiya.priceLarge">Large ₹140</span></div>
+          <button type="button" class="menu-item-heart" data-item-id="cheeseMasalaKhichiya" aria-label="Save this item">♡</button>
+        </div>
       </div>
 
       <div class="menu-section-label" data-i18n="menu.extrasLabel">Extra (Signature Gravy items)</div>
@@ -2342,48 +2642,6 @@ textarea.field-input{
           <div class="menu-item-desc" data-i18n="menu.extraGravy.descShort">More of the hero product.</div>
         </div>
         <div class="menu-item-price">₹100</div>
-      </div>
-    </div>
-
-    <!-- ===== TRADITIONAL ===== -->
-    <div class="menu-section" id="cat-traditional">
-      <div class="menu-item">
-        <div class="menu-item-thumb">
-          <img src="assets/products/classic-khichiya.webp" width="56" height="56" alt="Classic Khichiya" loading="lazy" decoding="async">
-        </div>
-        <div class="menu-item-info">
-          <div class="menu-item-top">
-            <span class="menu-item-name" data-i18n="menu.classicKhichiya.name">Classic Khichiya</span>
-          </div>
-          <div class="menu-item-desc" data-i18n="menu.classicKhichiya.descShort">Butter and our signature spice blend.</div>
-        </div>
-        <div class="menu-item-price"><span data-i18n="menu.priceMini">Mini ₹50</span><span class="price-large" data-i18n="menu.classicKhichiya.priceLarge">Large ₹60</span></div>
-      </div>
-      <div class="menu-item">
-        <div class="menu-item-thumb">
-          <img src="assets/products/masala-khichiya.webp" width="56" height="56" alt="Masala Khichiya" loading="lazy" decoding="async">
-        </div>
-        <div class="menu-item-info">
-          <div class="menu-item-top">
-            <span class="menu-item-name" data-i18n="menu.masalaKhichiya.name">Masala Khichiya</span>
-          </div>
-          <div class="menu-item-desc" data-i18n="menu.masalaKhichiya.descShort">Chutney, fresh veg, chana dal, sev.</div>
-          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
-        </div>
-        <div class="menu-item-price"><span data-i18n="menu.masalaKhichiya.priceMini">Mini ₹80</span><span class="price-large" data-i18n="menu.masalaKhichiya.priceLarge">Large ₹120</span></div>
-      </div>
-      <div class="menu-item">
-        <div class="menu-item-thumb">
-          <img src="assets/products/cheese-masala.webp" width="56" height="56" alt="Cheese Masala Khichiya" loading="lazy" decoding="async">
-        </div>
-        <div class="menu-item-info">
-          <div class="menu-item-top">
-            <span class="menu-item-name" data-i18n="menu.cheeseMasalaKhichiya.name">Cheese Masala Khichiya</span>
-          </div>
-          <div class="menu-item-desc" data-i18n="menu.cheeseMasalaKhichiya.descShort">Masala Khichiya topped with melted cheese.</div>
-          <span class="menu-item-tag jain-tag" style="margin-top:6px;" data-i18n="menu.jainPrepAvailable">Jain Preparation Available</span>
-        </div>
-        <div class="menu-item-price"><span data-i18n="menu.cheeseMasalaKhichiya.priceMini">Mini ₹100</span><span class="price-large" data-i18n="menu.cheeseMasalaKhichiya.priceLarge">Large ₹140</span></div>
       </div>
     </div>
 
@@ -2422,48 +2680,49 @@ textarea.field-input{
          about registration itself changed; this only removes the extra
          visual entry point on the Menu page. -->
 
-    <!-- Sprint 2.0 — Taste Discovery reminder. Contextual module (Planning /
-         Exploring journeys only, per roadmap). data-journey handles the
-         journey gate exactly like every other contextual element; a small
-         JS toggle (updateTasteDiscoveryReminderVisibility) additionally
-         hides it once the quiz has been completed on this device. Opens
-         the same overlay as the automatic 30s trigger — no separate UI. -->
-    <div class="register-cta" id="tasteDiscoveryReminderCard" data-journey="planning,exploring">
-      <div class="register-cta-text">
-        <div class="register-cta-title" data-i18n="taste.reminderTitle">🍽️ Not sure what to order?</div>
-        <div class="register-cta-sub" data-i18n="taste.reminderSub">2 quick taps and we'll pick for you.</div>
+    <!-- ============ FUN ACTIVITY — Sprint: Fun Activity Card Consolidation.
+         One card, three rows, instead of three separate floating cards
+         (Taste Discovery / Khichiya Runner / Leaderboard) that were taking
+         up too much scroll. Each row keeps its exact original id,
+         data-journey gate, and click-handler target — only the visual
+         container changed. Text/i18n keys are untouched (taste.reminder*,
+         khichiyaRunnerCardTitle/Sub still updated the same way by
+         updateKhichiyaRunnerCardText()); only funActivity.title/sub are new. -->
+    <div class="fun-activity-card">
+      <div class="fun-activity-header">
+        <div class="fun-activity-title" data-i18n="funActivity.title">Fun Activity</div>
+        <div class="fun-activity-sub" data-i18n="funActivity.sub">Something to do while you're here</div>
       </div>
-      <button class="btn-secondary register-cta-btn" id="openTasteDiscoveryBtn" data-i18n="taste.reminderBtn">Find My Item</button>
-    </div>
 
-    <!-- Khichiya Runner reminder — playful engagement card, contextual per
-         journey status via data-journey (same generic gating mechanism as
-         everything else, see applyJourneyVisibility). Text is swapped by
-         updateKhichiyaRunnerCardText() to fit each journey (waiting at
-         TKG / considering a first visit / just exploring). Opens a small
-         teaser overlay with a looping demo animation — NOT the real game;
-         the actual game is the separate khichiya-runner.html page, opened
-         only when the player taps "Let's Play" inside that overlay. -->
-    <div class="register-cta" id="khichiyaRunnerReminderCard" data-journey="atTKG,planning,exploring">
-      <div class="register-cta-text">
-        <div class="register-cta-title" id="khichiyaRunnerCardTitle">🔥 Bored? Play Khichiya Runner</div>
-        <div class="register-cta-sub" id="khichiyaRunnerCardSub">Jump the Khichiya over the coal.</div>
+      <div class="fun-activity-row" id="tasteDiscoveryReminderCard" data-journey="planning,exploring">
+        <button type="button" class="fun-activity-row-btn" id="openTasteDiscoveryBtn">
+          <span class="far-text">
+            <span class="far-title" data-i18n="taste.reminderTitle">🍽️ Not sure what to order?</span>
+            <span class="far-sub" data-i18n="taste.reminderSub">2 quick taps and we'll pick for you.</span>
+          </span>
+          <span class="far-chevron">›</span>
+        </button>
       </div>
-      <button class="btn-secondary register-cta-btn" id="openKhichiyaRunnerBtn">Let's Play</button>
-    </div>
 
-    <!-- Khichiya Runner Leaderboard — customer-facing (no PIN), occupying
-         the spot the old quiet .owner-link Dashboard link used to sit in
-         before Dashboard moved to its own PIN-gated page. Styled boldly
-         (filled ember CTA button) since this one is for customers, not
-         staff — opens leaderboard.html as its own separate page, same
-         pattern as khichiya-runner.html/dashboard.html. -->
-    <div class="register-cta" id="runnerLeaderboardCard" data-journey="atTKG,planning,exploring">
-      <div class="register-cta-text">
-        <div class="register-cta-title">🏆 Khichiya Runner Leaderboard</div>
-        <div class="register-cta-sub">See who's on top right now.</div>
+      <div class="fun-activity-row" id="khichiyaRunnerReminderCard" data-journey="atTKG,planning,exploring">
+        <button type="button" class="fun-activity-row-btn" id="openKhichiyaRunnerBtn">
+          <span class="far-text">
+            <span class="far-title" id="khichiyaRunnerCardTitle">🔥 Bored? Play Khichiya Runner</span>
+            <span class="far-sub" id="khichiyaRunnerCardSub">Jump the Khichiya over the coal.</span>
+          </span>
+          <span class="far-chevron">›</span>
+        </button>
       </div>
-      <button type="button" class="register-cta-btn leaderboard-btn" id="openRunnerLeaderboardBtn">View Leaderboard</button>
+
+      <div class="fun-activity-row fun-activity-row--accent" id="runnerLeaderboardCard" data-journey="atTKG,planning,exploring">
+        <button type="button" class="fun-activity-row-btn" id="openRunnerLeaderboardBtn">
+          <span class="far-text">
+            <span class="far-title">🏆 Khichiya Runner Leaderboard</span>
+            <span class="far-sub">See who's on top right now.</span>
+          </span>
+          <span class="far-chevron">›</span>
+        </button>
+      </div>
     </div>
 
     <!-- Journey Progression — friendly contextual suggestion, text-only.
@@ -3622,8 +3881,13 @@ setInterval(attemptTasteDiscoverySync, 30000);
 // STATUS PILL UI
 // ---------------------------------------------------------------------------
 function setStatusState(state){
+  // Sprint: UI Simplification, item — the visual "Connected to the Counter"
+  // pill was removed from the header (no real purpose per Deepak). This
+  // function is still called throughout the sync engine, so it stays —
+  // it just becomes a safe no-op now that its DOM target is gone.
   const pill = document.getElementById('statusPill');
   const text = document.getElementById('statusText');
+  if(!pill || !text) return;
   const dict = translations[currentLang] || translations.en;
   pill.setAttribute('data-state', state);
   if(state === 'online') text.textContent = dict.status.online;
@@ -3639,8 +3903,11 @@ function updateStatusPill(){
   const pendingCount = loadCustomers().filter(c => c.pendingSync).length;
   setStatusState(pendingCount > 0 ? 'offline' : 'online');
   if(pendingCount > 0){
-    const dict = translations[currentLang] || translations.en;
-    document.getElementById('statusText').textContent = dict.status.pendingSync(pendingCount);
+    const textEl = document.getElementById('statusText');
+    if(textEl){
+      const dict = translations[currentLang] || translations.en;
+      textEl.textContent = dict.status.pendingSync(pendingCount);
+    }
   }
 }
 
@@ -4022,20 +4289,14 @@ document.getElementById('changeJourneyBtn').addEventListener('click', () => {
 // which are declared further down in this same file.
 
 // ---------------------------------------------------------------------------
-// CATEGORY TABS — Signature default, instant switch, no page reload
+// CATEGORY TABS — removed (Sprint: UI Simplification). Signature and
+// Traditional now flow as one plain list, separated by a heading, instead
+// of a click-to-switch tab. See .menu-section-heading / .menu-section CSS.
 // ---------------------------------------------------------------------------
-document.querySelectorAll('.menu-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    if(tab.classList.contains('active')) return; // already showing this category
-    document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
-    document.getElementById('cat-' + tab.dataset.cat).classList.add('active');
-  });
-});
-
 // ---------------------------------------------------------------------------
-// INFO SHEET — education content, tucked behind the ⓘ button
+// INFO SHEET — education content. Previously reachable via a dedicated ⓘ
+// button in the Hero (replaced by the TKG logo, Sprint: UI Simplification);
+// still fully reachable via the "About TKG" bottom-nav item (navAboutBtn).
 // ---------------------------------------------------------------------------
 const infoBackdrop = document.getElementById('infoBackdrop');
 const infoSheet = document.getElementById('infoSheet');
@@ -4048,7 +4309,6 @@ function closeInfoSheet(){
   infoBackdrop.classList.remove('show');
   infoSheet.classList.remove('show');
 }
-document.getElementById('openInfoBtn').addEventListener('click', openInfoSheet);
 document.getElementById('closeInfoBtn').addEventListener('click', closeInfoSheet);
 infoBackdrop.addEventListener('click', closeInfoSheet);
 
@@ -4098,7 +4358,20 @@ document.getElementById('closeContentSheetBtn').addEventListener('click', closeC
 // since the card text was set by applyTranslations(). Cards with no
 // .menu-item-thumb image (the "Extra" chip-style rows) are simply not
 // wired up — nothing to preview there.
+//
+// ITEM_RECIPES — Sprint: Menu Header & Item Cards Redesign. "How it's made"
+// + ingredient chips, shown only for items with an entry here (currently
+// just the Signature Gravy line, per Deepak — Traditional items keep using
+// their existing .menu-item-desc only, no separate recipe breakdown yet).
+// Real content from Deepak, not placeholder.
 // ---------------------------------------------------------------------------
+const ITEM_RECIPES = {
+  signatureGravyBase: {
+    how: "Made with olive oil, butter, and flour, sautéed together with seasonal vegetables — capsicum, tomato, and cabbage are our regulars — along with paneer and a mix of herbs. Onion goes in for the regular version; the Jain preparation leaves it out. Finished with milk and a generous grating of cheese.",
+    ingredients: ['Olive Oil', 'Butter', 'Flour', 'Seasonal Veg (Capsicum, Tomato, Cabbage)', 'Paneer', 'Onion (non-Jain only)', 'Herbs', 'Milk', 'Cheese']
+  }
+};
+
 const productPreviewBackdrop = document.getElementById('productPreviewBackdrop');
 const productPreviewSheet = document.getElementById('productPreviewSheet');
 
@@ -4131,6 +4404,19 @@ function openProductPreview(cardEl){
     previewBadge.classList.add('hidden');
   }
 
+  const recipeSection = document.getElementById('productPreviewRecipe');
+  const recipeKey = cardEl.dataset.recipe;
+  const recipe = recipeKey ? ITEM_RECIPES[recipeKey] : null;
+  if(recipe){
+    document.getElementById('productPreviewHow').textContent = recipe.how;
+    document.getElementById('productPreviewChips').innerHTML = recipe.ingredients
+      .map(ing => '<span class="ppr-chip">' + escapeHtml(ing) + '</span>')
+      .join('');
+    recipeSection.classList.remove('hidden');
+  }else{
+    recipeSection.classList.add('hidden');
+  }
+
   productPreviewBackdrop.classList.add('show');
   productPreviewSheet.classList.add('show');
 }
@@ -4149,6 +4435,52 @@ document.querySelectorAll('.menu-item').forEach(card => {
 
 productPreviewBackdrop.addEventListener('click', closeProductPreview);
 document.getElementById('productPreviewCloseBtn').addEventListener('click', closeProductPreview);
+
+// ---------------------------------------------------------------------------
+// MENU ITEM HEART/SAVE — Sprint: Menu Header & Item Cards Redesign. Quiet,
+// no-prompt way to read what a customer gravitates to, without asking them
+// directly. Local-only for now (per-device, localStorage) — not yet synced
+// to the customer record/backend; that's a separate step if/when Deepak
+// wants aggregate "most-liked item" analytics.
+// ---------------------------------------------------------------------------
+const LIKED_ITEMS_KEY = 'tkg_liked_items';
+
+function getLikedItems(){
+  try{
+    const raw = localStorage.getItem(LIKED_ITEMS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function setLikedItems(list){
+  try{ localStorage.setItem(LIKED_ITEMS_KEY, JSON.stringify(list)); }catch(e){}
+}
+
+document.querySelectorAll('.menu-item-heart').forEach(heartBtn => {
+  const itemId = heartBtn.dataset.itemId;
+  const liked = getLikedItems();
+  if(liked.includes(itemId)){
+    heartBtn.classList.add('liked');
+    heartBtn.textContent = '❤';
+  }
+  heartBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // don't also open the product preview sheet
+    const current = getLikedItems();
+    const idx = current.indexOf(itemId);
+    if(idx === -1){
+      current.push(itemId);
+      heartBtn.classList.add('liked');
+      heartBtn.textContent = '❤';
+    }else{
+      current.splice(idx, 1);
+      heartBtn.classList.remove('liked');
+      heartBtn.textContent = '♡';
+    }
+    setLikedItems(current);
+  });
+});
 
 // Shared CTA-footer builder for the Content Sheet's optional footer slot.
 // Any future content type (Reviews now; possibly Weekend Specials or
@@ -5057,6 +5389,18 @@ const translations = {
       title: 'Quick, before you go',
       sub: 'So we can thank you properly — then straight to Google.',
       submitBtn: 'Continue to Google Review'
+    },
+    header: {
+      textSizeCaption: 'TEXT SIZE',
+      languageCaption: 'LANGUAGE'
+    },
+    preview: {
+      howMade: "How it's made",
+      whatsInside: "What's inside"
+    },
+    funActivity: {
+      title: 'Fun Activity',
+      sub: "Something to do while you're here"
     }
   },
 
