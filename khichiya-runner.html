@@ -18,68 +18,92 @@
     --charcoal:#2A211C;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0; padding:0; height:100%;}
+  html,body{margin:0; padding:0; height:100%; overflow:hidden; overscroll-behavior:none;}
   body{
-    background:var(--stone-base);
+    background:var(--charcoal);
     display:flex;
     align-items:center;
     justify-content:center;
-    min-height:100vh;
+    height:100vh;
+    height:100dvh;
+    width:100vw;
     font-family:-apple-system, "Segoe UI", Roboto, sans-serif;
     color:var(--ink);
   }
+  /* Fullscreen shell — no boxed "prototype card" look. The canvas is
+     letterboxed to the largest size that keeps its 3:2 aspect ratio
+     (720x480) inside whatever viewport shape the device gives us, so the
+     same game logic/physics works unchanged in portrait or landscape. */
   .frame{
-    width:100%;
-    max-width:420px;
-    padding:18px;
+    width:100vw;
+    height:100vh;
+    height:100dvh;
+    padding:0;
+    max-width:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
   }
-  .eyebrow{
-    font-size:11px;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--ink-soft);
-    font-weight:600;
-    text-align:center;
-    margin-bottom:4px;
-  }
-  h1{
-    font-size:20px;
-    font-weight:800;
-    text-align:center;
-    margin:0 0 14px;
-    color:var(--ink);
-  }
+  .eyebrow, h1, .foot-note{ display:none; }
   .game-card{
-    background:var(--stone-card);
-    border:1px solid var(--stone-line);
-    border-radius:16px;
-    box-shadow:0 1px 2px rgba(28,24,21,0.05);
-    padding:12px;
+    position:relative;
+    width:100%;
+    height:100%;
+    background:transparent;
+    border:none;
+    box-shadow:none;
+    border-radius:0;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
   }
   .hud{
+    position:absolute;
+    top:calc(env(safe-area-inset-top, 0px) + 10px);
+    left:10px;
+    right:10px;
+    z-index:5;
     display:flex;
     justify-content:space-between;
+    align-items:flex-start;
+    pointer-events:none;
+  }
+  .hud-badge{
+    display:inline-flex;
     align-items:baseline;
-    padding:0 4px 10px;
-    font-size:13px;
+    gap:4px;
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:11px;
     font-weight:700;
-    color:var(--ink-soft);
+    letter-spacing:0.03em;
+    color:#F6F6F5;
+    background:rgba(28,24,21,0.55);
+    backdrop-filter:blur(2px);
   }
   .hud .score-val{
-    font-size:18px;
-    color:var(--ember-deep);
+    font-size:14px;
+    color:#FAC646;
     font-weight:800;
   }
   .canvas-wrap{
     position:relative;
-    border-radius:12px;
+    border-radius:0;
     overflow:hidden;
-    border:1px solid var(--stone-line);
+    border:none;
+    /* Fills the viewport exactly, in either orientation — the game itself
+       adapts to this shape (see resizeCanvas() in the script below), so
+       there's no leftover space to letterbox/pillarbox. */
+    width:100vw;
+    height:100vh;
+    width:100dvw;
+    height:100dvh;
   }
   canvas{
     display:block;
     width:100%;
-    height:auto;
+    height:100%;
     background:linear-gradient(180deg, #FBF9F6 0%, #F3EFE9 100%);
   }
   .overlay{
@@ -153,6 +177,18 @@
     color:var(--ink);
   }
   .text-input:focus{outline:none; border-color:var(--ember);}
+  .live-opt-in-row{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    width:100%;
+    max-width:260px;
+    font-size:12px;
+    line-height:1.4;
+    color:var(--ink-soft);
+    text-align:left;
+  }
+  .live-opt-in-row input{ margin-top:2px; flex-shrink:0; }
   .foot-note{
     font-size:11.5px;
     color:var(--ink-soft);
@@ -170,11 +206,11 @@
   <h1>🔥 Khichiya Runner</h1>
 
   <div class="game-card">
-    <div class="hud">
-      <span>BEST <span class="score-val" id="bestVal">0</span></span>
-      <span>SCORE <span class="score-val" id="scoreVal">0</span></span>
-    </div>
     <div class="canvas-wrap">
+      <div class="hud">
+        <span class="hud-badge">BEST <span class="score-val" id="bestVal">0</span></span>
+        <span class="hud-badge">SCORE <span class="score-val" id="scoreVal">0</span></span>
+      </div>
       <canvas id="game" width="720" height="480"></canvas>
 
       <div class="overlay" id="startOverlay">
@@ -204,6 +240,10 @@
         <div class="sub">Only needed if you want to claim a reward — sharing to friends never asks for this.</div>
         <input class="text-input" id="submitName" type="text" placeholder="Your name" maxlength="40">
         <input class="text-input" id="submitMobile" type="tel" inputmode="numeric" placeholder="Mobile number" maxlength="10">
+        <label class="live-opt-in-row" for="submitLiveOptIn">
+          <input type="checkbox" id="submitLiveOptIn" checked>
+          <span>Also show my score anonymously on the Live board (no name shown)</span>
+        </label>
         <button class="btn" id="submitConfirmBtn">Submit</button>
         <button class="btn-ghost" id="submitCancelBtn">Cancel</button>
       </div>
@@ -272,14 +312,60 @@
 
   var canvas = document.getElementById('game');
   var ctx = canvas.getContext('2d');
+  var canvasWrap = document.querySelector('.canvas-wrap');
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-  var CSS_W = 720, CSS_H = 480;
-  canvas.width = CSS_W * DPR;
-  canvas.height = CSS_H * DPR;
-  ctx.scale(DPR, DPR);
+  // ---------------------------------------------------------------------
+  // Full-screen adaptation — the game world now matches whatever screen
+  // it's actually on (previously a fixed 720x480 box, letterboxed to fit).
+  // CSS_W/CSS_H/GROUND_Y are no longer constants: this reads the real,
+  // current size of .canvas-wrap (which CSS now sizes to fill the whole
+  // viewport) and everything else in the game — obstacle spawn position,
+  // the ground line, clearRect — already reads CSS_W/CSS_H/GROUND_Y at
+  // draw time, so they adapt automatically once these are updated here.
+  // GROUND_Y keeps the original ~0.78 sky-to-ground ratio the game was
+  // tuned at (375/480), just scaled to the current height.
+  // ---------------------------------------------------------------------
+  var CSS_W, CSS_H, GROUND_Y;
 
-  var GROUND_Y = 375; // was 250 at CSS_H 320 (same ~0.78 sky ratio, scaled to 480)
+  function resizeCanvas(){
+    var rect = canvasWrap.getBoundingClientRect();
+    CSS_W = Math.round(rect.width);
+    CSS_H = Math.round(rect.height);
+    GROUND_Y = Math.round(CSS_H * (375 / 480));
+
+    canvas.width = CSS_W * DPR;
+    canvas.height = CSS_H * DPR;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // reset before re-applying scale, so repeated resizes don't compound
+    ctx.scale(DPR, DPR);
+
+    // Keep anything already in play consistent with the new ground level
+    // (matters if the player rotates their device mid-round) rather than
+    // leaving the player or obstacles floating above/sunk below the new
+    // ground line.
+    if(typeof player !== 'undefined' && player){
+      if(player.onGround){
+        player.y = GROUND_Y - player.h;
+      }
+    }
+    if(typeof obstacles !== 'undefined' && obstacles){
+      for(var i = 0; i < obstacles.length; i++){
+        obstacles[i].y = GROUND_Y - obstacles[i].h;
+      }
+    }
+  }
+
+  resizeCanvas();
+
+  var resizeDebounce = null;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeDebounce);
+    resizeDebounce = setTimeout(resizeCanvas, 150);
+  });
+  window.addEventListener('orientationchange', function(){
+    clearTimeout(resizeDebounce);
+    resizeDebounce = setTimeout(resizeCanvas, 150);
+  });
 
   var scoreEl = document.getElementById('scoreVal');
   var bestEl = document.getElementById('bestVal');
@@ -298,6 +384,7 @@
   var submitOverlay = document.getElementById('submitOverlay');
   var submitName = document.getElementById('submitName');
   var submitMobile = document.getElementById('submitMobile');
+  var submitLiveOptIn = document.getElementById('submitLiveOptIn');
   var submitConfirmBtn = document.getElementById('submitConfirmBtn');
   var submitCancelBtn = document.getElementById('submitCancelBtn');
   var submittedOverlay = document.getElementById('submittedOverlay');
@@ -343,7 +430,34 @@
     }
   }
 
+  // ---------------------------------------------------------------------
+  // Best-effort immersive mode — requests true browser Fullscreen (mainly
+  // works on Android Chrome; iOS Safari has no Fullscreen API for regular
+  // pages, so it silently no-ops there) and, only once fullscreen, tries
+  // to lock the screen to landscape (most browsers only allow orientation
+  // lock inside a fullscreen context). Both are wrapped so a failure or
+  // lack of support never blocks play — the CSS letterboxing above is
+  // what actually guarantees the game fills the screen in any orientation,
+  // this is just an enhancement on top of that for browsers that support it.
+  // ---------------------------------------------------------------------
+  function attemptImmersiveMode(){
+    var el = document.documentElement;
+    var requestFs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if(!requestFs) return;
+    try{
+      var result = requestFs.call(el);
+      if(result && result.then){
+        result.then(function(){
+          if(screen.orientation && screen.orientation.lock){
+            screen.orientation.lock('landscape').catch(function(){});
+          }
+        }).catch(function(){});
+      }
+    }catch(e){ /* no-op — CSS letterboxing still handles layout either way */ }
+  }
+
   function startGame(){
+    attemptImmersiveMode();
     resetGame();
     state = 'running';
     startOverlay.classList.add('hidden');
@@ -543,9 +657,11 @@
   });
 
   // View Leaderboard — secondary navigation, same-tab, to the standalone
-  // customer-facing leaderboard.html page.
+  // customer-facing leaderboard.html page. Tagged with ?from=game so that
+  // page's top back-link can point back here specifically, instead of
+  // showing two buttons that both just go to the menu.
   viewLeaderboardBtn.addEventListener('click', function(){
-    window.location.href = 'leaderboard.html';
+    window.location.href = 'leaderboard.html?from=game';
   });
   canvas.addEventListener('pointerdown', jump);
   window.addEventListener('keydown', function(e){
@@ -601,6 +717,7 @@
     overOverlay.classList.add('hidden');
     submitName.value = '';
     submitMobile.value = '';
+    submitLiveOptIn.checked = true;
     submitOverlay.classList.remove('hidden');
   });
 
@@ -617,7 +734,7 @@
       submitMobile.style.borderColor = mobile ? 'var(--stone-line)' : 'var(--ember)';
       return;
     }
-    submitScore(name, mobile, score);
+    submitScore(name, mobile, score, submitLiveOptIn.checked);
   });
 
   // ---------------------------------------------------------------------
@@ -628,12 +745,17 @@
   // offline-tolerant trust model as the rest of the app. If the request
   // fails (no signal, etc.) that's logged and surfaced quietly in the
   // confirmation text rather than blocking the player.
+  //
+  // liveOptIn (Live Feed sprint) is a separate, optional choice made in
+  // the same form — whether this score may also appear anonymously (no
+  // name) on the customer-facing Live Feed on leaderboard.html. It never
+  // affects the reward-claim submission itself either way.
   // ---------------------------------------------------------------------
-  function submitScore(name, mobile, scoreVal){
+  function submitScore(name, mobile, scoreVal, liveOptIn){
     submitConfirmBtn.disabled = true;
     submitConfirmBtn.textContent = 'Submitting…';
 
-    var payload = { action: 'submitRunnerScore', name: name, mobile: mobile, score: scoreVal, ts: new Date().toISOString() };
+    var payload = { action: 'submitRunnerScore', name: name, mobile: mobile, score: scoreVal, ts: new Date().toISOString(), liveOptIn: !!liveOptIn };
 
     var request = (APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1)
       ? Promise.reject(new Error('not configured'))

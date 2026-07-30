@@ -200,6 +200,17 @@ body{
   width:100%;
 }
 .bottom-nav-link:active{ opacity:0.85; }
+
+.live-section-label{ margin-top:20px; }
+.live-feed-list .rank-row{ gap:10px; }
+.live-anon-tag{
+  flex:1;
+  min-width:0;
+  font-size:0.8125rem;
+  font-weight:600;
+  color:var(--ink-faint);
+  font-style:italic;
+}
 </style>
 </head>
 <body>
@@ -226,6 +237,9 @@ body{
 
     <div class="section-label">Top scores</div>
     <div class="rank-list" id="rankList"></div>
+
+    <div class="section-label live-section-label" id="liveFeedLabel" style="display:none;">🔴 Live right now</div>
+    <div class="rank-list live-feed-list" id="liveFeedList" style="display:none;"></div>
   </div>
 
   <button type="button" class="bottom-nav-link" id="backToMenuBottom">Back to Menu</button>
@@ -245,9 +259,16 @@ body{
 // score overall — same continuous-leaderboard model as the game/Dashboard,
 // no weekly/daily reset.
 //
+// Live Feed (below the Top 10): anonymous, opt-in only. A player chooses
+// at submit time (on the game's own submit form) whether their score may
+// also show here — no name, ever. Same best-per-player dedupe as the Top
+// 10, just restricted to the opt-in subset, so beating your own score
+// updates your one entry instead of adding a second.
+//
 // Privacy note: mobile numbers are staff-only information (visible on the
 // Owner Dashboard for verifying a claim) and are deliberately never shown
-// on this public page — only the name the player typed in and their score.
+// on this public page — only the name the player typed in (Top 10) or
+// nothing at all (Live Feed), plus their score.
 // ---------------------------------------------------------------------------
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 
@@ -314,6 +335,41 @@ async function loadLeaderboard(){
       '</div>';
     }).join('');
 
+    // -------------------------------------------------------------------
+    // Live Feed — anonymous, opt-in only (row.liveOptIn === true, set by
+    // the player at submit time). Same best-score-per-player dedupe as
+    // the Top 10 above, but computed over the opt-in subset only, and the
+    // name is never rendered — this list exists to show activity, not
+    // identity. Beating your own opted-in score simply replaces your one
+    // entry (the dedupe keeps only the max), it never adds a second row.
+    // -------------------------------------------------------------------
+    const liveRows = data.scores.filter((row) => row.liveOptIn);
+    const bestLiveByMobile = new Map();
+    liveRows.forEach((row) => {
+      const key = normalizeMobileClient_(row.mobile);
+      const existing = bestLiveByMobile.get(key);
+      if(!existing || row.score > existing.score){
+        bestLiveByMobile.set(key, row);
+      }
+    });
+    const liveRanked = Array.from(bestLiveByMobile.values()).sort((a, b) => b.score - a.score).slice(0, 10);
+
+    const liveFeedLabelEl = document.getElementById('liveFeedLabel');
+    const liveFeedListEl = document.getElementById('liveFeedList');
+    if(liveRanked.length > 0){
+      liveFeedListEl.innerHTML = liveRanked.map((row) => {
+        return '<div class="rank-row">' +
+          '<span class="live-anon-tag">🎮 Anonymous player</span>' +
+          '<span class="rank-score">' + row.score + '</span>' +
+        '</div>';
+      }).join('');
+      liveFeedLabelEl.style.display = '';
+      liveFeedListEl.style.display = '';
+    }else{
+      liveFeedLabelEl.style.display = 'none';
+      liveFeedListEl.style.display = 'none';
+    }
+
     contentEl.style.display = '';
   }catch(err){
     console.warn('loadLeaderboard failed:', err);
@@ -322,9 +378,29 @@ async function loadLeaderboard(){
   }
 }
 
-document.getElementById('backToMenuTop').addEventListener('click', function(){
-  window.location.href = 'index.html';
-});
+// ---------------------------------------------------------------------------
+// Back-link context — previously both the top and bottom buttons on this
+// page went to index.html, which looked like a duplicate/confusing pair.
+// Now: the top button reflects where the player actually came from (the
+// game, via ?from=game on the URL, or the menu otherwise), and the bottom
+// button always stays "Back to Menu" as the constant second option — so a
+// player who arrived from the game can get back to the game specifically,
+// while still having a plain way back to the menu too.
+// ---------------------------------------------------------------------------
+const cameFromGame = new URLSearchParams(window.location.search).get('from') === 'game';
+const backToMenuTopEl = document.getElementById('backToMenuTop');
+
+if(cameFromGame){
+  backToMenuTopEl.textContent = '← Back to Game';
+  backToMenuTopEl.addEventListener('click', function(){
+    window.location.href = 'khichiya-runner.html';
+  });
+}else{
+  backToMenuTopEl.addEventListener('click', function(){
+    window.location.href = 'index.html';
+  });
+}
+
 document.getElementById('backToMenuBottom').addEventListener('click', function(){
   window.location.href = 'index.html';
 });

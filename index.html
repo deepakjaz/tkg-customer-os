@@ -319,6 +319,19 @@ input{font-family:inherit;}
 
 /* ---- Customer Journey (Screen 1) — first interaction, offline-only.
    Reuses .screen / showScreen() as-is. No new UI-switching mechanism. ---- */
+.journey-back-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:none;
+  border:none;
+  color:var(--ink-soft);
+  font-size:0.8125rem;
+  font-weight:700;
+  padding:8px 0 0;
+  margin-top:8px;
+}
+.journey-back-link:active{ opacity:0.6; }
 .journey-intro{
   margin-top:32px;
   margin-bottom:28px;
@@ -2412,6 +2425,7 @@ textarea.field-input{
        straight to Screen 2 filtered to their path. Offline only: no
        Apps Script, no backend, no Google Sheet involved. ============ -->
   <section class="screen active" id="screen-journey">
+    <button type="button" class="journey-back-link hidden" id="journeyBackBtn">← Back</button>
     <div class="journey-intro">
       <div class="journey-title" data-i18n="journey.title">👋 Welcome to TKG</div>
       <div class="journey-subtitle" data-i18n="journey.subtitle">How can we help you today?</div>
@@ -3945,6 +3959,12 @@ function showScreen(id){
   // showScreen()'s own behavior above this line is untouched.
   if(id === 'screen-menu'){ startTasteDiscoveryTimer(); }
   else{ cancelTasteDiscoveryTimer(); }
+  // Journey screen back button — hidden for a genuine first-time visitor
+  // (no saved journey to go back to), shown if a customer who already has
+  // one ends up here (via Change Journey, the nav Journey button, or
+  // landing back on this screen by accident) so they can back out instead
+  // of being forced to re-select. See updateJourneyBackButtonVisibility().
+  if(id === 'screen-journey'){ updateJourneyBackButtonVisibility(); }
   // Sprint: Production UI Patch — fixed bottom nav only belongs on the
   // primary Menu screen (Objective 4); hidden on the Journey picker, Owner
   // Dashboard, and every overlay-backed screen.
@@ -4001,6 +4021,22 @@ function getStoredJourney(){
     return null;
   }
 }
+
+// Journey screen back button — shown only when a saved (non-expired)
+// journey currently exists, since that's the only case where there's
+// somewhere valid to go back to. A genuine first-time visitor has no
+// stored journey yet, so this correctly stays hidden for them. Called
+// from showScreen() every time 'screen-journey' becomes active.
+function updateJourneyBackButtonVisibility(){
+  const btn = document.getElementById('journeyBackBtn');
+  if(!btn) return;
+  btn.classList.toggle('hidden', !getStoredJourney());
+}
+
+document.getElementById('journeyBackBtn').addEventListener('click', () => {
+  showScreen('screen-menu');
+});
+
 
 // The one genuinely new piece of logic Customer Journey needs: every
 // existing section tagged data-journey is shown/hidden by matching the
