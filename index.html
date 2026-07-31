@@ -420,6 +420,7 @@ input{font-family:inherit;}
   width:100%;
   height:100%;
   object-fit:cover;
+  border:none;
 }
 .moments-slide-media-scroller{
   display:flex;
@@ -3651,7 +3652,7 @@ async function loadMoments(){
         const mediaHtml = mediaList.map(item => {
           const isVideo = item.mimeType && item.mimeType.indexOf('video/') === 0;
           return isVideo
-            ? '<video class="moments-slide-media" src="' + escapeHtml(item.url) + '" muted loop playsinline controls></video>'
+            ? '<iframe class="moments-slide-media" src="' + escapeHtml(item.url) + '" allow="autoplay" allowfullscreen frameborder="0"></iframe>'
             : '<img class="moments-slide-media" src="' + escapeHtml(item.url) + '" alt="TKG moment" loading="lazy">';
         }).join('');
         const dotsHtml = mediaList.length > 1
