@@ -166,6 +166,12 @@
     font-weight:700;
   }
   .btn-ghost:active{background:var(--stone-base);}
+  .btn-ghost-standalone{
+    flex:none;
+    width:100%;
+    max-width:280px;
+    margin-top:2px;
+  }
   .text-input{
     width:100%;
     max-width:240px;
@@ -241,11 +247,11 @@
         <input class="text-input" id="submitName" type="text" placeholder="Your name" maxlength="40">
         <input class="text-input" id="submitMobile" type="tel" inputmode="numeric" placeholder="Mobile number" maxlength="10">
         <label class="live-opt-in-row" for="submitLiveOptIn">
-          <input type="checkbox" id="submitLiveOptIn" checked>
+          <input type="checkbox" id="submitLiveOptIn">
           <span>Also show my score anonymously on the Live board (no name shown)</span>
         </label>
         <button class="btn" id="submitConfirmBtn">Submit</button>
-        <button class="btn-ghost" id="submitCancelBtn">Cancel</button>
+        <button class="btn-ghost btn-ghost-standalone" id="submitCancelBtn">Cancel</button>
       </div>
 
       <div class="overlay hidden" id="submittedOverlay">
@@ -717,7 +723,7 @@
     overOverlay.classList.add('hidden');
     submitName.value = '';
     submitMobile.value = '';
-    submitLiveOptIn.checked = true;
+    submitLiveOptIn.checked = false;
     submitOverlay.classList.remove('hidden');
   });
 
