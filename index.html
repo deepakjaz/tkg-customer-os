@@ -421,6 +421,33 @@ input{font-family:inherit;}
   height:100%;
   object-fit:cover;
 }
+.moments-slide-media-scroller{
+  display:flex;
+  width:100%;
+  height:100%;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+}
+.moments-slide-media-scroller > .moments-slide-media{
+  flex:0 0 100%;
+  scroll-snap-align:start;
+}
+.moments-slide-media-dots{
+  position:absolute;
+  top:calc(env(safe-area-inset-top, 0px) + 16px);
+  left:0; right:0;
+  display:flex;
+  justify-content:center;
+  gap:5px;
+  z-index:5;
+  pointer-events:none;
+}
+.moments-slide-media-dots span{
+  width:5px; height:5px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.45);
+}
 .moments-slide-gradient{
   position:absolute;
   left:0; right:0; bottom:0;
@@ -438,24 +465,35 @@ input{font-family:inherit;}
 }
 .moments-slide-actions{
   position:absolute;
-  right:14px; bottom:calc(env(safe-area-inset-bottom, 0px) + 28px);
+  right:14px; bottom:calc(env(safe-area-inset-bottom, 0px) + 78px);
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:20px;
+  gap:16px;
   z-index:5;
 }
-.moments-heart-btn, .moments-share-btn{
-  background:none;
-  border:none;
-  font-size:1.875rem;
-  line-height:1;
-  color:#fff;
-  filter:drop-shadow(0 1px 4px rgba(0,0,0,0.5));
-  transition:transform 0.18s ease;
+.moments-heart-btn, .moments-share-btn, .moments-comment-btn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,0.15);
+  background:rgba(0,0,0,0.38);
+  backdrop-filter:blur(4px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:transform 0.18s ease, background 0.18s ease;
 }
-.moments-heart-btn.liked{ transform:scale(1.2); }
-.moments-heart-btn:active, .moments-share-btn:active{ transform:scale(0.9); }
+.moments-heart-btn svg, .moments-share-btn svg, .moments-comment-btn svg{
+  width:21px; height:21px;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+}
+.moments-heart-btn.liked{
+  background:var(--ember);
+  border-color:transparent;
+  transform:scale(1.08);
+}
+.moments-heart-btn:active, .moments-share-btn:active, .moments-comment-btn:active{ transform:scale(0.9); }
 .moments-slide-embed{
   background:var(--moments-ambient-bg);
   width:100%;
@@ -530,13 +568,53 @@ input{font-family:inherit;}
   max-height:90dvh;
   overflow-y:auto;
 }
-.moments-compose-preview{
-  width:100%;
-  max-height:280px;
-  object-fit:cover;
-  border-radius:var(--radius-md);
+.moments-compose-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:8px;
   margin-bottom:14px;
+}
+.moments-compose-thumb-wrap{
+  position:relative;
+  width:100%;
+  aspect-ratio:1;
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  background:#000;
+}
+.moments-compose-thumb-wrap img, .moments-compose-thumb-wrap video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
   display:block;
+}
+.moments-compose-remove-badge{
+  position:absolute;
+  top:4px; right:4px;
+  width:22px; height:22px;
+  border-radius:50%;
+  border:none;
+  background:rgba(232,93,44,0.95);
+  color:#fff;
+  font-size:0.8rem;
+  font-weight:700;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.moments-compose-add-tile{
+  width:100%;
+  aspect-ratio:1;
+  border-radius:var(--radius-md);
+  border:2px dashed var(--hairline, rgba(0,0,0,0.15));
+  background:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.5rem;
+  color:var(--ink-soft);
 }
 .moments-status{
   font-size:0.75rem;
@@ -3082,7 +3160,7 @@ textarea.field-input{
     <div class="moments-loading" id="momentsLoadingState">Loading gallery…</div>
 
     <div class="moments-fab-row">
-      <input type="file" accept="image/*" id="momentsFileInput" style="display:none;">
+      <input type="file" accept="image/*,video/*" multiple id="momentsFileInput" style="display:none;">
       <button type="button" class="moments-fab" id="momentsUploadBtn">📷 Share Yours</button>
       <button type="button" class="moments-fab moments-fab-secondary" id="momentsLinkFabBtn">🔗 Paste IG Link</button>
     </div>
@@ -3092,7 +3170,7 @@ textarea.field-input{
          Nothing is uploaded until they tap Post here. -->
     <div class="moments-compose-overlay hidden" id="momentsComposeOverlay">
       <div class="moments-compose-card">
-        <img class="moments-compose-preview" id="momentsComposePreview" alt="Your photo">
+        <div class="moments-compose-grid" id="momentsComposeGrid"></div>
         <label class="field-label" for="momentsCaptionInput">Add a caption? (optional)</label>
         <input class="field-input" id="momentsCaptionInput" type="text" placeholder="Say something about this moment" maxlength="200">
         <div class="moments-status" id="momentsUploadStatus"></div>
@@ -3474,7 +3552,7 @@ const momentsFileInput = document.getElementById('momentsFileInput');
 const momentsUploadBtn = document.getElementById('momentsUploadBtn');
 const momentsLinkFabBtn = document.getElementById('momentsLinkFabBtn');
 const momentsComposeOverlay = document.getElementById('momentsComposeOverlay');
-const momentsComposePreview = document.getElementById('momentsComposePreview');
+const momentsComposeGrid = document.getElementById('momentsComposeGrid');
 const momentsCaptionInput = document.getElementById('momentsCaptionInput');
 const momentsUploadStatus = document.getElementById('momentsUploadStatus');
 const momentsComposePostBtn = document.getElementById('momentsComposePostBtn');
@@ -3567,15 +3645,33 @@ async function loadMoments(){
     const ordered = data.moments.slice().reverse();
 
     momentsViewer.innerHTML = ordered.map(m => {
-      if(m.type === 'photo' && m.imageUrl){
+      const mediaList = (m.media && m.media.length) ? m.media : (m.imageUrl ? [{ url: m.imageUrl, mimeType: 'image/jpeg' }] : []);
+      if(m.type === 'photo' && mediaList.length){
         const isLiked = likedIds.has(m.id);
+        const mediaHtml = mediaList.map(item => {
+          const isVideo = item.mimeType && item.mimeType.indexOf('video/') === 0;
+          return isVideo
+            ? '<video class="moments-slide-media" src="' + escapeHtml(item.url) + '" muted loop playsinline controls></video>'
+            : '<img class="moments-slide-media" src="' + escapeHtml(item.url) + '" alt="TKG moment" loading="lazy">';
+        }).join('');
+        const dotsHtml = mediaList.length > 1
+          ? '<div class="moments-slide-media-dots">' + mediaList.map(() => '<span></span>').join('') + '</div>'
+          : '';
         return '<div class="moments-slide">' +
-          '<img class="moments-slide-media" src="' + escapeHtml(m.imageUrl) + '" alt="TKG moment" loading="lazy">' +
+          dotsHtml +
+          '<div class="moments-slide-media-scroller">' + mediaHtml + '</div>' +
           '<div class="moments-slide-gradient"></div>' +
           (m.caption ? '<div class="moments-slide-caption">' + escapeHtml(m.caption) + '</div>' : '') +
           '<div class="moments-slide-actions">' +
-            '<button type="button" class="moments-heart-btn' + (isLiked ? ' liked' : '') + '" data-id="' + escapeHtml(m.id) + '">' + (isLiked ? '❤️' : '🤍') + '</button>' +
-            '<button type="button" class="moments-share-btn" data-url="' + escapeHtml(m.imageUrl) + '" data-caption="' + escapeHtml(m.caption || '') + '">📤</button>' +
+            '<button type="button" class="moments-heart-btn' + (isLiked ? ' liked' : '') + '" data-id="' + escapeHtml(m.id) + '">' +
+              '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-6.7-4.35-9.3-8.28C1.1 10.4 1.6 7.4 4 5.6c2.1-1.6 4.9-1.2 6.6.7L12 7.7l1.4-1.4c1.7-1.9 4.5-2.3 6.6-.7 2.4 1.8 2.9 4.8 1.3 7.12C18.7 16.65 12 21 12 21z"/></svg>' +
+            '</button>' +
+            '<button type="button" class="moments-comment-btn">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M21 12c0 4.4-4 8-9 8-1.2 0-2.4-.2-3.4-.6L3 20l1.1-4.1C3.4 14.7 3 13.4 3 12c0-4.4 4-8 9-8s9 3.6 9 8z"/></svg>' +
+            '</button>' +
+            '<button type="button" class="moments-share-btn" data-url="' + escapeHtml(mediaList[0].url) + '" data-caption="' + escapeHtml(m.caption || '') + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>' +
+            '</button>' +
           '</div>' +
         '</div>';
       }
@@ -3600,8 +3696,14 @@ async function loadMoments(){
     momentsViewer.querySelectorAll('.moments-heart-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const nowLiked = toggleLikedMomentId(btn.dataset.id);
-        btn.textContent = nowLiked ? '❤️' : '🤍';
         btn.classList.toggle('liked', nowLiked);
+      });
+    });
+    // Comment icon is visual-only for now — no commenting system is built
+    // yet. A gentle placeholder response instead of a dead tap.
+    momentsViewer.querySelectorAll('.moments-comment-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        showToast('Comments coming soon!');
       });
     });
     momentsViewer.querySelectorAll('.moments-share-btn').forEach(btn => {
@@ -3636,9 +3738,10 @@ async function loadMoments(){
 }
 
 // Resizes/compresses a photo client-side before upload (max 1280px on the
-// long edge, JPEG ~0.82 quality) — keeps the upload fast and the Apps
-// Script payload well within its size limits, regardless of how large the
-// original phone photo is.
+// long edge, JPEG ~0.82 quality) — keeps the upload fast and each request
+// well within size limits, regardless of how large the original phone
+// photo is. Videos are NOT run through this — canvas can't resize video,
+// so videos are capped by the 8MB-per-file check below instead.
 function resizeImageForUpload(file){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -3668,66 +3771,142 @@ function resizeImageForUpload(file){
   });
 }
 
+// Videos can't be resized client-side the way photos can, so they're just
+// read as-is (still subject to the 8MB cap checked before this is called).
+function readFileAsDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
+  });
+}
+
 // ---------------------------------------------------------------------------
-// Upload flow — two steps, not one. Picking a photo no longer uploads
-// immediately: it opens the Compose card so the customer sees their own
-// photo first and can optionally add a caption before anything is sent.
-// Nothing reaches the backend until they tap Post.
+// Upload flow — two steps, not one. Picking photos/videos no longer uploads
+// immediately: it opens the Compose card with a preview grid so the customer
+// sees exactly what they're posting (and can remove any item with the ×
+// badge, or add more) before anything is sent. Nothing reaches the backend
+// until they tap Post.
 // ---------------------------------------------------------------------------
-let momentsPendingImageBase64 = null;
+const MOMENTS_MAX_FILE_BYTES = 8 * 1024 * 1024; // 8MB per file, images and videos alike
+let momentsStagedFiles = []; // [{ localId, mimeType, dataUrl, isVideo }]
 
 momentsUploadBtn.addEventListener('click', () => {
   momentsFileInput.click();
 });
 
 momentsFileInput.addEventListener('change', async () => {
-  const file = momentsFileInput.files && momentsFileInput.files[0];
+  const files = Array.from(momentsFileInput.files || []);
   momentsFileInput.value = ''; // allow picking the same file again later
-  if(!file) return;
 
-  try{
-    momentsPendingImageBase64 = await resizeImageForUpload(file);
-    momentsComposePreview.src = momentsPendingImageBase64;
-    momentsCaptionInput.value = '';
+  for(const file of files){
+    if(file.size > MOMENTS_MAX_FILE_BYTES){
+      alert('"' + file.name + '" is over 8MB — please pick a smaller photo/video.');
+      continue;
+    }
+    try{
+      const isVideo = file.type.indexOf('video/') === 0;
+      const dataUrl = isVideo ? await readFileAsDataUrl(file) : await resizeImageForUpload(file);
+      momentsStagedFiles.push({
+        localId: 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        mimeType: isVideo ? file.type : 'image/jpeg',
+        dataUrl: dataUrl,
+        isVideo: isVideo
+      });
+    }catch(err){
+      console.warn('Could not read/resize a picked file:', err);
+    }
+  }
+
+  if(momentsStagedFiles.length > 0){
+    momentsCaptionInput.value = momentsCaptionInput.value || '';
     setMomentsStatus(momentsUploadStatus, '');
+    renderMomentsComposeGrid();
     momentsComposeOverlay.classList.remove('hidden');
-  }catch(err){
-    console.warn('Could not read/resize photo:', err);
   }
 });
 
+function renderMomentsComposeGrid(){
+  momentsComposeGrid.innerHTML = momentsStagedFiles.map(f => {
+    const mediaTag = f.isVideo
+      ? '<video src="' + f.dataUrl + '" muted playsinline></video>'
+      : '<img src="' + f.dataUrl + '" alt="Selected photo">';
+    return '<div class="moments-compose-thumb-wrap">' + mediaTag +
+      '<button type="button" class="moments-compose-remove-badge" data-local-id="' + f.localId + '">×</button>' +
+      '</div>';
+  }).join('') + '<button type="button" class="moments-compose-add-tile" id="momentsComposeAddTile">+</button>';
+
+  momentsComposeGrid.querySelectorAll('.moments-compose-remove-badge').forEach(btn => {
+    btn.addEventListener('click', () => {
+      momentsStagedFiles = momentsStagedFiles.filter(f => f.localId !== btn.dataset.localId);
+      renderMomentsComposeGrid();
+    });
+  });
+  const addTile = document.getElementById('momentsComposeAddTile');
+  if(addTile) addTile.addEventListener('click', () => momentsFileInput.click());
+}
+
 momentsComposeCancelBtn.addEventListener('click', () => {
-  momentsPendingImageBase64 = null;
+  momentsStagedFiles = [];
   momentsComposeOverlay.classList.add('hidden');
 });
 
 momentsComposePostBtn.addEventListener('click', async () => {
-  if(!momentsPendingImageBase64) return;
+  if(momentsStagedFiles.length === 0) return;
 
   momentsComposePostBtn.disabled = true;
-  setMomentsStatus(momentsUploadStatus, 'Posting…');
 
   try{
-    const res = await fetch(APP_SCRIPT_URL, {
+    // Step 1 — upload each staged file individually (never batching several
+    // files' base64 into one request), collecting the resulting Drive URLs.
+    const media = [];
+    for(let i = 0; i < momentsStagedFiles.length; i++){
+      setMomentsStatus(momentsUploadStatus, 'Uploading ' + (i + 1) + ' of ' + momentsStagedFiles.length + '…');
+      const f = momentsStagedFiles[i];
+      const res = await fetch(APP_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight on Apps Script
+        body: JSON.stringify({
+          action: 'uploadMomentFile',
+          base64Data: f.dataUrl.split('base64,')[1],
+          mimeType: f.mimeType
+        })
+      });
+      if(!res.ok) throw new Error('Upload failed: ' + res.status);
+      const data = await res.json();
+      if(!data || data.status !== 'ok') throw new Error('File upload not recorded');
+      media.push({ url: data.url, mimeType: data.mimeType });
+    }
+
+    // Step 2 — one final call writes a single Sheet row for the whole post,
+    // holding all the media URLs together plus the caption. Uploader
+    // identity (if this device already has one saved) is sent along
+    // privately — it's logged in the Sheet but never shown publicly and
+    // never returned by the moments API.
+    setMomentsStatus(momentsUploadStatus, 'Posting…');
+    const identity = getMyIdentity();
+    const finalRes = await fetch(APP_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight on Apps Script
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'uploadMoment',
-        imageBase64: momentsPendingImageBase64,
-        mimeType: 'image/jpeg',
-        caption: momentsCaptionInput.value.trim()
+        media: media,
+        caption: momentsCaptionInput.value.trim(),
+        uploaderName: identity ? identity.name : '',
+        uploaderMobile: identity ? identity.mobile : ''
       })
     });
-    if(!res.ok) throw new Error('Upload failed: ' + res.status);
-    const data = await res.json();
-    if(!data || data.status !== 'ok') throw new Error('Upload not recorded');
+    if(!finalRes.ok) throw new Error('Upload failed: ' + finalRes.status);
+    const finalData = await finalRes.json();
+    if(!finalData || finalData.status !== 'ok') throw new Error('Upload not recorded');
 
-    momentsPendingImageBase64 = null;
+    momentsStagedFiles = [];
     momentsComposeOverlay.classList.add('hidden');
     loadMoments();
     loadMomentsStat();
   }catch(err){
-    console.warn('Moment photo upload failed:', err);
+    console.warn('Moment upload failed:', err);
     setMomentsStatus(momentsUploadStatus, "Couldn't upload right now — check your connection and try again.", 'error');
   }finally{
     momentsComposePostBtn.disabled = false;
