@@ -3575,7 +3575,7 @@ async function loadMoments(){
           (m.caption ? '<div class="moments-slide-caption">' + escapeHtml(m.caption) + '</div>' : '') +
           '<div class="moments-slide-actions">' +
             '<button type="button" class="moments-heart-btn' + (isLiked ? ' liked' : '') + '" data-id="' + escapeHtml(m.id) + '">' + (isLiked ? '❤️' : '🤍') + '</button>' +
-            '<button type="button" class="moments-share-btn" data-url="' + escapeHtml(m.imageUrl) + '">📤</button>' +
+            '<button type="button" class="moments-share-btn" data-url="' + escapeHtml(m.imageUrl) + '" data-caption="' + escapeHtml(m.caption || '') + '">📤</button>' +
           '</div>' +
         '</div>';
       }
@@ -3607,9 +3607,21 @@ async function loadMoments(){
     momentsViewer.querySelectorAll('.moments-share-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const url = btn.dataset.url;
+        const caption = btn.dataset.caption || '';
+
+        // Copy the caption first (if there is one) so it's sitting ready
+        // to paste the moment someone opens Instagram to post — this is
+        // the whole point of the share button, since the OS share sheet
+        // itself can't hand a caption directly into another app's composer.
+        if(caption && navigator.clipboard){
+          navigator.clipboard.writeText(caption).then(() => {
+            showToast('Caption copied — paste it when you post!');
+          }).catch(() => {});
+        }
+
         if(navigator.share){
-          navigator.share({ title: 'TKG Moments', text: 'Check out this moment at TKG!', url: url }).catch(() => {});
-        }else if(navigator.clipboard){
+          navigator.share({ title: 'TKG Moments', text: caption || 'Check out this moment at TKG!', url: url }).catch(() => {});
+        }else if(navigator.clipboard && !caption){
           navigator.clipboard.writeText(url);
           showToast('Link copied!');
         }
