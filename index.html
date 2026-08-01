@@ -32,6 +32,25 @@
 })();
 </script>
 
+<script>
+// TKG THEME ENGINE — anti-FOUC read, same convention as the font-scale
+// script above. Reads the ONE shared theme key before first paint so a
+// returning visitor never sees the wrong theme flash before switching.
+// This same tiny snippet (unchanged) is meant to be copied verbatim into
+// every other TKG file (Runner, Leaderboard, Dashboard, TKG Moments, Taste
+// Discovery, Product Popup) so they all read the identical shared
+// preference — see the full TKG_THEME module further down for the
+// get/set API and the intro-animation logic.
+(function(){
+  try{
+    var t = localStorage.getItem('tkg_theme');
+    document.documentElement.setAttribute('data-tkg-theme', (t === 'a' || t === 'b') ? t : 'b');
+  }catch(e){
+    document.documentElement.setAttribute('data-tkg-theme', 'b');
+  }
+})();
+</script>
+
 <style>
 /* ==========================================================================
    TOKENS
@@ -117,6 +136,115 @@
     0 16px 32px -16px rgba(184,67,29,0.30),
     0 3px 10px -4px rgba(28,24,21,0.16);
 }
+
+/* ============================================================================
+   TKG DESIGN SYSTEM V1 — locked 2026-08-01. This block and everything below
+   it up to the next "======" banner is the reusable engine: identical
+   variables/classes are meant to be copied unchanged into every other TKG
+   file as each one is restyled. Nothing above this line (the existing
+   Dashboard charcoal palette, glass-card tokens, etc.) is touched — this is
+   an additive layer, namespaced with a `--tkg-` prefix so it can never
+   collide with the existing tokens the rest of the file already relies on.
+
+   Two official themes only, chosen via the single shared `data-tkg-theme`
+   attribute on <html> ("a" = dark page/white marble, "b" = light page/black
+   marble). Marble images are the customer's own two photos, hosted as real
+   files (./tkg-marble-black.jpg, ./tkg-marble-white.jpg) alongside index.html
+   rather than embedded as base64 — keeps this already-large file from
+   growing another ~170KB inline, and lets the browser cache them once
+   across every TKG page instead of re-downloading per file. Upload both
+   files to the same folder as index.html when deploying.
+   ========================================================================== */
+
+/* ---- THEME VARIABLES ---- */
+:root[data-tkg-theme="b"]{ /* Theme B: light page, black marble cards, black controls */
+  --tkg-bg:        #FFFFFF;
+  --tkg-ink:       #1A1815;
+  --tkg-ink-soft:  #6B6660;
+  --tkg-ink-faint: #9B968E;
+  --tkg-card-line: #E6E3DD;
+  --tkg-ctrl-bg:   #111111;
+  --tkg-ctrl-fg:   #FFFFFF;
+  --tkg-marble-url: url('./tkg-marble-black.jpg');
+  --tkg-marble-overlay: rgba(0,0,0,0.42);
+  --tkg-card-text: #F2EFEA;
+  --tkg-card-text-soft: rgba(242,239,234,0.72);
+}
+:root[data-tkg-theme="a"]{ /* Theme A: dark page, white marble cards, white controls */
+  --tkg-bg:        #0B0A09;
+  --tkg-ink:       #F2EFEA;
+  --tkg-ink-soft:  #A8A29A;
+  --tkg-ink-faint: #716C64;
+  --tkg-card-line: rgba(255,255,255,0.1);
+  --tkg-ctrl-bg:   #F2EFEA;
+  --tkg-ctrl-fg:   #0B0A09;
+  --tkg-marble-url: url('./tkg-marble-white.jpg');
+  --tkg-marble-overlay: rgba(255,255,255,0.5);
+  --tkg-card-text: #1A1815;
+  --tkg-card-text-soft: rgba(26,24,21,0.68);
+}
+:root{
+  --tkg-amber:     #D9A441;   /* premium accent ONLY — stars, BEST badge, tiny indicators. Never buttons/nav/titles/body text. */
+  --tkg-amber-op:  0.6;       /* locked outline strength — do not add a picker back */
+}
+
+/* ---- ANIMATION ENGINE ----
+   The "traveling ember": a thin conic band circles a card's edge once,
+   then settles into the static amber outline below. Driven by the
+   `tkg-ember-run` class on <body>, added/removed by TKG_THEME.playIntro()
+   in the script further down (repeats every 10s for ~1 minute on load and
+   on every theme switch, then stops for good — a welcome moment, not a
+   permanent effect). */
+@property --tkg-ember-angle{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
+
+.tkg-amber-frame{ position:relative; border-color:rgba(217,164,65, var(--tkg-amber-op)) !important; }
+.tkg-amber-frame::before{
+  content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+  background:conic-gradient(from var(--tkg-ember-angle,0deg),
+    transparent 0deg, transparent 330deg,
+    rgba(250,198,110,0.95) 350deg, rgba(217,164,65,0.6) 358deg, transparent 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  opacity:0; pointer-events:none;
+}
+body.tkg-ember-run .tkg-amber-frame::before{
+  animation:tkg-ember-travel 2.4s cubic-bezier(.22,.61,.36,1) forwards,
+            tkg-ember-fade 2.4s ease-out forwards;
+}
+@keyframes tkg-ember-travel{ from{ --tkg-ember-angle:0deg; } to{ --tkg-ember-angle:360deg; } }
+@keyframes tkg-ember-fade{ 0%{opacity:0;} 12%{opacity:1;} 78%{opacity:.85;} 100%{opacity:0;} }
+
+/* ---- UI COMPONENTS ----
+   Reusable classes. Phase 1 only defines them — applying them onto the
+   existing header/status/review/menu markup is Phase 2+, done without
+   changing any of that markup's structure, ids, or JS hooks. */
+.tkg-page{ background:var(--tkg-bg); color:var(--tkg-ink); }
+
+.tkg-marble-card{
+  position:relative; overflow:hidden; border:1px solid var(--tkg-card-line);
+  background-color:#0F0E0C;
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-url);
+  background-size:auto, cover; background-position:center, center;
+  color:var(--tkg-card-text);
+}
+
+.tkg-btn{ /* monochrome only — never amber */
+  background:var(--tkg-ctrl-bg); color:var(--tkg-ctrl-fg); border:none; border-radius:12px;
+  font-weight:700; cursor:pointer;
+}
+.tkg-nav{ background:var(--tkg-ctrl-bg); }
+.tkg-nav-item{ color:var(--tkg-ctrl-fg); opacity:0.55; }
+.tkg-nav-item.active{ opacity:1; font-weight:800; }
+
+.tkg-badge-amber{ /* BEST / Signature badges */
+  color:var(--tkg-amber); border:1px solid var(--tkg-amber);
+  font-size:0.58rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase;
+  border-radius:100px; padding:1px 7px;
+}
+.tkg-stars-amber{ color:var(--tkg-amber); }
+/* ============================================================================
+   END TKG DESIGN SYSTEM V1 ENGINE
+   ========================================================================== */
 
 *{box-sizing:border-box; margin:0; padding:0;}
 html,body{
@@ -420,7 +548,6 @@ input{font-family:inherit;}
   width:100%;
   height:100%;
   object-fit:cover;
-  border:none;
 }
 .moments-slide-media-scroller{
   display:flex;
@@ -2433,6 +2560,11 @@ textarea.field-input{
         <span class="spi-value">🌐 <span id="langBtnLabel">EN</span></span>
         <span class="spi-caption" data-i18n="header.languageCaption">LANGUAGE</span>
       </button>
+      <div class="settings-pill-divider"></div>
+      <button type="button" class="settings-pill-item" id="tkgThemeBtn" aria-label="Change theme">
+        <span class="spi-value" id="tkgThemeBtnValue">☾</span>
+        <span class="spi-caption">THEME</span>
+      </button>
     </div>
   </div>
 
@@ -3263,6 +3395,74 @@ textarea.field-input{
 
 <script>
 /* ============================================================================
+   TKG THEME ENGINE — locked 2026-08-01. Copy this whole block unchanged
+   into every other TKG file (Runner, Leaderboard, Dashboard, TKG Moments,
+   Taste Discovery, Product Popup) so they all read/write the ONE shared
+   `tkg_theme` localStorage key — same-origin, so it's automatically shared
+   across every page on tkg-customer-os.vercel.app with no extra sync needed.
+   Changing theme from any screen updates every other screen the next time
+   it loads (or immediately, if TKG_THEME.set() is called on an already-open
+   tab elsewhere via a 'storage' event listener, wired below).
+   ========================================================================== */
+var TKG_THEME = (function(){
+  var KEY = 'tkg_theme';
+  var EMBER_INTERVAL_MS = 10000;   // repeat every 10s ...
+  var EMBER_TOTAL_MS    = 60000;   // ... for about a minute, then stop for good
+  var emberTimer = null, emberStopTimer = null;
+
+  function get(){
+    try{
+      var t = localStorage.getItem(KEY);
+      return (t === 'a' || t === 'b') ? t : 'b';
+    }catch(e){ return 'b'; }
+  }
+
+  function apply(theme){
+    document.documentElement.setAttribute('data-tkg-theme', theme);
+  }
+
+  function set(theme){
+    if (theme !== 'a' && theme !== 'b') return;
+    try{ localStorage.setItem(KEY, theme); }catch(e){}
+    apply(theme);
+    playIntro(); // switching themes restarts the welcome sequence
+  }
+
+  function playEmberOnce(){
+    document.body.classList.remove('tkg-ember-run');
+    void document.body.offsetWidth; // force reflow so the CSS animation can restart
+    document.body.classList.add('tkg-ember-run');
+  }
+
+  // Plays on load and on every theme switch: one ember pass immediately,
+  // then again every 10s, stopping for good once ~1 minute has passed.
+  function playIntro(){
+    if (emberTimer) clearInterval(emberTimer);
+    if (emberStopTimer) clearTimeout(emberStopTimer);
+    playEmberOnce();
+    emberTimer = setInterval(playEmberOnce, EMBER_INTERVAL_MS);
+    emberStopTimer = setTimeout(function(){
+      clearInterval(emberTimer);
+      emberTimer = null;
+    }, EMBER_TOTAL_MS);
+  }
+
+  // Keep every open tab of any TKG page in sync immediately, not just on next load.
+  try{
+    window.addEventListener('storage', function(e){
+      if (e.key === KEY && (e.newValue === 'a' || e.newValue === 'b')){
+        apply(e.newValue);
+        playIntro();
+      }
+    });
+  }catch(e){}
+
+  return { get: get, set: set, apply: apply, playIntro: playIntro };
+})();
+document.addEventListener('DOMContentLoaded', function(){ TKG_THEME.playIntro(); });
+/* ======================== END TKG THEME ENGINE ============================ */
+
+/* ============================================================================
    TKG APP LOGIC
    ============================================================================
    Data model per customer (LocalStorage key: tkg_customers):
@@ -3652,7 +3852,7 @@ async function loadMoments(){
         const mediaHtml = mediaList.map(item => {
           const isVideo = item.mimeType && item.mimeType.indexOf('video/') === 0;
           return isVideo
-            ? '<iframe class="moments-slide-media" src="' + escapeHtml(item.url) + '" allow="autoplay" allowfullscreen frameborder="0"></iframe>'
+            ? '<video class="moments-slide-media" src="' + escapeHtml(item.url) + '" muted loop playsinline controls></video>'
             : '<img class="moments-slide-media" src="' + escapeHtml(item.url) + '" alt="TKG moment" loading="lazy">';
         }).join('');
         const dotsHtml = mediaList.length > 1
@@ -6843,6 +7043,28 @@ function openLangSheet(){
   clearLangBtnAttention();
 }
 document.getElementById('langBtn').addEventListener('click', openLangSheet);
+
+// ---------------------------------------------------------------------------
+// TKG THEME PILL — flips the ONE shared tkg_theme value; every other TKG
+// page reads the same key (see TKG_THEME module at the top of this script).
+// Placement/icon here is a first pass to make the engine testable — happy
+// to move or restyle this control once the header restyle (Phase 2) is
+// underway, this was just the least invasive spot to add it without
+// touching the existing settings-pill layout.
+(function(){
+  var btn = document.getElementById('tkgThemeBtn');
+  var valueEl = document.getElementById('tkgThemeBtnValue');
+  function paint(){
+    var t = TKG_THEME.get();
+    valueEl.textContent = (t === 'a') ? '☀' : '☾';
+  }
+  btn.addEventListener('click', function(){
+    var next = (TKG_THEME.get() === 'a') ? 'b' : 'a';
+    TKG_THEME.set(next);
+    paint();
+  });
+  paint();
+})();
 
 // ---------------------------------------------------------------------------
 // TEXT SIZE (Small/Medium/Large) — "naturally follow the phone's text size"
