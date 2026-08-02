@@ -238,6 +238,24 @@ html[data-tkg-theme="dark"]{
   /* Controls material — Theme A: light fill, dark text (inverse of page) */
   --tkg-ctrl-bg: #FFFFFF;
   --tkg-ctrl-fg: #111111;
+
+  /* Root ink tokens — Theme A (dark). Base :root only ever defined these
+     once, for the light-theme page. Premium Marble cards never depended
+     on that root value (each re-points --ink/--ink-soft/--ink-faint
+     locally to --tkg-marble-ink*), so they were already correct in both
+     themes. Plain Surface elements (ticket-strip/status card,
+     hero-story-strip chip row, extra-chip dietary tags, and any other
+     unscoped text) had no such override and stayed pinned to the
+     light-theme near-black ink even after their own background flipped
+     dark — producing dark-on-dark text. Fixed here at the root, once,
+     rather than patching each component individually. Values reuse the
+     already-approved --tkg-marble-ink (Theme B) light-on-dark palette,
+     since that's the same "light text over dark surface" case already
+     vetted against the mockup.
+   */
+  --ink:       #F2EFEA;
+  --ink-soft:  rgba(242,239,234,0.72);
+  --ink-faint: rgba(242,239,234,0.55);
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
