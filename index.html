@@ -33,20 +33,17 @@
 </script>
 
 <script>
-// TKG THEME ENGINE — anti-FOUC read, same convention as the font-scale
-// script above. Reads the ONE shared theme key before first paint so a
-// returning visitor never sees the wrong theme flash before switching.
-// This same tiny snippet (unchanged) is meant to be copied verbatim into
-// every other TKG file (Runner, Leaderboard, Dashboard, TKG Moments, Taste
-// Discovery, Product Popup) so they all read the identical shared
-// preference — see the full TKG_THEME module further down for the
-// get/set API and the intro-animation logic.
+// Theme Engine — anti-FOUC, same pattern as the font-scale script above.
+// One customer-chosen theme applies across the whole TKG ecosystem via a
+// single localStorage key read on every page, so a returning visitor never
+// sees the other skin flash before this runs. Defaults to Theme B (light)
+// until the customer has chosen — no forced choice on first load.
 (function(){
   try{
-    var t = localStorage.getItem('tkg_theme');
-    document.documentElement.setAttribute('data-tkg-theme', (t === 'a' || t === 'b') ? t : 'b');
+    var theme = localStorage.getItem('tkg_theme');
+    document.documentElement.setAttribute('data-tkg-theme', theme === 'dark' ? 'dark' : 'light');
   }catch(e){
-    document.documentElement.setAttribute('data-tkg-theme', 'b');
+    document.documentElement.setAttribute('data-tkg-theme', 'light');
   }
 })();
 </script>
@@ -74,6 +71,21 @@
      White/warm-ivory marble base, charcoal text, ember reserved for
      small accents per direction: "subtle, charcoal does the heavy lifting." ---- */
   --stone-base:      #F6F6F5;   /* shell background base — neutral, barely-there cool grey */
+  --tkg-page-bg:     #FFFFFF;   /* Page Background material — Theme B (light), approved mockup value */
+  --tkg-plain-border: #E6E3DD;  /* Plain Surface material — Theme B (light), approved mockup .card-line value */
+  --tkg-plain-opaque-bg: #1A1815;  /* Plain Surface, opaque variant (floating system feedback like toast) — Theme B: inverse-of-page so it reads on top of any content */
+  --tkg-plain-opaque-fg: #FFFFFF;
+  /* Premium Marble material — Theme B (light page → black marble cards, opposite of page per approved mockup) */
+  --tkg-marble-bg-color: #0F0E0C;
+  --tkg-marble-image: url('tkg-marble-black.jpg');
+  --tkg-marble-overlay: rgba(0,0,0,0.42);
+  --tkg-marble-border: rgba(0,0,0,0.06);
+  --tkg-marble-ink: #F2EFEA;
+  --tkg-marble-ink-soft: rgba(242,239,234,0.72);
+  --tkg-marble-ink-faint: rgba(242,239,234,0.55);
+  /* Controls material — Theme B: dark fill, light text (inverse of page) */
+  --tkg-ctrl-bg: #1A1815;
+  --tkg-ctrl-fg: #FFFFFF;
   --stone-card:      rgba(255,255,255,0.62);   /* glass card — translucent, paired with backdrop-filter blur */
   --stone-card-alt:  rgba(255,255,255,0.5);   /* glass card, secondary layer — slightly more see-through */
   --stone-vein:      #C9C9C7;   /* marble crack-vein color — neutral grey, no warm bias */
@@ -137,118 +149,100 @@
     0 3px 10px -4px rgba(28,24,21,0.16);
 }
 
-/* ============================================================================
-   TKG DESIGN SYSTEM V1 — locked 2026-08-01. This block and everything below
-   it up to the next "======" banner is the reusable engine: identical
-   variables/classes are meant to be copied unchanged into every other TKG
-   file as each one is restyled. Nothing above this line (the existing
-   Dashboard charcoal palette, glass-card tokens, etc.) is touched — this is
-   an additive layer, namespaced with a `--tkg-` prefix so it can never
-   collide with the existing tokens the rest of the file already relies on.
+/* ==========================================================================
+   OUTLINES material — the amber ember-frame system. Universal infrastructure
+   (tokens, angle property, keyframes) lives here once; applied directly to
+   each real Premium/Plain selector further down rather than via a shared
+   class, since markup/classes stay untouched. Amber is fixed at 60%
+   opacity in both themes — not a per-theme value, per the locked
+   "amber never changes with theme" rule.
 
-   Two official themes only, chosen via the single shared `data-tkg-theme`
-   attribute on <html> ("a" = dark page/white marble, "b" = light page/black
-   marble). Marble images are the customer's own two photos, hosted as real
-   files (./tkg-marble-black.jpg, ./tkg-marble-white.jpg) alongside index.html
-   rather than embedded as base64 — keeps this already-large file from
-   growing another ~170KB inline, and lets the browser cache them once
-   across every TKG page instead of re-downloading per file. Upload both
-   files to the same folder as index.html when deploying.
+   Animation behaviour is the approved EXPERIENCE, not the mockup prototype's
+   literal code: plays on load, one coordinated pulse every 10s across every
+   framed surface at once (not staggered per-card), continues for ~60s total,
+   then stops — leaving only the static border. Restarts the full sequence on
+   every theme switch.
    ========================================================================== */
-
-/* ---- THEME VARIABLES ---- */
-:root[data-tkg-theme="b"]{ /* Theme B: light page, black marble cards, black controls */
-  --tkg-bg:        #FFFFFF;
-  --tkg-ink:       #1A1815;
-  --tkg-ink-soft:  #6B6660;
-  --tkg-ink-faint: #9B968E;
-  --tkg-card-line: #E6E3DD;
-  --tkg-ctrl-bg:   #111111;
-  --tkg-ctrl-fg:   #FFFFFF;
-  --tkg-marble-url: url('./tkg-marble-black.jpg');
-  --tkg-marble-overlay: rgba(0,0,0,0.42);
-  --tkg-card-text: #F2EFEA;
-  --tkg-card-text-soft: rgba(242,239,234,0.72);
-}
-:root[data-tkg-theme="a"]{ /* Theme A: dark page, white marble cards, white controls */
-  --tkg-bg:        #0B0A09;
-  --tkg-ink:       #F2EFEA;
-  --tkg-ink-soft:  #A8A29A;
-  --tkg-ink-faint: #716C64;
-  --tkg-card-line: rgba(255,255,255,0.1);
-  --tkg-ctrl-bg:   #F2EFEA;
-  --tkg-ctrl-fg:   #0B0A09;
-  --tkg-marble-url: url('./tkg-marble-white.jpg');
-  --tkg-marble-overlay: rgba(255,255,255,0.5);
-  --tkg-card-text: #1A1815;
-  --tkg-card-text-soft: rgba(26,24,21,0.68);
-}
-:root{
-  --tkg-amber:     #D9A441;   /* premium accent ONLY — stars, BEST badge, tiny indicators. Never buttons/nav/titles/body text. */
-  --tkg-amber-op:  0.6;       /* locked outline strength — do not add a picker back */
-}
-
-/* ---- ANIMATION ENGINE ----
-   The "traveling ember": a thin conic band circles a card's edge once,
-   then settles into the static amber outline below. Driven by the
-   `tkg-ember-run` class on <body>, added/removed by TKG_THEME.playIntro()
-   in the script further down (repeats every 10s for ~1 minute on load and
-   on every theme switch, then stops for good — a welcome moment, not a
-   permanent effect). */
+:root{ --tkg-amber-op: 0.6; }
 @property --tkg-ember-angle{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
+@keyframes tkg-ember-pulse{
+  0%{ --tkg-ember-angle:0deg; opacity:0; }
+  2%{ opacity:1; }
+  22%{ --tkg-ember-angle:360deg; opacity:0.85; }
+  24%{ opacity:0; }
+  100%{ --tkg-ember-angle:360deg; opacity:0; }
+}
 
-.tkg-amber-frame{ position:relative; border-color:rgba(217,164,65, var(--tkg-amber-op)) !important; }
-.tkg-amber-frame::before{
-  content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+.menu-item, .fun-activity-card, .journey-option, .cs-review-card,
+.review-teaser-card, .reg-card, .ticket-strip, .extra-chip, .hero-story-strip{
+  position:relative;
+}
+.menu-item, .fun-activity-card, .journey-option, .cs-review-card,
+.review-teaser-card, .reg-card, .bottom-nav, .ticket-strip, .extra-chip, .hero-story-strip,
+#thanksOverlay, #khichiyaRunnerOverlay, #productPreviewSheet, #infoSheet{
+  border-color:rgba(217,164,65, var(--tkg-amber-op)) !important;
+}
+.menu-item::before, .fun-activity-card::before, .journey-option::before,
+.cs-review-card::before, .review-teaser-card::before, .reg-card::before,
+.bottom-nav::before, .ticket-strip::before, .extra-chip::before, .hero-story-strip::before,
+#thanksOverlay::before, #khichiyaRunnerOverlay::before,
+#productPreviewSheet::before, #infoSheet::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  padding:1px;
   background:conic-gradient(from var(--tkg-ember-angle,0deg),
     transparent 0deg, transparent 330deg,
     rgba(250,198,110,0.95) 350deg, rgba(217,164,65,0.6) 358deg, transparent 360deg);
   -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor; mask-composite:exclude;
-  opacity:0; pointer-events:none;
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  opacity:0;
+  pointer-events:none;
 }
-body.tkg-ember-run .tkg-amber-frame::before{
-  animation:tkg-ember-travel 2.4s cubic-bezier(.22,.61,.36,1) forwards,
-            tkg-ember-fade 2.4s ease-out forwards;
+body.tkg-ember-run .menu-item::before, body.tkg-ember-run .fun-activity-card::before,
+body.tkg-ember-run .journey-option::before, body.tkg-ember-run .cs-review-card::before,
+body.tkg-ember-run .review-teaser-card::before, body.tkg-ember-run .reg-card::before,
+body.tkg-ember-run .bottom-nav::before, body.tkg-ember-run .ticket-strip::before, body.tkg-ember-run .hero-story-strip::before,
+body.tkg-ember-run .extra-chip::before, body.tkg-ember-run #thanksOverlay::before,
+body.tkg-ember-run #khichiyaRunnerOverlay::before, body.tkg-ember-run #productPreviewSheet::before,
+body.tkg-ember-run #infoSheet::before{
+  animation:tkg-ember-pulse 10s cubic-bezier(.22,.61,.36,1) 6;
 }
-@keyframes tkg-ember-travel{ from{ --tkg-ember-angle:0deg; } to{ --tkg-ember-angle:360deg; } }
-@keyframes tkg-ember-fade{ 0%{opacity:0;} 12%{opacity:1;} 78%{opacity:.85;} 100%{opacity:0;} }
+/* Fainter divider variant — the dashed/solid rules inside a framed
+   container read as hierarchy support, always half the frame's opacity. */
+.ticket-divider{ border-left-color:rgba(217,164,65, calc(var(--tkg-amber-op) * 0.5)) !important; }
+.fun-activity-row{ border-top-color:rgba(217,164,65, calc(var(--tkg-amber-op) * 0.5)) !important; }
 
-/* ---- UI COMPONENTS ----
-   Reusable classes. Phase 1 only defines them — applying them onto the
-   existing header/status/review/menu markup is Phase 2+, done without
-   changing any of that markup's structure, ids, or JS hooks. */
-.tkg-page{ background:var(--tkg-bg); color:var(--tkg-ink); }
-
-.tkg-marble-card{
-  position:relative; overflow:hidden; border:1px solid var(--tkg-card-line);
-  background-color:#0F0E0C;
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-url);
-  background-size:auto, cover; background-position:center, center;
-  color:var(--tkg-card-text);
-}
-
-.tkg-btn{ /* monochrome only — never amber */
-  background:var(--tkg-ctrl-bg); color:var(--tkg-ctrl-fg); border:none; border-radius:12px;
-  font-weight:700; cursor:pointer;
-}
-.tkg-nav{ background:var(--tkg-ctrl-bg); }
-.tkg-nav-item{ color:var(--tkg-ctrl-fg); opacity:0.55; }
-.tkg-nav-item.active{ opacity:1; font-weight:800; }
-
-.tkg-badge-amber{ /* BEST / Signature badges */
-  color:var(--tkg-amber); border:1px solid var(--tkg-amber);
-  font-size:0.58rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase;
-  border-radius:100px; padding:1px 7px;
-}
-.tkg-stars-amber{ color:var(--tkg-amber); }
-/* ============================================================================
-   END TKG DESIGN SYSTEM V1 ENGINE
+/* ==========================================================================
+   THEME ENGINE — Theme A overrides. One customer-chosen theme applies
+   across the whole app (single localStorage key, read on every page); each
+   material pass adds its Theme A values here as that material is
+   completed, so this block grows in the same order as the material passes
+   themselves. Page Background is the only material done so far.
    ========================================================================== */
+html[data-tkg-theme="dark"]{
+  --tkg-page-bg:     #0B0A09;   /* Page Background material — Theme A (dark), approved mockup value */
+  --tkg-plain-border: rgba(255,255,255,0.1);   /* Plain Surface material — Theme A (dark), approved mockup .card-line value */
+  --tkg-plain-opaque-bg: #FFFFFF;
+  --tkg-plain-opaque-fg: #111111;
+  /* Premium Marble material — Theme A (dark page → white marble cards, opposite of page) */
+  --tkg-marble-bg-color: #F5F3EE;
+  --tkg-marble-image: url('tkg-marble-white.jpg');
+  --tkg-marble-overlay: rgba(255,255,255,0.5);
+  --tkg-marble-border: rgba(255,255,255,0.08);
+  --tkg-marble-ink: #1A1815;
+  --tkg-marble-ink-soft: rgba(26,24,21,0.72);
+  --tkg-marble-ink-faint: rgba(26,24,21,0.55);
+  /* Controls material — Theme A: light fill, dark text (inverse of page) */
+  --tkg-ctrl-bg: #FFFFFF;
+  --tkg-ctrl-fg: #111111;
+}
 
 *{box-sizing:border-box; margin:0; padding:0;}
 html,body{
-  background:var(--stone-base);
+  background:var(--tkg-page-bg);
   color:var(--ink);
   font-family:var(--font-body);
   -webkit-tap-highlight-color:transparent;
@@ -269,36 +263,23 @@ input{font-family:inherit;}
 }
 
 /* ==========================================================================
-   SHELL — white/warm-ivory marble, inspired by the stall counter.
-   Built entirely from CSS gradients: no image asset, no HTTP request,
-   scales cleanly at any density. Charcoal vein lines at varied angles
-   (not repeating, so it doesn't look like a pattern) plus two small
-   "fracture point" convergences echo the photographed reference.
+   SHELL — Page Background material (approved mockup): flat, untextured.
+   The old marble-vein/grain gradient stack here has been removed — that
+   look now belongs only to Premium Marble surfaces (cards), not the page
+   itself. This is also the app's true root container (not just <body>),
+   so it's the element that must carry the Page Background, or the shell
+   silently reverts to whatever hardcoded value it has and ignores this
+   material everywhere below it.
    ========================================================================== */
 .shell{
   width:100%;
   max-width:var(--max-w);
   min-height:100vh;
   min-height:100dvh;
-  background:var(--stone-base);
+  background:var(--tkg-page-bg);
   position:relative;
   display:flex;
   flex-direction:column;
-  background-image:
-    /* fracture-point convergences \u2014 small darker clusters where veins meet */
-    radial-gradient(ellipse 18% 10% at 78% 14%, rgba(120,108,92,0.16), transparent 70%),
-    radial-gradient(ellipse 14% 8% at 14% 62%, rgba(120,108,92,0.13), transparent 70%),
-    /* branching crack veins \u2014 varied angles so they read as organic, not a repeating pattern */
-    linear-gradient(124deg, transparent 11%, rgba(124,112,96,0.10) 11.4%, transparent 12%),
-    linear-gradient(124deg, transparent 11.6%, rgba(124,112,96,0.07) 12%, transparent 12.6%),
-    linear-gradient(82deg, transparent 31%, rgba(124,112,96,0.09) 31.4%, transparent 32%),
-    linear-gradient(96deg, transparent 47%, rgba(124,112,96,0.08) 47.3%, transparent 47.9%),
-    linear-gradient(151deg, transparent 58%, rgba(124,112,96,0.10) 58.4%, transparent 59%),
-    linear-gradient(67deg, transparent 69%, rgba(124,112,96,0.08) 69.4%, transparent 70%),
-    linear-gradient(140deg, transparent 84%, rgba(124,112,96,0.09) 84.4%, transparent 85%),
-    /* fine paper-like grain, very low opacity */
-    repeating-linear-gradient(0deg, rgba(28,24,21,0.01) 0px, rgba(28,24,21,0.01) 1px, transparent 1px, transparent 3px);
-  background-attachment:scroll, scroll, scroll, scroll, scroll, scroll, scroll, scroll, local;
 }
 
 /* Ambient warm glow removed (was .shell::before, an animated gold radial
@@ -351,8 +332,8 @@ input{font-family:inherit;}
   color:var(--ink-soft);
   padding:6px 10px;
   border-radius:20px;
-  background:rgba(28,24,21,0.035);
-  border:1px solid var(--stone-line);
+  background:transparent;
+  border:1px solid var(--tkg-plain-border);
 }
 .topbar-right{
   display:flex;
@@ -366,26 +347,25 @@ input{font-family:inherit;}
   font-size:0.7188rem;
   font-weight:700;
   letter-spacing:0.02em;
-  color:var(--ember-deep);
+  color:var(--ink);
   padding:6px 11px;
   border-radius:20px;
-  background:rgba(232,93,44,0.07);
-  border:1px solid rgba(232,93,44,0.28);
-  transition:background 0.15s ease, border-color 0.15s ease;
+  background:transparent;
+  border:1px solid var(--tkg-plain-border);
+  transition:opacity 0.15s ease;
 }
 .text-size-btn{
   font-size:0.7188rem;
   font-weight:700;
   letter-spacing:0.01em;
-  color:var(--ember-deep);
+  color:var(--ink);
   padding:6px 11px;
   border-radius:20px;
-  background:rgba(232,93,44,0.07);
-  border:1px solid rgba(232,93,44,0.28);
-  transition:background 0.15s ease, border-color 0.15s ease;
+  background:transparent;
+  border:1px solid var(--tkg-plain-border);
+  transition:opacity 0.15s ease;
 }
-.text-size-btn:active, .lang-btn:active{background:rgba(232,93,44,0.14);}
-.lang-btn:active{background:rgba(232,93,44,0.14);}
+.text-size-btn:active, .lang-btn:active{opacity:0.6;}
 .lang-btn.attention{animation:lang-btn-attention 2.2s ease-in-out 1;}
 @keyframes lang-btn-attention{
   0%, 100%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
@@ -401,7 +381,7 @@ input{font-family:inherit;}
   transform:translate(-50%, calc(100% + 60px));
   width:100%;
   max-width:var(--max-w);
-  background:var(--stone-base);
+  background:var(--tkg-page-bg);
   border-radius:22px 22px 0 0;
   padding:10px 20px calc(24px + env(safe-area-inset-bottom, 0px));
   box-shadow:0 -10px 40px rgba(28,24,21,0.18);
@@ -422,15 +402,12 @@ input{font-family:inherit;}
   display:flex;
   align-items:center;
   justify-content:space-between;
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1.5px solid var(--stone-line);
+  background:transparent;
+  border:1.5px solid var(--tkg-plain-border);
   border-radius:var(--radius-md);
   padding:15px 16px;
   margin-bottom:10px;
   color:var(--ink);
-  box-shadow:0 1px 2px rgba(28,24,21,0.06);
 }
 .lang-option-native{font-size:0.9375rem; font-weight:700;}
 .lang-option-check{opacity:0; color:var(--ember); font-weight:800; font-size:1rem;}
@@ -778,21 +755,21 @@ input{font-family:inherit;}
   width:100%;
   text-align:left;
   padding:18px 20px;
-  border-radius:var(--radius-lg);
-  border:1px solid var(--stone-line);
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
+  border-radius:16px;
+  border:1px solid var(--tkg-marble-border);
+  background-color:var(--tkg-marble-bg-color);
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size:auto, cover;
+  background-position:center, center;
   font-size:1rem;
   font-weight:600;
-  color:var(--ink);
-  box-shadow:0 2px 8px -4px rgba(28,24,21,0.08);
-  transition:transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  color:var(--tkg-marble-ink);
+  --ink:var(--tkg-marble-ink);
+  --ink-soft:var(--tkg-marble-ink-soft);
+  transition:transform 0.12s ease, border-color 0.12s ease;
 }
 .journey-option:active{
   transform:translateY(1px) scale(0.99);
-  border-color:var(--ember);
-  box-shadow:0 1px 4px -2px rgba(28,24,21,0.1);
 }
 
 /* Subtle, non-intrusive affordance to revisit the Customer Journey choice —
@@ -821,12 +798,9 @@ input{font-family:inherit;}
   display:flex;
   align-items:center;
   gap:10px;
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
+  background:transparent;
+  border:1px solid var(--tkg-plain-border);
   border-radius:var(--radius-md);
-  box-shadow:0 1px 2px rgba(28,24,21,0.04);
   padding:12px 16px;
   margin-bottom:16px;
 }
@@ -860,22 +834,13 @@ input{font-family:inherit;}
 .settings-pill{
   display:flex;
   align-items:center;
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
-  border-radius:20px;
-  padding:2px;
+  gap:8px;
 }
 .settings-pill-item{
   display:flex;
   flex-direction:column;
   align-items:center;
   gap:1px;
-  background:none;
-  border:none;
-  padding:4px 11px;
-  color:var(--ink);
 }
 .settings-pill-item .spi-value{
   font-size:0.75rem;
@@ -891,9 +856,7 @@ input{font-family:inherit;}
   font-weight:600;
 }
 .settings-pill-divider{
-  width:1px;
-  height:20px;
-  background:var(--stone-divider);
+  display:none;
 }
 
 /* -- Compact hero: one centered block instead of the old 3-line headline
@@ -953,13 +916,10 @@ input{font-family:inherit;}
       row with dashed dividers, instead of two separate stacked cards -- */
 .ticket-strip{
   display:flex;
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-md);
+  background:transparent;
+  border:1px solid var(--tkg-plain-border);
+  border-radius:14px;
   overflow:hidden;
-  box-shadow:0 1px 2px rgba(28,24,21,0.04);
 }
 .ticket-seg{
   flex:1;
@@ -968,7 +928,7 @@ input{font-family:inherit;}
   align-items:center;
   justify-content:center;
   gap:2px;
-  padding:9px 6px;
+  padding:12px 8px;
   background:none;
   border:none;
   color:var(--ink);
@@ -977,7 +937,7 @@ input{font-family:inherit;}
 }
 .ticket-divider{
   width:0;
-  border-left:1px dashed var(--stone-divider);
+  border-left:1px dashed var(--tkg-plain-border);
   margin:8px 0;
 }
 .ticket-seg-icon{width:var(--icon-inline); height:var(--icon-inline); flex-shrink:0;}
@@ -1031,13 +991,14 @@ input{font-family:inherit;}
   top:4px;
   left:4px;
   z-index:1;
-  background:var(--ember);
-  color:var(--marble);
+  background:transparent;
+  color:rgba(217,164,65, var(--tkg-amber-op));
+  border:1px solid rgba(217,164,65, var(--tkg-amber-op));
   font-size:0.5rem;
   font-weight:700;
   letter-spacing:0.02em;
-  padding:2px 6px;
-  border-radius:5px;
+  padding:1px 7px;
+  border-radius:100px;
   text-transform:uppercase;
 }
 .jain-line{
@@ -1057,14 +1018,20 @@ input{font-family:inherit;}
   flex-shrink:0;
 }
 .menu-item-heart{
-  font-size:1.0625rem;
-  color:var(--grey-warm);
-  background:none;
-  border:none;
+  font-size:0.9rem;
+  color:var(--ink-soft);
+  background:transparent;
+  border:1.5px solid var(--ink-faint);
+  border-radius:50%;
+  width:26px;
+  height:26px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   line-height:1;
   padding:0;
 }
-.menu-item-heart.liked{color:var(--ember);}
+.menu-item-heart.liked{color:var(--ember); border-color:var(--ember);}
 
 
 /* ==========================================================================
@@ -1084,13 +1051,15 @@ input{font-family:inherit;}
   width:100%;
   max-width:var(--max-w);
   display:flex;
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border-top:1px solid var(--stone-line);
-  box-shadow:0 -1px 3px rgba(28,24,21,0.05);
+  background-color:var(--tkg-marble-bg-color);
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size:auto, cover;
+  background-position:center, center;
+  border-top:1px solid var(--tkg-marble-border);
   padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
   z-index:130;
+  --ink:var(--tkg-marble-ink);
+  --ink-soft:var(--tkg-marble-ink-soft);
 }
 .bottom-nav.hidden{ display:none; }
 .bottom-nav-item{
@@ -1103,6 +1072,7 @@ input{font-family:inherit;}
   background:none;
   border:none;
   padding:6px 2px;
+  transition:opacity 0.12s ease;
 }
 .bottom-nav-item:active{ opacity:0.6; }
 .bottom-nav-item .bn-icon{ width:var(--icon-standalone); height:var(--icon-standalone); display:block; margin:0 auto; }
@@ -1152,16 +1122,30 @@ input{font-family:inherit;}
 }
 
 .reg-card{
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-lg);
+  background-color:var(--tkg-marble-bg-color);
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size:auto, cover;
+  background-position:center, center;
+  border:1px solid var(--tkg-marble-border);
+  border-radius:16px;
   padding:24px 20px 22px;
-  box-shadow:
-    0 1px 2px rgba(28,24,21,0.06),
-    0 10px 28px -12px rgba(28,24,21,0.16);
-  border-top:3px solid var(--ember);
+  --ink:var(--tkg-marble-ink);
+  --ink-soft:var(--tkg-marble-ink-soft);
+  --ink-faint:var(--tkg-marble-ink-faint);
+  color:var(--tkg-marble-ink);
+}
+/* Plain Surface material — these two sheets are utility data-entry, not
+   primary content, so their .reg-card gets the flat bordered treatment
+   instead of the shared component's default (Premium Marble, done in that
+   material's pass for Registration/Taste Discovery/etc). The shared class
+   itself stays untouched here — only these two IDs are scoped. */
+#rateUsCaptureForm{
+  background:transparent;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  border:1px solid var(--tkg-plain-border);
+  box-shadow:none;
+  border-top:1px solid var(--tkg-plain-border);
 }
 .field-group{margin-bottom:16px;}
 .field-label{
@@ -1179,7 +1163,7 @@ input{font-family:inherit;}
   border-radius:var(--radius-md);
   border:1.5px solid #E2DDD3;
   background:#FFFFFF;
-  color:var(--ink);
+  color:#1C1815;
   font-size:1rem;
   outline:none;
   transition:border-color 0.15s ease, box-shadow 0.15s ease;
@@ -1270,16 +1254,15 @@ textarea.field-input{
   padding:16px;
   border-radius:var(--radius-md);
   border:none;
-  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
-  color:var(--marble);
+  background:var(--tkg-ctrl-bg);
+  color:var(--tkg-ctrl-fg);
   font-size:1rem;
   font-weight:700;
   letter-spacing:0.02em;
-  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
-  transition:transform 0.12s ease, box-shadow 0.12s ease;
+  transition:transform 0.12s ease, opacity 0.12s ease;
 }
-.btn-primary:active{transform:translateY(1px) scale(0.99); box-shadow:0 4px 10px -4px rgba(232,93,44,0.5);}
-.btn-primary:disabled{opacity:0.55; box-shadow:none;}
+.btn-primary:active{transform:translateY(1px) scale(0.99); opacity:0.88;}
+.btn-primary:disabled{opacity:0.4;}
 
 .consent-line{
   margin-top:14px;
@@ -1368,7 +1351,7 @@ textarea.field-input{
   max-width:var(--max-w);
   max-height:88vh;
   overflow-y:auto;
-  background:var(--stone-base);
+  background:var(--tkg-page-bg);
   border-radius:22px 22px 0 0;
   padding:10px 20px 28px;
   box-shadow:0 -10px 40px rgba(28,24,21,0.22);
@@ -1378,6 +1361,19 @@ textarea.field-input{
 }
 .reg-overlay.show{
   transform:translate(-50%, 0);
+}
+/* Premium Marble material — these 4 sheets have no inner .reg-card, so the
+   .reg-overlay panel itself IS the content (unlike Rate-Us/Geo/Reviews-list
+   where .reg-overlay is just the plain mechanism around separate content). */
+#thanksOverlay, #khichiyaRunnerOverlay, #productPreviewSheet, #infoSheet{
+  background-color:var(--tkg-marble-bg-color);
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size:auto, cover;
+  background-position:center, center;
+  --ink:var(--tkg-marble-ink);
+  --ink-soft:var(--tkg-marble-ink-soft);
+  --ink-faint:var(--tkg-marble-ink-faint);
+  color:var(--tkg-marble-ink);
 }
 .reg-overlay-handle{
   width:40px;
@@ -1531,13 +1527,17 @@ textarea.field-input{
   color:var(--ink-soft);
 }
 .cs-review-card{
-  background:var(--stone-card-alt);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-md);
+  background-color:var(--tkg-marble-bg-color);
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size:auto, cover;
+  background-position:center, center;
+  border:1px solid var(--tkg-marble-border);
+  border-radius:16px;
   padding:13px 14px;
   margin-bottom:10px;
+  --ink:var(--tkg-marble-ink);
+  --ink-soft:var(--tkg-marble-ink-soft);
+  color:var(--tkg-marble-ink);
 }
 .cs-review-top{
   display:flex;
@@ -1647,17 +1647,17 @@ textarea.field-input{
   gap:4px;
   font-size:0.7188rem;
   font-weight:700;
-  color:var(--ember-deep);
+  color:var(--ink);
   text-decoration:underline;
-  text-decoration-color:rgba(184,67,29,0.4);
+  text-decoration-color:var(--tkg-plain-border);
   text-underline-offset:2px;
-  padding:3px 9px 3px 7px;
-  border-radius:20px;
-  background:rgba(232,93,44,0.08);
-  border:1px solid rgba(232,93,44,0.25);
+  padding:0;
+  border-radius:0;
+  background:transparent;
+  border:none;
 }
 .directions-link .dl-icon{width:var(--icon-inline); height:var(--icon-inline); flex-shrink:0;}
-.directions-link:active{background:rgba(232,93,44,0.16);}
+.directions-link:active{opacity:0.6;}
 .directions-link.attention{animation:directions-bounce 1.8s ease-in-out 1;}
 @keyframes directions-bounce{
   0%, 100%{transform:translateY(0);}
@@ -1679,21 +1679,19 @@ textarea.field-input{
   gap:8px;
   padding:15px 16px;
   border-radius:var(--radius-md);
-  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  background:var(--tkg-ctrl-bg);
   border:none;
-  color:var(--marble);
+  color:var(--tkg-ctrl-fg);
   font-size:0.9375rem;
   font-weight:700;
   letter-spacing:0.02em;
   text-decoration:none;
-  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
-  transition:transform 0.12s ease, box-shadow 0.12s ease;
+  transition:transform 0.12s ease, opacity 0.12s ease;
 }
 .directions-link--primary .dl-icon{width:var(--icon-inline); height:var(--icon-inline);}
 .directions-link--primary:active{
-  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
   transform:translateY(1px) scale(0.99);
-  box-shadow:0 4px 10px -4px rgba(232,93,44,0.5);
+  opacity:0.88;
 }
 .app-hero-headline{
   font-family:var(--font-display);
@@ -1754,32 +1752,36 @@ textarea.field-input{
 }
 .hero-story-strip{
   display:flex;
-  align-items:flex-start;
+  align-items:center;
+  justify-content:space-between;
   gap:6px 8px;
-  padding:10px 12px;
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-md);
-  box-shadow:0 1px 2px rgba(28,24,21,0.05);
+  padding:12px 8px;
+  background:transparent;
+  border:1px solid rgba(217,164,65, var(--tkg-amber-op));
+  border-radius:14px;
   margin-bottom:12px;
+  position:relative;
 }
 .hero-story-strip .story-step{
   display:flex;
-  align-items:flex-start;
-  gap:5px;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
   flex:1 1 0;
   min-width:0;
-  font-size:0.6562rem;
-  font-weight:700;
-  letter-spacing:0.02em;
-  color:var(--ink-soft);
+  font-size:0.78rem;
+  font-weight:600;
+  letter-spacing:normal;
+  color:var(--ink);
   white-space:normal;
+  text-align:center;
 }
-.hero-story-strip .story-step .step-icon{width:var(--icon-inline); height:var(--icon-inline); flex-shrink:0; margin-top:1px;}
+.hero-story-strip .story-step .step-icon{
+  width:var(--icon-inline); height:var(--icon-inline); flex-shrink:0; margin-top:0;
+  fill:var(--ink-soft) !important;
+}
 .hero-story-strip .story-arrow{
-  color:var(--stone-vein);
+  color:var(--ink-faint);
   font-size:0.6875rem;
   flex-shrink:0;
   align-self:center;
@@ -1820,15 +1822,19 @@ textarea.field-input{
    opens that same sheet on tap. Reuses .cs-review-* tokens for visual
    consistency with the sheet it opens into. */
 .review-teaser-card{
-  background:var(--stone-card-alt);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-md);
+  background-color:var(--tkg-marble-bg-color);
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size:auto, cover;
+  background-position:center, center;
+  border:1px solid var(--tkg-marble-border);
+  border-radius:16px;
   padding:13px 14px;
   margin-top:6px;
   cursor:pointer;
   transition:transform 0.12s ease;
+  --ink:var(--tkg-marble-ink);
+  --ink-soft:var(--tkg-marble-ink-soft);
+  color:var(--tkg-marble-ink);
 }
 .review-teaser-card:active{transform:scale(0.99);}
 .review-teaser-card .cs-review-quote{
@@ -1972,10 +1978,8 @@ textarea.field-input{
   font-size:0.6875rem;
   font-weight:600;
   color:var(--ink-soft);
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
+  background:transparent;
+  border:1px solid var(--tkg-plain-border);
   padding:6px 12px;
   border-radius:14px;
 }
@@ -1985,7 +1989,6 @@ textarea.field-input{
   background:rgba(76,122,76,0.07);
 }
 .extra-chip .extra-chip-price{
-  font-family:var(--font-mono);
   font-weight:700;
   margin-left:4px;
   color:var(--gold-deep);
@@ -2001,21 +2004,16 @@ textarea.field-input{
   text-align:center;
   padding:12px 10px;
   border-radius:var(--radius-md);
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
-  color:var(--ink);
+  background:var(--tkg-ctrl-bg);
+  border:none;
+  color:var(--tkg-ctrl-fg);
   font-size:0.7812rem;
   font-weight:600;
   text-decoration:none;
-  box-shadow:0 1px 2px rgba(28,24,21,0.05);
-  transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:opacity 0.15s ease;
 }
 .link-chip:active{
-  background:var(--ember);
-  border-color:var(--ember);
-  color:var(--marble);
+  opacity:0.85;
 }
 
 /* ==========================================================================
@@ -2025,13 +2023,18 @@ textarea.field-input{
    ========================================================================== */
 .fun-activity-card{
   margin-top:22px;
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-lg);
+  background-color:var(--tkg-marble-bg-color);
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size:auto, cover;
+  background-position:center, center;
+  border:1px solid var(--tkg-marble-border);
+  border-radius:16px;
   overflow:hidden;
-  box-shadow:var(--glass-depth);
+  --ink:var(--tkg-marble-ink);
+  --ink-soft:var(--tkg-marble-ink-soft);
+  --ink-faint:var(--tkg-marble-ink-faint);
+  --grey-warm:var(--tkg-marble-ink-soft);
+  color:var(--tkg-marble-ink);
 }
 .fun-activity-header{padding:14px 16px 8px;}
 .fun-activity-title{
@@ -2150,18 +2153,22 @@ textarea.field-input{
   justify-content:space-between;
   align-items:flex-start;
   gap:12px;
-  background:rgba(255,255,255,0.86);
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-lg);
-  padding:16px;
-  box-shadow:var(--glass-depth);
-  transition:transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease;
+  background-color:var(--tkg-marble-bg-color);
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size:auto, cover;
+  background-position:center, center;
+  border:1px solid var(--tkg-marble-border);
+  border-radius:16px;
+  padding:12px;
+  transition:transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  --ink:var(--tkg-marble-ink);
+  --ink-soft:var(--tkg-marble-ink-soft);
+  --ink-faint:var(--tkg-marble-ink-faint);
+  --grey-warm:var(--tkg-marble-ink-soft);
+  color:var(--tkg-marble-ink);
 }
 .menu-item:active{
   transform:scale(0.985);
-  box-shadow:
-    0 1px 2px rgba(28,24,21,0.05),
-    0 4px 10px -6px rgba(28,24,21,0.12);
 }
 .menu-item-thumb{
   width:56px;
@@ -2189,13 +2196,13 @@ textarea.field-input{
 }
 .menu-item-name{
   font-size:0.9688rem;
-  font-weight:800;
+  font-weight:700;
   color:var(--ink);
-  letter-spacing:-0.01em;
+  letter-spacing:normal;
 }
 .menu-item-desc{
   font-size:0.7188rem;
-  color:#8A8278;
+  color:var(--ink-soft);
   line-height:1.35;
   margin-top:3px;
 }
@@ -2205,16 +2212,16 @@ textarea.field-input{
   letter-spacing:0.05em;
   text-transform:uppercase;
   font-weight:700;
-  color:var(--ember-deep);
-  background:rgba(232,93,44,0.1);
-  padding:2px 7px;
-  border-radius:4px;
+  color:rgba(217,164,65, var(--tkg-amber-op));
+  background:transparent;
+  border:1px solid rgba(217,164,65, var(--tkg-amber-op));
+  padding:1px 7px;
+  border-radius:100px;
 }
 .menu-item-price{
-  font-family:var(--font-mono);
   font-weight:700;
-  font-size:0.875rem;
-  color:var(--ember-deep);
+  font-size:0.82rem;
+  color:var(--ink);
   white-space:nowrap;
   text-align:right;
   flex-shrink:0;
@@ -2222,7 +2229,7 @@ textarea.field-input{
 .menu-item-price .price-large{
   display:block;
   font-size:0.6875rem;
-  color:var(--grey-warm);
+  color:var(--ink-faint);
   font-weight:600;
   margin-top:1px;
 }
@@ -2233,13 +2240,16 @@ textarea.field-input{
 }
 .btn-secondary{
   background:none;
-  border:1.5px solid var(--grey-line);
-  color:var(--grey-warm);
+  border:1.5px solid var(--tkg-plain-border);
+  color:var(--ink-soft);
   padding:12px 22px;
   border-radius:var(--radius-md);
   font-size:0.8125rem;
   font-weight:600;
+  transition:opacity 0.12s ease;
 }
+.btn-secondary:active{opacity:0.6;}
+.btn-secondary:disabled{opacity:0.4;}
 
 /* ==========================================================================
    OWNER DASHBOARD
@@ -2444,8 +2454,8 @@ textarea.field-input{
   bottom:24px;
   left:50%;
   transform:translateX(-50%) translateY(20px);
-  background:var(--marble);
-  color:var(--charcoal);
+  background:var(--tkg-plain-opaque-bg);
+  color:var(--tkg-plain-opaque-fg);
   padding:13px 20px;
   border-radius:var(--radius-md);
   font-size:0.8125rem;
@@ -2457,7 +2467,6 @@ textarea.field-input{
   z-index:200;
   max-width:90%;
   text-align:center;
-  border-left:4px solid var(--ember);
 }
 .toast.show{
   opacity:1;
@@ -2555,15 +2564,13 @@ textarea.field-input{
         <span class="spi-value">Aa</span>
         <span class="spi-caption" data-i18n="header.textSizeCaption">TEXT SIZE</span>
       </button>
-      <div class="settings-pill-divider"></div>
+      <button type="button" class="text-size-btn settings-pill-item" id="themeToggleBtn" aria-label="Switch theme">
+        <span class="spi-value" id="themeToggleValue">☾</span>
+        <span class="spi-caption">THEME</span>
+      </button>
       <button type="button" class="lang-btn settings-pill-item" id="langBtn" aria-label="Change language">
         <span class="spi-value">🌐 <span id="langBtnLabel">EN</span></span>
         <span class="spi-caption" data-i18n="header.languageCaption">LANGUAGE</span>
-      </button>
-      <div class="settings-pill-divider"></div>
-      <button type="button" class="settings-pill-item" id="tkgThemeBtn" aria-label="Change theme">
-        <span class="spi-value" id="tkgThemeBtnValue">☾</span>
-        <span class="spi-caption">THEME</span>
       </button>
     </div>
   </div>
@@ -3394,74 +3401,6 @@ textarea.field-input{
 <div class="toast" id="toast"></div>
 
 <script>
-/* ============================================================================
-   TKG THEME ENGINE — locked 2026-08-01. Copy this whole block unchanged
-   into every other TKG file (Runner, Leaderboard, Dashboard, TKG Moments,
-   Taste Discovery, Product Popup) so they all read/write the ONE shared
-   `tkg_theme` localStorage key — same-origin, so it's automatically shared
-   across every page on tkg-customer-os.vercel.app with no extra sync needed.
-   Changing theme from any screen updates every other screen the next time
-   it loads (or immediately, if TKG_THEME.set() is called on an already-open
-   tab elsewhere via a 'storage' event listener, wired below).
-   ========================================================================== */
-var TKG_THEME = (function(){
-  var KEY = 'tkg_theme';
-  var EMBER_INTERVAL_MS = 10000;   // repeat every 10s ...
-  var EMBER_TOTAL_MS    = 60000;   // ... for about a minute, then stop for good
-  var emberTimer = null, emberStopTimer = null;
-
-  function get(){
-    try{
-      var t = localStorage.getItem(KEY);
-      return (t === 'a' || t === 'b') ? t : 'b';
-    }catch(e){ return 'b'; }
-  }
-
-  function apply(theme){
-    document.documentElement.setAttribute('data-tkg-theme', theme);
-  }
-
-  function set(theme){
-    if (theme !== 'a' && theme !== 'b') return;
-    try{ localStorage.setItem(KEY, theme); }catch(e){}
-    apply(theme);
-    playIntro(); // switching themes restarts the welcome sequence
-  }
-
-  function playEmberOnce(){
-    document.body.classList.remove('tkg-ember-run');
-    void document.body.offsetWidth; // force reflow so the CSS animation can restart
-    document.body.classList.add('tkg-ember-run');
-  }
-
-  // Plays on load and on every theme switch: one ember pass immediately,
-  // then again every 10s, stopping for good once ~1 minute has passed.
-  function playIntro(){
-    if (emberTimer) clearInterval(emberTimer);
-    if (emberStopTimer) clearTimeout(emberStopTimer);
-    playEmberOnce();
-    emberTimer = setInterval(playEmberOnce, EMBER_INTERVAL_MS);
-    emberStopTimer = setTimeout(function(){
-      clearInterval(emberTimer);
-      emberTimer = null;
-    }, EMBER_TOTAL_MS);
-  }
-
-  // Keep every open tab of any TKG page in sync immediately, not just on next load.
-  try{
-    window.addEventListener('storage', function(e){
-      if (e.key === KEY && (e.newValue === 'a' || e.newValue === 'b')){
-        apply(e.newValue);
-        playIntro();
-      }
-    });
-  }catch(e){}
-
-  return { get: get, set: set, apply: apply, playIntro: playIntro };
-})();
-document.addEventListener('DOMContentLoaded', function(){ TKG_THEME.playIntro(); });
-/* ======================== END TKG THEME ENGINE ============================ */
-
 /* ============================================================================
    TKG APP LOGIC
    ============================================================================
@@ -7045,28 +6984,6 @@ function openLangSheet(){
 document.getElementById('langBtn').addEventListener('click', openLangSheet);
 
 // ---------------------------------------------------------------------------
-// TKG THEME PILL — flips the ONE shared tkg_theme value; every other TKG
-// page reads the same key (see TKG_THEME module at the top of this script).
-// Placement/icon here is a first pass to make the engine testable — happy
-// to move or restyle this control once the header restyle (Phase 2) is
-// underway, this was just the least invasive spot to add it without
-// touching the existing settings-pill layout.
-(function(){
-  var btn = document.getElementById('tkgThemeBtn');
-  var valueEl = document.getElementById('tkgThemeBtnValue');
-  function paint(){
-    var t = TKG_THEME.get();
-    valueEl.textContent = (t === 'a') ? '☀' : '☾';
-  }
-  btn.addEventListener('click', function(){
-    var next = (TKG_THEME.get() === 'a') ? 'b' : 'a';
-    TKG_THEME.set(next);
-    paint();
-  });
-  paint();
-})();
-
-// ---------------------------------------------------------------------------
 // TEXT SIZE (Small/Medium/Large) — "naturally follow the phone's text size"
 // isn't reliably possible across platforms for an installed PWA (Android
 // partially honors the OS accessibility font scale for relative units;
@@ -7101,6 +7018,43 @@ document.getElementById('textSizeBtn').addEventListener('click', () => {
   setFontScale_(next);
   showToast(FONT_SCALE_TOAST_[next]);
 });
+
+// ---------------------------------------------------------------------------
+// THEME TOGGLE — customer-facing control. Same localStorage key the
+// anti-FOUC script in <head> reads, so the choice is instant and universal
+// across every TKG page from now on. Tap cycles light ↔ dark.
+// ---------------------------------------------------------------------------
+function setTkgTheme(theme){
+  try{ localStorage.setItem('tkg_theme', theme); }catch(e){}
+  document.documentElement.setAttribute('data-tkg-theme', theme);
+  const val = document.getElementById('themeToggleValue');
+  if(val) val.textContent = theme === 'dark' ? '☀' : '☾';
+  tkgPlayEmber();
+}
+document.getElementById('themeToggleBtn').addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-tkg-theme') === 'dark' ? 'dark' : 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  setTkgTheme(next);
+  showToast(next === 'dark' ? 'Dark theme' : 'Light theme');
+});
+(function(){
+  const val = document.getElementById('themeToggleValue');
+  if(val) val.textContent = document.documentElement.getAttribute('data-tkg-theme') === 'dark' ? '☀' : '☾';
+})();
+
+// ---------------------------------------------------------------------------
+// OUTLINES — traveling-ember trigger. Same pattern as the approved mockup's
+// playEmber(): remove the class, force a reflow, re-add it so the CSS
+// animation restarts from the beginning every time (initial load AND every
+// theme switch), instead of only playing once per page load.
+// ---------------------------------------------------------------------------
+function tkgPlayEmber(){
+  document.body.classList.remove('tkg-ember-run');
+  void document.body.offsetWidth;
+  document.body.classList.add('tkg-ember-run');
+}
+document.addEventListener('DOMContentLoaded', tkgPlayEmber);
+tkgPlayEmber();
 
 function closeLangSheet(){
   langBackdrop.classList.remove('show');
