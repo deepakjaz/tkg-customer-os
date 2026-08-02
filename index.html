@@ -881,12 +881,17 @@ input{font-family:inherit;}
 .app-hero-compact{
   text-align:center;
   padding:6px 4px 14px;
+  position:relative;
+  overflow:hidden;
+  border-radius:16px;
 }
 .hero-greeting-row{
   display:flex;
   align-items:center;
   gap:12px;
   margin-top:5px;
+  position:relative;
+  z-index:1;
 }
 .hero-logo-large{
   width:64px;
@@ -894,6 +899,129 @@ input{font-family:inherit;}
   flex-shrink:0;
   border-radius:50%;
   object-fit:cover;
+}
+.hero-weather-backdrop{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 1.4s ease;
+  overflow:hidden;
+}
+.hero-weather-backdrop.show{opacity:1;}
+
+.hero-weather-backdrop.wx-morning{
+  background:linear-gradient(180deg, #FDEBC9 0%, #FBD1A2 55%, rgba(251,209,162,0) 100%);
+}
+.hero-weather-backdrop.wx-morning::before,
+.hero-weather-backdrop.wx-morning::after{
+  content:'';
+  position:absolute;
+  top:18%;
+  width:120px;
+  height:34px;
+  background:radial-gradient(ellipse at center, rgba(255,255,255,0.85), rgba(255,255,255,0) 70%);
+  border-radius:50%;
+  animation:wxCloudDrift 26s linear infinite;
+}
+.hero-weather-backdrop.wx-morning::before{left:-140px; animation-delay:0s;}
+.hero-weather-backdrop.wx-morning::after{left:-140px; top:38%; animation-delay:-13s; opacity:0.7;}
+@keyframes wxCloudDrift{
+  0%{transform:translateX(0);}
+  100%{transform:translateX(420px);}
+}
+
+.hero-weather-backdrop.wx-afternoon{
+  background:linear-gradient(180deg, #EAF6FF 0%, #FBFEFF 60%, rgba(251,254,255,0) 100%);
+}
+.hero-weather-backdrop.wx-afternoon::before{
+  content:'';
+  position:absolute;
+  top:-30px;
+  right:-30px;
+  width:130px;
+  height:130px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,223,150,0.9), rgba(255,223,150,0) 70%);
+  animation:wxSunPulse 4s ease-in-out infinite;
+}
+.hero-weather-backdrop.wx-afternoon::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(115deg, rgba(255,255,255,0.35) 0px, rgba(255,255,255,0.35) 2px, transparent 2px, transparent 26px);
+  animation:wxHaze 3s ease-in-out infinite;
+}
+@keyframes wxSunPulse{
+  0%,100%{opacity:0.75; transform:scale(1);}
+  50%{opacity:1; transform:scale(1.08);}
+}
+@keyframes wxHaze{
+  0%,100%{opacity:0.25; background-position:0 0;}
+  50%{opacity:0.5; background-position:14px 0;}
+}
+
+.hero-weather-backdrop.wx-evening{
+  background:linear-gradient(180deg, #6E86B8 0%, #3C4C7A 55%, rgba(60,76,122,0) 100%);
+  animation:wxEveningFall 70s ease-in forwards;
+}
+@keyframes wxEveningFall{
+  0%{background:linear-gradient(180deg, #E89A6B 0%, #6E86B8 55%, rgba(110,134,184,0) 100%);}
+  50%{background:linear-gradient(180deg, #6E86B8 0%, #3C4C7A 55%, rgba(60,76,122,0) 100%);}
+  100%{background:linear-gradient(180deg, #2A2F4A 0%, #14131E 55%, rgba(20,19,30,0) 100%);}
+}
+
+.hero-weather-backdrop.wx-night{
+  background:linear-gradient(180deg, #171A2E 0%, #0D0E18 55%, rgba(13,14,24,0) 100%);
+}
+.hero-weather-backdrop.wx-night::before{
+  content:'';
+  position:absolute;
+  top:14%;
+  left:22%;
+  width:200px;
+  height:200px;
+  background:
+    radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 70px 10px, #fff, transparent),
+    radial-gradient(1px 1px at 120px 50px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 160px 20px, #fff, transparent),
+    radial-gradient(1px 1px at 40px 70px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 100px 90px, #fff, transparent);
+  animation:wxTwinkle 3.2s ease-in-out infinite;
+}
+.hero-weather-backdrop.wx-night::after{
+  content:'';
+  position:absolute;
+  top:16px;
+  right:26px;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#EDEFF7;
+  box-shadow:-7px -2px 0 2px rgba(13,14,24,1);
+}
+@keyframes wxTwinkle{
+  0%,100%{opacity:0.6;}
+  50%{opacity:1;}
+}
+
+.hero-weather-backdrop.wx-monsoon{
+  background:linear-gradient(180deg, #5A6572 0%, #3A424C 60%, rgba(58,66,76,0) 100%);
+}
+.hero-weather-backdrop .rain-drop{
+  position:absolute;
+  top:-60px;
+  width:2px;
+  height:46px;
+  background:linear-gradient(180deg, rgba(220,230,240,0) 0%, rgba(220,230,240,0.75) 40%, rgba(220,230,240,0.9) 85%, rgba(220,230,240,0) 100%);
+  border-radius:2px;
+  animation:wxDrop linear infinite;
+}
+@keyframes wxDrop{
+  0%{transform:translate(0, -60px);}
+  100%{transform:translate(var(--drift, 6px), 190px);}
 }
 .hero-greeting-line{
   font-size:0.75rem;
@@ -924,10 +1052,28 @@ input{font-family:inherit;}
   font-family:var(--font-display);
   font-size:1.75rem;
   font-weight:800;
-  color:var(--ember);
   line-height:1.1;
+  background-image:var(--wx-text-grad, linear-gradient(100deg, var(--ember) 0%, var(--ember) 100%));
+  background-repeat:no-repeat;
+  background-size:220% 220%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  -webkit-text-stroke:0.5px rgba(28,24,21,0.16);
+  filter:drop-shadow(0 1px 1px rgba(28,24,21,0.12));
 }
-.hero-greeting-line #dgSubText{margin-left:0;}
+#dgGreetingText.wx-shine{ animation:wxShine 4s linear infinite; }
+@keyframes wxShine{
+  0%{background-position:0% 50%;}
+  100%{background-position:220% 50%;}
+}
+.hero-sub-below{
+  display:block;
+  font-size:0.8125rem;
+  color:var(--ink-soft);
+  text-align:center;
+  margin:8px 0 4px;
+}
 
 /* -- Ticket strip: Open/Closed + Hours + Journey as one boarding-pass-style
       row with dashed dividers, instead of two separate stacked cards -- */
@@ -2993,6 +3139,7 @@ textarea.field-input{
          hero.line*/hero.statement i18n keys reused as-is (EN/GU/HI all
          still work), just recombined into a shorter read. ============ -->
     <div class="app-hero app-hero-compact">
+      <div class="hero-weather-backdrop" id="heroWeatherBackdrop" aria-hidden="true"></div>
       <div class="hero-greeting-row">
         <img class="hero-logo-large" src="./icon-192.png" alt="TKG">
         <div class="hero-greeting-line">
@@ -3000,10 +3147,10 @@ textarea.field-input{
             <svg class="greeting-icon" id="greetingIcon" viewBox="0 0 24 24" aria-hidden="true"></svg>
             <span id="dgGreetingText"></span>
           </div>
-          <span id="dgSubText"></span>
         </div>
       </div>
     </div>
+    <span id="dgSubText" class="hero-sub-below"></span>
 
     <!-- ============ STORY STRIP + REVIEW TEASER — restored (previously
          removed during the header redesign; CSS/i18n strings had been left
@@ -5250,7 +5397,7 @@ rateUsCaptureForm.addEventListener('submit', (e) => {
     rateUsNameError.classList.remove('show');
   }
 
-  if(mobile.length !== 10){
+  if(!isPlausibleMobile_(mobile)){
     rateUsMobileInput.classList.add('invalid');
     rateUsMobileError.classList.add('show');
     valid = false;
@@ -5383,6 +5530,13 @@ const GREETING_ICONS_ = {
   evening:   '<path fill="#E8935A" d="M12 5a1 1 0 011 1v4a1 1 0 01-2 0V6a1 1 0 011-1zm6.36 2.64a1 1 0 010 1.42l-.7.7a1 1 0 01-1.42-1.42l.7-.7a1 1 0 011.42 0zm-13.42 0a1 1 0 011.42 0l.7.7a1 1 0 01-1.42 1.42l-.7-.7a1 1 0 010-1.42zM12 9a4 4 0 013.9 5H8.1A4 4 0 0112 9zM3 15a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zm3 3a1 1 0 011-1h10a1 1 0 010 2H7a1 1 0 01-1-1z"/>',
   night:     '<path fill="#7C8AB8" d="M14.5 3a8 8 0 108.4 12.2A9 9 0 0114.5 3z"/><circle cx="19" cy="7" r="0.9" fill="#B7BFDE"/><circle cx="16.5" cy="10.5" r="0.6" fill="#B7BFDE"/>'
 };
+const WX_TEXT_GRADIENTS_ = {
+  morning:   'linear-gradient(100deg, #E8935A 0%, #FDEBC9 25%, #E8935A 50%, #FDEBC9 75%, #E8935A 100%)',
+  afternoon: 'linear-gradient(100deg, #F0A93A 0%, #FFE9B0 25%, #F0A93A 50%, #FFE9B0 75%, #F0A93A 100%)',
+  evening:   'linear-gradient(100deg, #C97A52 0%, #E8B98F 25%, #C97A52 50%, #E8B98F 75%, #C97A52 100%)',
+  night:     'linear-gradient(100deg, #B7BFDE 0%, #EDEFF7 25%, #B7BFDE 50%, #EDEFF7 75%, #B7BFDE 100%)',
+  monsoon:   'linear-gradient(100deg, #AEE7F5 0%, #EAF6FF 25%, #AEE7F5 50%, #EAF6FF 75%, #AEE7F5 100%)'
+};
 function updateDynamicGreeting(journey){
   const greetEl = document.getElementById('dgGreetingText');
   const subEl = document.getElementById('dgSubText');
@@ -5395,6 +5549,80 @@ function updateDynamicGreeting(journey){
   if(iconEl) iconEl.innerHTML = GREETING_ICONS_[timeKey] || GREETING_ICONS_.morning;
   const journeyKey = JOURNEY_VALUES.includes(journey) ? journey : 'exploring';
   subEl.innerHTML = g[journeyKey] || '';
+  const wxKey = getWeatherKey_();
+  greetEl.style.setProperty('--wx-text-grad', WX_TEXT_GRADIENTS_[wxKey] || WX_TEXT_GRADIENTS_.morning);
+  greetEl.classList.add('wx-shine');
+  initHeroWeatherBackdrop();
+}
+
+// Hero weather backdrop — simulated (not live weather yet; a real API swap
+// is planned later, same visual states, just a different trigger for which
+// key is picked). Monsoon is a fixed calendar window since Surat's monsoon
+// reliably runs mid-June through late September; the other four states
+// reuse the existing time-of-day greeting logic as-is.
+//
+// WX_MAX_PLAYS / WX_RESET_DAYS are the two knobs to tune later — capped,
+// not permanent: once the cap is hit the backdrop stops for that many days,
+// then resets on its own rather than staying off forever.
+const WX_MAX_PLAYS = 5;
+const WX_RESET_DAYS = 30;
+function isMonsoonWindow_(){
+  const now = new Date();
+  const m = now.getMonth() + 1; // 1-12
+  const d = now.getDate();
+  if(m > 6 && m < 9) return true; // full July, August
+  if(m === 6 && d >= 15) return true;
+  if(m === 9 && d <= 30) return true;
+  return false;
+}
+function getWeatherKey_(){
+  // Monsoon disabled for now — calendar-guess triggering paused until this
+  // is wired to a live weather API; only morning/afternoon/evening/night
+  // show until then. isMonsoonWindow_() is left intact, not deleted, so
+  // re-enabling later is a one-line change back to the line below:
+  // if(isMonsoonWindow_()) return 'monsoon';
+  return getGreetingTimeKey_();
+}
+function heroWeatherEligible_(){
+  let rec = null;
+  try{ rec = JSON.parse(localStorage.getItem('tkg_wx_intro') || 'null'); }catch(e){}
+  const now = Date.now();
+  if(!rec || !rec.since || (now - rec.since) > WX_RESET_DAYS * 86400000){
+    rec = { count: 0, since: now };
+  }
+  if(rec.count >= WX_MAX_PLAYS) return false;
+  rec.count += 1;
+  try{ localStorage.setItem('tkg_wx_intro', JSON.stringify(rec)); }catch(e){}
+  return true;
+}
+function initHeroWeatherBackdrop(){
+  if(window.__tkgWxInitDone) return;
+  const el = document.getElementById('heroWeatherBackdrop');
+  if(!el) return;
+  window.__tkgWxInitDone = true;
+  if(!heroWeatherEligible_()) return;
+  const key = getWeatherKey_();
+  el.classList.add('show', 'wx-' + key);
+  if(key === 'monsoon'){
+    const DROP_COUNT = 14;
+    for(let i = 0; i < DROP_COUNT; i++){
+      const drop = document.createElement('span');
+      drop.className = 'rain-drop';
+      const left = Math.round(Math.random() * 100);
+      const duration = (0.55 + Math.random() * 0.5).toFixed(2);
+      const delay = (Math.random() * -1.2).toFixed(2);
+      const drift = Math.round(4 + Math.random() * 6);
+      const height = Math.round(30 + Math.random() * 26);
+      const opacity = (0.5 + Math.random() * 0.4).toFixed(2);
+      drop.style.left = left + '%';
+      drop.style.height = height + 'px';
+      drop.style.opacity = opacity;
+      drop.style.setProperty('--drift', drift + 'px');
+      drop.style.animationDuration = duration + 's';
+      drop.style.animationDelay = delay + 's';
+      el.appendChild(drop);
+    }
+  }
 }
 document.getElementById('greetingHeadlineRow')?.addEventListener('click', () => {
   const iconEl = document.getElementById('greetingIcon');
@@ -5832,6 +6060,15 @@ mobileInput.addEventListener('input', () => {
   }
 });
 
+// A real Indian mobile number is 10 digits starting with 6/7/8/9 — this
+// catches obviously fake entries (e.g. "1234567890", which passed the old
+// length-only check) without needing a maintained blocklist of patterns.
+// Also rejects all-same-digit numbers (e.g. "9999999999") as a safety net.
+function isPlausibleMobile_(mobile){
+  if(!/^[6-9]\d{9}$/.test(mobile)) return false;
+  if(/^(\d)\1{9}$/.test(mobile)) return false;
+  return true;
+}
 regForm.addEventListener('submit', (e) => {
   e.preventDefault();
   let valid = true;
@@ -5849,7 +6086,7 @@ regForm.addEventListener('submit', (e) => {
     nameError.classList.remove('show');
   }
 
-  if(mobile.length !== 10){
+  if(!isPlausibleMobile_(mobile)){
     mobileInput.classList.add('invalid');
     mobileError.classList.add('show');
     valid = false;
