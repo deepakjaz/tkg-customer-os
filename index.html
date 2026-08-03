@@ -939,7 +939,7 @@ input{font-family:inherit;}
   content:'';
   position:absolute;
   top:-30px;
-  right:-30px;
+  left:-30px;
   width:130px;
   height:130px;
   border-radius:50%;
@@ -950,16 +950,16 @@ input{font-family:inherit;}
   content:'';
   position:absolute;
   inset:0;
-  background:repeating-linear-gradient(115deg, rgba(255,255,255,0.35) 0px, rgba(255,255,255,0.35) 2px, transparent 2px, transparent 26px);
-  animation:wxHaze 3s ease-in-out infinite;
+  background:radial-gradient(ellipse 90% 60% at 50% 40%, rgba(255,255,255,0.55), rgba(255,255,255,0) 70%);
+  animation:wxHaze 3.5s ease-in-out infinite;
 }
 @keyframes wxSunPulse{
   0%,100%{opacity:0.75; transform:scale(1);}
   50%{opacity:1; transform:scale(1.08);}
 }
 @keyframes wxHaze{
-  0%,100%{opacity:0.25; background-position:0 0;}
-  50%{opacity:0.5; background-position:14px 0;}
+  0%,100%{opacity:0.3;}
+  50%{opacity:0.6;}
 }
 
 .hero-weather-backdrop.wx-evening{
@@ -1053,19 +1053,8 @@ input{font-family:inherit;}
   font-size:1.75rem;
   font-weight:800;
   line-height:1.1;
-  background-image:var(--wx-text-grad, linear-gradient(100deg, var(--ember) 0%, var(--ember) 100%));
-  background-repeat:no-repeat;
-  background-size:220% 220%;
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-  -webkit-text-stroke:0.5px rgba(28,24,21,0.16);
-  filter:drop-shadow(0 1px 1px rgba(28,24,21,0.12));
-}
-#dgGreetingText.wx-shine{ animation:wxShine 4s linear infinite; }
-@keyframes wxShine{
-  0%{background-position:0% 50%;}
-  100%{background-position:220% 50%;}
+  color:var(--wx-text-color, var(--ember));
+  text-shadow:0 0 14px var(--wx-text-glow, rgba(232,93,44,0.35));
 }
 .hero-sub-below{
   display:block;
@@ -3144,7 +3133,6 @@ textarea.field-input{
         <img class="hero-logo-large" src="./icon-192.png" alt="TKG">
         <div class="hero-greeting-line">
           <div class="greeting-headline-row" id="greetingHeadlineRow">
-            <svg class="greeting-icon" id="greetingIcon" viewBox="0 0 24 24" aria-hidden="true"></svg>
             <span id="dgGreetingText"></span>
           </div>
         </div>
@@ -5530,12 +5518,12 @@ const GREETING_ICONS_ = {
   evening:   '<path fill="#E8935A" d="M12 5a1 1 0 011 1v4a1 1 0 01-2 0V6a1 1 0 011-1zm6.36 2.64a1 1 0 010 1.42l-.7.7a1 1 0 01-1.42-1.42l.7-.7a1 1 0 011.42 0zm-13.42 0a1 1 0 011.42 0l.7.7a1 1 0 01-1.42 1.42l-.7-.7a1 1 0 010-1.42zM12 9a4 4 0 013.9 5H8.1A4 4 0 0112 9zM3 15a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zm3 3a1 1 0 011-1h10a1 1 0 010 2H7a1 1 0 01-1-1z"/>',
   night:     '<path fill="#7C8AB8" d="M14.5 3a8 8 0 108.4 12.2A9 9 0 0114.5 3z"/><circle cx="19" cy="7" r="0.9" fill="#B7BFDE"/><circle cx="16.5" cy="10.5" r="0.6" fill="#B7BFDE"/>'
 };
-const WX_TEXT_GRADIENTS_ = {
-  morning:   'linear-gradient(100deg, #E8935A 0%, #FDEBC9 25%, #E8935A 50%, #FDEBC9 75%, #E8935A 100%)',
-  afternoon: 'linear-gradient(100deg, #F0A93A 0%, #FFE9B0 25%, #F0A93A 50%, #FFE9B0 75%, #F0A93A 100%)',
-  evening:   'linear-gradient(100deg, #C97A52 0%, #E8B98F 25%, #C97A52 50%, #E8B98F 75%, #C97A52 100%)',
-  night:     'linear-gradient(100deg, #B7BFDE 0%, #EDEFF7 25%, #B7BFDE 50%, #EDEFF7 75%, #B7BFDE 100%)',
-  monsoon:   'linear-gradient(100deg, #AEE7F5 0%, #EAF6FF 25%, #AEE7F5 50%, #EAF6FF 75%, #AEE7F5 100%)'
+const WX_TEXT_COLORS_ = {
+  morning:   { color:'#D9843C', glow:'rgba(217,132,60,0.32)' },
+  afternoon: { color:'#D99A2B', glow:'rgba(217,154,43,0.32)' },
+  evening:   { color:'#C97A52', glow:'rgba(201,122,82,0.32)' },
+  night:     { color:'#9AA6D6', glow:'rgba(154,166,214,0.35)' },
+  monsoon:   { color:'#7FB8CC', glow:'rgba(127,184,204,0.32)' }
 };
 function updateDynamicGreeting(journey){
   const greetEl = document.getElementById('dgGreetingText');
@@ -5550,8 +5538,9 @@ function updateDynamicGreeting(journey){
   const journeyKey = JOURNEY_VALUES.includes(journey) ? journey : 'exploring';
   subEl.innerHTML = g[journeyKey] || '';
   const wxKey = getWeatherKey_();
-  greetEl.style.setProperty('--wx-text-grad', WX_TEXT_GRADIENTS_[wxKey] || WX_TEXT_GRADIENTS_.morning);
-  greetEl.classList.add('wx-shine');
+  const wxColors = WX_TEXT_COLORS_[wxKey] || WX_TEXT_COLORS_.morning;
+  greetEl.style.setProperty('--wx-text-color', wxColors.color);
+  greetEl.style.setProperty('--wx-text-glow', wxColors.glow);
   initHeroWeatherBackdrop();
 }
 
