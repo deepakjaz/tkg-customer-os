@@ -2753,6 +2753,26 @@ textarea.field-input{
       </div>
     </div>
 
+    <!-- YouTube Share Modal: After post succeeds -->
+    <div class="moments-compose-overlay hidden" id="youtubeShareOverlay">
+      <div class="moments-compose-card" style="max-width: 340px;">
+        <div class="journey-title" style="font-size:1.0625rem; margin-bottom:16px; text-align: center;">Share this with TKG community on YouTube?</div>
+        <p style="font-size: 13px; color: #6B6256; text-align: center; margin-bottom: 16px; line-height: 1.5;">Your video will be shared to our YouTube channel (unlisted — only visible with the link) so our community can see your moment.</p>
+        
+        <div id="youtubeProgressContainer" style="display: none; margin-bottom: 16px;">
+          <div style="font-size: 12px; color: #6B6256; margin-bottom: 8px;">Uploading to YouTube…</div>
+          <div style="width: 100%; height: 4px; background: #E6E3DD; border-radius: 2px; overflow: hidden;">
+            <div id="youtubeProgressBar" style="width: 0%; height: 100%; background: #E85D2C; transition: width 0.3s;"></div>
+          </div>
+        </div>
+
+        <div id="youtubeStatusMessage" style="font-size: 12px; color: #6B6256; margin-bottom: 12px; text-align: center;"></div>
+
+        <button type="button" id="youtubeShareYesBtn" style="width: 100%; background: #E85D2C; color: #FFFFFF; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; margin-bottom: 8px;">Yes, share it!</button>
+        <button type="button" id="youtubeShareNoBtn" style="width: 100%; background: transparent; color: #1C1815; border: 1px solid #E6E3DD; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit;">No, keep it private</button>
+      </div>
+    </div>
+
     <!-- Tutorial modal: How to share from Instagram -->
     <div class="moments-compose-overlay hidden" id="momentsTutorialOverlay">
       <div class="moments-compose-card" style="max-width: 360px;">
@@ -2883,7 +2903,16 @@ const tutorialCloseBtn = document.getElementById('tutorialCloseBtn');
 const tutorialNextBtn = document.getElementById('tutorialNextBtn');
 const tutorialStepDots = document.querySelectorAll('.tutorial-step-dot');
 
+const youtubeShareOverlay = document.getElementById('youtubeShareOverlay');
+const youtubeShareYesBtn = document.getElementById('youtubeShareYesBtn');
+const youtubeShareNoBtn = document.getElementById('youtubeShareNoBtn');
+const youtubeProgressContainer = document.getElementById('youtubeProgressContainer');
+const youtubeProgressBar = document.getElementById('youtubeProgressBar');
+const youtubeStatusMessage = document.getElementById('youtubeStatusMessage');
+
 let tutorialCurrentStep = 0;
+let pendingMomentId = null;
+let pendingMomentMedia = [];
 
 momentsMenuBtn.addEventListener('click', () => {
   window.location.href = './index.html';
@@ -3151,6 +3180,92 @@ tutorialStepDots.forEach(dot => {
   });
 });
 
+youtubeShareYesBtn.addEventListener('click', async () => {
+  youtubeShareYesBtn.disabled = true;
+  youtubeShareNoBtn.disabled = true;
+  youtubeProgressContainer.style.display = 'block';
+  youtubeStatusMessage.textContent = 'Preparing…';
+  
+  // Simulate upload progress
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+    progress += Math.random() * 30;
+    if (progress > 90) progress = 90;
+    youtubeProgressBar.style.width = progress + '%';
+  }, 500);
+
+  try {
+    youtubeStatusMessage.textContent = 'Uploading to YouTube…';
+    
+    // Call backend to upload to YouTube
+    const videoUrl = pendingMomentMedia[0]?.url || '';
+    const caption = momentsCaptionInput.value.trim();
+    const fileName = 'TKG Moment';
+    const mimeType = pendingMomentMedia[0]?.mimeType || 'video/mp4';
+
+    const uploadRes = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'uploadMomentToYouTube',
+        driveUrl: videoUrl,
+        fileName: fileName,
+        caption: caption,
+        mimeType: mimeType
+      })
+    });
+
+    clearInterval(progressInterval);
+    youtubeProgressBar.style.width = '100%';
+
+    if (!uploadRes.ok) {
+      youtubeStatusMessage.textContent = 'Upload failed. Check your connection.';
+      youtubeStatusMessage.style.color = '#D64545';
+      return;
+    }
+
+    const uploadData = await uploadRes.json();
+    if (uploadData.status === 'ok' && uploadData.youtubeUrl) {
+      // Update the moment row with YouTube URL
+      await fetch(APP_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'updateMomentYouTubeUrl',
+          momentId: pendingMomentId,
+          youtubeUrl: uploadData.youtubeUrl
+        })
+      });
+
+      youtubeStatusMessage.textContent = '✓ Added to YouTube!';
+      youtubeStatusMessage.style.color = '#6B7B00';
+      
+      setTimeout(() => {
+        youtubeShareOverlay.classList.add('hidden');
+        loadMoments();
+      }, 1500);
+    } else {
+      youtubeStatusMessage.textContent = 'Could not upload. Try again later.';
+      youtubeStatusMessage.style.color = '#D64545';
+    }
+  } catch (err) {
+    clearInterval(progressInterval);
+    console.warn('YouTube upload error:', err);
+    youtubeStatusMessage.textContent = 'Upload failed. Check your connection.';
+    youtubeStatusMessage.style.color = '#D64545';
+  } finally {
+    youtubeShareYesBtn.disabled = false;
+    youtubeShareNoBtn.disabled = false;
+  }
+});
+
+youtubeShareNoBtn.addEventListener('click', () => {
+  youtubeShareOverlay.classList.add('hidden');
+  youtubeProgressContainer.style.display = 'none';
+  youtubeStatusMessage.textContent = '';
+  youtubeProgressBar.style.width = '0%';
+});
+
 function updateTutorialStep(){
   for(let i = 0; i < 4; i++){
     const step = document.getElementById('step' + i);
@@ -3267,8 +3382,21 @@ momentsComposePostBtn.addEventListener('click', async () => {
     const finalData = await finalRes.json();
     if(!finalData || finalData.status !== 'ok') throw new Error('Upload not recorded');
 
+    // Store moment ID and media for potential YouTube upload
+    pendingMomentId = finalData.recorded;
+    pendingMomentMedia = media;
+
     momentsStagedFiles = [];
     momentsComposeOverlay.classList.add('hidden');
+    
+    // Show YouTube share prompt
+    youtubeProgressContainer.style.display = 'none';
+    youtubeStatusMessage.textContent = '';
+    youtubeProgressBar.style.width = '0%';
+    youtubeShareYesBtn.disabled = false;
+    youtubeShareNoBtn.disabled = false;
+    youtubeShareOverlay.classList.remove('hidden');
+    
     loadMoments();
     loadMomentsStat();
   }catch(err){

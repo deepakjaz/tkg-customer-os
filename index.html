@@ -96,6 +96,10 @@
   --ember-bright:   #FF7A45;
   --ember-deep:     #B8431D;
   --ember-glow:     #FAC646;   /* sampled from the TKG logo halo \u2014 warm gold-amber */
+  
+  /* Weather system — night theme-aware colors */
+  --wx-night-star:  #1C1815;   /* dark stars for light theme */
+  --wx-night-moon:  #2A2A2A;   /* dark moon for light theme */
   --gold:           #C9A24B;
   --gold-bright:    #E0C170;
   --gold-deep:      #8F7430;   /* new \u2014 readable gold-on-white for text */
@@ -248,6 +252,8 @@ html[data-tkg-theme="dark"]{
    */
   --ink:       #F2EFEA;
   --ink-soft:  rgba(242,239,234,0.72);
+  --wx-night-star:  #fff;        /* white stars for dark theme */
+  --wx-night-moon:  #EDEFF7;   /* light moon for dark theme */
   --ink-faint: rgba(242,239,234,0.55);
 }
 
@@ -640,11 +646,14 @@ input{font-family:inherit;}
   pointer-events:none;
   transition:opacity 1.4s ease;
   overflow:hidden;
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
 }
+
 .hero-weather-backdrop.show{opacity:1;}
 
 .hero-weather-backdrop.wx-morning{
-  background:linear-gradient(180deg, #FDEBC9 0%, #FBD1A2 55%, rgba(251,209,162,0) 100%);
+  background:linear-gradient(180deg, rgba(253,235,201,0.35) 0%, rgba(251,209,162,0.25) 55%, rgba(251,209,162,0) 100%);
 }
 .hero-weather-backdrop.wx-morning::before,
 .hero-weather-backdrop.wx-morning::after{
@@ -665,7 +674,7 @@ input{font-family:inherit;}
 }
 
 .hero-weather-backdrop.wx-afternoon{
-  background:linear-gradient(180deg, #EAF6FF 0%, #FBFEFF 60%, rgba(251,254,255,0) 100%);
+  background:linear-gradient(180deg, rgba(234,246,255,0.3) 0%, rgba(251,254,255,0.2) 60%, rgba(251,254,255,0) 100%);
 }
 .hero-weather-backdrop.wx-afternoon::before{
   content:'';
@@ -699,13 +708,13 @@ input{font-family:inherit;}
   animation:wxEveningFall 70s ease-in forwards;
 }
 @keyframes wxEveningFall{
-  0%{background:linear-gradient(180deg, #E89A6B 0%, #6E86B8 55%, rgba(110,134,184,0) 100%);}
-  50%{background:linear-gradient(180deg, #6E86B8 0%, #3C4C7A 55%, rgba(60,76,122,0) 100%);}
-  100%{background:linear-gradient(180deg, #2A2F4A 0%, #14131E 55%, rgba(20,19,30,0) 100%);}
+  0%{background:linear-gradient(180deg, rgba(232,154,107,0.3) 0%, rgba(110,134,184,0.25) 55%, rgba(110,134,184,0) 100%);}
+  50%{background:linear-gradient(180deg, rgba(110,134,184,0.3) 0%, rgba(60,76,122,0.25) 55%, rgba(60,76,122,0) 100%);}
+  100%{background:linear-gradient(180deg, rgba(42,47,74,0.35) 0%, rgba(20,19,30,0.28) 55%, rgba(20,19,30,0) 100%);}
 }
 
 .hero-weather-backdrop.wx-night{
-  background:linear-gradient(180deg, #171A2E 0%, #0D0E18 55%, rgba(13,14,24,0) 100%);
+  background:linear-gradient(180deg, rgba(23,26,46,1) 0%, rgba(13,14,24,1) 100%);
 }
 .hero-weather-backdrop.wx-night::before{
   content:'';
@@ -715,12 +724,12 @@ input{font-family:inherit;}
   width:200px;
   height:200px;
   background:
-    radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 70px 10px, #fff, transparent),
-    radial-gradient(1px 1px at 120px 50px, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 160px 20px, #fff, transparent),
-    radial-gradient(1px 1px at 40px 70px, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 100px 90px, #fff, transparent);
+    radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(2px 2px at 70px 10px, rgba(255,255,255,0.85), transparent),
+    radial-gradient(1.5px 1.5px at 120px 50px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(2px 2px at 160px 20px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1.5px 1.5px at 40px 70px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(2px 2px at 100px 90px, rgba(255,255,255,0.85), transparent);
   animation:wxTwinkle 3.2s ease-in-out infinite;
 }
 .hero-weather-backdrop.wx-night::after{
@@ -728,19 +737,75 @@ input{font-family:inherit;}
   position:absolute;
   top:16px;
   right:26px;
-  width:22px;
-  height:22px;
+  width:28px;
+  height:28px;
   border-radius:50%;
-  background:#EDEFF7;
-  box-shadow:-7px -2px 0 2px rgba(13,14,24,1);
+  background:
+    radial-gradient(2px 2px at 8px 6px, rgba(100,80,60,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 18px 12px, rgba(100,80,60,0.35), transparent),
+    radial-gradient(1px 1px at 14px 20px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(1.2px 1.2px at 22px 18px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
+  box-shadow:0 0 8px rgba(255,255,255,0.3), inset -2px -2px 4px rgba(0,0,0,0.1);
 }
 @keyframes wxTwinkle{
   0%,100%{opacity:0.6;}
   50%{opacity:1;}
 }
 
+/* Moon phases — shadow direction changes based on illumination */
+.hero-weather-backdrop.moon-waxing-crescent::after{
+  background:
+    radial-gradient(2px 2px at 8px 6px, rgba(100,80,60,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 18px 12px, rgba(100,80,60,0.35), transparent),
+    radial-gradient(1px 1px at 14px 20px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(1.2px 1.2px at 22px 18px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(circle at 75% 50%, rgba(13,14,24,0.95) 0%, transparent 65%),
+    radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
+  box-shadow:0 0 8px rgba(255,255,255,0.3), inset 2px 2px 4px rgba(0,0,0,0.2);
+}
+.hero-weather-backdrop.moon-waxing-gibbous::after{
+  background:
+    radial-gradient(2px 2px at 8px 6px, rgba(100,80,60,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 18px 12px, rgba(100,80,60,0.35), transparent),
+    radial-gradient(1px 1px at 14px 20px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(1.2px 1.2px at 22px 18px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(circle at 80% 50%, rgba(13,14,24,0.4) 0%, transparent 40%),
+    radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
+  box-shadow:0 0 10px rgba(255,255,255,0.4), inset 1px 1px 3px rgba(0,0,0,0.1);
+}
+.hero-weather-backdrop.moon-full::after{
+  background:
+    radial-gradient(2px 2px at 8px 6px, rgba(100,80,60,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 18px 12px, rgba(100,80,60,0.35), transparent),
+    radial-gradient(1px 1px at 14px 20px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(1.2px 1.2px at 22px 18px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
+  box-shadow:0 0 12px rgba(255,255,255,0.5), inset -1px -1px 2px rgba(0,0,0,0.05);
+}
+.hero-weather-backdrop.moon-waning-gibbous::after{
+  background:
+    radial-gradient(2px 2px at 8px 6px, rgba(100,80,60,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 18px 12px, rgba(100,80,60,0.35), transparent),
+    radial-gradient(1px 1px at 14px 20px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(1.2px 1.2px at 22px 18px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(circle at 20% 50%, rgba(13,14,24,0.4) 0%, transparent 40%),
+    radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
+  box-shadow:0 0 10px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.1);
+}
+.hero-weather-backdrop.moon-waning-crescent::after{
+  background:
+    radial-gradient(2px 2px at 8px 6px, rgba(100,80,60,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 18px 12px, rgba(100,80,60,0.35), transparent),
+    radial-gradient(1px 1px at 14px 20px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(1.2px 1.2px at 22px 18px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(circle at 25% 50%, rgba(13,14,24,0.95) 0%, transparent 65%),
+    radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
+  box-shadow:0 0 8px rgba(255,255,255,0.3), inset -2px -2px 4px rgba(0,0,0,0.2);
+}
+
 .hero-weather-backdrop.wx-monsoon{
-  background:linear-gradient(180deg, #5A6572 0%, #3A424C 60%, rgba(58,66,76,0) 100%);
+  background:linear-gradient(180deg, rgba(90,101,114,0.32) 0%, rgba(58,66,76,0.28) 60%, rgba(58,66,76,0) 100%);
 }
 .hero-weather-backdrop .rain-drop{
   position:absolute;
@@ -4823,8 +4888,6 @@ function updateDynamicGreeting(journey){
 // WX_MAX_PLAYS / WX_RESET_DAYS are the two knobs to tune later — capped,
 // not permanent: once the cap is hit the backdrop stops for that many days,
 // then resets on its own rather than staying off forever.
-const WX_MAX_PLAYS = 5;
-const WX_RESET_DAYS = 30;
 function isMonsoonWindow_(){
   const now = new Date();
   const m = now.getMonth() + 1; // 1-12
@@ -4842,26 +4905,33 @@ function getWeatherKey_(){
   // if(isMonsoonWindow_()) return 'monsoon';
   return getGreetingTimeKey_();
 }
-function heroWeatherEligible_(){
-  let rec = null;
-  try{ rec = JSON.parse(localStorage.getItem('tkg_wx_intro') || 'null'); }catch(e){}
-  const now = Date.now();
-  if(!rec || !rec.since || (now - rec.since) > WX_RESET_DAYS * 86400000){
-    rec = { count: 0, since: now };
-  }
-  if(rec.count >= WX_MAX_PLAYS) return false;
-  rec.count += 1;
-  try{ localStorage.setItem('tkg_wx_intro', JSON.stringify(rec)); }catch(e){}
-  return true;
+function getLunarPhase_(){
+  // Calculate moon phase based on actual date
+  // Known new moon: January 29, 2024
+  // Lunar cycle: 29.53 days
+  const knownNewMoon = new Date(2024, 0, 29);
+  const now = new Date();
+  const daysSinceNewMoon = (now - knownNewMoon) / (1000 * 60 * 60 * 24);
+  const lunarCycle = 29.53;
+  const phasePosition = (daysSinceNewMoon % lunarCycle) / lunarCycle;
+  
+  if(phasePosition < 0.125) return 'waxing-crescent';
+  if(phasePosition < 0.375) return 'waxing-gibbous';
+  if(phasePosition < 0.625) return 'full';
+  if(phasePosition < 0.875) return 'waning-gibbous';
+  return 'waning-crescent';
 }
 function initHeroWeatherBackdrop(){
   if(window.__tkgWxInitDone) return;
   const el = document.getElementById('heroWeatherBackdrop');
   if(!el) return;
   window.__tkgWxInitDone = true;
-  if(!heroWeatherEligible_()) return;
   const key = getWeatherKey_();
   el.classList.add('show', 'wx-' + key);
+  if(key === 'night'){
+    const moonPhase = getLunarPhase_();
+    el.classList.add('moon-' + moonPhase);
+  }
   if(key === 'monsoon'){
     const DROP_COUNT = 14;
     for(let i = 0; i < DROP_COUNT; i++){
