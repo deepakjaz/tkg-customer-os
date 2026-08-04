@@ -8,17 +8,11 @@
 <meta name="description" content="TKG Moments — customer photos and Instagram moments from The Khichiya Gravy">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon-192.png">
-<!-- Instagram's own embed script, loads a single public post as a real
-     embedded card from just its link. No API key/app needed. Loaded here
-     directly since this is a fresh page load (unlike index.html, where
-     Moments was reached via in-page navigation). -->
 <script async src="https://www.instagram.com/embed.js"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <script>
-// Same tiny anti-FOUC font-scale script as index.html, so a returning
-// visitor's chosen text size carries over onto this standalone page too.
 (function(){
   try{
     var scale = localStorage.getItem('tkg_font_scale');
@@ -29,8 +23,6 @@
 </script>
 
 <script>
-// Same anti-FOUC Theme Engine as index.html — reads the same shared
-// tkg_theme key, so the ecosystem-wide theme choice carries over here too.
 (function(){
   try{
     var theme = localStorage.getItem('tkg_theme');
@@ -42,213 +34,35 @@
 </script>
 
 <style>
-<style>
-/* ==========================================================================
-   TOKENS
-   White marble / Coal ember orange / Black charcoal / Warm gold
-   ========================================================================== */
 :root{
-  /* ---- DARK PALETTE \u2014 used by the Owner Dashboard (#screen-dash).
-     Re-calibrated to the TKG logo's own charcoal (sampled directly from
-     the logo file: a warm red-brown black, not a neutral grey-black). ---- */
   --charcoal:       #160F0C;
-  --charcoal-soft:  #221813;
-  --ember-card:     #2A1E17;
-  --ember-card-top: #32241B;
-  --marble:         #FAF7F2;
-  --marble-dim:     #EEEEEC;
-  --marble-warm:    #F7F6F3;
-
-  --grey-line:      #3D2E24;
-
-  /* ---- LIGHT PALETTE — the customer-facing shell, cards, sheets.
-     White/warm-ivory marble base, charcoal text, ember reserved for
-     small accents per direction: "subtle, charcoal does the heavy lifting." ---- */
-  --stone-base:      #F6F6F5;   /* shell background base — neutral, barely-there cool grey */
-  --tkg-page-bg:     #FFFFFF;   /* Page Background material — Theme B (light), approved mockup value */
-  --tkg-plain-border: #E6E3DD;  /* Plain Surface material — Theme B (light), approved mockup .card-line value */
-  --tkg-plain-opaque-bg: #1A1815;  /* Plain Surface, opaque variant (floating system feedback like toast) — Theme B: inverse-of-page so it reads on top of any content */
+  --tkg-page-bg:     #FFFFFF;
+  --tkg-plain-border: #E6E3DD;
+  --tkg-plain-opaque-bg: #1A1815;
   --tkg-plain-opaque-fg: #FFFFFF;
-  /* Premium Marble material — Theme B (light page → black marble cards, opposite of page per approved mockup) */
   --tkg-marble-bg-color: #0F0E0C;
   --tkg-marble-image: url('tkg-marble-black.jpg');
   --tkg-marble-overlay: rgba(0,0,0,0.42);
   --tkg-marble-border: rgba(0,0,0,0.06);
   --tkg-marble-ink: #F2EFEA;
   --tkg-marble-ink-soft: rgba(242,239,234,0.72);
-  --tkg-marble-ink-faint: rgba(242,239,234,0.55);
-  /* Controls material — Theme B: dark fill, light text (inverse of page) */
   --tkg-ctrl-bg: #1A1815;
   --tkg-ctrl-fg: #FFFFFF;
-  --stone-card:      rgba(255,255,255,0.62);   /* glass card — translucent, paired with backdrop-filter blur */
-  --stone-card-alt:  rgba(255,255,255,0.5);   /* glass card, secondary layer — slightly more see-through */
-  --stone-vein:      #C9C9C7;   /* marble crack-vein color — neutral grey, no warm bias */
-  --stone-vein-soft: #DCDCDA;
-  --stone-line:      rgba(255,255,255,0.65);   /* glass edge highlight instead of a flat hairline */
-  --stone-divider:   rgba(28,24,21,0.14);   /* dashed dividers on translucent glass \u2014 needs to read as a line against the ticket strip's own see-through background, so kept independent of --stone-line (glass-card border) */
+  --stone-card:      rgba(255,255,255,0.62);
   --glass-blur:      18px;
-  --ink:             #1C1815;   /* primary text \u2014 near-black, warm */
-  --ink-soft:        #6B6256;   /* secondary text, warm grey-brown */
-  --ink-faint:       #9C9286;   /* tertiary text, placeholders */
-
-  /* ---- ACCENTS \u2014 shared by both palettes, used sparingly on light ---- */
+  --ink:             #1C1815;
+  --ink-soft:        #6B6256;
   --ember:          #E85D2C;
-  --ember-bright:   #FF7A45;
   --ember-deep:     #B8431D;
-  --ember-glow:     #FAC646;   /* sampled from the TKG logo halo \u2014 warm gold-amber */
-  --gold:           #C9A24B;
-  --gold-bright:    #E0C170;
-  --gold-deep:      #8F7430;   /* new \u2014 readable gold-on-white for text */
   --moments-ambient-bg:
     radial-gradient(ellipse 90% 55% at 50% 8%, rgba(232,93,44,0.30), transparent 60%),
     radial-gradient(ellipse 70% 45% at 50% 100%, rgba(184,67,29,0.22), transparent 65%),
-    var(--charcoal);   /* branded glow instead of flat black \u2014 used behind Moments slides & IG embed */
-  --grey-warm:      #8A8278;
-  --success:        #4C7A4C;   /* slightly deepened for readability on white */
-  --danger:         #B5392F;   /* slightly deepened for readability on white */
-
+    var(--charcoal);
   --radius-lg: 18px;
   --radius-md: 12px;
-  --radius-sm: 8px;
   --max-w: 430px;
-
-  --font-display: 'Charcoal-Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
-
-  --icon-inline:     18px;  /* icons sitting beside/above short label text — pills, ticket strip, directions, phone */
-  --icon-standalone: 28px;  /* icons that ARE the tap target — bottom nav */
-
-  /* ---- Bottom-nav icon colors. Star uses a gradient (see navStarGrad def
-     at the icon itself) instead of a flat token. Message/About go
-     monochrome ink per Deepak's direction; Journey reuses the app's
-     existing semantic danger-red (already means "alert/closed" elsewhere)
-     rather than a new one-off hex, matching the common Google-Maps-pin
-     red he asked for. ---- */
-  --nav-journey: var(--danger);
-
-  /* ---- Glass lamination depth \u2014 makes a card read as a floating pane of
-     glass rather than a flat panel with a thin outline. Three layers in one
-     box-shadow: (1) inset top highlight, the light catching the top inner
-     edge of the glass; (2) inset bottom shade, giving the glass a felt
-     thickness; (3) a warm ember-tinted ambient glow further out for real
-     depth, instead of a generic neutral-grey shadow; (4) a tight, close
-     contact shadow that grounds the card so it doesn't look like it's
-     hovering with no relation to the surface under it. ---- */
-  --glass-depth:
-    inset 0 1px 0 rgba(255,255,255,0.65),
-    inset 0 -1px 0 rgba(28,24,21,0.05),
-    0 16px 32px -16px rgba(184,67,29,0.30),
-    0 3px 10px -4px rgba(28,24,21,0.16);
-}
-
-/* ==========================================================================
-   OUTLINES material — the amber ember-frame system. Universal infrastructure
-   (tokens, angle property, keyframes) lives here once; applied directly to
-   each real Premium/Plain selector further down rather than via a shared
-   class, since markup/classes stay untouched. Amber is fixed at 60%
-   opacity in both themes — not a per-theme value, per the locked
-   "amber never changes with theme" rule.
-
-   Animation behaviour is the approved EXPERIENCE, not the mockup prototype's
-   literal code: plays on load, one coordinated pulse every 10s across every
-   framed surface at once (not staggered per-card), continues for ~60s total,
-   then stops — leaving only the static border. Restarts the full sequence on
-   every theme switch.
-   ========================================================================== */
-:root{ --tkg-amber-op: 0.6; }
-@property --tkg-ember-angle{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
-@keyframes tkg-ember-pulse{
-  0%{ --tkg-ember-angle:0deg; opacity:0; }
-  2%{ opacity:1; }
-  22%{ --tkg-ember-angle:360deg; opacity:0.85; }
-  24%{ opacity:0; }
-  100%{ --tkg-ember-angle:360deg; opacity:0; }
-}
-
-.menu-item, .fun-activity-card, .journey-option, .cs-review-card,
-.review-teaser-card, .reg-card, .ticket-strip, .extra-chip, .hero-story-strip{
-  position:relative;
-}
-.menu-item, .fun-activity-card, .journey-option, .cs-review-card,
-.review-teaser-card, .reg-card, .bottom-nav, .ticket-strip, .extra-chip, .hero-story-strip,
-#thanksOverlay, #khichiyaRunnerOverlay, #productPreviewSheet, #infoSheet{
-  border-color:rgba(217,164,65, var(--tkg-amber-op)) !important;
-}
-.menu-item::before, .fun-activity-card::before, .journey-option::before,
-.cs-review-card::before, .review-teaser-card::before, .reg-card::before,
-.bottom-nav::before, .ticket-strip::before, .extra-chip::before, .hero-story-strip::before,
-#thanksOverlay::before, #khichiyaRunnerOverlay::before,
-#productPreviewSheet::before, #infoSheet::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:inherit;
-  padding:1px;
-  background:conic-gradient(from var(--tkg-ember-angle,0deg),
-    transparent 0deg, transparent 330deg,
-    rgba(250,198,110,0.95) 350deg, rgba(217,164,65,0.6) 358deg, transparent 360deg);
-  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;
-  mask-composite:exclude;
-  opacity:0;
-  pointer-events:none;
-}
-body.tkg-ember-run .menu-item::before, body.tkg-ember-run .fun-activity-card::before,
-body.tkg-ember-run .journey-option::before, body.tkg-ember-run .cs-review-card::before,
-body.tkg-ember-run .review-teaser-card::before, body.tkg-ember-run .reg-card::before,
-body.tkg-ember-run .bottom-nav::before, body.tkg-ember-run .ticket-strip::before, body.tkg-ember-run .hero-story-strip::before,
-body.tkg-ember-run .extra-chip::before, body.tkg-ember-run #thanksOverlay::before,
-body.tkg-ember-run #khichiyaRunnerOverlay::before, body.tkg-ember-run #productPreviewSheet::before,
-body.tkg-ember-run #infoSheet::before{
-  animation:tkg-ember-pulse 10s cubic-bezier(.22,.61,.36,1) 6;
-}
-/* Fainter divider variant — the dashed/solid rules inside a framed
-   container read as hierarchy support, always half the frame's opacity. */
-.ticket-divider{ border-left-color:rgba(217,164,65, calc(var(--tkg-amber-op) * 0.5)) !important; }
-.fun-activity-row{ border-top-color:rgba(217,164,65, calc(var(--tkg-amber-op) * 0.5)) !important; }
-
-/* ==========================================================================
-   THEME ENGINE — Theme A overrides. One customer-chosen theme applies
-   across the whole app (single localStorage key, read on every page); each
-   material pass adds its Theme A values here as that material is
-   completed, so this block grows in the same order as the material passes
-   themselves. Page Background is the only material done so far.
-   ========================================================================== */
-html[data-tkg-theme="dark"]{
-  --tkg-page-bg:     #0B0A09;   /* Page Background material — Theme A (dark), approved mockup value */
-  --tkg-plain-border: rgba(255,255,255,0.1);   /* Plain Surface material — Theme A (dark), approved mockup .card-line value */
-  --tkg-plain-opaque-bg: #FFFFFF;
-  --tkg-plain-opaque-fg: #111111;
-  /* Premium Marble material — Theme A (dark page → white marble cards, opposite of page) */
-  --tkg-marble-bg-color: #F5F3EE;
-  --tkg-marble-image: url('tkg-marble-white.jpg');
-  --tkg-marble-overlay: rgba(255,255,255,0.5);
-  --tkg-marble-border: rgba(255,255,255,0.08);
-  --tkg-marble-ink: #1A1815;
-  --tkg-marble-ink-soft: rgba(26,24,21,0.72);
-  --tkg-marble-ink-faint: rgba(26,24,21,0.55);
-  /* Controls material — Theme A: light fill, dark text (inverse of page) */
-  --tkg-ctrl-bg: #FFFFFF;
-  --tkg-ctrl-fg: #111111;
-
-  /* Root ink tokens — Theme A (dark). Base :root only ever defined these
-     once, for the light-theme page. Premium Marble cards never depended
-     on that root value (each re-points --ink/--ink-soft/--ink-faint
-     locally to --tkg-marble-ink*), so they were already correct in both
-     themes. Plain Surface elements (ticket-strip/status card,
-     hero-story-strip chip row, extra-chip dietary tags, and any other
-     unscoped text) had no such override and stayed pinned to the
-     light-theme near-black ink even after their own background flipped
-     dark — producing dark-on-dark text. Fixed here at the root, once,
-     rather than patching each component individually. Values reuse the
-     already-approved --tkg-marble-ink (Theme B) light-on-dark palette,
-     since that's the same "light text over dark surface" case already
-     vetted against the mockup.
-   */
-  --ink:       #F2EFEA;
-  --ink-soft:  rgba(242,239,234,0.72);
-  --ink-faint: rgba(242,239,234,0.55);
+  --font-display: 'Charcoal-Display', system-ui, -apple-system, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -267,187 +81,7 @@ body{
 }
 button{font-family:inherit; cursor:pointer;}
 input{font-family:inherit;}
-::selection{background:var(--ember); color:var(--marble);}
 
-@media (prefers-reduced-motion: reduce){
-  *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
-}
-
-/* ==========================================================================
-   SHELL — Page Background material (approved mockup): flat, untextured.
-   The old marble-vein/grain gradient stack here has been removed — that
-   look now belongs only to Premium Marble surfaces (cards), not the page
-   itself. This is also the app's true root container (not just <body>),
-   so it's the element that must carry the Page Background, or the shell
-   silently reverts to whatever hardcoded value it has and ignores this
-   material everywhere below it.
-   ========================================================================== */
-.shell{
-  width:100%;
-  max-width:var(--max-w);
-  min-height:100vh;
-  min-height:100dvh;
-  background:var(--tkg-page-bg);
-  position:relative;
-  display:flex;
-  flex-direction:column;
-}
-
-/* Ambient warm glow removed (was .shell::before, an animated gold radial
-   spanning 140% width x 38% height at the bottom of every screen, plus a
-   110%x40% gold pooling layer at the top of the shell above) \u2014 neither was
-   actually scoped to the logo/coal-ring area, so they washed warmth across
-   the entire page instead. TKG's warmth now lives only in the logo itself
-   and brand accents (buttons, active states) against a neutral marble
-   shell. */
-
-/* ==========================================================================
-   TOP BAR — wordmark + ember status dot (signature element)
-   ========================================================================== */
-.topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:18px 20px 14px;
-}
-.wordmark{
-  font-family:var(--font-display);
-  color:var(--ink);
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.topbar-tagline{
-  font-family:var(--font-body);
-  font-weight:700;
-  font-size:0.75rem;
-  line-height:1.25;
-  color:var(--ink-soft);
-  max-width:60vw;
-}
-.topbar-tagline.tt-glow{
-  animation:tt-glow-pulse 2.2s ease-out 1;
-}
-@keyframes tt-glow-pulse{
-  0%{ color:var(--ember-deep); text-shadow:0 0 10px rgba(232,93,44,0.55); }
-  100%{ color:var(--ink-soft); text-shadow:none; }
-}
-
-
-.status-pill{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  font-size:0.6875rem;
-  letter-spacing:0.04em;
-  color:var(--ink-soft);
-  padding:6px 10px;
-  border-radius:20px;
-  background:transparent;
-  border:1px solid var(--tkg-plain-border);
-}
-.topbar-right{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.lang-btn{
-  display:flex;
-  align-items:center;
-  gap:4px;
-  font-size:0.7188rem;
-  font-weight:700;
-  letter-spacing:0.02em;
-  color:var(--ink);
-  padding:6px 11px;
-  border-radius:20px;
-  background:transparent;
-  border:1px solid var(--tkg-plain-border);
-  transition:opacity 0.15s ease;
-}
-.text-size-btn{
-  font-size:0.7188rem;
-  font-weight:700;
-  letter-spacing:0.01em;
-  color:var(--ink);
-  padding:6px 11px;
-  border-radius:20px;
-  background:transparent;
-  border:1px solid var(--tkg-plain-border);
-  transition:opacity 0.15s ease;
-}
-.text-size-btn:active, .lang-btn:active{opacity:0.6;}
-.lang-btn.attention{animation:lang-btn-attention 2.2s ease-in-out 1;}
-@keyframes lang-btn-attention{
-  0%, 100%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
-  25%{box-shadow:0 0 0 5px rgba(232,93,44,0.16);}
-  50%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
-  75%{box-shadow:0 0 0 5px rgba(232,93,44,0.1);}
-}
-
-.lang-sheet{
-  position:fixed;
-  left:50%;
-  bottom:0;
-  transform:translate(-50%, calc(100% + 60px));
-  width:100%;
-  max-width:var(--max-w);
-  background:var(--tkg-page-bg);
-  border-radius:22px 22px 0 0;
-  padding:10px 20px calc(24px + env(safe-area-inset-bottom, 0px));
-  box-shadow:0 -10px 40px rgba(28,24,21,0.18);
-  transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index:160;
-}
-.lang-sheet.show{transform:translate(-50%, 0);}
-.lang-sheet-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:1.125rem;
-  color:var(--ink);
-  text-align:center;
-  margin:6px 0 16px;
-}
-.lang-option{
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  background:transparent;
-  border:1.5px solid var(--tkg-plain-border);
-  border-radius:var(--radius-md);
-  padding:15px 16px;
-  margin-bottom:10px;
-  color:var(--ink);
-}
-.lang-option-native{font-size:0.9375rem; font-weight:700;}
-.lang-option-check{opacity:0; color:var(--ember); font-weight:800; font-size:1rem;}
-.lang-option.selected{border-color:var(--ember);}
-.lang-option.selected .lang-option-check{opacity:1;}
-.ember-dot{
-  width:8px; height:8px;
-  border-radius:50%;
-  background:var(--success);
-  box-shadow:0 0 0 0 rgba(92,138,92,0.6);
-  flex-shrink:0;
-}
-.status-pill[data-state="offline"] .ember-dot{
-  background:var(--ember);
-  animation:ember-pulse 1.6s ease-in-out infinite;
-}
-.status-pill[data-state="syncing"] .ember-dot{
-  background:var(--gold);
-  animation:ember-pulse 0.9s ease-in-out infinite;
-}
-@keyframes ember-pulse{
-  0%{box-shadow:0 0 0 0 rgba(232,93,44,0.55);}
-  70%{box-shadow:0 0 0 6px rgba(232,93,44,0);}
-  100%{box-shadow:0 0 0 0 rgba(232,93,44,0);}
-}
-
-/* ==========================================================================
-   SCREENS
-   ========================================================================== */
 .screen{
   flex:1;
   display:none;
@@ -456,30 +90,8 @@ input{font-family:inherit;}
   animation:fade-in 0.35s ease;
 }
 .screen.active{display:flex;}
-#screen-dash{background:var(--charcoal);}
-@keyframes fade-in{
-  from{opacity:0; transform:translateY(6px);}
-  to{opacity:1; transform:translateY(0);}
-}
-
-/* ---- Customer Journey (Screen 1) — first interaction, offline-only.
-   Reuses .screen / showScreen() as-is. No new UI-switching mechanism. ---- */
-.journey-back-link{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  background:none;
-  border:none;
-  color:var(--ink-soft);
-  font-size:0.8125rem;
-  font-weight:700;
-  padding:8px 0 0;
-  margin-top:8px;
-}
-.journey-back-link:active{ opacity:0.6; }
-
-/* ---- TKG Moments (fullscreen vertical-swipe photo/Instagram viewer) ---- */
 #screen-moments{ padding:0 !important; }
+
 .moments-topbar{
   position:fixed;
   top:0; left:0; right:0;
@@ -491,17 +103,6 @@ input{font-family:inherit;}
   background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0));
   pointer-events:none;
 }
-.moments-back-btn{
-  pointer-events:auto;
-  background:rgba(28,24,21,0.45);
-  border:none;
-  color:#fff;
-  font-size:0.8125rem;
-  font-weight:700;
-  padding:8px 14px;
-  border-radius:20px;
-}
-.moments-back-btn:active{ opacity:0.7; }
 .moments-stat{
   pointer-events:auto;
   color:#fff;
@@ -537,6 +138,38 @@ input{font-family:inherit;}
   height:100%;
   object-fit:cover;
 }
+
+/* Reels-style video container & tap icon */
+.moments-video-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.moments-video-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-mute-indicator {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: 8;
+}
+.video-mute-indicator.show { opacity: 1; }
+
 .moments-slide-media-scroller{
   display:flex;
   width:100%;
@@ -545,7 +178,8 @@ input{font-family:inherit;}
   scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;
 }
-.moments-slide-media-scroller > .moments-slide-media{
+.moments-slide-media-scroller > .moments-slide-media, 
+.moments-slide-media-scroller > .moments-video-wrap {
   flex:0 0 100%;
   scroll-snap-align:start;
 }
@@ -602,27 +236,11 @@ input{font-family:inherit;}
 }
 .moments-heart-btn svg, .moments-share-btn svg, .moments-comment-btn svg{
   width:21px; height:21px;
-  filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4));
 }
 .moments-heart-btn.liked{
   background:var(--ember);
   border-color:transparent;
   transform:scale(1.08);
-}
-.moments-heart-btn:active, .moments-share-btn:active, .moments-comment-btn:active{ transform:scale(0.9); }
-.moments-slide-embed{
-  background:var(--moments-ambient-bg);
-  width:100%;
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:16px;
-  overflow-y:auto;
-}
-.moments-slide-embed .instagram-media{
-  box-shadow:0 12px 40px rgba(0,0,0,0.5), 0 2px 10px rgba(0,0,0,0.35) !important;
-  border-radius:14px !important;
 }
 .moments-empty, .moments-loading{
   position:fixed;
@@ -656,11 +274,6 @@ input{font-family:inherit;}
   font-weight:700;
   box-shadow:0 6px 16px -6px rgba(0,0,0,0.5);
 }
-.moments-fab:active{ opacity:0.85; }
-.moments-fab-secondary{
-  background:rgba(255,255,255,0.15);
-  backdrop-filter:blur(4px);
-}
 .moments-compose-overlay{
   position:fixed;
   inset:0;
@@ -681,7 +294,6 @@ input{font-family:inherit;}
   border-radius:var(--radius-lg);
   padding:18px;
   max-height:90vh;
-  max-height:90dvh;
   overflow-y:auto;
 }
 .moments-compose-grid{
@@ -699,2181 +311,92 @@ input{font-family:inherit;}
   background:#000;
 }
 .moments-compose-thumb-wrap img, .moments-compose-thumb-wrap video{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
+  width:100%; height:100%; object-fit:cover; display:block;
 }
 .moments-compose-remove-badge{
-  position:absolute;
-  top:4px; right:4px;
-  width:22px; height:22px;
-  border-radius:50%;
-  border:none;
-  background:rgba(232,93,44,0.95);
-  color:#fff;
-  font-size:0.8rem;
-  font-weight:700;
-  line-height:1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+  position:absolute; top:4px; right:4px;
+  width:22px; height:22px; border-radius:50%; border:none;
+  background:rgba(232,93,44,0.95); color:#fff; font-size:0.8rem; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
 }
 .moments-compose-add-tile{
-  width:100%;
-  aspect-ratio:1;
-  border-radius:var(--radius-md);
-  border:2px dashed var(--hairline, rgba(0,0,0,0.15));
-  background:none;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:1.5rem;
-  color:var(--ink-soft);
+  width:100%; aspect-ratio:1; border-radius:var(--radius-md);
+  border:2px dashed rgba(0,0,0,0.15); background:none;
+  display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:var(--ink-soft);
 }
-.moments-status{
-  font-size:0.75rem;
-  color:var(--ink-soft);
-  margin-top:8px;
-  min-height:1em;
-}
-.moments-status.error{ color:var(--ember-deep, #B8431D); }
-.moments-status.success{ color:var(--success, #4C7A4C); }
+.moments-status{ font-size:0.75rem; color:var(--ink-soft); margin-top:8px; }
+.moments-status.error{ color:var(--ember-deep); }
 
-.journey-intro{
-  margin-top:32px;
-  margin-bottom:28px;
-  text-align:center;
-}
-.journey-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:1.375rem;
-  color:var(--ink);
-  margin-bottom:8px;
-}
-.journey-subtitle{
-  font-size:0.875rem;
-  color:var(--ink-soft);
-}
-.journey-options{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-.journey-option{
-  width:100%;
-  text-align:left;
-  padding:18px 20px;
-  border-radius:16px;
-  border:1px solid var(--tkg-marble-border);
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
-  font-size:1rem;
-  font-weight:600;
-  color:var(--tkg-marble-ink);
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
-  transition:transform 0.12s ease, border-color 0.12s ease;
-}
-.journey-option:active{
-  transform:translateY(1px) scale(0.99);
-}
-
-/* Subtle, non-intrusive affordance to revisit the Customer Journey choice —
-   styled to match .owner-link exactly (same weight, same "quiet utility
-   link" treatment) so it never competes visually with primary content. */
-.change-journey-link{
-  text-align:center;
-  padding-top:8px;
-}
-.change-journey-link button{
-  background:none;
-  border:none;
-  color:var(--grey-warm);
-  font-size:0.75rem;
-  letter-spacing:0.05em;
-  text-decoration:underline;
-  text-decoration-color:var(--grey-line);
-  padding:8px;
-}
-
-/* ---- Business Status Card — live OPEN/CLOSED status. Sprint: Customer OS
-   UI Polish (item 2). Same surface tokens as every other .stone-card card
-   on this screen — no new palette. Icon/label/detail text are set by
-   refreshBusinessStatusCard() in the script; this only styles the shell. ---- */
-.business-status-card{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  background:transparent;
-  border:1px solid var(--tkg-plain-border);
-  border-radius:var(--radius-md);
-  padding:12px 16px;
-  margin-bottom:16px;
-}
-.bsc-icon{ font-size:1.0625rem; flex-shrink:0; }
-.bsc-label{
-  font-size:0.8438rem;
-  font-weight:700;
-  letter-spacing:0.02em;
-  color:var(--ink);
-}
-.business-status-card[data-open="true"] .bsc-label{ color:var(--ember-deep); }
-.bsc-detail{
-  font-size:0.7812rem;
-  color:var(--ink-soft);
-  margin-top:1px;
-}
-
-/* ==========================================================================
-   TICKET HEADER REDESIGN — Sprint: Menu Header & Item Cards Redesign.
-   Replaces the earlier collapsing-header approach entirely: rather than
-   hiding content on scroll (animation-dependent, risked glitches across 3
-   languages/2 text sizes), the header is now naturally short enough that
-   nothing needs to hide. Same underlying elements/IDs as before
-   (businessStatusCard/Icon/Label/Detail, journeyStatusCurrent,
-   changeJourneyBtn, dgGreetingText/dgSubText, directionsLink,
-   textSizeBtn/langBtn) — only the layout around them changed.
-   ========================================================================== */
-
-/* -- Settings pill (Aa + Language grouped, so they read as two distinct
-      settings instead of two identical-looking circular icon buttons) -- */
-.settings-pill{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.settings-pill-item{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:1px;
-}
-.settings-pill-item .spi-value{
-  font-size:0.75rem;
-  font-weight:700;
-  display:flex;
-  align-items:center;
-  gap:2px;
-}
-.settings-pill-item .spi-caption{
-  font-size:0.5rem;
-  letter-spacing:0.04em;
-  color:var(--ink-soft);
-  font-weight:600;
-}
-.settings-pill-divider{
-  display:none;
-}
-
-/* -- Compact hero: one centered block instead of the old 3-line headline
-      + separate tagline + separate icon-trail row -- */
-.app-hero-compact{
-  text-align:center;
-  padding:6px 4px 14px;
-  position:relative;
-  overflow:hidden;
-  border-radius:16px;
-}
-.hero-greeting-row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin-top:5px;
-  position:relative;
-  z-index:1;
-}
-.hero-logo-large{
-  width:64px;
-  height:64px;
-  flex-shrink:0;
-  border-radius:50%;
-  object-fit:cover;
-}
-.hero-weather-backdrop{
-  position:absolute;
-  inset:0;
-  z-index:0;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 1.4s ease;
-  overflow:hidden;
-}
-.hero-weather-backdrop.show{opacity:1;}
-
-.hero-weather-backdrop.wx-morning{
-  background:linear-gradient(180deg, #FDEBC9 0%, #FBD1A2 55%, rgba(251,209,162,0) 100%);
-}
-.hero-weather-backdrop.wx-morning::before,
-.hero-weather-backdrop.wx-morning::after{
-  content:'';
-  position:absolute;
-  top:18%;
-  width:120px;
-  height:34px;
-  background:radial-gradient(ellipse at center, rgba(255,255,255,0.85), rgba(255,255,255,0) 70%);
-  border-radius:50%;
-  animation:wxCloudDrift 26s linear infinite;
-}
-.hero-weather-backdrop.wx-morning::before{left:-140px; animation-delay:0s;}
-.hero-weather-backdrop.wx-morning::after{left:-140px; top:38%; animation-delay:-13s; opacity:0.7;}
-@keyframes wxCloudDrift{
-  0%{transform:translateX(0);}
-  100%{transform:translateX(420px);}
-}
-
-.hero-weather-backdrop.wx-afternoon{
-  background:linear-gradient(180deg, #EAF6FF 0%, #FBFEFF 60%, rgba(251,254,255,0) 100%);
-}
-.hero-weather-backdrop.wx-afternoon::before{
-  content:'';
-  position:absolute;
-  top:-30px;
-  left:-30px;
-  width:130px;
-  height:130px;
-  border-radius:50%;
-  background:radial-gradient(circle, rgba(255,223,150,0.9), rgba(255,223,150,0) 70%);
-  animation:wxSunPulse 4s ease-in-out infinite;
-}
-.hero-weather-backdrop.wx-afternoon::after{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:radial-gradient(ellipse 90% 60% at 50% 40%, rgba(255,255,255,0.55), rgba(255,255,255,0) 70%);
-  animation:wxHaze 3.5s ease-in-out infinite;
-}
-@keyframes wxSunPulse{
-  0%,100%{opacity:0.75; transform:scale(1);}
-  50%{opacity:1; transform:scale(1.08);}
-}
-@keyframes wxHaze{
-  0%,100%{opacity:0.3;}
-  50%{opacity:0.6;}
-}
-
-.hero-weather-backdrop.wx-evening{
-  background:linear-gradient(180deg, #6E86B8 0%, #3C4C7A 55%, rgba(60,76,122,0) 100%);
-  animation:wxEveningFall 70s ease-in forwards;
-}
-@keyframes wxEveningFall{
-  0%{background:linear-gradient(180deg, #E89A6B 0%, #6E86B8 55%, rgba(110,134,184,0) 100%);}
-  50%{background:linear-gradient(180deg, #6E86B8 0%, #3C4C7A 55%, rgba(60,76,122,0) 100%);}
-  100%{background:linear-gradient(180deg, #2A2F4A 0%, #14131E 55%, rgba(20,19,30,0) 100%);}
-}
-
-.hero-weather-backdrop.wx-night{
-  background:linear-gradient(180deg, #171A2E 0%, #0D0E18 55%, rgba(13,14,24,0) 100%);
-}
-.hero-weather-backdrop.wx-night::before{
-  content:'';
-  position:absolute;
-  top:14%;
-  left:22%;
-  width:200px;
-  height:200px;
-  background:
-    radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 70px 10px, #fff, transparent),
-    radial-gradient(1px 1px at 120px 50px, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 160px 20px, #fff, transparent),
-    radial-gradient(1px 1px at 40px 70px, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 100px 90px, #fff, transparent);
-  animation:wxTwinkle 3.2s ease-in-out infinite;
-}
-.hero-weather-backdrop.wx-night::after{
-  content:'';
-  position:absolute;
-  top:16px;
-  right:26px;
-  width:22px;
-  height:22px;
-  border-radius:50%;
-  background:#EDEFF7;
-  box-shadow:-7px -2px 0 2px rgba(13,14,24,1);
-}
-@keyframes wxTwinkle{
-  0%,100%{opacity:0.6;}
-  50%{opacity:1;}
-}
-
-.hero-weather-backdrop.wx-monsoon{
-  background:linear-gradient(180deg, #5A6572 0%, #3A424C 60%, rgba(58,66,76,0) 100%);
-}
-.hero-weather-backdrop .rain-drop{
-  position:absolute;
-  top:-60px;
-  width:2px;
-  height:46px;
-  background:linear-gradient(180deg, rgba(220,230,240,0) 0%, rgba(220,230,240,0.75) 40%, rgba(220,230,240,0.9) 85%, rgba(220,230,240,0) 100%);
-  border-radius:2px;
-  animation:wxDrop linear infinite;
-}
-@keyframes wxDrop{
-  0%{transform:translate(0, -60px);}
-  100%{transform:translate(var(--drift, 6px), 190px);}
-}
-.hero-greeting-line{
-  font-size:0.75rem;
-  color:var(--ink-soft);
-  text-align:left;
-}
-.greeting-headline-row{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:2px;
-  cursor:pointer;
-}
-.greeting-icon{
-  width:26px;
-  height:26px;
-  flex-shrink:0;
-  transform-origin:50% 85%;
-}
-.greeting-icon.gi-tap{ animation:gi-pop 0.45s ease-out 1; }
-@keyframes gi-pop{
-  0%{ transform:scale(1) rotate(0deg); }
-  35%{ transform:scale(1.18) rotate(-10deg); }
-  65%{ transform:scale(1.05) rotate(7deg); }
-  100%{ transform:scale(1) rotate(0deg); }
-}
-#dgGreetingText{
-  font-family:var(--font-display);
-  font-size:1.75rem;
-  font-weight:800;
-  line-height:1.1;
-  color:var(--wx-text-color, var(--ember));
-  text-shadow:0 0 14px var(--wx-text-glow, rgba(232,93,44,0.35));
-}
-.hero-sub-below{
-  display:block;
-  font-size:0.8125rem;
-  color:var(--ink-soft);
-  text-align:center;
-  margin:8px 0 4px;
-}
-
-/* -- Ticket strip: Open/Closed + Hours + Journey as one boarding-pass-style
-      row with dashed dividers, instead of two separate stacked cards -- */
-.ticket-strip{
-  display:flex;
-  background:transparent;
-  border:1px solid var(--tkg-plain-border);
-  border-radius:14px;
-  overflow:hidden;
-}
-.ticket-seg{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:2px;
-  padding:12px 8px;
-  background:none;
-  border:none;
-  color:var(--ink);
-  text-align:center;
-  min-width:0;
-}
-.ticket-divider{
-  width:0;
-  border-left:1px dashed var(--tkg-plain-border);
-  margin:8px 0;
-}
-.ticket-seg-icon{width:var(--icon-inline); height:var(--icon-inline); flex-shrink:0;}
-.ticket-seg-icon.status-dot{
-  width:9px; height:9px;
-  border-radius:50%;
-  background:var(--success);
-}
-#businessStatusCard[data-open="false"] .status-dot{background:var(--danger);}
-.ticket-seg-label{
-  font-size:0.7188rem;
-  font-weight:700;
-  max-width:100%;
-}
-#changeJourneyBtn .ticket-seg-label{color:var(--ember);}
-#changeJourneyBtn .ticket-seg-label::after{content:' \203A'; font-weight:700;}
-.ticket-strip-footer{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  margin-top:6px;
-  font-size:0.7188rem;
-  color:var(--ink-soft);
-}
-.ticket-strip-footer .tsf-directions{
-  display:flex;
-  align-items:center;
-  gap:3px;
-  color:var(--ember);
-  font-weight:600;
-  text-decoration:none;
-}
-.ticket-strip-footer .tsf-directions .dl-icon{width:var(--icon-inline); height:var(--icon-inline);}
-
-/* -- Menu item cards: warm tinted overlay unifies photo quality across
-      items instead of showing raw photos large/prominent; bestseller
-      becomes a small corner ribbon on the image, not inline text next to
-      the name; Jain becomes an icon+short line instead of a text pill. -- */
-.menu-item-thumb{position:relative; overflow:hidden;}
-.menu-item-thumb::after{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:linear-gradient(160deg, rgba(232,93,44,0.28), rgba(22,15,12,0.32));
-  mix-blend-mode:multiply;
-  pointer-events:none;
-}
-.thumb-ribbon{
-  position:absolute;
-  top:4px;
-  left:4px;
-  z-index:1;
-  background:transparent;
-  color:rgba(217,164,65, var(--tkg-amber-op));
-  border:1px solid rgba(217,164,65, var(--tkg-amber-op));
-  font-size:0.5rem;
-  font-weight:700;
-  letter-spacing:0.02em;
-  padding:1px 7px;
-  border-radius:100px;
-  text-transform:uppercase;
-}
-.jain-line{
-  display:flex;
-  align-items:center;
-  gap:5px;
-  margin-top:5px;
-  font-size:0.6875rem;
-  color:var(--ink-soft);
-}
-.jain-line .jl-icon{font-size:0.75rem;}
-.menu-item-side{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  align-self:stretch;
-  gap:8px;
-  flex-shrink:0;
-}
-.menu-item-heart{
-  font-size:1rem;
-  color:var(--ink-soft);
-  background:transparent;
-  border:none;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  line-height:1;
-  padding:0;
-  margin-top:auto;
-}
-.menu-item-heart.liked{color:var(--ember);}
-
-
-/* ==========================================================================
-   FIXED QUICK ACTIONS BAR — Visual hierarchy redesign. Not page navigation:
-   4 existing actions surfaced at thumb height so Reviews/FAQ/Register no
-   longer need to occupy above-the-fold space. Visible only on the primary
-   Menu screen (screen-menu); toggled in showScreen(). Every button calls a
-   function that already existed — see navRateUsBtn/navMessageBtn/
-   navAboutBtn/navJourneyBtn handlers near the bottom of the script
-   (openCustomerStoriesSheet/openRegisterOverlay/openInfoSheet/showScreen).
-   ========================================================================== */
-.bottom-nav{
-  position:fixed;
-  left:50%;
-  bottom:0;
-  transform:translateX(-50%);
-  width:100%;
-  max-width:var(--max-w);
-  display:flex;
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
-  border-top:1px solid var(--tkg-marble-border);
-  padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
-  z-index:130;
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
-}
-.bottom-nav.hidden{ display:none; }
-.bottom-nav-item{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:2px;
-  background:none;
-  border:none;
-  padding:6px 2px;
-  transition:opacity 0.12s ease;
-}
-.bottom-nav-item:active{ opacity:0.6; }
-.bottom-nav-item .bn-icon{ width:var(--icon-standalone); height:var(--icon-standalone); display:block; margin:0 auto; }
-.bottom-nav-item .bn-label{
-  font-size:0.625rem;
-  font-weight:600;
-  color:var(--ink);
-  white-space:nowrap;
-}
-
-/* Room for the fixed Quick Actions Bar so it never covers the last card on
-   the Menu screen — every other screen keeps the original .screen padding. */
-#screen-menu{
-  padding-bottom:78px;
-}
-
-/* ---- Registration screen ---- */
-.hero-block{
-  margin-top:6px;
-  margin-bottom:28px;
-}
-.hero-eyebrow{
-  font-size:0.6875rem;
-  letter-spacing:0.2em;
-  text-transform:uppercase;
-  color:var(--gold);
-  font-weight:600;
-  margin-bottom:10px;
-}
-.hero-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:1.875rem;
-  line-height:1.15;
-  letter-spacing:-0.01em;
-  color:var(--ink);
-}
-.hero-title em{
-  color:var(--ember);
-  font-style:normal;
-}
-.hero-sub{
-  margin-top:10px;
-  font-size:0.875rem;
-  color:var(--ink-soft);
-  line-height:1.5;
-}
-
-.reg-card{
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
-  border:1px solid var(--tkg-marble-border);
-  border-radius:16px;
-  padding:24px 20px 22px;
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
-  --ink-faint:var(--tkg-marble-ink-faint);
-  color:var(--tkg-marble-ink);
-}
-/* Plain Surface material — these two sheets are utility data-entry, not
-   primary content, so their .reg-card gets the flat bordered treatment
-   instead of the shared component's default (Premium Marble, done in that
-   material's pass for Registration/Taste Discovery/etc). The shared class
-   itself stays untouched here — only these two IDs are scoped. */
-#rateUsCaptureForm{
-  background:transparent;
-  backdrop-filter:none;
-  -webkit-backdrop-filter:none;
-  border:1px solid var(--tkg-plain-border);
-  box-shadow:none;
-  border-top:1px solid var(--tkg-plain-border);
-}
-.field-group{margin-bottom:16px;}
-.field-label{
-  display:block;
-  font-size:0.75rem;
-  font-weight:700;
-  letter-spacing:0.04em;
-  color:var(--ink);
-  margin-bottom:7px;
-  text-transform:uppercase;
-}
-.field-input{
-  width:100%;
-  padding:14px 14px;
-  border-radius:var(--radius-md);
-  border:1.5px solid #E2DDD3;
-  background:#FFFFFF;
-  color:#1C1815;
-  font-size:1rem;
-  outline:none;
-  transition:border-color 0.15s ease, box-shadow 0.15s ease;
-}
-.field-input::placeholder{color:#B7AFA3;}
-.field-input:focus{
-  border-color:var(--ember);
-  box-shadow:0 0 0 3px rgba(232,93,44,0.16);
-}
-.field-input.invalid{
-  border-color:var(--danger);
-}
-.field-error{
-  font-size:0.75rem;
-  color:var(--danger);
-  margin-top:6px;
-  display:none;
-  font-weight:500;
-}
-.field-error.show{display:block;}
-
-textarea.field-input{
-  min-height:96px;
-  resize:vertical;
-  font-family:inherit;
-  line-height:1.5;
-}
-
-/* ==========================================================================
-   FEEDBACK OVERLAY — post check-in, optional, never blocks the menu
-   ========================================================================== */
-.thanks-block{
-  text-align:center;
-  padding:6px 0 18px;
-}
-.thanks-icon{font-size:2.125rem; margin-bottom:8px;}
-.thanks-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:1.25rem;
-  color:var(--ink);
-}
-.thanks-sub{
-  font-size:0.8125rem;
-  color:var(--ink-soft);
-  margin-top:6px;
-  line-height:1.5;
-}
-
-.action-card{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  width:100%;
-  background:#FFFFFF;
-  border:1.5px solid #E2DDD3;
-  border-radius:var(--radius-md);
-  padding:14px;
-  margin-bottom:10px;
-  text-decoration:none;
-  text-align:left;
-  font-family:inherit;
-  cursor:pointer;
-}
-.action-card .ac-icon{font-size:1.375rem; flex-shrink:0;}
-.action-card .ac-text{flex:1; min-width:0;}
-.action-card .ac-title{
-  font-size:0.8438rem;
-  font-weight:700;
-  color:var(--ink);
-}
-.action-card .ac-sub{
-  font-size:0.6875rem;
-  color:var(--grey-warm);
-  margin-top:2px;
-  line-height:1.4;
-}
-.action-card .ac-go{
-  font-size:0.6875rem;
-  font-weight:700;
-  color:var(--ember);
-  white-space:nowrap;
-  flex-shrink:0;
-}
-
-.btn-primary{
-  width:100%;
-  padding:16px;
-  border-radius:var(--radius-md);
-  border:none;
-  background:var(--tkg-ctrl-bg);
-  color:var(--tkg-ctrl-fg);
-  font-size:1rem;
-  font-weight:700;
-  letter-spacing:0.02em;
-  transition:transform 0.12s ease, opacity 0.12s ease;
-}
-.btn-primary:active{transform:translateY(1px) scale(0.99); opacity:0.88;}
-.btn-primary:disabled{opacity:0.4;}
-
-.consent-line{
-  margin-top:14px;
-  font-size:0.7188rem;
-  color:var(--grey-warm);
-  text-align:center;
-  line-height:1.5;
-}
-
-.trust-row{
-  display:flex;
-  gap:10px;
-  margin-top:22px;
-}
-.trust-item{
-  flex:1;
-  text-align:center;
-  font-size:0.6562rem;
-  color:var(--grey-warm);
-  letter-spacing:0.03em;
-}
-.trust-item .ti-mark{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:0.8125rem;
-  color:var(--gold);
-  display:block;
-  margin-bottom:3px;
-}
-
-.owner-link{
-  margin-top:auto;
-  padding-top:24px;
-  text-align:center;
-}
-.owner-link button{
-  background:none;
-  border:none;
-  color:var(--grey-warm);
-  font-size:0.75rem;
-  letter-spacing:0.05em;
-  text-decoration:underline;
-  text-decoration-color:var(--grey-line);
-  padding:8px;
-}
-
-/* ---- Welcome-back chip (returning customer) ---- */
-.welcome-chip{
-  display:none;
-  align-items:center;
-  gap:10px;
-  background:rgba(201,162,75,0.1);
-  border:1px solid rgba(201,162,75,0.35);
-  border-radius:var(--radius-md);
-  padding:11px 14px;
-  margin-bottom:16px;
-  font-size:0.8125rem;
-  color:var(--gold-deep);
-}
-.welcome-chip.show{display:flex;}
-.welcome-chip .wc-icon{font-size:1rem;}
-
-/* ==========================================================================
-   REGISTRATION OVERLAY (bottom sheet, optional, never blocks the menu)
-   ========================================================================== */
-.overlay-backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(28,24,21,0.45);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.25s ease;
-  z-index:150;
-}
-.overlay-backdrop.show{
-  opacity:1;
-  pointer-events:auto;
-}
-
-.reg-overlay{
-  position:fixed;
-  left:50%;
-  bottom:0;
-  transform:translate(-50%, calc(100% + 60px));
-  width:100%;
-  max-width:var(--max-w);
-  max-height:88vh;
-  overflow-y:auto;
-  background:var(--tkg-page-bg);
-  border-radius:22px 22px 0 0;
-  padding:10px 20px 28px;
-  box-shadow:0 -10px 40px rgba(28,24,21,0.22);
-  transition:transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index:160;
-  -webkit-overflow-scrolling:touch;
-}
-.reg-overlay.show{
-  transform:translate(-50%, 0);
-}
-/* Premium Marble material — these 4 sheets have no inner .reg-card, so the
-   .reg-overlay panel itself IS the content (unlike Rate-Us/Geo/Reviews-list
-   where .reg-overlay is just the plain mechanism around separate content). */
-#thanksOverlay, #khichiyaRunnerOverlay, #productPreviewSheet, #infoSheet{
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
-  --ink-faint:var(--tkg-marble-ink-faint);
-  color:var(--tkg-marble-ink);
-}
-.reg-overlay-handle{
-  width:40px;
-  height:4px;
-  border-radius:3px;
-  background:var(--grey-line);
-  margin:8px auto 16px;
-}
-
-.optional-tag{
-  font-weight:500;
-  text-transform:none;
-  letter-spacing:0;
-  color:var(--grey-warm);
-  font-size:0.6875rem;
-}
-
-/* ==========================================================================
-   PRODUCT PREVIEW — bottom sheet, opened by tapping a Menu item card.
-   Reuses .overlay-backdrop / .reg-overlay / .reg-overlay-handle as-is (same
-   component already used by Registration/Language/Content sheets) — no new
-   sheet mechanics, just this preview's own content inside it.
-   ========================================================================== */
-.product-preview-media{
-  width:100%;
-  aspect-ratio:4/3;
-  border-radius:var(--radius-md);
-  overflow:hidden;
-  background:var(--tkg-marble-border);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-}
-.product-preview-media img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  display:block;
-}
-.product-preview-body{
-  padding-top:16px;
-}
-.product-preview-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
-.product-preview-name{
-  font-family:var(--font-display);
-  font-weight:700;
-  font-size:1.1875rem;
-  color:var(--ink);
-}
-.product-preview-desc{
-  font-size:0.8438rem;
-  color:var(--ink-soft);
-  line-height:1.5;
-  margin-top:6px;
-}
-.product-preview-price{
-  margin-top:14px;
-  text-align:left;
-  font-size:1rem;
-}
-.product-preview-price .price-large{
-  margin-top:3px;
-}
-
-/* Sprint: Menu Header & Item Cards Redesign — "How it's made" + "What's
-   inside", shown only for items with recipe data (productPreviewRecipe
-   stays .hidden otherwise, same pattern as productPreviewBadge). */
-.product-preview-recipe{
-  margin-top:16px;
-  padding-top:14px;
-  border-top:1px solid var(--stone-line);
-}
-.ppr-label{
-  font-size:0.625rem;
-  font-weight:700;
-  letter-spacing:0.05em;
-  text-transform:uppercase;
-  color:var(--ink-soft);
-  margin-bottom:4px;
-}
-.ppr-label:not(:first-child){margin-top:12px;}
-.ppr-how{
-  font-size:0.8125rem;
-  color:var(--ink);
-  line-height:1.5;
-}
-.ppr-chips{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-}
-.ppr-chip{
-  font-size:0.6875rem;
-  background:transparent;
-  border:1px solid var(--tkg-marble-border);
-  border-radius:20px;
-  padding:4px 10px;
-  color:var(--ink);
-}
-
-.source-chips{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-.source-chip{
-  padding:9px 14px;
-  border-radius:20px;
-  border:1.5px solid var(--tkg-marble-border);
-  background:transparent;
-  color:var(--ink);
-  font-size:0.7812rem;
-  font-weight:600;
-}
-.source-chip.selected{
-  background:var(--ember);
-  border-color:var(--ember);
-  color:var(--marble);
-}
-
-/* ==========================================================================
-   GENERIC CONTENT SHEET — reusable bottom sheet for any content-registry-
-   driven block (Reviews now; FAQ / Weekend Special / Featured Products /
-   Announcements later). Built on the existing .reg-overlay bottom-sheet
-   pattern — only the inner layout classes below are new.
-   ========================================================================== */
-.content-sheet{
-  max-height:82vh;
-  display:flex;
-  flex-direction:column;
-}
-.content-sheet-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:1.1875rem;
-  color:var(--ink);
-  margin-bottom:14px;
-}
-.content-sheet-body{
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-}
-.cs-empty-state{
-  padding:30px 10px;
-  text-align:center;
-  font-size:0.8438rem;
-  color:var(--ink-soft);
-}
-.cs-review-card{
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
-  border:1px solid var(--tkg-marble-border);
-  border-radius:16px;
-  padding:13px 14px;
-  margin-bottom:10px;
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
-  color:var(--tkg-marble-ink);
-}
-.cs-review-top{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:7px;
-}
-.cs-review-avatar{
-  width:26px;
-  height:26px;
-  border-radius:50%;
-  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
-  color:var(--marble);
-  font-size:0.6875rem;
-  font-weight:800;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-shrink:0;
-}
-.cs-review-author{
-  flex:1;
-  min-width:0;
-  font-size:0.7812rem;
-  font-weight:700;
-  color:var(--ink);
-}
-.cs-review-stars{
-  font-size:0.6562rem;
-  background:linear-gradient(180deg, #FFD873 0%, #F5A623 55%, #C97B0E 100%);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-  -webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 1.5px rgba(245,166,35,0.35));
-  letter-spacing:1px;
-  flex-shrink:0;
-}
-.cs-review-quote{
-  font-size:0.8438rem;
-  line-height:1.5;
-  color:var(--ink);
-}
-
-.content-sheet-footer{
-  margin-top:6px;
-  padding-top:14px;
-  border-top:1px solid var(--stone-line);
-  text-align:center;
-}
-.content-sheet-footer.hidden{display:none;}
-.cs-footer-stars{
-  font-size:1rem;
-  background:linear-gradient(180deg, #FFD873 0%, #F5A623 55%, #C97B0E 100%);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-  -webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 2px rgba(245,166,35,0.35));
-  letter-spacing:2px;
-  margin-bottom:6px;
-}
-.cs-footer-heading{
-  font-size:0.875rem;
-  font-weight:700;
-  color:var(--ink);
-  margin-bottom:12px;
-}
-.cs-footer-btn{
-  display:inline-block;
-  width:100%;
-  text-align:center;
-  text-decoration:none;
-  padding:14px;
-  border-radius:var(--radius-md);
-  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
-  color:var(--marble);
-  font-size:0.9062rem;
-  font-weight:700;
-  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
-}
-
-/* ==========================================================================
-   APP HERO — short, scan-in-seconds, replaces the old stacked-cards hero
-   ========================================================================== */
-.app-hero{
-  padding-top:2px;
-  margin-bottom:14px;
-}
-.app-hero-meta{
-  display:flex;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-bottom:8px;
-}
-.app-hero-hours{
-  font-size:0.7188rem;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  color:var(--grey-warm);
-  font-weight:600;
-}
-.directions-link{
-  display:flex;
-  align-items:center;
-  gap:4px;
-  font-size:0.7188rem;
-  font-weight:700;
-  color:var(--ink);
-  text-decoration:underline;
-  text-decoration-color:var(--tkg-plain-border);
-  text-underline-offset:2px;
-  padding:0;
-  border-radius:0;
-  background:transparent;
-  border:none;
-}
-.directions-link .dl-icon{width:var(--icon-inline); height:var(--icon-inline); flex-shrink:0;}
-.directions-link:active{opacity:0.6;}
-.directions-link.attention{animation:directions-bounce 1.8s ease-in-out 1;}
-@keyframes directions-bounce{
-  0%, 100%{transform:translateY(0);}
-  20%{transform:translateY(-3px);}
-  35%{transform:translateY(0);}
-  50%{transform:translateY(-2px);}
-  65%{transform:translateY(0);}
-}
-
-/* "Get Directions" as a primary action, footer only — Sprint: Customer OS
-   UI Polish, item 6. Reuses the exact .btn-primary tokens (gradient, shadow,
-   active state) already used elsewhere on this screen; no new visual
-   language, just applied to an <a> instead of a <button>. The Hero's own
-   small .directions-link chip is untouched — this modifier is additive and
-   only applies where the class is present. Destination/href unchanged. */
-.directions-link--primary{
-  width:100%;
-  justify-content:center;
-  gap:8px;
-  padding:15px 16px;
-  border-radius:var(--radius-md);
-  background:var(--tkg-ctrl-bg);
-  border:none;
-  color:var(--tkg-ctrl-fg);
-  font-size:0.9375rem;
-  font-weight:700;
-  letter-spacing:0.02em;
-  text-decoration:none;
-  transition:transform 0.12s ease, opacity 0.12s ease;
-}
-.directions-link--primary .dl-icon{width:var(--icon-inline); height:var(--icon-inline);}
-.directions-link--primary:active{
-  transform:translateY(1px) scale(0.99);
-  opacity:0.88;
-}
-.app-hero-headline{
-  font-family:var(--font-display);
-  font-weight:800;
-  line-height:1.04;
-  letter-spacing:-0.01em;
-}
-.app-hero-headline .line-coal{
-  display:block;
-  font-size:1.3125rem;
-  color:var(--ink-soft);
-}
-.app-hero-headline .line-gravy{
-  display:block;
-  font-size:2.625rem;
-  color:var(--ember-deep);
-  margin:2px 0;
-}
-.app-hero-headline .line-khichiya{
-  display:block;
-  font-size:1.0625rem;
-  font-weight:600;
-  color:var(--ink-soft);
-}
-.app-hero-row{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:10px;
-}
-.info-btn{
-  flex-shrink:0;
-  width:32px; height:32px;
-  border-radius:50%;
-  background:rgba(28,24,21,0.035);
-  border:1px solid var(--stone-line);
-  color:var(--ink-soft);
-  font-size:0.875rem;
-  font-weight:700;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin-top:2px;
-}
-.info-btn:active{background:rgba(28,24,21,0.07);}
-
-/* Story strip — compact 3-step visual explainer directly beneath the
-   headline. Carries the "Gravy is the Hero" punch as its lead-in label
-   instead of repeating it as a separate line, so the hero reads in two
-   beats (headline, then story) instead of three. */
-.hero-story-label{
-  font-size:0.6875rem;
-  font-weight:700;
-  color:var(--gold-deep);
-  margin-top:10px;
-  margin-bottom:6px;
-  letter-spacing:0.01em;
-}
-.hero-story-strip{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:6px 8px;
-  padding:12px 8px;
-  background:transparent;
-  border:1px solid rgba(217,164,65, var(--tkg-amber-op));
-  border-radius:14px;
-  margin-bottom:12px;
-  position:relative;
-}
-.hero-story-strip .story-step{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  flex:1 1 0;
-  min-width:0;
-  font-size:0.78rem;
-  font-weight:600;
-  letter-spacing:normal;
-  color:var(--ink);
-  white-space:normal;
-  text-align:center;
-}
-.hero-story-strip .story-step .step-icon{
-  width:var(--icon-inline); height:var(--icon-inline); flex-shrink:0; margin-top:0;
-  fill:var(--ink-soft) !important;
-}
-.hero-story-strip .story-arrow{
-  color:var(--ink-faint);
-  font-size:0.6875rem;
-  flex-shrink:0;
-  align-self:center;
-}
-
-/* Story-progress bar for the REVIEW TEASER (not the pill strip above) —
-   one segment per loaded review. Behaves like an IG story: the active
-   segment fills over REVIEW_TEASER_DURATION then auto-advances to the
-   next review; already-seen segments stay fully filled. Rebuilt by
-   renderReviewTeaser() each time the review index or review data changes. */
-.review-teaser-progress{
-  display:flex;
-  gap:4px;
-  margin-top:14px;
-}
-.review-teaser-progress .rtp-seg{
-  flex:1;
-  height:2.5px;
-  border-radius:2px;
-  background:var(--stone-line);
-  overflow:hidden;
-}
-.review-teaser-progress .rtp-seg span{
-  display:block;
-  height:100%;
-  width:0%;
-  border-radius:2px;
-  background:var(--ember);
-}
-.review-teaser-progress .rtp-seg.seen span{width:100%;}
-.review-teaser-progress .rtp-seg.active span{animation:rtp-fill 5s linear forwards;}
-@keyframes rtp-fill{ to{ width:100%; } }
-
-/* Single-review teaser card — restores the pre-redesign "one review,
-   tap for more" card. Deliberately shows nothing but the review itself
-   (avatar/name/stars + one truncated line + a view-more prompt); the
-   full list still lives in openCustomerStoriesSheet() and this just
-   opens that same sheet on tap. Reuses .cs-review-* tokens for visual
-   consistency with the sheet it opens into. */
-.review-teaser-card{
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
-  border:1px solid var(--tkg-marble-border);
-  border-radius:16px;
-  padding:13px 14px;
-  margin-top:6px;
-  cursor:pointer;
-  transition:transform 0.12s ease;
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
-  color:var(--tkg-marble-ink);
-}
-.review-teaser-card:active{transform:scale(0.99);}
-.review-teaser-card .cs-review-quote{
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.review-teaser-viewmore{
-  margin-top:7px;
-  font-size:0.7188rem;
-  font-weight:700;
-  color:var(--ember-deep);
-}
-
-/* ==========================================================================
-   MENU SECTIONS — Sprint: UI Simplification. Previously tab-gated (only one
-   category visible at a time, switched via .menu-tab clicks); removed
-   because the "Traditional" tab was often missed. Both categories now flow
-   as one plain list, separated by a heading (see .menu-section-heading
-   below) rather than a click.
-   ========================================================================== */
-.menu-section{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.menu-section-heading{
-  font-size:1.0625rem;
-  font-weight:800;
-  color:var(--ink);
-  margin:18px 0 2px;
-  padding-top:4px;
-  border-top:1px solid var(--stone-line);
-}
-.menu-section-heading:first-child{
-  margin-top:18px;
-  padding-top:0;
-  border-top:none;
-}
-
-.menu-section-label{
-  font-size:0.7188rem;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  font-weight:700;
-  color:var(--gold);
-  margin:6px 0 2px;
-}
-
-.jain-tag{
-  font-size:0.5938rem;
-  letter-spacing:0.04em;
-  text-transform:none;
-  font-weight:700;
-  color:var(--success);
-  background:rgba(92,138,92,0.12);
-  padding:2px 8px;
-  border-radius:10px;
-}
-
-.footer-meta{
-  display:flex;
-  flex-direction:column;
-  align-items:stretch;
-  gap:10px;
-  margin-top:18px;
-  padding-top:14px;
-  border-top:1px solid var(--stone-line);
-}
-.footer-meta .hours-note{
-  text-align:center;
-}
-.hours-note{
-  font-size:0.75rem;
-  color:var(--ink-soft);
-}
-.phone-note{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:5px;
-  margin-top:8px;
-  font-size:0.7812rem;
-  font-weight:700;
-  color:var(--ink);
-  text-decoration:none;
-}
-.phone-note .pn-icon{width:var(--icon-inline); height:var(--icon-inline); color:var(--ember-deep); flex-shrink:0;}
-.phone-note:active{color:var(--ember-deep);}
-
-/* ==========================================================================
-   INFO SHEET — education content, tucked behind the info button
-   ========================================================================== */
-.info-sheet-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:1.1875rem;
-  color:var(--ink);
-  margin-bottom:12px;
-}
-.info-sheet-line{
-  font-size:0.8125rem;
-  color:var(--ink-soft);
-  line-height:1.6;
-  margin-bottom:10px;
-}
-.info-sheet-line:last-of-type{margin-bottom:0;}
-.info-sheet-punch{
-  margin-top:14px;
-  padding:12px 14px;
-  background:rgba(232,93,44,0.07);
-  border:1px solid rgba(232,93,44,0.22);
-  border-radius:var(--radius-md);
-  font-size:0.8125rem;
-  font-weight:700;
-  color:var(--ember-deep);
-  text-align:center;
-}
-.info-sheet-jain{
-  display:inline-block;
-  margin-top:14px;
-  font-size:0.7188rem;
-  font-weight:700;
-  color:var(--success);
-  background:rgba(92,138,92,0.12);
-  padding:4px 11px;
-  border-radius:10px;
-}
-
-/* ==========================================================================
-   EXTRAS — compact chip row, replaces flour-note + notes-grid paragraphs
-   ========================================================================== */
-.extras-row{
-  display:flex;
-  flex-wrap:wrap;
-  gap:7px;
-  margin-top:16px;
-}
-.extra-chip{
-  font-size:0.6875rem;
-  font-weight:600;
-  color:var(--ink-soft);
-  background:transparent;
-  border:1px solid var(--tkg-plain-border);
-  padding:6px 12px;
-  border-radius:14px;
-}
-.extra-chip.jain{
-  color:var(--success);
-  border-color:rgba(76,122,76,0.35);
-  background:rgba(76,122,76,0.14);
-}
-.extra-chip .extra-chip-price{
-  font-weight:700;
-  margin-left:4px;
-  color:var(--gold-deep);
-}
-
-.link-row{
-  display:flex;
-  gap:8px;
-  margin-top:16px;
-}
-.link-chip{
-  flex:1;
-  text-align:center;
-  padding:12px 10px;
-  border-radius:var(--radius-md);
-  background:var(--tkg-ctrl-bg);
-  border:none;
-  color:var(--tkg-ctrl-fg);
-  font-size:0.7812rem;
-  font-weight:600;
-  text-decoration:none;
-  transition:opacity 0.15s ease;
-}
-.link-chip:active{
-  opacity:0.85;
-}
-
-/* ==========================================================================
-   FUN ACTIVITY CARD — Sprint: Fun Activity Card Consolidation. One card,
-   three rows (Taste Discovery / Khichiya Runner / Leaderboard), replacing
-   three separate .register-cta cards that were taking up too much scroll.
-   ========================================================================== */
-.fun-activity-card{
-  margin-top:22px;
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
-  border:1px solid var(--tkg-marble-border);
-  border-radius:16px;
-  overflow:hidden;
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
-  --ink-faint:var(--tkg-marble-ink-faint);
-  --grey-warm:var(--tkg-marble-ink-soft);
-  color:var(--tkg-marble-ink);
-}
-.fun-activity-header{padding:14px 16px 8px;}
-.fun-activity-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:0.9688rem;
-  color:var(--ink);
-}
-.fun-activity-sub{
-  font-size:0.75rem;
-  color:var(--ink-soft);
-  margin-top:2px;
-}
-.fun-activity-row{border-top:1px solid var(--stone-line);}
-.fun-activity-row--accent{background:rgba(232,93,44,0.05);}
-.fun-activity-row-btn{
-  width:100%;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  background:none;
-  border:none;
-  padding:13px 16px;
-  text-align:left;
-}
-.fun-activity-row-btn:active{background:rgba(28,24,21,0.03);}
-.fun-activity-row--accent .fun-activity-row-btn:active{background:rgba(232,93,44,0.08);}
-.far-text{flex:1; min-width:0;}
-.far-title{
-  display:block;
-  font-size:0.8438rem;
-  font-weight:700;
-  color:var(--ink);
-}
-.far-sub{
-  display:block;
-  font-size:0.7188rem;
-  color:var(--ink-soft);
-  margin-top:2px;
-}
-.far-chevron{
-  font-size:1.125rem;
-  color:var(--grey-warm);
-  flex-shrink:0;
-}
-
-.register-cta{
-  margin-top:22px;
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-lg);
-  padding:18px 18px 16px;
-  border-top:3px solid var(--gold);
-  box-shadow:
-    0 1px 2px rgba(28,24,21,0.05),
-    0 6px 16px -8px rgba(28,24,21,0.12);
-}
-.register-cta-text{margin-bottom:12px;}
-.leaderboard-btn{
-  background:var(--ember);
-  border-color:var(--ember);
-  color:var(--marble);
-  font-weight:700;
-}
-.register-cta-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:1rem;
-  color:var(--ink);
-}
-.register-cta-sub{
-  font-size:0.75rem;
-  color:var(--ink-soft);
-  margin-top:3px;
-}
-
-/* Sprint 2.0 — Taste Discovery Engine. New, additive only: reuses
-   .register-cta family for the reminder chip (see markup) and adds one
-   small new block for the in-overlay recommendation result. No existing
-   CSS above this point was modified. */
-.taste-result-card{
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border:1px solid var(--stone-line);
-  border-radius:var(--radius-lg);
-  padding:16px 16px 14px;
-  border-top:3px solid var(--gold);
-  margin-bottom:6px;
-}
-.taste-result-name{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:1.0625rem;
-  color:var(--ink);
-  margin-bottom:4px;
-}
-.taste-result-desc{
-  font-size:0.8125rem;
-  color:var(--ink-soft);
-  margin-bottom:8px;
-}
-.taste-result-price{
-  font-size:0.875rem;
-  font-weight:700;
-  color:var(--ink);
-}
-
-/* ==========================================================================
-   PREMIUM MENU CARDS — rounded, soft shadow, name+price scannable at a glance
-   ========================================================================== */
-.menu-item{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
-  border:1px solid var(--tkg-marble-border);
-  border-radius:16px;
-  padding:12px;
-  transition:transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
-  --ink-faint:var(--tkg-marble-ink-faint);
-  --grey-warm:var(--tkg-marble-ink-soft);
-  color:var(--tkg-marble-ink);
-}
-.menu-item:active{
-  transform:scale(0.985);
-}
-.menu-item-thumb{
-  width:56px;
-  height:56px;
-  flex-shrink:0;
-  border-radius:var(--radius-sm);
-  background:var(--stone-base);
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.menu-item-thumb img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
-.menu-item-info{flex:1; min-width:0;}
-.menu-item-top{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  flex-wrap:wrap;
-}
-.menu-item-name{
-  font-size:0.9688rem;
-  font-weight:700;
-  color:var(--ink);
-  letter-spacing:normal;
-}
-.menu-item-desc{
-  font-size:0.7188rem;
-  color:var(--ink-soft);
-  line-height:1.35;
-  margin-top:3px;
-}
-.menu-item-tag{
-  display:inline-block;
-  font-size:0.5625rem;
-  letter-spacing:0.05em;
-  text-transform:uppercase;
-  font-weight:700;
-  color:rgba(217,164,65, var(--tkg-amber-op));
-  background:transparent;
-  border:1px solid rgba(217,164,65, var(--tkg-amber-op));
-  padding:1px 7px;
-  border-radius:100px;
-}
-.menu-item-price{
-  font-weight:700;
-  font-size:0.82rem;
-  color:var(--ink);
-  white-space:nowrap;
-  text-align:right;
-  flex-shrink:0;
-}
-.menu-item-price .price-large{
-  display:block;
-  font-size:0.6875rem;
-  color:var(--ink-faint);
-  font-weight:600;
-  margin-top:1px;
-}
-
-.menu-footer{
-  margin-top:24px;
-  text-align:center;
-}
-.btn-secondary{
-  background:none;
-  border:1.5px solid var(--tkg-plain-border);
-  color:var(--ink-soft);
-  padding:12px 22px;
-  border-radius:var(--radius-md);
-  font-size:0.8125rem;
-  font-weight:600;
-  transition:opacity 0.12s ease;
-}
-.btn-secondary:active{opacity:0.6;}
-.btn-secondary:disabled{opacity:0.4;}
-
-/* ==========================================================================
-   OWNER DASHBOARD
-   ========================================================================== */
-.dash-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:18px;
-}
-.dash-title{
-  font-family:var(--font-display);
-  font-weight:800;
-  font-size:1.375rem;
-  color:var(--marble);
-}
-.dash-close{
-  background:none;
-  border:1px solid var(--grey-line);
-  color:var(--grey-warm);
-  width:34px; height:34px;
-  border-radius:50%;
-  font-size:1rem;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.dash-header-actions{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.dash-section-label{
-  font-family:var(--font-display);
-  font-weight:700;
-  font-size:0.7812rem;
-  color:var(--gold-bright);
-  letter-spacing:0.05em;
-  margin:4px 0 8px;
-}
-
-.pin-gate{
-  display:flex;
-  flex-direction:column;
-  flex:1;
-  justify-content:center;
-  gap:16px;
-}
-.pin-gate p{
-  text-align:center;
-  color:var(--grey-warm);
-  font-size:0.8125rem;
-}
-.pin-input{
-  width:100%;
-  padding:16px;
-  border-radius:var(--radius-md);
-  border:1.5px solid var(--grey-line);
-  background:var(--ember-card);
-  color:var(--marble);
-  font-size:1.25rem;
-  letter-spacing:0.3em;
-  text-align:center;
-  outline:none;
-}
-.pin-input:focus{border-color:var(--ember);}
-
-.stat-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-bottom:18px;
-}
-.stat-card{
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
-  border-radius:var(--radius-md);
-  padding:16px 14px;
-}
-.stat-card.full{grid-column:1 / -1; display:flex; justify-content:space-between; align-items:center;}
-.stat-num{
-  font-family:var(--font-mono);
-  font-weight:700;
-  font-size:1.625rem;
-  color:var(--gold-bright);
-  line-height:1;
-}
-.stat-label{
-  font-size:0.6875rem;
-  color:var(--grey-warm);
-  margin-top:6px;
-  letter-spacing:0.03em;
-}
-.stat-card.full .stat-num{font-size:1.25rem; color:var(--ember-bright);}
-
-.dash-actions{
-  display:flex;
-  gap:10px;
-  margin-bottom:18px;
-}
-.dash-actions .btn-secondary{flex:1; padding:11px;}
-
-.search-box{
-  width:100%;
-  padding:12px 14px;
-  border-radius:var(--radius-md);
-  border:1.5px solid var(--grey-line);
-  background:var(--ember-card);
-  color:var(--marble);
-  font-size:0.875rem;
-  margin-bottom:12px;
-  outline:none;
-}
-.search-box:focus{border-color:var(--ember);}
-.search-box::placeholder{color:var(--grey-warm);}
-
-.cust-list{
-  flex:1;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  -webkit-overflow-scrolling:touch;
-}
-.cust-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:var(--ember-card);
-  border:1px solid var(--grey-line);
-  border-radius:var(--radius-sm);
-  padding:12px 13px;
-}
-.cust-info .cust-name{font-size:0.8438rem; font-weight:700; color:var(--marble);}
-.cust-info .cust-mobile{font-size:0.7188rem; color:var(--grey-warm); font-family:var(--font-mono); margin-top:2px;}
-.cust-info .cust-tags{font-size:0.6562rem; color:var(--gold); margin-top:3px;}
-
-.locality-breakdown{
-  padding:10px 0;
-  border-bottom:1px solid var(--grey-line);
-}
-.locality-breakdown:last-child{ border-bottom:none; }
-.locality-breakdown-name{
-  font-size:0.8125rem;
-  font-weight:600;
-  color:var(--marble);
-  margin-bottom:4px;
-}
-.locality-breakdown-row{
-  display:flex;
-  justify-content:space-between;
-  font-size:0.75rem;
-  color:var(--marble);
-  opacity:0.85;
-  padding:1px 0;
-}
-.locality-breakdown-total{
-  margin-top:3px;
-  padding-top:4px;
-  border-top:1px dashed var(--grey-line);
-  font-weight:600;
-  opacity:1;
-}
-.cust-meta{text-align:right;}
-.cust-meta .cust-visits{
-  font-family:var(--font-mono);
-  font-size:0.8125rem;
-  color:var(--gold-bright);
-  font-weight:700;
-}
-.cust-meta .cust-last{font-size:0.625rem; color:var(--grey-warm); margin-top:2px;}
-.cust-meta .pending-tag{
-  font-size:0.5625rem;
-  color:var(--ember-bright);
-  text-transform:uppercase;
-  letter-spacing:0.04em;
-  margin-top:3px;
-}
-.owner-fields-btn{
-  margin-top:6px;
-  background:none;
-  border:none;
-  color:var(--gold);
-  font-size:0.6562rem;
-  font-weight:600;
-  padding:2px 0;
-  cursor:pointer;
-}
-
-.empty-state{
-  text-align:center;
-  padding:40px 10px;
-  color:var(--grey-warm);
-  font-size:0.8125rem;
-}
-
-/* ==========================================================================
-   TOAST
-   ========================================================================== */
 .toast{
-  position:fixed;
-  bottom:24px;
-  left:50%;
+  position:fixed; bottom:24px; left:50%;
   transform:translateX(-50%) translateY(20px);
-  background:var(--tkg-plain-opaque-bg);
-  color:var(--tkg-plain-opaque-fg);
-  padding:13px 20px;
-  border-radius:var(--radius-md);
-  font-size:0.8125rem;
-  font-weight:600;
-  box-shadow:0 12px 30px -8px rgba(28,24,21,0.35), 0 2px 8px rgba(28,24,21,0.12);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.25s ease, transform 0.25s ease;
-  z-index:200;
-  max-width:90%;
-  text-align:center;
+  background:var(--tkg-plain-opaque-bg); color:var(--tkg-plain-opaque-fg);
+  padding:13px 20px; border-radius:var(--radius-md); font-size:0.8125rem; font-weight:600;
+  opacity:0; pointer-events:none; transition:all 0.25s ease; z-index:200;
 }
-.toast.show{
-  opacity:1;
-  transform:translateX(-50%) translateY(0);
-}
-
-/* ==========================================================================
-   INSTALL PROMPT — bottom banner, dismissible, platform-aware
-   ========================================================================== */
-.install-banner{
-  position:fixed;
-  left:50%;
-  bottom:0;
-  transform:translate(-50%, calc(110% + 20px));
-  width:100%;
-  max-width:var(--max-w);
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border-top:1px solid var(--stone-line);
-  border-radius:18px 18px 0 0;
-  padding:16px 18px calc(16px + env(safe-area-inset-bottom, 0px));
-  box-shadow:0 -1px 4px rgba(28,24,21,0.08);
-  transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index:140;
-  display:flex;
-  align-items:center;
-  gap:13px;
-}
-.install-banner.show{
-  transform:translate(-50%, 0);
-}
-.install-icon{
-  width:42px; height:42px;
-  border-radius:11px;
-  flex-shrink:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:1.25rem;
-  background:var(--stone-base);
-  border:1px solid var(--stone-line);
-}
-.install-text{flex:1; min-width:0;}
-.install-title{
-  font-size:0.8438rem;
-  font-weight:700;
-  color:var(--ink);
-}
-.install-sub{
-  font-size:0.7188rem;
-  color:var(--ink-soft);
-  margin-top:2px;
-  line-height:1.4;
-}
-.install-actions{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  flex-shrink:0;
-}
-.install-btn{
-  padding:9px 14px;
-  border-radius:var(--radius-sm);
-  border:none;
-  background:var(--ember);
-  color:var(--marble);
-  font-size:0.75rem;
-  font-weight:700;
-  white-space:nowrap;
-}
-.install-dismiss{
-  background:none;
-  border:none;
-  color:var(--ink-soft);
-  font-size:0.6875rem;
-  padding:4px 6px;
-}
-
-/* Utility */
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 .hidden{display:none !important;}
-</style>
 </style>
 </head>
 <body>
 
 <div id="toast" class="toast"></div>
 
-  <section class="screen active" id="screen-moments">
-    <div class="moments-topbar">
-      <button type="button" class="moments-menu-btn" id="momentsMenuBtn" title="Open Menu" style="display: flex; align-items: center; gap: 8px; background: none; border: none; padding: 8px 0; cursor: pointer; font-family: inherit;">
-        <img src="./icon-192.png" alt="TKG Logo" style="width: 36px; height: 36px; border-radius: 6px; background: rgba(232,93,44,0.1);">
-        <span style="font-size: 14px; font-weight: 500; color: #1C1815;">Open Menu</span>
-      </button>
-      <div class="moments-stat" id="momentsStat"></div>
+<section class="screen active" id="screen-moments">
+  <div class="moments-topbar">
+    <button type="button" id="momentsMenuBtn" style="display:flex; align-items:center; gap:8px; background:none; border:none; cursor:pointer;">
+      <img src="./icon-192.png" alt="TKG Logo" style="width:36px; height:36px; border-radius:6px;">
+      <span style="font-size:14px; font-weight:500; color:#1C1815;">Open Menu</span>
+    </button>
+    <div class="moments-stat" id="momentsStat"></div>
+  </div>
+
+  <div class="moments-viewer" id="momentsViewer"></div>
+  <div class="moments-empty" id="momentsEmptyState" style="display:none;">No moments yet — be the first to share one!</div>
+  <div class="moments-loading" id="momentsLoadingState">Loading gallery…</div>
+
+  <div class="moments-fab-row">
+    <input type="file" accept="image/*,video/*" multiple id="momentsFileInput" style="display:none;">
+    <button type="button" class="moments-fab" id="momentShareBtn">Share your moment</button>
+  </div>
+
+  <!-- Compose Modal -->
+  <div class="moments-compose-overlay hidden" id="momentsComposeOverlay">
+    <div class="moments-compose-card">
+      <div class="moments-compose-grid" id="momentsComposeGrid"></div>
+      <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-bottom:6px; display:block;" for="momentsCaptionInput">Add a caption? (optional)</label>
+      <input style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; font-size:0.9rem;" id="momentsCaptionInput" type="text" placeholder="Say something about this moment" maxlength="200">
+      <div class="moments-status" id="momentsUploadStatus"></div>
+      <button type="button" id="momentsComposePostBtn" style="width:100%; margin-top:12px; padding:14px; border-radius:10px; border:none; background:#1A1815; color:#fff; font-weight:700;">Post</button>
+      <button type="button" id="momentsComposeCancelBtn" style="width:100%; margin-top:8px; padding:12px; border-radius:10px; border:1px solid #ccc; background:none; font-weight:600;">Cancel</button>
     </div>
+  </div>
 
-    <div class="moments-viewer" id="momentsViewer"></div>
-    <div class="moments-empty" id="momentsEmptyState" style="display:none;">No moments yet — be the first to share one!</div>
-    <div class="moments-loading" id="momentsLoadingState">Loading gallery…</div>
-
-    <div class="moments-fab-row">
-      <input type="file" accept="image/*,video/*" multiple id="momentsFileInput" style="display:none;">
-      <button type="button" class="moments-fab" id="momentShareBtn">Share your moment</button>
+  <!-- Instagram Link Modal -->
+  <div class="moments-compose-overlay hidden" id="momentsLinkOverlay">
+    <div class="moments-compose-card">
+      <div style="font-weight:800; font-size:1.1rem; margin-bottom:12px;">Share Instagram link</div>
+      <input style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;" id="momentsLinkInput" type="url" placeholder="https://www.instagram.com/p/...">
+      <div class="moments-status" id="momentsLinkStatus"></div>
+      <button type="button" id="momentsLinkSubmitBtn" style="width:100%; margin-top:12px; padding:14px; border-radius:10px; border:none; background:#E85D2C; color:#fff; font-weight:700;">Add to Gallery</button>
+      <button type="button" id="momentsLinkCancelBtn" style="width:100%; margin-top:8px; padding:12px; border-radius:10px; border:none; background:none;">Cancel</button>
     </div>
+  </div>
 
-    <!-- Compose step — shown only after a photo is picked, so the customer
-         sees their own photo before deciding whether to add a caption.
-         Nothing is uploaded until they tap Post here. -->
-    <div class="moments-compose-overlay hidden" id="momentsComposeOverlay">
-      <div class="moments-compose-card">
-        <div class="moments-compose-grid" id="momentsComposeGrid"></div>
-        <label class="field-label" for="momentsCaptionInput">Add a caption? (optional)</label>
-        <input class="field-input" id="momentsCaptionInput" type="text" placeholder="Say something about this moment" maxlength="200">
-        <div class="moments-status" id="momentsUploadStatus"></div>
-        <button type="button" class="btn-primary" id="momentsComposePostBtn" style="width:100%; margin-top:10px;">Post</button>
-        <button type="button" class="btn-secondary" id="momentsComposeCancelBtn" style="width:100%; margin-top:8px;">Cancel</button>
-      </div>
+  <!-- Choice Modal -->
+  <div class="moments-compose-overlay hidden" id="momentsChoiceOverlay">
+    <div class="moments-compose-card" style="max-width:320px;">
+      <div style="font-weight:800; font-size:1.1rem; margin-bottom:16px; text-align:center;">Share your moment</div>
+      <button type="button" id="choiceMemoryBtn" style="width:100%; background:#1A1815; color:#fff; border:none; border-radius:12px; padding:16px; font-weight:600; margin-bottom:10px;">A memory here (Photo/Video)</button>
+      <button type="button" id="choiceInstagramBtn" style="width:100%; background:transparent; color:#E85D2C; border:1.5px solid #E85D2C; border-radius:12px; padding:16px; font-weight:600;">Your Instagram post</button>
+      <button type="button" id="choiceCancelBtn" style="width:100%; background:none; border:none; padding:12px; color:#9C9286; margin-top:8px;">Dismiss</button>
     </div>
-
-    <div class="moments-compose-overlay hidden" id="momentsLinkOverlay">
-      <div class="moments-compose-card">
-        <div class="journey-title" style="font-size:1.0625rem; margin-bottom:12px;">Share your Instagram moment</div>
-        <label class="field-label" for="momentsLinkInput">Paste the link to your post or reel</label>
-        <input class="field-input" id="momentsLinkInput" type="url" placeholder="https://www.instagram.com/p/..." maxlength="300">
-        <div class="moments-status" id="momentsLinkStatus"></div>
-        <button type="button" class="btn-primary" id="momentsLinkSubmitBtn" style="width:100%; margin-top:10px;">Add to Gallery</button>
-        <button type="button" class="btn-secondary" id="momentsLinkCancelBtn" style="width:100%; margin-top:8px;">Cancel</button>
-      </div>
-    </div>
-
-    <!-- Choice modal: Memory vs Instagram -->
-    <div class="moments-compose-overlay hidden" id="momentsChoiceOverlay">
-      <div class="moments-compose-card" style="max-width: 320px;">
-        <div class="journey-title" style="font-size:1.0625rem; margin-bottom:16px; text-align: center;">Share your moment</div>
-        <button type="button" id="choiceMemoryBtn" style="width: 100%; background: #1A1815; color: #FFFFFF; border: none; border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; margin-bottom: 10px; transition: background 0.2s;">A memory here</button>
-        <button type="button" id="choiceInstagramBtn" style="width: 100%; background: transparent; color: #E85D2C; border: 1.5px solid #E85D2C; border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.2s;">Your Instagram post</button>
-        <button type="button" id="choiceCancelBtn" style="width: 100%; background: transparent; color: #9C9286; border: none; padding: 12px; font-size: 14px; cursor: pointer; font-family: inherit; margin-top: 8px;">Dismiss</button>
-      </div>
-    </div>
-
-    <!-- YouTube Share Modal: After post succeeds -->
-    <div class="moments-compose-overlay hidden" id="youtubeShareOverlay">
-      <div class="moments-compose-card" style="max-width: 340px;">
-        <div class="journey-title" style="font-size:1.0625rem; margin-bottom:16px; text-align: center;">Share this with TKG community on YouTube?</div>
-        <p style="font-size: 13px; color: #6B6256; text-align: center; margin-bottom: 16px; line-height: 1.5;">Your video will be shared to our YouTube channel (unlisted — only visible with the link) so our community can see your moment.</p>
-        
-        <div id="youtubeProgressContainer" style="display: none; margin-bottom: 16px;">
-          <div style="font-size: 12px; color: #6B6256; margin-bottom: 8px;">Uploading to YouTube…</div>
-          <div style="width: 100%; height: 4px; background: #E6E3DD; border-radius: 2px; overflow: hidden;">
-            <div id="youtubeProgressBar" style="width: 0%; height: 100%; background: #E85D2C; transition: width 0.3s;"></div>
-          </div>
-        </div>
-
-        <div id="youtubeStatusMessage" style="font-size: 12px; color: #6B6256; margin-bottom: 12px; text-align: center;"></div>
-
-        <button type="button" id="youtubeShareYesBtn" style="width: 100%; background: #E85D2C; color: #FFFFFF; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; margin-bottom: 8px;">Yes, share it!</button>
-        <button type="button" id="youtubeShareNoBtn" style="width: 100%; background: transparent; color: #1C1815; border: 1px solid #E6E3DD; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit;">No, keep it private</button>
-      </div>
-    </div>
-
-    <!-- Tutorial modal: How to share from Instagram -->
-    <div class="moments-compose-overlay hidden" id="momentsTutorialOverlay">
-      <div class="moments-compose-card" style="max-width: 360px;">
-        <button type="button" id="tutorialCloseBtn" style="position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 20px; color: #1C1815; cursor: pointer; padding: 4px 8px;">×</button>
-        <div class="journey-title" style="font-size:1.0625rem; margin-bottom:16px;">How to share from Instagram</div>
-        
-        <div id="tutorialStepContainer" style="background: #F6F6F5; border-radius: 12px; padding: 12px; margin-bottom: 16px; aspect-ratio: 9/16; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-          <svg id="instagramTutorialSvg" viewBox="0 0 280 400" style="width: 100%; height: 100%; max-width: 260px;">
-            <defs>
-              <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.2"/>
-              </filter>
-            </defs>
-            
-            <!-- Phone frame -->
-            <rect x="20" y="20" width="240" height="360" rx="20" fill="#FFFFFF" stroke="#E6E3DD" stroke-width="2"/>
-            <rect x="28" y="30" width="224" height="340" rx="16" fill="#F8F8F8" clip-path="url(#phoneClip)"/>
-            
-            <!-- Step 1: Instagram post -->
-            <g id="step1" opacity="1" style="transition: opacity 0.5s;">
-              <rect x="28" y="30" width="224" height="340" rx="16" fill="#000000"/>
-              <rect x="35" y="40" width="210" height="280" fill="linear-gradient(135deg, #E85D2C, #B8431D)"/>
-              <text x="140" y="190" text-anchor="middle" font-size="16" fill="#FFFFFF" font-weight="500">Your Instagram</text>
-              <text x="140" y="210" text-anchor="middle" font-size="16" fill="#FFFFFF" font-weight="500">Post</text>
-              <circle cx="140" cy="160" r="40" fill="none" stroke="#FAC646" stroke-width="3" opacity="0.6"/>
-              
-              <text x="140" y="350" text-anchor="middle" font-size="12" fill="#6B6256" font-weight="500">1. Find the post</text>
-            </g>
-
-            <!-- Step 2: Share menu -->
-            <g id="step2" opacity="0" style="transition: opacity 0.5s;">
-              <rect x="28" y="30" width="224" height="340" rx="16" fill="#000000"/>
-              <rect x="35" y="40" width="210" height="280" fill="linear-gradient(135deg, #E85D2C, #B8431D)"/>
-              
-              <!-- Share icon at bottom -->
-              <g transform="translate(240, 310)" opacity="0">
-                <circle cx="0" cy="0" r="20" fill="#E85D2C"/>
-                <path d="M -4 2 L 0 -6 L 4 2 M 0 -6 L 0 4" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round"/>
-              </g>
-              
-              <!-- Menu appearing -->
-              <rect x="50" y="140" width="180" height="140" rx="12" fill="#1A1815" filter="url(#shadow)"/>
-              <text x="140" y="165" text-anchor="middle" font-size="13" fill="#F2EFEA">Copy link</text>
-              <text x="140" y="190" text-anchor="middle" font-size="13" fill="#F2EFEA">Share to...</text>
-              <text x="140" y="215" text-anchor="middle" font-size="13" fill="#F2EFEA">Save</text>
-              <circle cx="155" cy="165" r="22" fill="none" stroke="#FAC646" stroke-width="2.5"/>
-              
-              <text x="140" y="350" text-anchor="middle" font-size="12" fill="#6B6256" font-weight="500">2. Tap share icon</text>
-            </g>
-
-            <!-- Step 3: Copy link -->
-            <g id="step3" opacity="0" style="transition: opacity 0.5s;">
-              <rect x="28" y="30" width="224" height="340" rx="16" fill="#000000"/>
-              <rect x="35" y="40" width="210" height="280" fill="#F6F6F5"/>
-              
-              <rect x="50" y="120" width="180" height="160" rx="12" fill="#1A1815" filter="url(#shadow)"/>
-              <text x="140" y="160" text-anchor="middle" font-size="12" fill="#F2EFEA" font-weight="500">COPY LINK</text>
-              <rect x="55" y="150" width="170" height="45" rx="8" fill="#E85D2C" stroke="#FAC646" stroke-width="2"/>
-              <text x="140" y="182" text-anchor="middle" font-size="11" fill="#FFFFFF">✓ Copied!</text>
-              
-              <text x="140" y="350" text-anchor="middle" font-size="12" fill="#6B6256" font-weight="500">3. Copy the link</text>
-            </g>
-
-            <!-- Step 4: Back to TKG & paste -->
-            <g id="step4" opacity="0" style="transition: opacity 0.5s;">
-              <rect x="28" y="30" width="224" height="340" rx="16" fill="#1C1815"/>
-              <text x="140" y="80" text-anchor="middle" font-size="14" fill="#F2EFEA" font-weight="500">TKG Moments</text>
-              
-              <rect x="50" y="140" width="180" height="60" rx="10" fill="#FFFFFF" stroke="#E6E3DD" stroke-width="1"/>
-              <text x="140" y="165" text-anchor="middle" font-size="12" fill="#9C9286">Paste your link</text>
-              <circle cx="155" cy="175" r="18" fill="none" stroke="#FAC646" stroke-width="2.5"/>
-              
-              <text x="140" y="350" text-anchor="middle" font-size="12" fill="#6B6256" font-weight="500">4. Come back & paste</text>
-            </g>
-          </svg>
-        </div>
-
-        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-          <button type="button" class="tutorial-step-dot" data-step="0" style="width: 10px; height: 10px; border-radius: 50%; background: #E85D2C; border: none; cursor: pointer;"></button>
-          <button type="button" class="tutorial-step-dot" data-step="1" style="width: 10px; height: 10px; border-radius: 50%; background: #E6E3DD; border: none; cursor: pointer;"></button>
-          <button type="button" class="tutorial-step-dot" data-step="2" style="width: 10px; height: 10px; border-radius: 50%; background: #E6E3DD; border: none; cursor: pointer;"></button>
-          <button type="button" class="tutorial-step-dot" data-step="3" style="width: 10px; height: 10px; border-radius: 50%; background: #E6E3DD; border: none; cursor: pointer;"></button>
-        </div>
-
-        <button type="button" id="tutorialNextBtn" style="width: 100%; background: #E85D2C; color: #FFFFFF; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit;">Next step</button>
-      </div>
-    </div>
-
-  </section>
+  </div>
+</section>
 
 <script>
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 
-// ---------------------------------------------------------------------------
-// TKG MOMENTS — customer photo/Instagram-moment gallery. Fullscreen
-// vertical-swipe viewer. Two submission paths (direct photo upload via
-// Apps Script -> Drive, or pasting a link to a moment already posted on
-// the customer's own Instagram, embedded client-side via Instagram's own
-// embed.js) feeding one shared, newest-first feed. No approval queue for
-// now — everything submitted publishes immediately.
-// ---------------------------------------------------------------------------
 const momentsMenuBtn = document.getElementById('momentsMenuBtn');
 const momentsStat = document.getElementById('momentsStat');
 const momentsViewer = document.getElementById('momentsViewer');
@@ -2892,73 +415,37 @@ const momentsLinkInput = document.getElementById('momentsLinkInput');
 const momentsLinkStatus = document.getElementById('momentsLinkStatus');
 const momentsLinkSubmitBtn = document.getElementById('momentsLinkSubmitBtn');
 const momentsLinkCancelBtn = document.getElementById('momentsLinkCancelBtn');
-
 const momentsChoiceOverlay = document.getElementById('momentsChoiceOverlay');
 const choiceMemoryBtn = document.getElementById('choiceMemoryBtn');
 const choiceInstagramBtn = document.getElementById('choiceInstagramBtn');
 const choiceCancelBtn = document.getElementById('choiceCancelBtn');
 
-const momentsTutorialOverlay = document.getElementById('momentsTutorialOverlay');
-const tutorialCloseBtn = document.getElementById('tutorialCloseBtn');
-const tutorialNextBtn = document.getElementById('tutorialNextBtn');
-const tutorialStepDots = document.querySelectorAll('.tutorial-step-dot');
+let momentsStagedFiles = [];
 
-const youtubeShareOverlay = document.getElementById('youtubeShareOverlay');
-const youtubeShareYesBtn = document.getElementById('youtubeShareYesBtn');
-const youtubeShareNoBtn = document.getElementById('youtubeShareNoBtn');
-const youtubeProgressContainer = document.getElementById('youtubeProgressContainer');
-const youtubeProgressBar = document.getElementById('youtubeProgressBar');
-const youtubeStatusMessage = document.getElementById('youtubeStatusMessage');
-
-let tutorialCurrentStep = 0;
-let pendingMomentId = null;
-let pendingMomentMedia = [];
-
-momentsMenuBtn.addEventListener('click', () => {
-  window.location.href = './index.html';
-});
+momentsMenuBtn.addEventListener('click', () => { window.location.href = './index.html'; });
 
 function setMomentsStatus(el, text, kind){
   el.textContent = text || '';
-  el.classList.remove('error', 'success');
-  if(kind) el.classList.add(kind);
+  el.classList.remove('error');
+  if(kind === 'error') el.classList.add('error');
 }
 
-// ---------------------------------------------------------------------------
-// Honest community stat — real registered-customer count + real total game
-// plays, added together and shown plainly labeled ("part of the TKG
-// story"), never attached to any single photo as if it were that photo's
-// like count. Both counts already come from existing, already-public GET
-// actions — no new endpoint needed. Best-effort: if either fetch fails,
-// the stat line is simply left blank rather than guessed at.
-// ---------------------------------------------------------------------------
 async function loadMomentsStat(){
-  momentsStat.textContent = '';
   try{
-    const [customersRes, scoresRes] = await Promise.all([
+    const [cRes, sRes] = await Promise.all([
       fetch(APP_SCRIPT_URL + '?action=customers'),
       fetch(APP_SCRIPT_URL + '?action=runnerScores')
     ]);
-    const customersData = await customersRes.json();
-    const scoresData = await scoresRes.json();
-    const customerCount = (customersData && Array.isArray(customersData.customers)) ? customersData.customers.length : 0;
-    const playCount = (scoresData && Array.isArray(scoresData.scores)) ? scoresData.scores.length : 0;
-    const total = customerCount + playCount;
-    if(total > 0){
-      momentsStat.textContent = '🔥 ' + total + '+ part of the TKG story';
-    }
-  }catch(err){
-    console.warn('loadMomentsStat failed, leaving stat blank:', err);
-  }
+    const cData = await cRes.json();
+    const sData = await sRes.json();
+    const total = ((cData.customers || []).length) + ((sData.scores || []).length);
+    if(total > 0) momentsStat.textContent = '🔥 ' + total + '+ part of the TKG story';
+  }catch(e){}
 }
 
-// Local-only "liked" memory, same pattern as the menu's item-heart
-// localStorage use — purely a personal toggle so a moment you've tapped
-// still shows filled if you scroll back to it, not a real shared count.
 const MOMENTS_LIKED_KEY = 'tkg_liked_moments';
 function getLikedMomentIds(){
-  try{ return new Set(JSON.parse(localStorage.getItem(MOMENTS_LIKED_KEY) || '[]')); }
-  catch(e){ return new Set(); }
+  try{ return new Set(JSON.parse(localStorage.getItem(MOMENTS_LIKED_KEY) || '[]')); } catch(e){ return new Set(); }
 }
 function toggleLikedMomentId(id){
   const liked = getLikedMomentIds();
@@ -2967,6 +454,22 @@ function toggleLikedMomentId(id){
   return liked.has(id);
 }
 
+// Auto-play videos when they scroll into view (Reels experience)
+const videoIntersectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const video = entry.target.querySelector('video');
+    if(!video) return;
+    if(entry.isIntersecting){
+      video.play().catch(() => {
+        video.muted = true;
+        video.play();
+      });
+    } else {
+      video.pause();
+    }
+  });
+}, { threshold: 0.6 });
+
 async function loadMoments(){
   momentsLoadingState.style.display = '';
   momentsEmptyState.style.display = 'none';
@@ -2974,35 +477,38 @@ async function loadMoments(){
 
   try{
     const res = await fetch(APP_SCRIPT_URL + '?action=moments');
-    if(!res.ok) throw new Error('moments fetch failed: ' + res.status);
     const data = await res.json();
-    if(!data || data.status !== 'ok' || !Array.isArray(data.moments)) throw new Error('Unexpected response');
-
     momentsLoadingState.style.display = 'none';
 
-    if(data.moments.length === 0){
+    if(!data || data.status !== 'ok' || !data.moments.length){
       momentsEmptyState.style.display = '';
       return;
     }
 
     const likedIds = getLikedMomentIds();
-    // Newest first.
     const ordered = data.moments.slice().reverse();
 
     momentsViewer.innerHTML = ordered.map(m => {
       const mediaList = (m.media && m.media.length) ? m.media : (m.imageUrl ? [{ url: m.imageUrl, mimeType: 'image/jpeg' }] : []);
+      
       if(m.type === 'photo' && mediaList.length){
         const isLiked = likedIds.has(m.id);
         const mediaHtml = mediaList.map(item => {
           const isVideo = item.mimeType && item.mimeType.indexOf('video/') === 0;
-          return isVideo
-            ? '<video class="moments-slide-media" src="' + escapeHtml(item.url) + '" muted loop playsinline controls></video>'
-            : '<img class="moments-slide-media" src="' + escapeHtml(item.url) + '" alt="TKG moment" loading="lazy">';
+          const poster = item.thumbnailUrl ? ' poster="' + escapeHtml(item.thumbnailUrl) + '"' : '';
+
+          if(isVideo){
+            return '<div class="moments-video-wrap">' +
+              '<video class="moments-slide-media" src="' + escapeHtml(item.url) + '"' + poster + ' muted loop playsinline preload="metadata"></video>' +
+              '<div class="video-mute-indicator">Muted</div>' +
+            '</div>';
+          }
+          return '<img class="moments-slide-media" src="' + escapeHtml(item.url) + '" alt="TKG moment" loading="lazy">';
         }).join('');
-        const dotsHtml = mediaList.length > 1
-          ? '<div class="moments-slide-media-dots">' + mediaList.map(() => '<span></span>').join('') + '</div>'
-          : '';
-        return '<div class="moments-slide">' +
+
+        const dotsHtml = mediaList.length > 1 ? '<div class="moments-slide-media-dots">' + mediaList.map(() => '<span></span>').join('') + '</div>' : '';
+
+        return '<div class="moments-slide" data-id="' + escapeHtml(m.id) + '">' +
           dotsHtml +
           '<div class="moments-slide-media-scroller">' + mediaHtml + '</div>' +
           '<div class="moments-slide-gradient"></div>' +
@@ -3011,464 +517,180 @@ async function loadMoments(){
             '<button type="button" class="moments-heart-btn' + (isLiked ? ' liked' : '') + '" data-id="' + escapeHtml(m.id) + '">' +
               '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-6.7-4.35-9.3-8.28C1.1 10.4 1.6 7.4 4 5.6c2.1-1.6 4.9-1.2 6.6.7L12 7.7l1.4-1.4c1.7-1.9 4.5-2.3 6.6-.7 2.4 1.8 2.9 4.8 1.3 7.12C18.7 16.65 12 21 12 21z"/></svg>' +
             '</button>' +
-            '<button type="button" class="moments-comment-btn">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M21 12c0 4.4-4 8-9 8-1.2 0-2.4-.2-3.4-.6L3 20l1.1-4.1C3.4 14.7 3 13.4 3 12c0-4.4 4-8 9-8s9 3.6 9 8z"/></svg>' +
-            '</button>' +
-            '<button type="button" class="moments-share-btn" data-url="' + escapeHtml(mediaList[0].url) + '" data-caption="' + escapeHtml(m.caption || '') + '">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>' +
+            '<button type="button" class="moments-share-btn" data-url="' + escapeHtml(mediaList[0].url) + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>' +
             '</button>' +
           '</div>' +
         '</div>';
       }
+
       if(m.type === 'instagram' && m.instagramUrl){
         return '<div class="moments-slide">' +
-          '<div class="moments-slide-embed"><blockquote class="instagram-media" data-instgrm-permalink="' +
-            escapeHtml(m.instagramUrl) + '" data-instgrm-version="14"></blockquote></div>' +
+          '<div class="moments-slide-embed"><blockquote class="instagram-media" data-instgrm-permalink="' + escapeHtml(m.instagramUrl) + '" data-instgrm-version="14"></blockquote></div>' +
         '</div>';
       }
       return '';
     }).join('');
 
-    // Ask Instagram's embed script to render any new blockquotes just
-    // inserted above. Guarded since embed.js loads async and may not have
-    // attached window.instgrm yet on a very first, very fast visit.
-    if(window.instgrm && window.instgrm.Embeds){
-      window.instgrm.Embeds.process();
-    }
+    if(window.instgrm && window.instgrm.Embeds) window.instgrm.Embeds.process();
 
-    // Wire the heart/share buttons just rendered (delegation not needed —
-    // the whole viewer is rebuilt fresh on every loadMoments() call).
+    // Attach IntersectionObserver for video autoplay
+    document.querySelectorAll('.moments-slide').forEach(slide => {
+      videoIntersectionObserver.observe(slide);
+
+      // Tap video to toggle mute/unmute
+      const video = slide.querySelector('video');
+      const indicator = slide.querySelector('.video-mute-indicator');
+      if(video && indicator){
+        slide.addEventListener('click', (e) => {
+          if(e.target.closest('.moments-slide-actions')) return;
+          video.muted = !video.muted;
+          indicator.textContent = video.muted ? 'Muted' : 'Unmuted';
+          indicator.classList.add('show');
+          setTimeout(() => indicator.classList.remove('show'), 1200);
+        });
+      }
+    });
+
+    // Wire actions
     momentsViewer.querySelectorAll('.moments-heart-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const nowLiked = toggleLikedMomentId(btn.dataset.id);
         btn.classList.toggle('liked', nowLiked);
       });
     });
-    // Comment icon is visual-only for now — no commenting system is built
-    // yet. A gentle placeholder response instead of a dead tap.
-    momentsViewer.querySelectorAll('.moments-comment-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        showToast('Comments coming soon!');
-      });
-    });
+
     momentsViewer.querySelectorAll('.moments-share-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const url = btn.dataset.url;
-        const caption = btn.dataset.caption || '';
-
-        // Copy the caption first (if there is one) so it's sitting ready
-        // to paste the moment someone opens Instagram to post — this is
-        // the whole point of the share button, since the OS share sheet
-        // itself can't hand a caption directly into another app's composer.
-        if(caption && navigator.clipboard){
-          navigator.clipboard.writeText(caption).then(() => {
-            showToast('Caption copied — paste it when you post!');
-          }).catch(() => {});
-        }
-
-        if(navigator.share){
-          navigator.share({ title: 'TKG Moments', text: caption || 'Check out this moment at TKG!', url: url }).catch(() => {});
-        }else if(navigator.clipboard && !caption){
-          navigator.clipboard.writeText(url);
-          showToast('Link copied!');
-        }
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if(navigator.share) navigator.share({ title: 'TKG Moments', url: btn.dataset.url });
+        else { navigator.clipboard.writeText(btn.dataset.url); showToast('Link copied!'); }
       });
     });
+
   }catch(err){
-    console.warn('loadMoments failed:', err);
     momentsLoadingState.style.display = 'none';
     momentsEmptyState.style.display = '';
-    momentsEmptyState.textContent = "Couldn't load the gallery right now — check your connection and try again.";
   }
 }
 
-// Resizes/compresses a photo client-side before upload (max 1280px on the
-// long edge, JPEG ~0.82 quality) — keeps the upload fast and each request
-// well within size limits, regardless of how large the original phone
-// photo is. Videos are NOT run through this — canvas can't resize video,
-// so videos are capped by the 8MB-per-file check below instead.
-function resizeImageForUpload(file){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Could not read file'));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error('Could not load image'));
-      img.onload = () => {
-        const maxDim = 1280;
-        let { width, height } = img;
-        if(width > height && width > maxDim){
-          height = Math.round(height * (maxDim / width));
-          width = maxDim;
-        }else if(height > maxDim){
-          width = Math.round(width * (maxDim / height));
-          height = maxDim;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.82));
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-// Videos can't be resized client-side the way photos can, so they're just
-// read as-is (still subject to the 8MB cap checked before this is called).
-function readFileAsDataUrl(file){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Could not read file'));
-    reader.onload = () => resolve(reader.result);
-    reader.readAsDataURL(file);
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Upload flow — two steps, not one. Picking photos/videos no longer uploads
-// immediately: it opens the Compose card with a preview grid so the customer
-// sees exactly what they're posting (and can remove any item with the ×
-// badge, or add more) before anything is sent. Nothing reaches the backend
-// until they tap Post.
-// ---------------------------------------------------------------------------
-const MOMENTS_MAX_FILE_BYTES = 8 * 1024 * 1024; // 8MB per file, images and videos alike
-let momentsStagedFiles = []; // [{ localId, mimeType, dataUrl, isVideo }]
-
-momentShareBtn.addEventListener('click', () => {
-  momentsChoiceOverlay.classList.remove('hidden');
-});
-
-choiceMemoryBtn.addEventListener('click', () => {
-  momentsChoiceOverlay.classList.add('hidden');
-  momentsFileInput.click();
-});
-
-choiceInstagramBtn.addEventListener('click', () => {
-  momentsChoiceOverlay.classList.add('hidden');
-  tutorialCurrentStep = 0;
-  updateTutorialStep();
-  momentsTutorialOverlay.classList.remove('hidden');
-});
-
-choiceCancelBtn.addEventListener('click', () => {
-  momentsChoiceOverlay.classList.add('hidden');
-});
-
-tutorialCloseBtn.addEventListener('click', () => {
-  momentsTutorialOverlay.classList.add('hidden');
-});
-
-tutorialNextBtn.addEventListener('click', () => {
-  tutorialCurrentStep++;
-  if(tutorialCurrentStep >= 4){
-    momentsTutorialOverlay.classList.add('hidden');
-    momentsLinkInput.value = '';
-    setMomentsStatus(momentsLinkStatus, '');
-    momentsLinkOverlay.classList.remove('hidden');
-  } else {
-    updateTutorialStep();
-  }
-});
-
-tutorialStepDots.forEach(dot => {
-  dot.addEventListener('click', () => {
-    tutorialCurrentStep = parseInt(dot.getAttribute('data-step'));
-    updateTutorialStep();
-  });
-});
-
-youtubeShareYesBtn.addEventListener('click', async () => {
-  youtubeShareYesBtn.disabled = true;
-  youtubeShareNoBtn.disabled = true;
-  youtubeProgressContainer.style.display = 'block';
-  youtubeStatusMessage.textContent = 'Preparing…';
-  
-  // Simulate upload progress
-  let progress = 0;
-  const progressInterval = setInterval(() => {
-    progress += Math.random() * 30;
-    if (progress > 90) progress = 90;
-    youtubeProgressBar.style.width = progress + '%';
-  }, 500);
-
-  try {
-    youtubeStatusMessage.textContent = 'Uploading to YouTube…';
-    
-    // Call backend to upload to YouTube
-    const videoUrl = pendingMomentMedia[0]?.url || '';
-    const caption = momentsCaptionInput.value.trim();
-    const fileName = 'TKG Moment';
-    const mimeType = pendingMomentMedia[0]?.mimeType || 'video/mp4';
-
-    const uploadRes = await fetch(APP_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        action: 'uploadMomentToYouTube',
-        driveUrl: videoUrl,
-        fileName: fileName,
-        caption: caption,
-        mimeType: mimeType
-      })
-    });
-
-    clearInterval(progressInterval);
-    youtubeProgressBar.style.width = '100%';
-
-    if (!uploadRes.ok) {
-      youtubeStatusMessage.textContent = 'Upload failed. Check your connection.';
-      youtubeStatusMessage.style.color = '#D64545';
-      return;
-    }
-
-    const uploadData = await uploadRes.json();
-    if (uploadData.status === 'ok' && uploadData.youtubeUrl) {
-      // Update the moment row with YouTube URL
-      await fetch(APP_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'updateMomentYouTubeUrl',
-          momentId: pendingMomentId,
-          youtubeUrl: uploadData.youtubeUrl
-        })
-      });
-
-      youtubeStatusMessage.textContent = '✓ Added to YouTube!';
-      youtubeStatusMessage.style.color = '#6B7B00';
-      
-      setTimeout(() => {
-        youtubeShareOverlay.classList.add('hidden');
-        loadMoments();
-      }, 1500);
-    } else {
-      youtubeStatusMessage.textContent = 'Could not upload. Try again later.';
-      youtubeStatusMessage.style.color = '#D64545';
-    }
-  } catch (err) {
-    clearInterval(progressInterval);
-    console.warn('YouTube upload error:', err);
-    youtubeStatusMessage.textContent = 'Upload failed. Check your connection.';
-    youtubeStatusMessage.style.color = '#D64545';
-  } finally {
-    youtubeShareYesBtn.disabled = false;
-    youtubeShareNoBtn.disabled = false;
-  }
-});
-
-youtubeShareNoBtn.addEventListener('click', () => {
-  youtubeShareOverlay.classList.add('hidden');
-  youtubeProgressContainer.style.display = 'none';
-  youtubeStatusMessage.textContent = '';
-  youtubeProgressBar.style.width = '0%';
-});
-
-function updateTutorialStep(){
-  for(let i = 0; i < 4; i++){
-    const step = document.getElementById('step' + i);
-    step.style.opacity = i === tutorialCurrentStep ? '1' : '0';
-  }
-  tutorialStepDots.forEach((dot, i) => {
-    dot.style.background = i === tutorialCurrentStep ? '#E85D2C' : '#E6E3DD';
-  });
-  tutorialNextBtn.textContent = tutorialCurrentStep === 3 ? 'Got it! Now paste the link' : 'Next step';
-}
+momentShareBtn.addEventListener('click', () => momentsChoiceOverlay.classList.remove('hidden'));
+choiceMemoryBtn.addEventListener('click', () => { momentsChoiceOverlay.classList.add('hidden'); momentsFileInput.click(); });
+choiceInstagramBtn.addEventListener('click', () => { momentsChoiceOverlay.classList.add('hidden'); momentsLinkOverlay.classList.remove('hidden'); });
+choiceCancelBtn.addEventListener('click', () => momentsChoiceOverlay.classList.add('hidden'));
 
 momentsFileInput.addEventListener('change', async () => {
   const files = Array.from(momentsFileInput.files || []);
-  momentsFileInput.value = ''; // allow picking the same file again later
+  momentsFileInput.value = '';
 
   for(const file of files){
-    if(file.size > MOMENTS_MAX_FILE_BYTES){
-      alert('"' + file.name + '" is over 8MB — please pick a smaller photo/video.');
-      continue;
-    }
-    try{
-      const isVideo = file.type.indexOf('video/') === 0;
-      const dataUrl = isVideo ? await readFileAsDataUrl(file) : await resizeImageForUpload(file);
-      momentsStagedFiles.push({
-        localId: 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-        mimeType: isVideo ? file.type : 'image/jpeg',
-        dataUrl: dataUrl,
-        isVideo: isVideo
-      });
-    }catch(err){
-      console.warn('Could not read/resize a picked file:', err);
-    }
+    if(file.size > 8 * 1024 * 1024){ alert('File "' + file.name + '" exceeds 8MB cap.'); continue; }
+    const isVideo = file.type.indexOf('video/') === 0;
+    const dataUrl = await readFileAsDataUrl(file);
+    momentsStagedFiles.push({ localId: 'f_' + Date.now(), mimeType: file.type, dataUrl: dataUrl, isVideo: isVideo });
   }
 
   if(momentsStagedFiles.length > 0){
-    momentsCaptionInput.value = momentsCaptionInput.value || '';
-    setMomentsStatus(momentsUploadStatus, '');
-    renderMomentsComposeGrid();
+    renderComposeGrid();
     momentsComposeOverlay.classList.remove('hidden');
   }
 });
 
-function renderMomentsComposeGrid(){
-  momentsComposeGrid.innerHTML = momentsStagedFiles.map(f => {
-    const mediaTag = f.isVideo
-      ? '<video src="' + f.dataUrl + '" muted playsinline></video>'
-      : '<img src="' + f.dataUrl + '" alt="Selected photo">';
-    return '<div class="moments-compose-thumb-wrap">' + mediaTag +
-      '<button type="button" class="moments-compose-remove-badge" data-local-id="' + f.localId + '">×</button>' +
-      '</div>';
-  }).join('') + '<button type="button" class="moments-compose-add-tile" id="momentsComposeAddTile">+</button>';
-
-  momentsComposeGrid.querySelectorAll('.moments-compose-remove-badge').forEach(btn => {
-    btn.addEventListener('click', () => {
-      momentsStagedFiles = momentsStagedFiles.filter(f => f.localId !== btn.dataset.localId);
-      renderMomentsComposeGrid();
-    });
+function readFileAsDataUrl(file){
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = () => res(reader.result);
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
   });
-  const addTile = document.getElementById('momentsComposeAddTile');
-  if(addTile) addTile.addEventListener('click', () => momentsFileInput.click());
 }
 
-momentsComposeCancelBtn.addEventListener('click', () => {
-  momentsStagedFiles = [];
-  momentsComposeOverlay.classList.add('hidden');
-});
+function renderComposeGrid(){
+  momentsComposeGrid.innerHTML = momentsStagedFiles.map(f => {
+    const tag = f.isVideo ? '<video src="' + f.dataUrl + '"></video>' : '<img src="' + f.dataUrl + '">';
+    return '<div class="moments-compose-thumb-wrap">' + tag + '<button type="button" class="moments-compose-remove-badge" data-id="' + f.localId + '">×</button></div>';
+  }).join('') + '<button type="button" class="moments-compose-add-tile" id="addMoreTile">+</button>';
+
+  momentsComposeGrid.querySelectorAll('.moments-compose-remove-badge').forEach(b => {
+    b.addEventListener('click', () => {
+      momentsStagedFiles = momentsStagedFiles.filter(f => f.localId !== b.dataset.id);
+      renderComposeGrid();
+    });
+  });
+  const addMoreTile = document.getElementById('addMoreTile');
+  if(addMoreTile) addMoreTile.addEventListener('click', () => momentsFileInput.click());
+}
+
+momentsComposeCancelBtn.addEventListener('click', () => { momentsStagedFiles = []; momentsComposeOverlay.classList.add('hidden'); });
 
 momentsComposePostBtn.addEventListener('click', async () => {
-  if(momentsStagedFiles.length === 0) return;
-
+  if(!momentsStagedFiles.length) return;
   momentsComposePostBtn.disabled = true;
 
-  try{
-    // Step 1 — upload each staged file individually (never batching several
-    // files' base64 into one request), collecting the resulting Drive URLs.
+  try {
     const media = [];
     for(let i = 0; i < momentsStagedFiles.length; i++){
-      setMomentsStatus(momentsUploadStatus, 'Uploading ' + (i + 1) + ' of ' + momentsStagedFiles.length + '…');
+      setMomentsStatus(momentsUploadStatus, 'Uploading ' + (i+1) + '/' + momentsStagedFiles.length + '…');
       const f = momentsStagedFiles[i];
       const res = await fetch(APP_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight on Apps Script
-        body: JSON.stringify({
-          action: 'uploadMomentFile',
-          base64Data: f.dataUrl.split('base64,')[1],
-          mimeType: f.mimeType
-        })
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'uploadMomentFile', base64Data: f.dataUrl.split('base64,')[1], mimeType: f.mimeType })
       });
-      if(!res.ok) throw new Error('Upload failed: ' + res.status);
       const data = await res.json();
-      if(!data || data.status !== 'ok') throw new Error('File upload not recorded');
-      media.push({ url: data.url, mimeType: data.mimeType });
+      if(data.status === 'ok') media.push({ url: data.url, thumbnailUrl: data.thumbnailUrl, mimeType: data.mimeType });
     }
 
-    // Step 2 — one final call writes a single Sheet row for the whole post,
-    // holding all the media URLs together plus the caption. Uploader
-    // identity (if this device already has one saved) is sent along
-    // privately — it's logged in the Sheet but never shown publicly and
-    // never returned by the moments API.
     setMomentsStatus(momentsUploadStatus, 'Posting…');
-    const identity = getMyIdentity();
-    const finalRes = await fetch(APP_SCRIPT_URL, {
+    await fetch(APP_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        action: 'uploadMoment',
-        media: media,
-        caption: momentsCaptionInput.value.trim(),
-        uploaderName: identity ? identity.name : '',
-        uploaderMobile: identity ? identity.mobile : ''
-      })
+      body: JSON.stringify({ action: 'uploadMoment', media: media, caption: momentsCaptionInput.value.trim() })
     });
-    if(!finalRes.ok) throw new Error('Upload failed: ' + finalRes.status);
-    const finalData = await finalRes.json();
-    if(!finalData || finalData.status !== 'ok') throw new Error('Upload not recorded');
-
-    // Store moment ID and media for potential YouTube upload
-    pendingMomentId = finalData.recorded;
-    pendingMomentMedia = media;
 
     momentsStagedFiles = [];
+    momentsCaptionInput.value = '';
     momentsComposeOverlay.classList.add('hidden');
-    
-    // Show YouTube share prompt
-    youtubeProgressContainer.style.display = 'none';
-    youtubeStatusMessage.textContent = '';
-    youtubeProgressBar.style.width = '0%';
-    youtubeShareYesBtn.disabled = false;
-    youtubeShareNoBtn.disabled = false;
-    youtubeShareOverlay.classList.remove('hidden');
-    
     loadMoments();
-    loadMomentsStat();
-  }catch(err){
-    console.warn('Moment upload failed:', err);
-    setMomentsStatus(momentsUploadStatus, "Couldn't upload right now — check your connection and try again.", 'error');
-  }finally{
+  } catch(e) {
+    setMomentsStatus(momentsUploadStatus, 'Upload failed, please try again.', 'error');
+  } finally {
     momentsComposePostBtn.disabled = false;
   }
 });
 
-momentsLinkCancelBtn.addEventListener('click', () => {
-  momentsLinkOverlay.classList.add('hidden');
-});
-
+momentsLinkCancelBtn.addEventListener('click', () => momentsLinkOverlay.classList.add('hidden'));
 momentsLinkSubmitBtn.addEventListener('click', async () => {
   const url = momentsLinkInput.value.trim();
-  if(!url || url.indexOf('instagram.com') === -1){
-    setMomentsStatus(momentsLinkStatus, 'Please paste a valid Instagram post/reel link.', 'error');
-    return;
-  }
-
+  if(!url || url.indexOf('instagram.com') === -1){ setMomentsStatus(momentsLinkStatus, 'Invalid Instagram URL', 'error'); return; }
   momentsLinkSubmitBtn.disabled = true;
-  setMomentsStatus(momentsLinkStatus, 'Adding…');
-
-  try{
-    const res = await fetch(APP_SCRIPT_URL, {
+  
+  try {
+    await fetch(APP_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'submitMomentLink', instagramUrl: url })
     });
-    if(!res.ok) throw new Error('Submit failed: ' + res.status);
-    const data = await res.json();
-    if(!data || data.status !== 'ok') throw new Error('Link not recorded');
-
     momentsLinkOverlay.classList.add('hidden');
     loadMoments();
-    loadMomentsStat();
-  }catch(err){
-    console.warn('Moment link submit failed:', err);
-    setMomentsStatus(momentsLinkStatus, "Couldn't add that right now — check your connection and try again.", 'error');
-  }finally{
+  } catch(e) {
+    setMomentsStatus(momentsLinkStatus, 'Failed to add link.', 'error');
+  } finally {
     momentsLinkSubmitBtn.disabled = false;
   }
 });
 
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+let toastTimer;
+function showToast(m){
+  const t = document.getElementById('toast');
+  t.textContent = m; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
 
-
-// Standalone page — load immediately on open, no in-app click trigger.
 loadMoments();
 loadMomentsStat();
-
-// --- Helpers ported over from index.html (used by the code above) ---
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-let toastTimer;
-function showToast(msg){
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
-}
-const MY_IDENTITY_KEY = 'tkg_my_identity';
-function getMyIdentity(){
-  try{
-    const raw = localStorage.getItem(MY_IDENTITY_KEY);
-    return raw ? JSON.parse(raw) : null;
-  }catch(e){
-    return null;
-  }
-}
 </script>
 </body>
 </html>
