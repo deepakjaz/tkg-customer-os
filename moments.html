@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>TKG Moments — The Khichiya Gravy</title>
 <meta name="theme-color" content="#0B0B0C">
-<meta name="description" content="TKG Moments — customer photos and Instagram moments from The Khichiya Gravy">
+<meta name="description" content="TKG Moments — customer photos and stories">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <script async src="https://www.instagram.com/embed.js"></script>
@@ -35,33 +35,15 @@
 
 <style>
 :root{
-  --charcoal:       #160F0C;
-  --tkg-page-bg:     #FFFFFF;
+  --charcoal: #160F0C;
+  --tkg-page-bg: #FFFFFF;
   --tkg-plain-border: #E6E3DD;
-  --tkg-plain-opaque-bg: #1A1815;
-  --tkg-plain-opaque-fg: #FFFFFF;
-  --tkg-marble-bg-color: #0F0E0C;
-  --tkg-marble-image: url('tkg-marble-black.jpg');
-  --tkg-marble-overlay: rgba(0,0,0,0.42);
-  --tkg-marble-border: rgba(0,0,0,0.06);
-  --tkg-marble-ink: #F2EFEA;
-  --tkg-marble-ink-soft: rgba(242,239,234,0.72);
-  --tkg-ctrl-bg: #1A1815;
-  --tkg-ctrl-fg: #FFFFFF;
-  --stone-card:      rgba(255,255,255,0.62);
-  --glass-blur:      18px;
-  --ink:             #1C1815;
-  --ink-soft:        #6B6256;
-  --ember:          #E85D2C;
-  --ember-deep:     #B8431D;
-  --moments-ambient-bg:
-    radial-gradient(ellipse 90% 55% at 50% 8%, rgba(232,93,44,0.30), transparent 60%),
-    radial-gradient(ellipse 70% 45% at 50% 100%, rgba(184,67,29,0.22), transparent 65%),
-    var(--charcoal);
+  --ink: #1C1815;
+  --ink-soft: #6B6256;
+  --ember: #E85D2C;
   --radius-lg: 18px;
   --radius-md: 12px;
   --max-w: 430px;
-  --font-display: 'Charcoal-Display', system-ui, -apple-system, sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -72,6 +54,7 @@ html,body{
   font-family:var(--font-body);
   -webkit-tap-highlight-color:transparent;
   height:100%;
+  width:100%;
 }
 body{
   display:flex;
@@ -79,608 +62,780 @@ body{
   min-height:100vh;
   min-height:100dvh;
 }
-button{font-family:inherit; cursor:pointer;}
+button{font-family:inherit; cursor:pointer; background:none; border:none;}
 input{font-family:inherit;}
 
-.screen{
-  flex:1;
-  display:none;
+.moments-page{
+  width:100%;
+  max-width:var(--max-w);
+  display:flex;
   flex-direction:column;
-  padding:0 20px 28px;
-  animation:fade-in 0.35s ease;
+  min-height:100vh;
 }
-.screen.active{display:flex;}
-#screen-moments{ padding:0 !important; }
 
-/* ISSUE 1 FIX: Mobile-first responsive layout */
-.moments-topbar{
-  position:fixed;
-  top:0;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:20;
+/* TOP BAR */
+.moments-header{
+  background:#fff;
+  border-bottom:1px solid var(--tkg-plain-border);
+  padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
-  background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0));
-  pointer-events:none;
-  width:100%;
-  max-width:var(--max-w);
-}
-.moments-stat{
-  pointer-events:auto;
-  color:#fff;
-  font-size:0.75rem;
-  font-weight:700;
-  background:rgba(28,24,21,0.45);
-  padding:8px 14px;
-  border-radius:20px;
+  z-index:20;
 }
 
-/* ISSUE 1 FIX: Container for full-bleed background, internal viewport is mobile-only on desktop */
-.moments-viewer-container{
-  position:fixed;
-  inset:0;
-  background:var(--moments-ambient-bg);
+.moments-header-left{
   display:flex;
-  justify-content:center;
+  align-items:center;
+  gap:12px;
+  cursor:pointer;
 }
 
-/* ISSUE 1 FIX: Responsive viewer — fullscreen on mobile, 430px centered on desktop */
-.moments-viewer{
-  width:100%;
-  height:100%;
-  overflow-y:auto;
-  background:var(--moments-ambient-bg);
-  -webkit-overflow-scrolling:touch;
-  scroll-behavior:smooth;
-}
-
-/* ISSUE 3 FIX: Remove scroll-snap-stop: always to prevent topbar blanking on scroll */
-@media (min-width: 480px){
-  .moments-viewer{
-    max-width:var(--max-w);
-    height:100%;
-  }
-}
-
-.moments-slide{
-  position:relative;
-  width:100%;
-  height:100vh;
-  height:100dvh;
+.moments-header-left-logo{
+  width:36px;
+  height:36px;
+  border-radius:6px;
+  background:#E85D2C;
   display:flex;
   align-items:center;
   justify-content:center;
-  overflow:hidden;
-  background:var(--moments-ambient-bg);
-  flex-shrink:0;
-}
-.moments-slide-media{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-/* REELS-STYLE VIDEO CONTAINER */
-.moments-video-wrap {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: #000;
-}
-
-/* Offset iframe vertically to crop out Google Drive's bulky overlay controls */
-.moments-video-wrap iframe {
-  position: absolute;
-  top: -65px;
-  left: 0;
-  width: 100%;
-  height: calc(100% + 125px);
-  border: none;
-  pointer-events: auto;
-}
-
-.moments-slide-media-scroller{
-  display:flex;
-  width:100%;
-  height:100%;
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-}
-.moments-slide-media-scroller > .moments-slide-media, 
-.moments-slide-media-scroller > .moments-video-wrap {
-  flex:0 0 100%;
-}
-.moments-slide-media-dots{
-  position:absolute;
-  top:calc(env(safe-area-inset-top, 0px) + 16px);
-  left:0; right:0;
-  display:flex;
-  justify-content:center;
-  gap:5px;
-  z-index:5;
-  pointer-events:none;
-}
-.moments-slide-media-dots span{
-  width:5px; height:5px;
-  border-radius:50%;
-  background:rgba(255,255,255,0.45);
-}
-.moments-slide-gradient{
-  position:absolute;
-  left:0; right:0; bottom:0;
-  height:35%;
-  background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.75) 100%);
-  pointer-events:none;
-}
-.moments-slide-caption{
-  position:absolute;
-  left:16px; right:76px; bottom:calc(env(safe-area-inset-bottom, 0px) + 78px);
+  font-weight:bold;
   color:#fff;
-  font-size:0.9375rem;
-  line-height:1.4;
-  text-shadow:0 1px 4px rgba(0,0,0,0.4);
-  pointer-events:none;
+  font-size:16px;
 }
-.moments-slide-actions{
-  position:absolute;
-  right:14px; bottom:calc(env(safe-area-inset-bottom, 0px) + 78px);
+
+.moments-header-left-text{
+  font-size:12px;
+  font-weight:600;
+  color:var(--ink);
+  line-height:1.2;
+}
+
+.moments-stat{
+  font-size:11px;
+  color:var(--ink-soft);
+  font-weight:700;
+}
+
+/* MAIN SCROLLABLE AREA */
+.moments-scroll{
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* CARD */
+.moments-card{
+  background:#fff;
+  border-radius:12px;
+  border:0.5px solid var(--tkg-plain-border);
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.moments-card:active{
+  transform:scale(0.98);
+}
+
+.moments-card-media{
+  width:100%;
+  aspect-ratio:1;
+  object-fit:cover;
+  display:block;
+  background:#f5f5f5;
+}
+
+.moments-card-content{
+  padding:12px;
+  display:flex;
+  gap:12px;
+}
+
+.moments-card-text{
+  flex:1;
+}
+
+.moments-card-caption{
+  font-size:14px;
+  font-weight:500;
+  color:var(--ink);
+  margin-bottom:4px;
+  line-height:1.3;
+}
+
+.moments-card-meta{
+  font-size:12px;
+  color:var(--ink-soft);
+}
+
+.moments-card-actions{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  align-items:center;
+}
+
+.moments-action-btn{
+  font-size:18px;
+  cursor:pointer;
+  transition:transform 0.15s ease;
+  background:none;
+  border:none;
+  padding:0;
+  width:24px;
+  height:24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.moments-action-btn:active{
+  transform:scale(1.15);
+}
+
+/* EMPTY STATE */
+.moments-empty{
+  text-align:center;
+  padding:48px 32px;
+  color:var(--ink-soft);
+}
+
+/* LOADING */
+.moments-loading{
+  text-align:center;
+  padding:48px 32px;
+  color:var(--ink-soft);
+  font-size:14px;
+}
+
+/* BOTTOM NAV */
+.moments-bottom-nav{
+  background:#fff;
+  border-top:0.5px solid var(--tkg-plain-border);
+  padding:8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  height:calc(70px + env(safe-area-inset-bottom, 0px));
+  z-index:25;
+}
+
+.moments-nav-btn{
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:16px;
-  z-index:15;
-}
-.moments-heart-btn, .moments-share-btn{
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  border:1px solid rgba(255,255,255,0.15);
-  background:rgba(0,0,0,0.38);
-  backdrop-filter:blur(4px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:transform 0.18s ease, background 0.18s ease;
-}
-.moments-heart-btn svg, .moments-share-btn svg{
-  width:21px; height:21px;
-}
-.moments-heart-btn.liked{
-  background:var(--ember);
-  border-color:transparent;
-  transform:scale(1.08);
-}
-.moments-empty, .moments-loading{
-  position:fixed;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  color:#fff;
-  background:#000;
-  font-size:0.875rem;
-  padding:32px 16px;
-  z-index:10;
-}
-.moments-fab-row{
-  position:fixed;
-  left:16px; right:16px;
-  bottom:calc(env(safe-area-inset-bottom, 0px) + 16px);
-  z-index:20;
-  display:flex;
-  gap:10px;
-  max-width:calc(var(--max-w) - 32px);
-  left:50%;
-  transform:translateX(-50%);
-}
-.moments-fab{
-  flex:1;
-  background:var(--ember);
-  color:#fff;
+  gap:4px;
+  cursor:pointer;
+  text-decoration:none;
+  color:var(--ink-soft);
+  font-size:11px;
+  transition:color 0.2s ease;
+  padding:4px 8px;
+  background:none;
   border:none;
-  border-radius:24px;
-  padding:13px;
-  font-size:0.8125rem;
-  font-weight:700;
-  box-shadow:0 6px 16px -6px rgba(0,0,0,0.5);
 }
-.moments-compose-overlay{
+
+.moments-nav-btn:active, .moments-nav-btn.active{
+  color:var(--ember);
+}
+
+.moments-nav-btn svg{
+  width:22px;
+  height:22px;
+}
+
+/* FULL-SCREEN VIEWER */
+.moments-viewer-overlay{
   position:fixed;
   inset:0;
-  z-index:30;
-  background:rgba(0,0,0,0.75);
+  background:#000;
+  z-index:100;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.3s ease;
+  display:flex;
+  flex-direction:column;
+}
+
+.moments-viewer-overlay.open{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.moments-viewer-header{
+  background:rgba(0,0,0,0.7);
+  color:#fff;
+  padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  z-index:101;
+}
+
+.moments-viewer-close{
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:24px;
+  cursor:pointer;
+  padding:0;
+  width:32px;
+  height:32px;
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:20px;
 }
-.moments-compose-overlay.hidden{ display:none; }
-.moments-compose-card{
+
+.moments-viewer-content{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:auto;
+  position:relative;
+}
+
+.moments-viewer-media{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+
+.moments-viewer-footer{
+  background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.7));
+  color:#fff;
+  padding:20px 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  z-index:101;
+}
+
+.moments-viewer-caption{
+  font-size:15px;
+  line-height:1.4;
+  margin-bottom:16px;
+}
+
+.moments-viewer-actions{
+  display:flex;
+  gap:12px;
+}
+
+.moments-viewer-btn{
+  flex:1;
+  padding:12px;
+  border-radius:8px;
+  border:none;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:opacity 0.2s ease;
+}
+
+.moments-viewer-btn-primary{
+  background:var(--ember);
+  color:#fff;
+}
+
+.moments-viewer-btn-primary:active{
+  opacity:0.8;
+}
+
+.moments-viewer-btn-ghost{
+  background:rgba(255,255,255,0.2);
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.3);
+}
+
+/* MODALS */
+.moments-modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:200;
+  padding:20px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.3s ease;
+}
+
+.moments-modal-overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.moments-modal-card{
+  background:#fff;
+  border-radius:var(--radius-lg);
+  padding:24px;
   width:100%;
   max-width:360px;
-  background:var(--stone-card);
-  backdrop-filter:blur(var(--glass-blur));
-  -webkit-backdrop-filter:blur(var(--glass-blur));
-  border-radius:var(--radius-lg);
-  padding:18px;
-  max-height:90vh;
-  overflow-y:auto;
+  box-shadow:0 10px 40px rgba(0,0,0,0.2);
 }
+
+.moments-modal-title{
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:16px;
+  text-align:center;
+  color:var(--ink);
+}
+
+.moments-modal-btn{
+  width:100%;
+  padding:14px;
+  border-radius:10px;
+  border:1px solid var(--tkg-plain-border);
+  font-weight:600;
+  margin-bottom:10px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  font-size:14px;
+  background:#fff;
+  color:var(--ink);
+}
+
+.moments-modal-btn-dark{
+  background:var(--ink);
+  color:#fff;
+  border:none;
+}
+
+.moments-modal-btn-dark:active{
+  opacity:0.9;
+}
+
+.moments-modal-btn-outline{
+  background:transparent;
+  color:var(--ember);
+  border:1.5px solid var(--ember);
+}
+
+.moments-modal-btn-outline:active{
+  background:rgba(232,93,44,0.05);
+}
+
+.moments-modal-btn-ghost{
+  background:none;
+  border:none;
+  color:var(--ink-soft);
+  padding:12px;
+}
+
+.moments-modal-input{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid var(--tkg-plain-border);
+  font-size:14px;
+  margin-bottom:10px;
+  font-family:inherit;
+}
+
 .moments-compose-grid{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
   gap:8px;
   margin-bottom:14px;
 }
-.moments-compose-thumb-wrap{
-  position:relative;
-  width:100%;
+
+.moments-compose-thumb{
   aspect-ratio:1;
-  border-radius:var(--radius-md);
+  border-radius:8px;
   overflow:hidden;
-  background:#000;
+  background:#f0f0f0;
+  position:relative;
 }
-.moments-compose-thumb-wrap img, .moments-compose-thumb-wrap video{
-  width:100%; height:100%; object-fit:cover; display:block;
-}
-.moments-compose-remove-badge{
-  position:absolute; top:4px; right:4px;
-  width:22px; height:22px; border-radius:50%; border:none;
-  background:rgba(232,93,44,0.95); color:#fff; font-size:0.8rem; font-weight:700;
-  display:flex; align-items:center; justify-content:center;
-}
-.moments-compose-add-tile{
-  width:100%; aspect-ratio:1; border-radius:var(--radius-md);
-  border:2px dashed rgba(0,0,0,0.15); background:none;
-  display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:var(--ink-soft);
-}
-.moments-status{ font-size:0.75rem; color:var(--ink-soft); margin-top:8px; }
-.moments-status.error{ color:var(--ember-deep); }
 
-.toast{
-  position:fixed; bottom:24px; left:50%;
+.moments-compose-thumb img,
+.moments-compose-thumb video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.moments-compose-remove{
+  position:absolute;
+  top:4px;
+  right:4px;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:var(--ember);
+  color:#fff;
+  border:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-weight:bold;
+  font-size:14px;
+}
+
+.moments-compose-add{
+  aspect-ratio:1;
+  border:2px dashed var(--tkg-plain-border);
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:20px;
+  color:var(--ink-soft);
+  background:none;
+}
+
+.moments-modal-status{
+  font-size:12px;
+  color:var(--ink-soft);
+  margin-top:8px;
+}
+
+.moments-modal-status.error{
+  color:var(--ember);
+}
+
+/* TOAST */
+.moments-toast{
+  position:fixed;
+  bottom:calc(env(safe-area-inset-bottom, 0px) + 76px);
+  left:50%;
   transform:translateX(-50%) translateY(20px);
-  background:var(--tkg-plain-opaque-bg); color:var(--tkg-plain-opaque-fg);
-  padding:13px 20px; border-radius:var(--radius-md); font-size:0.8125rem; font-weight:600;
-  opacity:0; pointer-events:none; transition:all 0.25s ease; z-index:200;
+  background:var(--ink);
+  color:#fff;
+  padding:12px 20px;
+  border-radius:8px;
+  font-size:13px;
+  opacity:0;
+  pointer-events:none;
+  transition:all 0.25s ease;
+  z-index:150;
+  font-weight:500;
 }
-.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
-.hidden{display:none !important;}
 
-@keyframes fade-in{
-  from{ opacity:0; }
-  to{ opacity:1; }
+.moments-toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* DARK THEME */
+[data-tkg-theme="dark"]{
+  --tkg-page-bg: #0F0E0C;
+  --tkg-plain-border: #2a2420;
+  --ink: #F2EFEA;
+  --ink-soft: #9C9286;
+}
+
+[data-tkg-theme="dark"] .moments-header,
+[data-tkg-theme="dark"] .moments-card,
+[data-tkg-theme="dark"] .moments-modal-card,
+[data-tkg-theme="dark"] .moments-bottom-nav{
+  background:var(--tkg-page-bg);
+}
+
+[data-tkg-theme="dark"] .moments-modal-btn-dark{
+  background:#F2EFEA;
+  color:#0F0E0C;
 }
 </style>
 </head>
 <body>
 
-<div id="toast" class="toast"></div>
+<div class="moments-page">
+  <!-- HEADER -->
+  <header class="moments-header">
+    <div class="moments-header-left" id="headerMenuBtn">
+      <div class="moments-header-left-logo">TKG</div>
+      <div class="moments-header-left-text">THE KHICHIYA<br>GRAVY</div>
+    </div>
+    <div class="moments-stat" id="momentsStat">🔥 34+</div>
+  </header>
 
-<section class="screen active" id="screen-moments">
-  <div class="moments-topbar">
-    <button type="button" id="momentsMenuBtn" style="display:flex; align-items:center; gap:8px; background:none; border:none; cursor:pointer; pointer-events:auto;">
-      <img src="./icon-192.png" alt="TKG Logo" style="width:36px; height:36px; border-radius:6px;">
-      <span style="font-size:14px; font-weight:500; color:#1C1815;">Open Menu</span>
+  <!-- MAIN SCROLL AREA -->
+  <div class="moments-scroll" id="momentsScroll"></div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="moments-bottom-nav">
+    <a href="./index.html" class="moments-nav-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Menu</span>
+    </a>
+    <button class="moments-nav-btn active" id="momentsNavBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      <span>Moments</span>
     </button>
-    <div class="moments-stat" id="momentsStat"></div>
+    <a href="./khichiya-runner.html" class="moments-nav-btn">
+      <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span>TKR</span>
+    </a>
+    <a href="https://www.instagram.com/the.khichiyagravy" target="_blank" class="moments-nav-btn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.011 4.85.07 1.366.062 2.633.327 3.608 1.3.975.975 1.238 2.242 1.3 3.608.059 1.266.07 1.646.07 4.85s-.011 3.584-.07 4.85c-.062 1.366-.327 2.633-1.3 3.608-.975.975-2.242 1.238-3.608 1.3-1.266.059-1.646.07-4.85.07s-3.584-.011-4.85-.07c-1.366-.062-2.633-.327-3.608-1.3-.975-.975-1.238-2.242-1.3-3.608C2.173 15.584 2.162 15.204 2.162 12s.011-3.584.07-4.85c.062-1.366.327-2.633 1.3-3.608.975-.975 2.242-1.238 3.608-1.3 1.266-.059 1.646-.07 4.85-.07m0-2.163C8.717 0 8.283.012 7.03.072 5.776.131 4.531.393 3.635 1.289 2.739 2.185 2.477 3.43 2.418 4.684 2.358 5.938 2.346 6.372 2.346 12s.012 6.062.072 7.315c.059 1.254.321 2.499 1.217 3.395.896.896 2.141 1.158 3.395 1.217 1.254.06 1.688.072 7.315.072s6.062-.012 7.315-.072c1.254-.059 2.499-.321 3.395-1.217.896-.896 1.158-2.141 1.217-3.395.06-1.254.072-1.688.072-7.315s-.012-6.062-.072-7.315c-.059-1.254-.321-2.499-1.217-3.395C19.284.393 18.039.131 16.785.072 15.531.012 15.097 0 12 0z" fill="currentColor"/></svg>
+      <span>Instagram</span>
+    </a>
+  </nav>
+
+  <!-- TOAST -->
+  <div class="moments-toast" id="toast"></div>
+</div>
+
+<!-- FULL-SCREEN VIEWER -->
+<div class="moments-viewer-overlay" id="viewerOverlay">
+  <div class="moments-viewer-header">
+    <div></div>
+    <button class="moments-viewer-close" id="viewerCloseBtn">✕</button>
   </div>
-
-  <!-- ISSUE 1 FIX: Wrapper container for responsive layout -->
-  <div class="moments-viewer-container">
-    <div class="moments-viewer" id="momentsViewer"></div>
+  <div class="moments-viewer-content">
+    <img class="moments-viewer-media" id="viewerMedia" alt="Moment">
   </div>
-
-  <div class="moments-empty" id="momentsEmptyState" style="display:none;">No moments yet — be the first to share one!</div>
-  <div class="moments-loading" id="momentsLoadingState">Loading gallery…</div>
-
-  <div class="moments-fab-row">
-    <input type="file" accept="image/*,video/*" multiple id="momentsFileInput" style="display:none;">
-    <button type="button" class="moments-fab" id="momentShareBtn">Share your moment</button>
-  </div>
-
-  <!-- Compose Modal -->
-  <div class="moments-compose-overlay hidden" id="momentsComposeOverlay">
-    <div class="moments-compose-card">
-      <div class="moments-compose-grid" id="momentsComposeGrid"></div>
-      <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-bottom:6px; display:block;" for="momentsCaptionInput">Add a caption? (optional)</label>
-      <input style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; font-size:0.9rem;" id="momentsCaptionInput" type="text" placeholder="Say something about this moment" maxlength="200">
-      <div class="moments-status" id="momentsUploadStatus"></div>
-      <button type="button" id="momentsComposePostBtn" style="width:100%; margin-top:12px; padding:14px; border-radius:10px; border:none; background:#1A1815; color:#fff; font-weight:700;">Post</button>
-      <button type="button" id="momentsComposeCancelBtn" style="width:100%; margin-top:8px; padding:12px; border-radius:10px; border:1px solid #ccc; background:none; font-weight:600;">Cancel</button>
+  <div class="moments-viewer-footer">
+    <div class="moments-viewer-caption" id="viewerCaption"></div>
+    <div class="moments-viewer-actions">
+      <button class="moments-viewer-btn moments-viewer-btn-primary" id="viewerHeartBtn">♡ Like</button>
+      <button class="moments-viewer-btn moments-viewer-btn-ghost" id="viewerShareBtn">→ Share</button>
     </div>
   </div>
+</div>
 
-  <!-- Instagram Link Modal -->
-  <div class="moments-compose-overlay hidden" id="momentsLinkOverlay">
-    <div class="moments-compose-card">
-      <div style="font-weight:800; font-size:1.1rem; margin-bottom:12px;">Share Instagram link</div>
-      <input style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;" id="momentsLinkInput" type="url" placeholder="https://www.instagram.com/p/...">
-      <div class="moments-status" id="momentsLinkStatus"></div>
-      <button type="button" id="momentsLinkSubmitBtn" style="width:100%; margin-top:12px; padding:14px; border-radius:10px; border:none; background:#E85D2C; color:#fff; font-weight:700;">Add to Gallery</button>
-      <button type="button" id="momentsLinkCancelBtn" style="width:100%; margin-top:8px; padding:12px; border-radius:10px; border:none; background:none;">Cancel</button>
-    </div>
+<!-- CHOICE MODAL -->
+<div class="moments-modal-overlay" id="choiceModal">
+  <div class="moments-modal-card">
+    <div class="moments-modal-title">Share your moment</div>
+    <button class="moments-modal-btn moments-modal-btn-dark" id="choicePhotoBtn">A memory here (Photo/Video)</button>
+    <button class="moments-modal-btn moments-modal-btn-outline" id="choiceInstagramBtn">Your Instagram post</button>
+    <button class="moments-modal-btn moments-modal-btn-ghost" id="choiceCancelBtn">Dismiss</button>
   </div>
+</div>
 
-  <!-- Choice Modal -->
-  <div class="moments-compose-overlay hidden" id="momentsChoiceOverlay">
-    <div class="moments-compose-card" style="max-width:320px;">
-      <div style="font-weight:800; font-size:1.1rem; margin-bottom:16px; text-align:center;">Share your moment</div>
-      <button type="button" id="choiceMemoryBtn" style="width:100%; background:#1A1815; color:#fff; border:none; border-radius:12px; padding:16px; font-weight:600; margin-bottom:10px;">A memory here (Photo/Video)</button>
-      <button type="button" id="choiceInstagramBtn" style="width:100%; background:transparent; color:#E85D2C; border:1.5px solid #E85D2C; border-radius:12px; padding:16px; font-weight:600;">Your Instagram post</button>
-      <button type="button" id="choiceCancelBtn" style="width:100%; background:none; border:none; padding:12px; color:#9C9286; margin-top:8px;">Dismiss</button>
-    </div>
+<!-- COMPOSE MODAL -->
+<div class="moments-modal-overlay" id="composeModal">
+  <div class="moments-modal-card">
+    <div class="moments-modal-title">Add your moment</div>
+    <div class="moments-compose-grid" id="composeGrid"></div>
+    <label style="font-size:12px; font-weight:700; text-transform:uppercase; display:block; margin-bottom:6px; color:var(--ink-soft);">Caption (optional)</label>
+    <input class="moments-modal-input" id="captionInput" type="text" placeholder="Say something…" maxlength="200">
+    <div class="moments-modal-status" id="composeStatus"></div>
+    <button class="moments-modal-btn moments-modal-btn-dark" id="postBtn">Post</button>
+    <button class="moments-modal-btn moments-modal-btn-ghost" id="composeCancelBtn">Cancel</button>
   </div>
-</section>
+</div>
+
+<!-- INSTAGRAM LINK MODAL -->
+<div class="moments-modal-overlay" id="instagramModal">
+  <div class="moments-modal-card">
+    <div class="moments-modal-title">Share Instagram link</div>
+    <input class="moments-modal-input" id="instagramInput" type="url" placeholder="https://www.instagram.com/p/...">
+    <div class="moments-modal-status" id="instagramStatus"></div>
+    <button class="moments-modal-btn moments-modal-btn-dark" id="instagramSubmitBtn">Add to Gallery</button>
+    <button class="moments-modal-btn moments-modal-btn-ghost" id="instagramCancelBtn">Cancel</button>
+  </div>
+</div>
+
+<!-- HIDDEN FILE INPUT -->
+<input type="file" id="fileInput" accept="image/*,video/*" multiple style="display:none;">
 
 <script>
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 
-const momentsMenuBtn = document.getElementById('momentsMenuBtn');
+// DOM
+const headerMenuBtn = document.getElementById('headerMenuBtn');
 const momentsStat = document.getElementById('momentsStat');
-const momentsViewer = document.getElementById('momentsViewer');
-const momentsEmptyState = document.getElementById('momentsEmptyState');
-const momentsLoadingState = document.getElementById('momentsLoadingState');
-const momentsFileInput = document.getElementById('momentsFileInput');
-const momentShareBtn = document.getElementById('momentShareBtn');
-const momentsComposeOverlay = document.getElementById('momentsComposeOverlay');
-const momentsComposeGrid = document.getElementById('momentsComposeGrid');
-const momentsCaptionInput = document.getElementById('momentsCaptionInput');
-const momentsUploadStatus = document.getElementById('momentsUploadStatus');
-const momentsComposePostBtn = document.getElementById('momentsComposePostBtn');
-const momentsComposeCancelBtn = document.getElementById('momentsComposeCancelBtn');
-const momentsLinkOverlay = document.getElementById('momentsLinkOverlay');
-const momentsLinkInput = document.getElementById('momentsLinkInput');
-const momentsLinkStatus = document.getElementById('momentsLinkStatus');
-const momentsLinkSubmitBtn = document.getElementById('momentsLinkSubmitBtn');
-const momentsLinkCancelBtn = document.getElementById('momentsLinkCancelBtn');
-const momentsChoiceOverlay = document.getElementById('momentsChoiceOverlay');
-const choiceMemoryBtn = document.getElementById('choiceMemoryBtn');
+const momentsScroll = document.getElementById('momentsScroll');
+const fileInput = document.getElementById('fileInput');
+const toast = document.getElementById('toast');
+
+// Viewer
+const viewerOverlay = document.getElementById('viewerOverlay');
+const viewerCloseBtn = document.getElementById('viewerCloseBtn');
+const viewerMedia = document.getElementById('viewerMedia');
+const viewerCaption = document.getElementById('viewerCaption');
+const viewerHeartBtn = document.getElementById('viewerHeartBtn');
+const viewerShareBtn = document.getElementById('viewerShareBtn');
+
+// Modals
+const choiceModal = document.getElementById('choiceModal');
+const composeModal = document.getElementById('composeModal');
+const instagramModal = document.getElementById('instagramModal');
+
+// Buttons
+const choicePhotoBtn = document.getElementById('choicePhotoBtn');
 const choiceInstagramBtn = document.getElementById('choiceInstagramBtn');
 const choiceCancelBtn = document.getElementById('choiceCancelBtn');
+const composeGrid = document.getElementById('composeGrid');
+const captionInput = document.getElementById('captionInput');
+const composeStatus = document.getElementById('composeStatus');
+const postBtn = document.getElementById('postBtn');
+const composeCancelBtn = document.getElementById('composeCancelBtn');
+const instagramInput = document.getElementById('instagramInput');
+const instagramStatus = document.getElementById('instagramStatus');
+const instagramSubmitBtn = document.getElementById('instagramSubmitBtn');
+const instagramCancelBtn = document.getElementById('instagramCancelBtn');
 
-let momentsStagedFiles = [];
-
-/* ISSUE 2 FIX: Pagination state */
+// State
+let stagedFiles = [];
 let allMoments = [];
+const MOMENTS_PER_BATCH = 8;
 let momentsOffset = 0;
-const MOMENTS_PER_BATCH = 5;
-let isLoadingMoreMoments = false;
+let isLoadingMore = false;
+let currentViewerMomentId = null;
 
-momentsMenuBtn.addEventListener('click', () => { window.location.href = './index.html'; });
+// DEMO DATA
+const demoMoments = [
+  { id: 'm1', type: 'photo', caption: 'Delicious khichiya at the event', media: [{ url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-size=%2216%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EImage%3C/text%3E%3C/svg%3E' }] },
+  { id: 'm2', type: 'photo', caption: 'Team at TKG kitchen', media: [{ url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-size=%2216%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EImage%3C/text%3E%3C/svg%3E' }] },
+  { id: 'm3', type: 'photo', caption: 'Customer enjoying the meal', media: [{ url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-size=%2216%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EImage%3C/text%3E%3C/svg%3E' }] },
+  { id: 'm4', type: 'photo', caption: 'Beautiful sunset at TKG', media: [{ url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-size=%2216%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EImage%3C/text%3E%3C/svg%3E' }] },
+  { id: 'm5', type: 'photo', caption: 'Fresh ingredients from local market', media: [{ url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-size=%2216%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EImage%3C/text%3E%3C/svg%3E' }] }
+];
 
-function setMomentsStatus(el, text, kind){
-  el.textContent = text || '';
-  el.classList.remove('error');
-  if(kind === 'error') el.classList.add('error');
+// NAV
+headerMenuBtn.addEventListener('click', () => window.location.href = './index.html');
+
+// MODALS
+choicePhotoBtn.addEventListener('click', () => { choiceModal.classList.remove('show'); fileInput.click(); });
+choiceInstagramBtn.addEventListener('click', () => { choiceModal.classList.remove('show'); instagramModal.classList.add('show'); });
+choiceCancelBtn.addEventListener('click', () => choiceModal.classList.remove('show'));
+composeCancelBtn.addEventListener('click', () => { stagedFiles = []; composeModal.classList.remove('show'); });
+instagramCancelBtn.addEventListener('click', () => instagramModal.classList.remove('show'));
+viewerCloseBtn.addEventListener('click', () => viewerOverlay.classList.remove('open'));
+
+// LIKES
+const LIKED_KEY = 'tkg_liked_moments';
+function getLiked(){
+  try{ return new Set(JSON.parse(localStorage.getItem(LIKED_KEY) || '[]')); } catch(e){ return new Set(); }
 }
-
-async function loadMomentsStat(){
-  try{
-    const [cRes, sRes] = await Promise.all([
-      fetch(APP_SCRIPT_URL + '?action=customers'),
-      fetch(APP_SCRIPT_URL + '?action=runnerScores')
-    ]);
-    const cData = await cRes.json();
-    const sData = await sRes.json();
-    const total = ((cData.customers || []).length) + ((sData.scores || []).length);
-    if(total > 0) momentsStat.textContent = '🔥 ' + total + '+ part of the TKG story';
-  }catch(e){}
-}
-
-const MOMENTS_LIKED_KEY = 'tkg_liked_moments';
-function getLikedMomentIds(){
-  try{ return new Set(JSON.parse(localStorage.getItem(MOMENTS_LIKED_KEY) || '[]')); } catch(e){ return new Set(); }
-}
-function toggleLikedMomentId(id){
-  const liked = getLikedMomentIds();
+function toggleLike(id){
+  const liked = getLiked();
   if(liked.has(id)) liked.delete(id); else liked.add(id);
-  try{ localStorage.setItem(MOMENTS_LIKED_KEY, JSON.stringify(Array.from(liked))); }catch(e){}
+  try{ localStorage.setItem(LIKED_KEY, JSON.stringify(Array.from(liked))); }catch(e){}
   return liked.has(id);
 }
 
-function getDriveFileId(url) {
-  if (!url) return null;
-  const matchD = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-  const matchId = url.match(/[?&]id=([a-zA-Z0-9-_]+)/);
-  if (matchD && matchD[1]) return matchD[1];
-  if (matchId && matchId[1]) return matchId[1];
-  return null;
-}
-
-/* ISSUE 2 FIX: Fetch all moments once, render in batches */
-async function fetchAllMoments(){
-  try{
-    const res = await fetch(APP_SCRIPT_URL + '?action=moments');
-    const data = await res.json();
-    
-    if(!data || data.status !== 'ok' || !data.moments.length){
-      allMoments = [];
-      return;
-    }
-    
-    allMoments = data.moments.slice().reverse();
-  }catch(err){
-    allMoments = [];
-  }
-}
-
-/* ISSUE 2 FIX: Render a batch of moments and attach event listeners */
-function renderMomentsBatch(){
-  const likedIds = getLikedMomentIds();
+// RENDER CARDS
+function renderBatch(){
+  const liked = getLiked();
   const batch = allMoments.slice(momentsOffset, momentsOffset + MOMENTS_PER_BATCH);
   
-  const html = batch.map(m => {
-    const mediaList = (m.media && m.media.length) ? m.media : (m.imageUrl ? [{ url: m.imageUrl, mimeType: 'image/jpeg' }] : []);
-    
-    if(m.type === 'photo' && mediaList.length){
-      const isLiked = likedIds.has(m.id);
-      const mediaHtml = mediaList.map(item => {
-        const isVideo = item.mimeType && item.mimeType.indexOf('video/') === 0;
-
-        if(isVideo){
-          const fileId = getDriveFileId(item.url);
-          const embedUrl = fileId 
-            ? 'https://drive.google.com/file/d/' + fileId + '/preview' 
-            : item.url;
-
-          return '<div class="moments-video-wrap">' +
-            '<iframe src="' + escapeHtml(embedUrl) + '" allow="autoplay"></iframe>' +
-          '</div>';
-        }
-        return '<img class="moments-slide-media" src="' + escapeHtml(item.url) + '" alt="TKG moment" loading="lazy">';
-      }).join('');
-
-      const dotsHtml = mediaList.length > 1 ? '<div class="moments-slide-media-dots">' + mediaList.map(() => '<span></span>').join('') + '</div>' : '';
-
-      return '<div class="moments-slide" data-id="' + escapeHtml(m.id) + '">' +
-        dotsHtml +
-        '<div class="moments-slide-media-scroller">' + mediaHtml + '</div>' +
-        '<div class="moments-slide-gradient"></div>' +
-        (m.caption ? '<div class="moments-slide-caption">' + escapeHtml(m.caption) + '</div>' : '') +
-        '<div class="moments-slide-actions">' +
-          '<button type="button" class="moments-heart-btn' + (isLiked ? ' liked' : '') + '" data-id="' + escapeHtml(m.id) + '">' +
-            '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-6.7-4.35-9.3-8.28C1.1 10.4 1.6 7.4 4 5.6c2.1-1.6 4.9-1.2 6.6.7L12 7.7l1.4-1.4c1.7-1.9 4.5-2.3 6.6-.7 2.4 1.8 2.9 4.8 1.3 7.12C18.7 16.65 12 21 12 21z"/></svg>' +
-          '</button>' +
-          '<button type="button" class="moments-share-btn" data-url="' + escapeHtml(mediaList[0].url) + '">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>' +
-          '</button>' +
-        '</div>' +
-      '</div>';
-    }
-
-    if(m.type === 'instagram' && m.instagramUrl){
-      return '<div class="moments-slide">' +
-        '<div class="moments-slide-embed"><blockquote class="instagram-media" data-instgrm-permalink="' + escapeHtml(m.instagramUrl) + '" data-instgrm-version="14"></blockquote></div>' +
-      '</div>';
-    }
-    return '';
-  }).join('');
-
-  momentsViewer.innerHTML += html;
-
-  if(window.instgrm && window.instgrm.Embeds) window.instgrm.Embeds.process();
-
-  /* Attach event listeners to newly rendered moments */
-  momentsViewer.querySelectorAll('.moments-slide').forEach(slide => {
-    const hasListeners = slide.dataset.listenersAttached === 'true';
-    if(hasListeners) return;
-    
-    slide.dataset.listenersAttached = 'true';
-    
-    const heartBtn = slide.querySelector('.moments-heart-btn');
-    if(heartBtn){
+  batch.forEach(m => {
+    if(m.type === 'photo' && m.media && m.media.length){
+      const media = m.media[0];
+      const isLiked = liked.has(m.id);
+      
+      const card = document.createElement('div');
+      card.className = 'moments-card';
+      card.innerHTML = `
+        <img class="moments-card-media" src="${escapeHtml(media.url)}" alt="Moment" loading="lazy">
+        <div class="moments-card-content">
+          <div class="moments-card-text">
+            <div class="moments-card-caption">${escapeHtml(m.caption || '')}</div>
+            <div class="moments-card-meta">Shared by TKG family</div>
+          </div>
+          <div class="moments-card-actions">
+            <button class="moments-action-btn moments-heart-btn ${isLiked ? 'liked' : ''}" data-id="${m.id}" style="font-size:18px;">${isLiked ? '♥' : '♡'}</button>
+            <button class="moments-action-btn moments-share-btn" data-url="${escapeHtml(media.url)}" style="font-size:18px;">→</button>
+          </div>
+        </div>
+      `;
+      
+      card.addEventListener('click', (e) => {
+        if(e.target.closest('.moments-action-btn')) return;
+        openViewer(m);
+      });
+      
+      const heartBtn = card.querySelector('.moments-heart-btn');
       heartBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const nowLiked = toggleLikedMomentId(heartBtn.dataset.id);
-        heartBtn.classList.toggle('liked', nowLiked);
+        const isNowLiked = toggleLike(heartBtn.dataset.id);
+        heartBtn.textContent = isNowLiked ? '♥' : '♡';
+        heartBtn.classList.toggle('liked', isNowLiked);
       });
-    }
-
-    const shareBtn = slide.querySelector('.moments-share-btn');
-    if(shareBtn){
+      
+      const shareBtn = card.querySelector('.moments-share-btn');
       shareBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if(navigator.share) navigator.share({ title: 'TKG Moments', url: shareBtn.dataset.url });
         else { navigator.clipboard.writeText(shareBtn.dataset.url); showToast('Link copied!'); }
       });
-    }
-
-    /* Pause iframes when scrolling away */
-    const videoWrap = slide.querySelector('.moments-video-wrap');
-    if(videoWrap){
-      const iframeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          const iframe = entry.target.querySelector('iframe');
-          if (!iframe) return;
-          const originalSrc = iframe.dataset.src || iframe.src;
-          if (entry.isIntersecting) {
-            if (!iframe.src) iframe.src = originalSrc;
-          } else {
-            if (iframe.src) {
-              iframe.dataset.src = iframe.src;
-              iframe.src = '';
-            }
-          }
-        });
-      }, { threshold: 0.5 });
-      iframeObserver.observe(videoWrap);
+      
+      momentsScroll.appendChild(card);
     }
   });
-
+  
   momentsOffset += MOMENTS_PER_BATCH;
 }
 
-/* ISSUE 2 FIX: Load more moments when user scrolls near the bottom */
+// VIEWER
+function openViewer(moment){
+  currentViewerMomentId = moment.id;
+  const media = moment.media && moment.media[0] ? moment.media[0] : {};
+  viewerMedia.src = media.url || '';
+  viewerCaption.textContent = moment.caption || '';
+  viewerOverlay.classList.add('open');
+  updateViewerHeartBtn();
+}
+
+function updateViewerHeartBtn(){
+  const liked = getLiked();
+  const isLiked = liked.has(currentViewerMomentId);
+  viewerHeartBtn.textContent = (isLiked ? '♥' : '♡') + ' Like';
+  viewerHeartBtn.style.background = isLiked ? '#E85D2C' : 'var(--ember)';
+}
+
+viewerHeartBtn.addEventListener('click', () => {
+  const isNowLiked = toggleLike(currentViewerMomentId);
+  updateViewerHeartBtn();
+});
+
+viewerShareBtn.addEventListener('click', () => {
+  if(navigator.share) navigator.share({ title: 'TKG Moments', url: viewerMedia.src });
+  else { navigator.clipboard.writeText(viewerMedia.src); showToast('Link copied!'); }
+});
+
+// INFINITE SCROLL
 function setupInfiniteScroll(){
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if(entry.isIntersecting && !isLoadingMoreMoments && momentsOffset < allMoments.length){
-        isLoadingMoreMoments = true;
+      if(entry.isIntersecting && !isLoadingMore && momentsOffset < allMoments.length){
+        isLoadingMore = true;
         setTimeout(() => {
-          renderMomentsBatch();
-          isLoadingMoreMoments = false;
-        }, 100);
+          renderBatch();
+          isLoadingMore = false;
+        }, 200);
       }
     });
   }, { threshold: 0.1 });
-
-  /* Create a sentinel element at the bottom of the viewer */
-  const sentinel = document.createElement('div');
-  sentinel.style.cssText = 'height: 1px; width: 100%;';
-  sentinel.id = 'moments-infinite-scroll-sentinel';
-  momentsViewer.appendChild(sentinel);
   
+  const sentinel = document.createElement('div');
+  sentinel.style.height = '1px';
+  momentsScroll.appendChild(sentinel);
   observer.observe(sentinel);
 }
 
-/* ISSUE 2 FIX: New main load function */
-async function loadMoments(){
-  momentsLoadingState.style.display = '';
-  momentsEmptyState.style.display = 'none';
-  momentsViewer.innerHTML = '';
+// LOAD MOMENTS
+function loadMoments(){
+  momentsScroll.innerHTML = '<div class="moments-loading">Loading moments…</div>';
   momentsOffset = 0;
-
-  await fetchAllMoments();
   
-  momentsLoadingState.style.display = 'none';
-
+  allMoments = demoMoments;
+  
+  const loadingEl = momentsScroll.querySelector('.moments-loading');
+  if(loadingEl) loadingEl.remove();
+  
   if(!allMoments.length){
-    momentsEmptyState.style.display = '';
+    momentsScroll.innerHTML = '<div class="moments-empty"><p>No moments yet — be the first to share one!</p></div>';
     return;
   }
-
-  renderMomentsBatch();
+  
+  renderBatch();
   setupInfiniteScroll();
 }
 
-momentShareBtn.addEventListener('click', () => momentsChoiceOverlay.classList.remove('hidden'));
-choiceMemoryBtn.addEventListener('click', () => { momentsChoiceOverlay.classList.add('hidden'); momentsFileInput.click(); });
-choiceInstagramBtn.addEventListener('click', () => { momentsChoiceOverlay.classList.add('hidden'); momentsLinkOverlay.classList.remove('hidden'); });
-choiceCancelBtn.addEventListener('click', () => momentsChoiceOverlay.classList.add('hidden'));
-
-momentsFileInput.addEventListener('change', async () => {
-  const files = Array.from(momentsFileInput.files || []);
-  momentsFileInput.value = '';
-
-  for(const file of files){
-    if(file.size > 8 * 1024 * 1024){ alert('File "' + file.name + '" exceeds 8MB cap.'); continue; }
-    const isVideo = file.type.indexOf('video/') === 0;
-    const dataUrl = await readFileAsDataUrl(file);
-    momentsStagedFiles.push({ localId: 'f_' + Date.now(), mimeType: file.type, dataUrl: dataUrl, isVideo: isVideo });
-  }
-
-  if(momentsStagedFiles.length > 0){
-    renderComposeGrid();
-    momentsComposeOverlay.classList.remove('hidden');
-  }
-});
-
+// UPLOAD
 function readFileAsDataUrl(file){
   return new Promise((res, rej) => {
     const reader = new FileReader();
@@ -690,91 +845,126 @@ function readFileAsDataUrl(file){
   });
 }
 
-function renderComposeGrid(){
-  momentsComposeGrid.innerHTML = momentsStagedFiles.map(f => {
-    const tag = f.isVideo ? '<video src="' + f.dataUrl + '"></video>' : '<img src="' + f.dataUrl + '">';
-    return '<div class="moments-compose-thumb-wrap">' + tag + '<button type="button" class="moments-compose-remove-badge" data-id="' + f.localId + '">×</button></div>';
-  }).join('') + '<button type="button" class="moments-compose-add-tile" id="addMoreTile">+</button>';
-
-  momentsComposeGrid.querySelectorAll('.moments-compose-remove-badge').forEach(b => {
-    b.addEventListener('click', () => {
-      momentsStagedFiles = momentsStagedFiles.filter(f => f.localId !== b.dataset.id);
-      renderComposeGrid();
-    });
-  });
-  const addMoreTile = document.getElementById('addMoreTile');
-  if(addMoreTile) addMoreTile.addEventListener('click', () => momentsFileInput.click());
-}
-
-momentsComposeCancelBtn.addEventListener('click', () => { momentsStagedFiles = []; momentsComposeOverlay.classList.add('hidden'); });
-
-momentsComposePostBtn.addEventListener('click', async () => {
-  if(!momentsStagedFiles.length) return;
-  momentsComposePostBtn.disabled = true;
-
-  try {
-    const media = [];
-    for(let i = 0; i < momentsStagedFiles.length; i++){
-      setMomentsStatus(momentsUploadStatus, 'Uploading ' + (i+1) + '/' + momentsStagedFiles.length + '…');
-      const f = momentsStagedFiles[i];
-      const res = await fetch(APP_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'uploadMomentFile', base64Data: f.dataUrl.split('base64,')[1], mimeType: f.mimeType })
-      });
-      const data = await res.json();
-      if(data.status === 'ok') media.push({ url: data.url, thumbnailUrl: data.thumbnailUrl, mimeType: data.mimeType });
-    }
-
-    setMomentsStatus(momentsUploadStatus, 'Posting…');
-    await fetch(APP_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'uploadMoment', media: media, caption: momentsCaptionInput.value.trim() })
-    });
-
-    momentsStagedFiles = [];
-    momentsCaptionInput.value = '';
-    momentsComposeOverlay.classList.add('hidden');
-    loadMoments();
-  } catch(e) {
-    setMomentsStatus(momentsUploadStatus, 'Upload failed, please try again.', 'error');
-  } finally {
-    momentsComposePostBtn.disabled = false;
+fileInput.addEventListener('change', async () => {
+  const files = Array.from(fileInput.files || []);
+  fileInput.value = '';
+  
+  for(const file of files){
+    if(file.size > 8 * 1024 * 1024){ alert(file.name + ' exceeds 8MB'); continue; }
+    const dataUrl = await readFileAsDataUrl(file);
+    stagedFiles.push({ id: 'f_' + Date.now(), type: file.type, dataUrl, isVideo: file.type.indexOf('video/') === 0 });
+  }
+  
+  if(stagedFiles.length){
+    renderComposeGrid();
+    composeModal.classList.add('show');
   }
 });
 
-momentsLinkCancelBtn.addEventListener('click', () => momentsLinkOverlay.classList.add('hidden'));
-momentsLinkSubmitBtn.addEventListener('click', async () => {
-  const url = momentsLinkInput.value.trim();
-  if(!url || url.indexOf('instagram.com') === -1){ setMomentsStatus(momentsLinkStatus, 'Invalid Instagram URL', 'error'); return; }
-  momentsLinkSubmitBtn.disabled = true;
+function renderComposeGrid(){
+  composeGrid.innerHTML = stagedFiles.map(f => `
+    <div class="moments-compose-thumb">
+      ${f.isVideo ? `<video src="${f.dataUrl}"></video>` : `<img src="${f.dataUrl}">`}
+      <button class="moments-compose-remove" data-id="${f.id}">×</button>
+    </div>
+  `).join('') + `<button class="moments-compose-add" id="addMoreBtn">+</button>`;
   
-  try {
+  composeGrid.querySelectorAll('.moments-compose-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      stagedFiles = stagedFiles.filter(f => f.id !== btn.dataset.id);
+      renderComposeGrid();
+    });
+  });
+  
+  const addBtn = document.getElementById('addMoreBtn');
+  if(addBtn) addBtn.addEventListener('click', () => fileInput.click());
+}
+
+postBtn.addEventListener('click', async () => {
+  if(!stagedFiles.length) return;
+  postBtn.disabled = true;
+  
+  try{
+    const media = [];
+    for(let i = 0; i < stagedFiles.length; i++){
+      setStatus(composeStatus, 'Uploading ' + (i+1) + '/' + stagedFiles.length + '…');
+      const f = stagedFiles[i];
+      const res = await fetch(APP_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'uploadMomentFile', base64Data: f.dataUrl.split('base64,')[1], mimeType: f.type })
+      });
+      const data = await res.json();
+      if(data.status === 'ok') media.push({ url: data.url, mimeType: data.mimeType });
+    }
+    
+    setStatus(composeStatus, 'Posting…');
+    await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'uploadMoment', media, caption: captionInput.value.trim() })
+    });
+    
+    stagedFiles = [];
+    captionInput.value = '';
+    composeModal.classList.remove('show');
+    showToast('Moment shared!');
+  }catch(e){
+    setStatus(composeStatus, 'Upload failed', 'error');
+  }finally{
+    postBtn.disabled = false;
+  }
+});
+
+instagramSubmitBtn.addEventListener('click', async () => {
+  const url = instagramInput.value.trim();
+  if(!url || url.indexOf('instagram.com') === -1){ setStatus(instagramStatus, 'Invalid URL', 'error'); return; }
+  instagramSubmitBtn.disabled = true;
+  
+  try{
     await fetch(APP_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'submitMomentLink', instagramUrl: url })
     });
-    momentsLinkOverlay.classList.add('hidden');
-    loadMoments();
-  } catch(e) {
-    setMomentsStatus(momentsLinkStatus, 'Failed to add link.', 'error');
-  } finally {
-    momentsLinkSubmitBtn.disabled = false;
+    instagramModal.classList.remove('show');
+    instagramInput.value = '';
+    showToast('Instagram link added!');
+  }catch(e){
+    setStatus(instagramStatus, 'Failed', 'error');
+  }finally{
+    instagramSubmitBtn.disabled = false;
   }
 });
 
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-let toastTimer;
-function showToast(m){
-  const t = document.getElementById('toast');
-  t.textContent = m; t.classList.add('show');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+function setStatus(el, text, kind){
+  el.textContent = text || '';
+  el.classList.remove('error');
+  if(kind === 'error') el.classList.add('error');
 }
 
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+let toastTimer;
+function showToast(m){
+  toast.textContent = m;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+// Share button listener (for FAB)
+document.addEventListener('keydown', (e) => {
+  if(e.key === 's' && (e.ctrlKey || e.metaKey)){
+    e.preventDefault();
+    choiceModal.classList.add('show');
+  }
+});
+
+// Initialize
 loadMoments();
-loadMomentsStat();
 </script>
 </body>
 </html>
