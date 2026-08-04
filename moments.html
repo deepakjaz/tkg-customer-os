@@ -139,24 +139,30 @@ input{font-family:inherit;}
   object-fit:cover;
 }
 
+/* REELS-STYLE VIDEO CONTAINER */
 .moments-video-wrap {
   position: relative;
   width: 100%;
-  height: 55vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.moments-video-wrap iframe {
-  width: 100%;
   height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Offset iframe vertically to crop out Google Drive's bulky overlay controls */
+.moments-video-wrap iframe {
+  position: absolute;
+  top: -65px;
+  left: 0;
+  width: 100%;
+  height: calc(100% + 125px);
   border: none;
+  pointer-events: auto;
 }
 
 .moments-slide-media-scroller{
   display:flex;
   width:100%;
-  height:55vh;
+  height:100%;
   overflow-x:auto;
   scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;
@@ -184,8 +190,8 @@ input{font-family:inherit;}
 .moments-slide-gradient{
   position:absolute;
   left:0; right:0; bottom:0;
-  height:40%;
-  background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+  height:35%;
+  background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.75) 100%);
   pointer-events:none;
 }
 .moments-slide-caption{
@@ -195,6 +201,7 @@ input{font-family:inherit;}
   font-size:0.9375rem;
   line-height:1.4;
   text-shadow:0 1px 4px rgba(0,0,0,0.4);
+  pointer-events:none;
 }
 .moments-slide-actions{
   position:absolute;
@@ -203,7 +210,7 @@ input{font-family:inherit;}
   flex-direction:column;
   align-items:center;
   gap:16px;
-  z-index:5;
+  z-index:15;
 }
 .moments-heart-btn, .moments-share-btn{
   width:42px;
@@ -437,7 +444,6 @@ function toggleLikedMomentId(id){
   return liked.has(id);
 }
 
-// Helper: Extract Drive File ID from any Drive link format
 function getDriveFileId(url) {
   if (!url) return null;
   const matchD = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
@@ -514,7 +520,6 @@ async function loadMoments(){
 
     if(window.instgrm && window.instgrm.Embeds) window.instgrm.Embeds.process();
 
-    // Wire actions
     momentsViewer.querySelectorAll('.moments-heart-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
