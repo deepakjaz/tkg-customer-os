@@ -139,7 +139,6 @@ input{font-family:inherit;}
   object-fit:cover;
 }
 
-/* Reels-style video container & tap icon */
 .moments-video-wrap {
   position: relative;
   width: 100%;
@@ -148,27 +147,11 @@ input{font-family:inherit;}
   align-items: center;
   justify-content: center;
 }
-.moments-video-wrap video {
+.moments-video-wrap iframe {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  border: none;
 }
-.video-mute-indicator {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.65);
-  color: #fff;
-  padding: 12px 18px;
-  border-radius: 30px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  z-index: 8;
-}
-.video-mute-indicator.show { opacity: 1; }
 
 .moments-slide-media-scroller{
   display:flex;
@@ -222,7 +205,7 @@ input{font-family:inherit;}
   gap:16px;
   z-index:5;
 }
-.moments-heart-btn, .moments-share-btn, .moments-comment-btn{
+.moments-heart-btn, .moments-share-btn{
   width:42px;
   height:42px;
   border-radius:50%;
@@ -234,7 +217,7 @@ input{font-family:inherit;}
   justify-content:center;
   transition:transform 0.18s ease, background 0.18s ease;
 }
-.moments-heart-btn svg, .moments-share-btn svg, .moments-comment-btn svg{
+.moments-heart-btn svg, .moments-share-btn svg{
   width:21px; height:21px;
 }
 .moments-heart-btn.liked{
@@ -454,21 +437,15 @@ function toggleLikedMomentId(id){
   return liked.has(id);
 }
 
-// Auto-play videos when they scroll into view (Reels experience)
-const videoIntersectionObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    const video = entry.target.querySelector('video');
-    if(!video) return;
-    if(entry.isIntersecting){
-      video.play().catch(() => {
-        video.muted = true;
-        video.play();
-      });
-    } else {
-      video.pause();
-    }
-  });
-}, { threshold: 0.6 });
+// Helper: Extract Drive File ID from any Drive link format
+function getDriveFileId(url) {
+  if (!url) return null;
+  const matchD = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  const matchId = url.match(/[?&]id=([a-zA-Z0-9-_]+)/);
+  if (matchD && matchD[1]) return matchD[1];
+  if (matchId && matchId[1]) return matchId[1];
+  return null;
+}
 
 async function loadMoments(){
   momentsLoadingState.style.display = '';
@@ -495,12 +472,15 @@ async function loadMoments(){
         const isLiked = likedIds.has(m.id);
         const mediaHtml = mediaList.map(item => {
           const isVideo = item.mimeType && item.mimeType.indexOf('video/') === 0;
-          const poster = item.thumbnailUrl ? ' poster="' + escapeHtml(item.thumbnailUrl) + '"' : '';
 
           if(isVideo){
+            const fileId = getDriveFileId(item.url);
+            const embedUrl = fileId 
+              ? 'https://drive.google.com/file/d/' + fileId + '/preview' 
+              : item.url;
+
             return '<div class="moments-video-wrap">' +
-              '<iframe class="moments-slide-media" src="' + escapeHtml(item.url) + '" allow="autoplay" style="border:none; width:100%; height:100%;"></iframe>' +
-              '<div class="video-mute-indicator">Muted</div>' +
+              '<iframe src="' + escapeHtml(embedUrl) + '" allow="autoplay"></iframe>' +
             '</div>';
           }
           return '<img class="moments-slide-media" src="' + escapeHtml(item.url) + '" alt="TKG moment" loading="lazy">';
@@ -533,24 +513,6 @@ async function loadMoments(){
     }).join('');
 
     if(window.instgrm && window.instgrm.Embeds) window.instgrm.Embeds.process();
-
-    // Attach IntersectionObserver for video autoplay
-    document.querySelectorAll('.moments-slide').forEach(slide => {
-      videoIntersectionObserver.observe(slide);
-
-      // Tap video to toggle mute/unmute
-      const video = slide.querySelector('video');
-      const indicator = slide.querySelector('.video-mute-indicator');
-      if(video && indicator){
-        slide.addEventListener('click', (e) => {
-          if(e.target.closest('.moments-slide-actions')) return;
-          video.muted = !video.muted;
-          indicator.textContent = video.muted ? 'Muted' : 'Unmuted';
-          indicator.classList.add('show');
-          setTimeout(() => indicator.classList.remove('show'), 1200);
-        });
-      }
-    });
 
     // Wire actions
     momentsViewer.querySelectorAll('.moments-heart-btn').forEach(btn => {
