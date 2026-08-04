@@ -92,9 +92,12 @@ input{font-family:inherit;}
 .screen.active{display:flex;}
 #screen-moments{ padding:0 !important; }
 
+/* ISSUE 1 FIX: Mobile-first responsive layout */
 .moments-topbar{
   position:fixed;
-  top:0; left:0; right:0;
+  top:0;
+  left:50%;
+  transform:translateX(-50%);
   z-index:20;
   display:flex;
   align-items:center;
@@ -102,6 +105,8 @@ input{font-family:inherit;}
   padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
   background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0));
   pointer-events:none;
+  width:100%;
+  max-width:var(--max-w);
 }
 .moments-stat{
   pointer-events:auto;
@@ -112,26 +117,45 @@ input{font-family:inherit;}
   padding:8px 14px;
   border-radius:20px;
 }
-.moments-viewer{
+
+/* ISSUE 1 FIX: Container for full-bleed background, internal viewport is mobile-only on desktop */
+.moments-viewer-container{
   position:fixed;
   inset:0;
+  background:var(--moments-ambient-bg);
+  display:flex;
+  justify-content:center;
+}
+
+/* ISSUE 1 FIX: Responsive viewer — fullscreen on mobile, 430px centered on desktop */
+.moments-viewer{
+  width:100%;
+  height:100%;
   overflow-y:auto;
-  scroll-snap-type:y mandatory;
   background:var(--moments-ambient-bg);
   -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
 }
+
+/* ISSUE 3 FIX: Remove scroll-snap-stop: always to prevent topbar blanking on scroll */
+@media (min-width: 480px){
+  .moments-viewer{
+    max-width:var(--max-w);
+    height:100%;
+  }
+}
+
 .moments-slide{
   position:relative;
   width:100%;
   height:100vh;
   height:100dvh;
-  scroll-snap-align:start;
-  scroll-snap-stop:always;
   display:flex;
   align-items:center;
   justify-content:center;
   overflow:hidden;
   background:var(--moments-ambient-bg);
+  flex-shrink:0;
 }
 .moments-slide-media{
   width:100%;
@@ -164,13 +188,11 @@ input{font-family:inherit;}
   width:100%;
   height:100%;
   overflow-x:auto;
-  scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;
 }
 .moments-slide-media-scroller > .moments-slide-media, 
 .moments-slide-media-scroller > .moments-video-wrap {
   flex:0 0 100%;
-  scroll-snap-align:start;
 }
 .moments-slide-media-dots{
   position:absolute;
@@ -252,6 +274,9 @@ input{font-family:inherit;}
   z-index:20;
   display:flex;
   gap:10px;
+  max-width:calc(var(--max-w) - 32px);
+  left:50%;
+  transform:translateX(-50%);
 }
 .moments-fab{
   flex:1;
@@ -326,6 +351,11 @@ input{font-family:inherit;}
 }
 .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 .hidden{display:none !important;}
+
+@keyframes fade-in{
+  from{ opacity:0; }
+  to{ opacity:1; }
+}
 </style>
 </head>
 <body>
@@ -341,7 +371,11 @@ input{font-family:inherit;}
     <div class="moments-stat" id="momentsStat"></div>
   </div>
 
-  <div class="moments-viewer" id="momentsViewer"></div>
+  <!-- ISSUE 1 FIX: Wrapper container for responsive layout -->
+  <div class="moments-viewer-container">
+    <div class="moments-viewer" id="momentsViewer"></div>
+  </div>
+
   <div class="moments-empty" id="momentsEmptyState" style="display:none;">No moments yet — be the first to share one!</div>
   <div class="moments-loading" id="momentsLoadingState">Loading gallery…</div>
 
@@ -412,6 +446,12 @@ const choiceCancelBtn = document.getElementById('choiceCancelBtn');
 
 let momentsStagedFiles = [];
 
+/* ISSUE 2 FIX: Pagination state */
+let allMoments = [];
+let momentsOffset = 0;
+const MOMENTS_PER_BATCH = 5;
+let isLoadingMoreMoments = false;
+
 momentsMenuBtn.addEventListener('click', () => { window.location.href = './index.html'; });
 
 function setMomentsStatus(el, text, kind){
@@ -453,114 +493,170 @@ function getDriveFileId(url) {
   return null;
 }
 
+/* ISSUE 2 FIX: Fetch all moments once, render in batches */
+async function fetchAllMoments(){
+  try{
+    const res = await fetch(APP_SCRIPT_URL + '?action=moments');
+    const data = await res.json();
+    
+    if(!data || data.status !== 'ok' || !data.moments.length){
+      allMoments = [];
+      return;
+    }
+    
+    allMoments = data.moments.slice().reverse();
+  }catch(err){
+    allMoments = [];
+  }
+}
+
+/* ISSUE 2 FIX: Render a batch of moments and attach event listeners */
+function renderMomentsBatch(){
+  const likedIds = getLikedMomentIds();
+  const batch = allMoments.slice(momentsOffset, momentsOffset + MOMENTS_PER_BATCH);
+  
+  const html = batch.map(m => {
+    const mediaList = (m.media && m.media.length) ? m.media : (m.imageUrl ? [{ url: m.imageUrl, mimeType: 'image/jpeg' }] : []);
+    
+    if(m.type === 'photo' && mediaList.length){
+      const isLiked = likedIds.has(m.id);
+      const mediaHtml = mediaList.map(item => {
+        const isVideo = item.mimeType && item.mimeType.indexOf('video/') === 0;
+
+        if(isVideo){
+          const fileId = getDriveFileId(item.url);
+          const embedUrl = fileId 
+            ? 'https://drive.google.com/file/d/' + fileId + '/preview' 
+            : item.url;
+
+          return '<div class="moments-video-wrap">' +
+            '<iframe src="' + escapeHtml(embedUrl) + '" allow="autoplay"></iframe>' +
+          '</div>';
+        }
+        return '<img class="moments-slide-media" src="' + escapeHtml(item.url) + '" alt="TKG moment" loading="lazy">';
+      }).join('');
+
+      const dotsHtml = mediaList.length > 1 ? '<div class="moments-slide-media-dots">' + mediaList.map(() => '<span></span>').join('') + '</div>' : '';
+
+      return '<div class="moments-slide" data-id="' + escapeHtml(m.id) + '">' +
+        dotsHtml +
+        '<div class="moments-slide-media-scroller">' + mediaHtml + '</div>' +
+        '<div class="moments-slide-gradient"></div>' +
+        (m.caption ? '<div class="moments-slide-caption">' + escapeHtml(m.caption) + '</div>' : '') +
+        '<div class="moments-slide-actions">' +
+          '<button type="button" class="moments-heart-btn' + (isLiked ? ' liked' : '') + '" data-id="' + escapeHtml(m.id) + '">' +
+            '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-6.7-4.35-9.3-8.28C1.1 10.4 1.6 7.4 4 5.6c2.1-1.6 4.9-1.2 6.6.7L12 7.7l1.4-1.4c1.7-1.9 4.5-2.3 6.6-.7 2.4 1.8 2.9 4.8 1.3 7.12C18.7 16.65 12 21 12 21z"/></svg>' +
+          '</button>' +
+          '<button type="button" class="moments-share-btn" data-url="' + escapeHtml(mediaList[0].url) + '">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    if(m.type === 'instagram' && m.instagramUrl){
+      return '<div class="moments-slide">' +
+        '<div class="moments-slide-embed"><blockquote class="instagram-media" data-instgrm-permalink="' + escapeHtml(m.instagramUrl) + '" data-instgrm-version="14"></blockquote></div>' +
+      '</div>';
+    }
+    return '';
+  }).join('');
+
+  momentsViewer.innerHTML += html;
+
+  if(window.instgrm && window.instgrm.Embeds) window.instgrm.Embeds.process();
+
+  /* Attach event listeners to newly rendered moments */
+  momentsViewer.querySelectorAll('.moments-slide').forEach(slide => {
+    const hasListeners = slide.dataset.listenersAttached === 'true';
+    if(hasListeners) return;
+    
+    slide.dataset.listenersAttached = 'true';
+    
+    const heartBtn = slide.querySelector('.moments-heart-btn');
+    if(heartBtn){
+      heartBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const nowLiked = toggleLikedMomentId(heartBtn.dataset.id);
+        heartBtn.classList.toggle('liked', nowLiked);
+      });
+    }
+
+    const shareBtn = slide.querySelector('.moments-share-btn');
+    if(shareBtn){
+      shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if(navigator.share) navigator.share({ title: 'TKG Moments', url: shareBtn.dataset.url });
+        else { navigator.clipboard.writeText(shareBtn.dataset.url); showToast('Link copied!'); }
+      });
+    }
+
+    /* Pause iframes when scrolling away */
+    const videoWrap = slide.querySelector('.moments-video-wrap');
+    if(videoWrap){
+      const iframeObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const iframe = entry.target.querySelector('iframe');
+          if (!iframe) return;
+          const originalSrc = iframe.dataset.src || iframe.src;
+          if (entry.isIntersecting) {
+            if (!iframe.src) iframe.src = originalSrc;
+          } else {
+            if (iframe.src) {
+              iframe.dataset.src = iframe.src;
+              iframe.src = '';
+            }
+          }
+        });
+      }, { threshold: 0.5 });
+      iframeObserver.observe(videoWrap);
+    }
+  });
+
+  momentsOffset += MOMENTS_PER_BATCH;
+}
+
+/* ISSUE 2 FIX: Load more moments when user scrolls near the bottom */
+function setupInfiniteScroll(){
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting && !isLoadingMoreMoments && momentsOffset < allMoments.length){
+        isLoadingMoreMoments = true;
+        setTimeout(() => {
+          renderMomentsBatch();
+          isLoadingMoreMoments = false;
+        }, 100);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  /* Create a sentinel element at the bottom of the viewer */
+  const sentinel = document.createElement('div');
+  sentinel.style.cssText = 'height: 1px; width: 100%;';
+  sentinel.id = 'moments-infinite-scroll-sentinel';
+  momentsViewer.appendChild(sentinel);
+  
+  observer.observe(sentinel);
+}
+
+/* ISSUE 2 FIX: New main load function */
 async function loadMoments(){
   momentsLoadingState.style.display = '';
   momentsEmptyState.style.display = 'none';
   momentsViewer.innerHTML = '';
+  momentsOffset = 0;
 
-  try{
-    const res = await fetch(APP_SCRIPT_URL + '?action=moments');
-    const data = await res.json();
-    momentsLoadingState.style.display = 'none';
+  await fetchAllMoments();
+  
+  momentsLoadingState.style.display = 'none';
 
-    if(!data || data.status !== 'ok' || !data.moments.length){
-      momentsEmptyState.style.display = '';
-      return;
-    }
-
-    const likedIds = getLikedMomentIds();
-    const ordered = data.moments.slice().reverse();
-
-    momentsViewer.innerHTML = ordered.map(m => {
-      const mediaList = (m.media && m.media.length) ? m.media : (m.imageUrl ? [{ url: m.imageUrl, mimeType: 'image/jpeg' }] : []);
-      
-      if(m.type === 'photo' && mediaList.length){
-        const isLiked = likedIds.has(m.id);
-        const mediaHtml = mediaList.map(item => {
-          const isVideo = item.mimeType && item.mimeType.indexOf('video/') === 0;
-
-          if(isVideo){
-            const fileId = getDriveFileId(item.url);
-            const embedUrl = fileId 
-              ? 'https://drive.google.com/file/d/' + fileId + '/preview' 
-              : item.url;
-
-            return '<div class="moments-video-wrap">' +
-              '<iframe src="' + escapeHtml(embedUrl) + '" allow="autoplay"></iframe>' +
-            '</div>';
-          }
-          return '<img class="moments-slide-media" src="' + escapeHtml(item.url) + '" alt="TKG moment" loading="lazy">';
-        }).join('');
-
-        const dotsHtml = mediaList.length > 1 ? '<div class="moments-slide-media-dots">' + mediaList.map(() => '<span></span>').join('') + '</div>' : '';
-
-        return '<div class="moments-slide" data-id="' + escapeHtml(m.id) + '">' +
-          dotsHtml +
-          '<div class="moments-slide-media-scroller">' + mediaHtml + '</div>' +
-          '<div class="moments-slide-gradient"></div>' +
-          (m.caption ? '<div class="moments-slide-caption">' + escapeHtml(m.caption) + '</div>' : '') +
-          '<div class="moments-slide-actions">' +
-            '<button type="button" class="moments-heart-btn' + (isLiked ? ' liked' : '') + '" data-id="' + escapeHtml(m.id) + '">' +
-              '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-6.7-4.35-9.3-8.28C1.1 10.4 1.6 7.4 4 5.6c2.1-1.6 4.9-1.2 6.6.7L12 7.7l1.4-1.4c1.7-1.9 4.5-2.3 6.6-.7 2.4 1.8 2.9 4.8 1.3 7.12C18.7 16.65 12 21 12 21z"/></svg>' +
-            '</button>' +
-            '<button type="button" class="moments-share-btn" data-url="' + escapeHtml(mediaList[0].url) + '">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>' +
-            '</button>' +
-          '</div>' +
-        '</div>';
-      }
-
-      if(m.type === 'instagram' && m.instagramUrl){
-        return '<div class="moments-slide">' +
-          '<div class="moments-slide-embed"><blockquote class="instagram-media" data-instgrm-permalink="' + escapeHtml(m.instagramUrl) + '" data-instgrm-version="14"></blockquote></div>' +
-        '</div>';
-      }
-      return '';
-    }).join('');
-
-    if(window.instgrm && window.instgrm.Embeds) window.instgrm.Embeds.process();
-
-    momentsViewer.querySelectorAll('.moments-heart-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const nowLiked = toggleLikedMomentId(btn.dataset.id);
-        btn.classList.toggle('liked', nowLiked);
-      });
-    });
-
-    momentsViewer.querySelectorAll('.moments-share-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if(navigator.share) navigator.share({ title: 'TKG Moments', url: btn.dataset.url });
-        else { navigator.clipboard.writeText(btn.dataset.url); showToast('Link copied!'); }
-      });
-    });
-
-    // Pause iframes when scrolling away
-    const iframeObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const iframe = entry.target.querySelector('iframe');
-        if (!iframe) return;
-        const originalSrc = iframe.dataset.src || iframe.src;
-        if (entry.isIntersecting) {
-          if (!iframe.src) iframe.src = originalSrc;
-        } else {
-          if (iframe.src) {
-            iframe.dataset.src = iframe.src;
-            iframe.src = '';
-          }
-        }
-      });
-    }, { threshold: 0.5 });
-
-    momentsViewer.querySelectorAll('.moments-slide').forEach(slide => {
-      iframeObserver.observe(slide);
-    });
-
-  }catch(err){
-    momentsLoadingState.style.display = 'none';
+  if(!allMoments.length){
     momentsEmptyState.style.display = '';
+    return;
   }
+
+  renderMomentsBatch();
+  setupInfiniteScroll();
 }
 
 momentShareBtn.addEventListener('click', () => momentsChoiceOverlay.classList.remove('hidden'));
