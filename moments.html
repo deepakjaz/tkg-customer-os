@@ -499,7 +499,7 @@ async function loadMoments(){
 
           if(isVideo){
             return '<div class="moments-video-wrap">' +
-              '<video class="moments-slide-media" src="' + escapeHtml(item.url) + '"' + poster + ' muted loop playsinline preload="metadata"></video>' +
+              '<video class="moments-slide-media" src="' + escapeHtml(item.url) + '"' + poster + ' controls muted loop playsinline preload="metadata"></video>' +
               '<div class="video-mute-indicator">Muted</div>' +
             '</div>';
           }
