@@ -385,7 +385,7 @@ input{font-family:inherit;}
 </section>
 
 <script>
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyfcQEDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMi5Gvp-nJXDgtLnLA/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 
 const momentsMenuBtn = document.getElementById('momentsMenuBtn');
 const momentsStat = document.getElementById('momentsStat');
@@ -534,6 +534,27 @@ async function loadMoments(){
         if(navigator.share) navigator.share({ title: 'TKG Moments', url: btn.dataset.url });
         else { navigator.clipboard.writeText(btn.dataset.url); showToast('Link copied!'); }
       });
+    });
+
+    // Pause iframes when scrolling away
+    const iframeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const iframe = entry.target.querySelector('iframe');
+        if (!iframe) return;
+        const originalSrc = iframe.dataset.src || iframe.src;
+        if (entry.isIntersecting) {
+          if (!iframe.src) iframe.src = originalSrc;
+        } else {
+          if (iframe.src) {
+            iframe.dataset.src = iframe.src;
+            iframe.src = '';
+          }
+        }
+      });
+    }, { threshold: 0.5 });
+
+    momentsViewer.querySelectorAll('.moments-slide').forEach(slide => {
+      iframeObserver.observe(slide);
     });
 
   }catch(err){
