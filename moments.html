@@ -344,7 +344,7 @@ input{font-family:inherit;}
 
 <section class="screen active" id="screen-moments">
   <div class="moments-topbar">
-    <button type="button" id="momentsMenuBtn" style="display:flex; align-items:center; gap:8px; background:none; border:none; cursor:pointer;">
+    <button type="button" id="momentsMenuBtn" style="display:flex; align-items:center; gap:8px; background:none; border:none; cursor:pointer; pointer-events:auto;">
       <img src="./icon-192.png" alt="TKG Logo" style="width:36px; height:36px; border-radius:6px;">
       <span style="font-size:14px; font-weight:500; color:#1C1815;">Open Menu</span>
     </button>
@@ -499,7 +499,7 @@ async function loadMoments(){
 
           if(isVideo){
             return '<div class="moments-video-wrap">' +
-              '<video class="moments-slide-media" src="' + escapeHtml(item.url) + '"' + poster + ' controls muted loop playsinline preload="metadata"></video>' +
+              '<iframe class="moments-slide-media" src="' + escapeHtml(item.url) + '" allow="autoplay" style="border:none; width:100%; height:100%;"></iframe>' +
               '<div class="video-mute-indicator">Muted</div>' +
             '</div>';
           }
