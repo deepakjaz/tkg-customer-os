@@ -123,6 +123,7 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .hero-logo-large {
@@ -150,70 +151,113 @@ body {
 }
 
 /* ==========================================================================
-   GALLERY GRID
+   FEED (VERTICAL SCROLLING)
    ========================================================================== */
-.moments-gallery {
+.moments-feed {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 12px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
 }
 
-.moments-thumbnail {
+/* Instagram-style card: full width, stacked vertically */
+.moment-card {
   width: 100%;
-  aspect-ratio: 1;
-  border-radius: 12px;
-  overflow: hidden;
-  cursor: pointer;
+  border-bottom: 0.5px solid var(--tkg-plain-border);
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.moment-media {
+  width: 100%;
   background: var(--stone-base);
-  border: 0.5px solid var(--tkg-plain-border);
+  overflow: hidden;
   position: relative;
-  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.moments-thumbnail:active {
-  transform: scale(0.95);
-}
-
-.moments-thumbnail-image {
+.moment-media-image {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  display: block;
+  object-fit: contain;
 }
 
-.moments-thumbnail-video-badge {
+.moment-media-video {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Video thumbnail + play button overlay */
+.moment-video-container {
+  position: relative;
+  width: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.moment-video-thumbnail {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.moment-video-play-button {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
-  color: white;
-  font-size: 28px;
-  pointer-events: none;
+  background: rgba(0, 0, 0, 0.35);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 56px;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  transition: background 0.2s ease;
 }
 
-.moments-empty {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 48px 24px;
+.moment-video-play-button:active {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.moment-info {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.moment-caption {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.moment-meta {
+  font-size: 12px;
   color: var(--ink-soft);
 }
 
-.moments-loading {
-  grid-column: 1 / -1;
+/* Empty & loading states */
+.moments-empty,
+.moments-loading,
+.moments-error {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: 48px 24px;
   color: var(--ink-soft);
 }
 
 .moments-error {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 32px 24px;
   color: var(--ink);
   background: rgba(181, 57, 47, 0.1);
   border-radius: 12px;
@@ -221,24 +265,25 @@ body {
 }
 
 /* ==========================================================================
-   FULLSCREEN VIEWERS
+   FULLSCREEN VIDEO PLAYER
    ========================================================================== */
-.moments-viewer {
+.fullscreen-video-player {
   display: none;
   position: fixed;
   inset: 0;
   background: #000;
-  z-index: 100;
+  z-index: 200;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px) 0;
 }
 
-.moments-viewer.open {
+.fullscreen-video-player.open {
   display: flex;
 }
 
-.moments-viewer-close {
+.fullscreen-video-player-close {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 12px);
   right: 16px;
@@ -247,48 +292,23 @@ body {
   color: #fff;
   font-size: 28px;
   cursor: pointer;
-  z-index: 101;
+  z-index: 201;
   padding: 0;
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity 0.2s ease;
 }
 
-.moments-viewer-close:active {
-  opacity: 0.7;
+.fullscreen-video-player-close:active {
+  opacity: 0.6;
 }
 
-/* Image viewer */
-.moments-image-viewer {
+.fullscreen-video-player video {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: auto;
-}
-
-.moments-image-viewer img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-/* Video viewer */
-.moments-video-viewer {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px) 0;
-}
-
-.moments-video-viewer video {
-  max-width: 100%;
-  max-height: 100%;
   object-fit: contain;
 }
 
@@ -302,6 +322,7 @@ body {
   display: flex;
   justify-content: space-around;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .moments-nav-btn {
@@ -336,7 +357,6 @@ body {
   stroke-width: 1.5;
 }
 
-/* Instagram icon is solid */
 .moments-nav-btn.instagram-btn svg {
   fill: currentColor;
 }
@@ -345,12 +365,6 @@ body {
    RESPONSIVE
    ========================================================================== */
 @media (max-width: 380px) {
-  .moments-gallery {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    padding: 8px;
-  }
-  
   .moments-header {
     padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
     gap: 8px;
@@ -363,6 +377,14 @@ body {
   
   .moments-header-title {
     font-size: 14px;
+  }
+
+  .moment-info {
+    padding: 10px 12px;
+  }
+
+  .moment-caption {
+    font-size: 13px;
   }
 }
 </style>
@@ -379,21 +401,15 @@ body {
     </div>
   </div>
 
-  <!-- GALLERY GRID -->
-  <div class="moments-gallery" id="momentsList">
+  <!-- FEED (vertical scrolling) -->
+  <div class="moments-feed" id="momentsFeed">
     <div class="moments-loading">Loading moments...</div>
   </div>
 
-  <!-- IMAGE VIEWER -->
-  <div class="moments-viewer" id="imageViewer">
-    <button class="moments-viewer-close" id="closeImageViewer">✕</button>
-    <div class="moments-image-viewer" id="imageViewerContent"></div>
-  </div>
-
-  <!-- VIDEO VIEWER -->
-  <div class="moments-viewer" id="videoViewer">
-    <button class="moments-viewer-close" id="closeVideoViewer">✕</button>
-    <div class="moments-video-viewer" id="videoViewerContent"></div>
+  <!-- FULLSCREEN VIDEO PLAYER (overlay) -->
+  <div class="fullscreen-video-player" id="fullscreenPlayer">
+    <button class="fullscreen-video-player-close" id="closePlayer">✕</button>
+    <video id="fullscreenVideo" playsinline controls></video>
   </div>
 
   <!-- BOTTOM NAV -->
@@ -420,11 +436,10 @@ body {
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 
-const LIST = document.getElementById('momentsList');
-const IMAGE_VIEWER = document.getElementById('imageViewer');
-const VIDEO_VIEWER = document.getElementById('videoViewer');
-const IMAGE_VIEWER_CONTENT = document.getElementById('imageViewerContent');
-const VIDEO_VIEWER_CONTENT = document.getElementById('videoViewerContent');
+const FEED = document.getElementById('momentsFeed');
+const FULLSCREEN_PLAYER = document.getElementById('fullscreenPlayer');
+const FULLSCREEN_VIDEO = document.getElementById('fullscreenVideo');
+const CLOSE_PLAYER_BTN = document.getElementById('closePlayer');
 
 let moments = [];
 
@@ -438,144 +453,116 @@ async function fetchMoments() {
     if (data.status !== 'ok') throw new Error(data.message || 'API error');
     
     moments = data.moments || [];
-    renderGallery();
+    renderFeed();
   } catch (err) {
     console.error('Failed to fetch moments:', err);
-    LIST.innerHTML = `<div class="moments-error">Failed to load moments. Please try again later.</div>`;
+    FEED.innerHTML = '<div class="moments-error">Failed to load moments. Please try again later.</div>';
   }
 }
 
-// ========== RENDER GALLERY GRID ==========
-function renderGallery() {
-  LIST.innerHTML = '';
+// ========== RENDER FEED (vertical scrolling cards) ==========
+function renderFeed() {
+  FEED.innerHTML = '';
   
   if (moments.length === 0) {
-    LIST.innerHTML = '<div class="moments-empty">No moments shared yet</div>';
+    FEED.innerHTML = '<div class="moments-empty">No moments shared yet</div>';
     return;
   }
   
-  // Flatten all media from all moments into a single list
-  let allMediaItems = [];
-  moments.forEach((moment, momentIndex) => {
-    // Handle direct imageUrl (single image fallback)
+  moments.forEach((moment) => {
+    // Handle direct imageUrl (single image)
     if (moment.imageUrl) {
-      allMediaItems.push({
-        url: moment.imageUrl,
-        type: 'image',
-        caption: moment.caption || 'Shared by TKG',
-        momentId: moment.id,
-        momentIndex: momentIndex
-      });
+      const card = createImageCard(moment, moment.imageUrl);
+      FEED.appendChild(card);
     }
     
-    // Handle media array (multiple items)
+    // Handle media array (multiple items per moment)
     if (moment.media && Array.isArray(moment.media)) {
       moment.media.forEach((item) => {
         const mimeType = item.mimeType || 'image/jpeg';
         const isVideo = mimeType.indexOf('video/') === 0;
         
-        allMediaItems.push({
-          url: item.url,
-          thumbnailUrl: item.thumbnailUrl || item.url,
-          type: isVideo ? 'video' : 'image',
-          caption: moment.caption || 'Shared by TKG',
-          momentId: moment.id,
-          momentIndex: momentIndex
-        });
+        if (isVideo) {
+          const card = createVideoCard(moment, item);
+          FEED.appendChild(card);
+        } else {
+          const card = createImageCard(moment, item.url);
+          FEED.appendChild(card);
+        }
       });
     }
   });
+}
+
+// ========== CREATE IMAGE CARD ==========
+function createImageCard(moment, imageUrl) {
+  const card = document.createElement('div');
+  card.className = 'moment-card';
   
-  // Render thumbnails
-  allMediaItems.forEach((item, index) => {
-    const thumbnail = document.createElement('div');
-    thumbnail.className = 'moments-thumbnail';
-    thumbnail.setAttribute('role', 'button');
-    thumbnail.setAttribute('tabindex', '0');
-    
-    if (item.type === 'video') {
-      thumbnail.innerHTML = `
-        <img class="moments-thumbnail-image" src="${item.thumbnailUrl || item.url}" alt="Video thumbnail" loading="lazy">
-        <div class="moments-thumbnail-video-badge">▶</div>
-      `;
-    } else {
-      thumbnail.innerHTML = `
-        <img class="moments-thumbnail-image" src="${item.thumbnailUrl || item.url}" alt="Moment" loading="lazy">
-      `;
-    }
-    
-    // Click to open viewer
-    thumbnail.addEventListener('click', () => openViewer(item));
-    thumbnail.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        openViewer(item);
-      }
-    });
-    
-    LIST.appendChild(thumbnail);
-  });
-}
-
-// ========== OPEN IMAGE VIEWER ==========
-function openImageViewer(item) {
-  IMAGE_VIEWER_CONTENT.innerHTML = `<img src="${item.url}" alt="${item.caption}" loading="lazy">`;
-  IMAGE_VIEWER.classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-// ========== OPEN VIDEO VIEWER ==========
-function openVideoViewer(item) {
-  VIDEO_VIEWER_CONTENT.innerHTML = `
-    <video controls playsinline>
-      <source src="${item.url}" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
+  card.innerHTML = `
+    <div class="moment-media">
+      <img class="moment-media-image" src="${imageUrl}" alt="${moment.caption || 'Moment'}" loading="lazy">
+    </div>
+    <div class="moment-info">
+      ${moment.caption ? `<div class="moment-caption">${moment.caption}</div>` : ''}
+      <div class="moment-meta">Shared by TKG</div>
+    </div>
   `;
-  VIDEO_VIEWER.classList.add('open');
+  
+  return card;
+}
+
+// ========== CREATE VIDEO CARD ==========
+function createVideoCard(moment, mediaItem) {
+  const card = document.createElement('div');
+  card.className = 'moment-card';
+  
+  const thumbnailUrl = mediaItem.thumbnailUrl || mediaItem.url;
+  
+  card.innerHTML = `
+    <div class="moment-media moment-video-container">
+      <img class="moment-video-thumbnail" src="${thumbnailUrl}" alt="Video thumbnail" loading="lazy">
+      <button class="moment-video-play-button" aria-label="Play video">▶</button>
+    </div>
+    <div class="moment-info">
+      ${moment.caption ? `<div class="moment-caption">${moment.caption}</div>` : ''}
+      <div class="moment-meta">Shared by TKG • Video</div>
+    </div>
+  `;
+  
+  // Tap play button to open fullscreen player
+  const playBtn = card.querySelector('.moment-video-play-button');
+  playBtn.addEventListener('click', () => openFullscreenPlayer(mediaItem.url));
+  
+  return card;
+}
+
+// ========== OPEN FULLSCREEN VIDEO PLAYER ==========
+function openFullscreenPlayer(videoUrl) {
+  FULLSCREEN_VIDEO.src = videoUrl;
+  FULLSCREEN_PLAYER.classList.add('open');
   document.body.style.overflow = 'hidden';
+  FULLSCREEN_VIDEO.play();
 }
 
-// ========== OPEN VIEWER (dispatcher) ==========
-function openViewer(item) {
-  if (item.type === 'video') {
-    openVideoViewer(item);
-  } else {
-    openImageViewer(item);
-  }
-}
-
-// ========== CLOSE VIEWERS ==========
-function closeImageViewer() {
-  IMAGE_VIEWER.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function closeVideoViewer() {
-  const video = VIDEO_VIEWER_CONTENT.querySelector('video');
-  if (video) video.pause();
-  VIDEO_VIEWER.classList.remove('open');
+// ========== CLOSE FULLSCREEN PLAYER ==========
+function closeFullscreenPlayer() {
+  FULLSCREEN_VIDEO.pause();
+  FULLSCREEN_VIDEO.src = '';
+  FULLSCREEN_PLAYER.classList.remove('open');
   document.body.style.overflow = '';
 }
 
 // ========== EVENT LISTENERS ==========
-document.getElementById('closeImageViewer').addEventListener('click', closeImageViewer);
-document.getElementById('closeVideoViewer').addEventListener('click', closeVideoViewer);
+CLOSE_PLAYER_BTN.addEventListener('click', closeFullscreenPlayer);
 
-// Close on backdrop click
-IMAGE_VIEWER.addEventListener('click', (e) => {
-  if (e.target === IMAGE_VIEWER) closeImageViewer();
+FULLSCREEN_PLAYER.addEventListener('click', (e) => {
+  if (e.target === FULLSCREEN_PLAYER) closeFullscreenPlayer();
 });
 
-VIDEO_VIEWER.addEventListener('click', (e) => {
-  if (e.target === VIDEO_VIEWER) closeVideoViewer();
-});
-
-// Close on Escape
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    if (IMAGE_VIEWER.classList.contains('open')) closeImageViewer();
-    if (VIDEO_VIEWER.classList.contains('open')) closeVideoViewer();
+  if (e.key === 'Escape' && FULLSCREEN_PLAYER.classList.contains('open')) {
+    closeFullscreenPlayer();
   }
 });
 
