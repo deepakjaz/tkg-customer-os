@@ -3,545 +3,254 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>TKG Moments — The Khichiya Gravy</title>
+<title>TKG Moments</title>
 <meta name="theme-color" content="#0B0B0C">
-<meta name="description" content="TKG Moments — customer photos and stories">
-<link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="./icon-192.png">
-<script async src="https://www.instagram.com/embed.js"></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<script>
-(function(){
-  try{
-    var scale = localStorage.getItem('tkg_font_scale');
-    var sizes = { small: '92%', medium: '100%', large: '115%' };
-    document.documentElement.style.fontSize = sizes[scale] || sizes.medium;
-  }catch(e){}
-})();
-</script>
-
-<script>
-(function(){
-  try{
-    var theme = localStorage.getItem('tkg_theme');
-    document.documentElement.setAttribute('data-tkg-theme', theme === 'dark' ? 'dark' : 'light');
-  }catch(e){
-    document.documentElement.setAttribute('data-tkg-theme', 'light');
-  }
-})();
-</script>
 
 <style>
-:root{
+:root {
   --charcoal: #160F0C;
   --tkg-page-bg: #FFFFFF;
-  --tkg-plain-border: #E6E3DD;
+  --tkg-border: #E6E3DD;
   --ink: #1C1815;
   --ink-soft: #6B6256;
   --ember: #E85D2C;
-  --radius-lg: 18px;
-  --radius-md: 12px;
-  --max-w: 430px;
-  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-*{box-sizing:border-box; margin:0; padding:0;}
-html,body{
-  background:var(--tkg-page-bg);
-  color:var(--ink);
-  font-family:var(--font-body);
-  -webkit-tap-highlight-color:transparent;
-  height:100%;
-  width:100%;
-}
-body{
-  display:flex;
-  justify-content:center;
-  min-height:100vh;
-  min-height:100dvh;
-}
-button{font-family:inherit; cursor:pointer; background:none; border:none;}
-input{font-family:inherit;}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; width: 100%; background: var(--tkg-page-bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+body { display: flex; justify-content: center; }
 
-.moments-page{
-  width:100%;
-  max-width:var(--max-w);
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
+.moments-page {
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-/* TOP BAR */
-.moments-header{
-  background:#fff;
-  border-bottom:1px solid var(--tkg-plain-border);
-  padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  z-index:20;
+/* HEADER */
+.moments-header {
+  background: #fff;
+  border-bottom: 0.5px solid var(--tkg-border);
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.moments-header-left{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  cursor:pointer;
+.moments-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
 }
 
-.moments-header-left-logo{
-  width:36px;
-  height:36px;
-  border-radius:6px;
-  background:#E85D2C;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:bold;
-  color:#fff;
-  font-size:16px;
+.moments-header-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: #E85D2C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+  font-size: 16px;
 }
 
-.moments-header-left-text{
-  font-size:12px;
-  font-weight:600;
-  color:var(--ink);
-  line-height:1.2;
+.moments-header-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
 }
 
-.moments-stat{
-  font-size:11px;
-  color:var(--ink-soft);
-  font-weight:700;
+.moments-stat {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
 }
 
-/* MAIN SCROLLABLE AREA */
-.moments-scroll{
-  flex:1;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  padding:12px;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
+/* SCROLL AREA */
+.moments-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* CARD */
-.moments-card{
-  background:#fff;
-  border-radius:12px;
-  border:0.5px solid var(--tkg-plain-border);
-  overflow:hidden;
-  cursor:pointer;
-  transition:transform 0.15s ease, box-shadow 0.15s ease;
+.moments-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 0.5px solid var(--tkg-border);
+  overflow: hidden;
+  cursor: pointer;
 }
 
-.moments-card:active{
-  transform:scale(0.98);
+.moments-card-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  background: #e8e8e8;
 }
 
-.moments-card-media{
-  width:100%;
-  aspect-ratio:1;
-  object-fit:cover;
-  display:block;
-  background:#f5f5f5;
+.moments-card-content {
+  padding: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
 }
 
-.moments-card-content{
-  padding:12px;
-  display:flex;
-  gap:12px;
+.moments-card-text {
+  flex: 1;
 }
 
-.moments-card-text{
-  flex:1;
+.moments-card-caption {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
 }
 
-.moments-card-caption{
-  font-size:14px;
-  font-weight:500;
-  color:var(--ink);
-  margin-bottom:4px;
-  line-height:1.3;
+.moments-card-meta {
+  font-size: 12px;
+  color: var(--ink-soft);
 }
 
-.moments-card-meta{
-  font-size:12px;
-  color:var(--ink-soft);
+.moments-card-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-.moments-card-actions{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  align-items:center;
+.moments-btn-action {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.moments-action-btn{
-  font-size:18px;
-  cursor:pointer;
-  transition:transform 0.15s ease;
-  background:none;
-  border:none;
-  padding:0;
-  width:24px;
-  height:24px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+.moments-btn-action.liked {
+  color: #E85D2C;
 }
 
-.moments-action-btn:active{
-  transform:scale(1.15);
-}
-
-/* EMPTY STATE */
-.moments-empty{
-  text-align:center;
-  padding:48px 32px;
-  color:var(--ink-soft);
-}
-
-/* LOADING */
-.moments-loading{
-  text-align:center;
-  padding:48px 32px;
-  color:var(--ink-soft);
-  font-size:14px;
+/* EMPTY */
+.moments-empty {
+  text-align: center;
+  padding: 48px 32px;
+  color: var(--ink-soft);
 }
 
 /* BOTTOM NAV */
-.moments-bottom-nav{
-  background:#fff;
-  border-top:0.5px solid var(--tkg-plain-border);
-  padding:8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-  height:calc(70px + env(safe-area-inset-bottom, 0px));
-  z-index:25;
+.moments-nav {
+  background: #fff;
+  border-top: 0.5px solid var(--tkg-border);
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
-.moments-nav-btn{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:4px;
-  cursor:pointer;
-  text-decoration:none;
-  color:var(--ink-soft);
-  font-size:11px;
-  transition:color 0.2s ease;
-  padding:4px 8px;
-  background:none;
-  border:none;
+.moments-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 500;
 }
 
-.moments-nav-btn:active, .moments-nav-btn.active{
-  color:var(--ember);
+.moments-nav-btn.active {
+  color: #E85D2C;
 }
 
-.moments-nav-btn svg{
-  width:22px;
-  height:22px;
+.moments-nav-btn svg {
+  width: 20px;
+  height: 20px;
 }
 
-/* FULL-SCREEN VIEWER */
-.moments-viewer-overlay{
-  position:fixed;
-  inset:0;
-  background:#000;
-  z-index:100;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.3s ease;
-  display:flex;
-  flex-direction:column;
+/* VIEWER OVERLAY */
+.moments-viewer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 100;
+  flex-direction: column;
 }
 
-.moments-viewer-overlay.open{
-  opacity:1;
-  pointer-events:auto;
+.moments-viewer.open {
+  display: flex;
 }
 
-.moments-viewer-header{
-  background:rgba(0,0,0,0.7);
-  color:#fff;
-  padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  z-index:101;
+.moments-viewer-close {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  right: 16px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 101;
+  padding: 0;
+  width: 32px;
+  height: 32px;
 }
 
-.moments-viewer-close{
-  background:none;
-  border:none;
-  color:#fff;
-  font-size:24px;
-  cursor:pointer;
-  padding:0;
-  width:32px;
-  height:32px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+.moments-viewer-image {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
 }
 
-.moments-viewer-content{
-  flex:1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:auto;
-  position:relative;
-}
-
-.moments-viewer-media{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-}
-
-.moments-viewer-footer{
-  background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.7));
-  color:#fff;
-  padding:20px 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
-  z-index:101;
-}
-
-.moments-viewer-caption{
-  font-size:15px;
-  line-height:1.4;
-  margin-bottom:16px;
-}
-
-.moments-viewer-actions{
-  display:flex;
-  gap:12px;
-}
-
-.moments-viewer-btn{
-  flex:1;
-  padding:12px;
-  border-radius:8px;
-  border:none;
-  font-size:14px;
-  font-weight:600;
-  cursor:pointer;
-  transition:opacity 0.2s ease;
-}
-
-.moments-viewer-btn-primary{
-  background:var(--ember);
-  color:#fff;
-}
-
-.moments-viewer-btn-primary:active{
-  opacity:0.8;
-}
-
-.moments-viewer-btn-ghost{
-  background:rgba(255,255,255,0.2);
-  color:#fff;
-  border:1px solid rgba(255,255,255,0.3);
-}
-
-/* MODALS */
-.moments-modal-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.5);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:200;
-  padding:20px;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.3s ease;
-}
-
-.moments-modal-overlay.show{
-  opacity:1;
-  pointer-events:auto;
-}
-
-.moments-modal-card{
-  background:#fff;
-  border-radius:var(--radius-lg);
-  padding:24px;
-  width:100%;
-  max-width:360px;
-  box-shadow:0 10px 40px rgba(0,0,0,0.2);
-}
-
-.moments-modal-title{
-  font-size:16px;
-  font-weight:700;
-  margin-bottom:16px;
-  text-align:center;
-  color:var(--ink);
-}
-
-.moments-modal-btn{
-  width:100%;
-  padding:14px;
-  border-radius:10px;
-  border:1px solid var(--tkg-plain-border);
-  font-weight:600;
-  margin-bottom:10px;
-  cursor:pointer;
-  transition:all 0.2s ease;
-  font-size:14px;
-  background:#fff;
-  color:var(--ink);
-}
-
-.moments-modal-btn-dark{
-  background:var(--ink);
-  color:#fff;
-  border:none;
-}
-
-.moments-modal-btn-dark:active{
-  opacity:0.9;
-}
-
-.moments-modal-btn-outline{
-  background:transparent;
-  color:var(--ember);
-  border:1.5px solid var(--ember);
-}
-
-.moments-modal-btn-outline:active{
-  background:rgba(232,93,44,0.05);
-}
-
-.moments-modal-btn-ghost{
-  background:none;
-  border:none;
-  color:var(--ink-soft);
-  padding:12px;
-}
-
-.moments-modal-input{
-  width:100%;
-  padding:12px;
-  border-radius:8px;
-  border:1px solid var(--tkg-plain-border);
-  font-size:14px;
-  margin-bottom:10px;
-  font-family:inherit;
-}
-
-.moments-compose-grid{
-  display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  gap:8px;
-  margin-bottom:14px;
-}
-
-.moments-compose-thumb{
-  aspect-ratio:1;
-  border-radius:8px;
-  overflow:hidden;
-  background:#f0f0f0;
-  position:relative;
-}
-
-.moments-compose-thumb img,
-.moments-compose-thumb video{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.moments-compose-remove{
-  position:absolute;
-  top:4px;
-  right:4px;
-  width:24px;
-  height:24px;
-  border-radius:50%;
-  background:var(--ember);
-  color:#fff;
-  border:none;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  font-weight:bold;
-  font-size:14px;
-}
-
-.moments-compose-add{
-  aspect-ratio:1;
-  border:2px dashed var(--tkg-plain-border);
-  border-radius:8px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  font-size:20px;
-  color:var(--ink-soft);
-  background:none;
-}
-
-.moments-modal-status{
-  font-size:12px;
-  color:var(--ink-soft);
-  margin-top:8px;
-}
-
-.moments-modal-status.error{
-  color:var(--ember);
+.moments-viewer-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 /* TOAST */
-.moments-toast{
-  position:fixed;
-  bottom:calc(env(safe-area-inset-bottom, 0px) + 76px);
-  left:50%;
-  transform:translateX(-50%) translateY(20px);
-  background:var(--ink);
-  color:#fff;
-  padding:12px 20px;
-  border-radius:8px;
-  font-size:13px;
-  opacity:0;
-  pointer-events:none;
-  transition:all 0.25s ease;
-  z-index:150;
-  font-weight:500;
+.moments-toast {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 150;
 }
 
-.moments-toast.show{
-  opacity:1;
-  transform:translateX(-50%) translateY(0);
-}
-
-/* DARK THEME */
-[data-tkg-theme="dark"]{
-  --tkg-page-bg: #0F0E0C;
-  --tkg-plain-border: #2a2420;
-  --ink: #F2EFEA;
-  --ink-soft: #9C9286;
-}
-
-[data-tkg-theme="dark"] .moments-header,
-[data-tkg-theme="dark"] .moments-card,
-[data-tkg-theme="dark"] .moments-modal-card,
-[data-tkg-theme="dark"] .moments-bottom-nav{
-  background:var(--tkg-page-bg);
-}
-
-[data-tkg-theme="dark"] .moments-modal-btn-dark{
-  background:#F2EFEA;
-  color:#0F0E0C;
+.moments-toast.show {
+  opacity: 1;
 }
 </style>
 </head>
@@ -549,34 +258,40 @@ input{font-family:inherit;}
 
 <div class="moments-page">
   <!-- HEADER -->
-  <header class="moments-header">
-    <div class="moments-header-left" id="headerMenuBtn">
-      <div class="moments-header-left-logo">TKG</div>
-      <div class="moments-header-left-text">THE KHICHIYA<br>GRAVY</div>
+  <div class="moments-header">
+    <div class="moments-header-left" id="headerMenu">
+      <div class="moments-header-logo">TKG</div>
+      <div class="moments-header-text">THE KHICHIYA<br>GRAVY</div>
     </div>
-    <div class="moments-stat" id="momentsStat">🔥 34+</div>
-  </header>
+    <div class="moments-stat">🔥 34+</div>
+  </div>
 
-  <!-- MAIN SCROLL AREA -->
-  <div class="moments-scroll" id="momentsScroll"></div>
+  <!-- SCROLL -->
+  <div class="moments-scroll" id="momentsList"></div>
 
-  <!-- BOTTOM NAV -->
-  <nav class="moments-bottom-nav">
+  <!-- VIEWER -->
+  <div class="moments-viewer" id="viewer">
+    <button class="moments-viewer-close" id="closeViewer">✕</button>
+    <div class="moments-viewer-image" id="viewerImage"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="moments-nav">
     <a href="./index.html" class="moments-nav-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      <span>Menu</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      Menu
     </a>
-    <button class="moments-nav-btn active" id="momentsNavBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-      <span>Moments</span>
+    <button class="moments-nav-btn active" id="momentsBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      Moments
     </button>
     <a href="./khichiya-runner.html" class="moments-nav-btn">
-      <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <span>TKR</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 15a3 3 0 0 0 6 0"/></svg>
+      TKR
     </a>
     <a href="https://www.instagram.com/the.khichiyagravy" target="_blank" class="moments-nav-btn">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.011 4.85.07 1.366.062 2.633.327 3.608 1.3.975.975 1.238 2.242 1.3 3.608.059 1.266.07 1.646.07 4.85s-.011 3.584-.07 4.85c-.062 1.366-.327 2.633-1.3 3.608-.975.975-2.242 1.238-3.608 1.3-1.266.059-1.646.07-4.85.07s-3.584-.011-4.85-.07c-1.366-.062-2.633-.327-3.608-1.3-.975-.975-1.238-2.242-1.3-3.608C2.173 15.584 2.162 15.204 2.162 12s.011-3.584.07-4.85c.062-1.366.327-2.633 1.3-3.608.975-.975 2.242-1.238 3.608-1.3 1.266-.059 1.646-.07 4.85-.07m0-2.163C8.717 0 8.283.012 7.03.072 5.776.131 4.531.393 3.635 1.289 2.739 2.185 2.477 3.43 2.418 4.684 2.358 5.938 2.346 6.372 2.346 12s.012 6.062.072 7.315c.059 1.254.321 2.499 1.217 3.395.896.896 2.141 1.158 3.395 1.217 1.254.06 1.688.072 7.315.072s6.062-.012 7.315-.072c1.254-.059 2.499-.321 3.395-1.217.896-.896 1.158-2.141 1.217-3.395.06-1.254.072-1.688.072-7.315s-.012-6.062-.072-7.315c-.059-1.254-.321-2.499-1.217-3.395C19.284.393 18.039.131 16.785.072 15.531.012 15.097 0 12 0z" fill="currentColor"/></svg>
-      <span>Instagram</span>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+      Instagram
     </a>
   </nav>
 
@@ -584,387 +299,130 @@ input{font-family:inherit;}
   <div class="moments-toast" id="toast"></div>
 </div>
 
-<!-- FULL-SCREEN VIEWER -->
-<div class="moments-viewer-overlay" id="viewerOverlay">
-  <div class="moments-viewer-header">
-    <div></div>
-    <button class="moments-viewer-close" id="viewerCloseBtn">✕</button>
-  </div>
-  <div class="moments-viewer-content">
-    <img class="moments-viewer-media" id="viewerMedia" alt="Moment">
-  </div>
-  <div class="moments-viewer-footer">
-    <div class="moments-viewer-caption" id="viewerCaption"></div>
-    <div class="moments-viewer-actions">
-      <button class="moments-viewer-btn moments-viewer-btn-primary" id="viewerHeartBtn">♡ Like</button>
-      <button class="moments-viewer-btn moments-viewer-btn-ghost" id="viewerShareBtn">→ Share</button>
-    </div>
-  </div>
-</div>
-
-<!-- CHOICE MODAL -->
-<div class="moments-modal-overlay" id="choiceModal">
-  <div class="moments-modal-card">
-    <div class="moments-modal-title">Share your moment</div>
-    <button class="moments-modal-btn moments-modal-btn-dark" id="choicePhotoBtn">A memory here (Photo/Video)</button>
-    <button class="moments-modal-btn moments-modal-btn-outline" id="choiceInstagramBtn">Your Instagram post</button>
-    <button class="moments-modal-btn moments-modal-btn-ghost" id="choiceCancelBtn">Dismiss</button>
-  </div>
-</div>
-
-<!-- COMPOSE MODAL -->
-<div class="moments-modal-overlay" id="composeModal">
-  <div class="moments-modal-card">
-    <div class="moments-modal-title">Add your moment</div>
-    <div class="moments-compose-grid" id="composeGrid"></div>
-    <label style="font-size:12px; font-weight:700; text-transform:uppercase; display:block; margin-bottom:6px; color:var(--ink-soft);">Caption (optional)</label>
-    <input class="moments-modal-input" id="captionInput" type="text" placeholder="Say something…" maxlength="200">
-    <div class="moments-modal-status" id="composeStatus"></div>
-    <button class="moments-modal-btn moments-modal-btn-dark" id="postBtn">Post</button>
-    <button class="moments-modal-btn moments-modal-btn-ghost" id="composeCancelBtn">Cancel</button>
-  </div>
-</div>
-
-<!-- INSTAGRAM LINK MODAL -->
-<div class="moments-modal-overlay" id="instagramModal">
-  <div class="moments-modal-card">
-    <div class="moments-modal-title">Share Instagram link</div>
-    <input class="moments-modal-input" id="instagramInput" type="url" placeholder="https://www.instagram.com/p/...">
-    <div class="moments-modal-status" id="instagramStatus"></div>
-    <button class="moments-modal-btn moments-modal-btn-dark" id="instagramSubmitBtn">Add to Gallery</button>
-    <button class="moments-modal-btn moments-modal-btn-ghost" id="instagramCancelBtn">Cancel</button>
-  </div>
-</div>
-
-<!-- HIDDEN FILE INPUT -->
-<input type="file" id="fileInput" accept="image/*,video/*" multiple style="display:none;">
-
 <script>
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
-
-// DOM
-const headerMenuBtn = document.getElementById('headerMenuBtn');
-const momentsStat = document.getElementById('momentsStat');
-const momentsScroll = document.getElementById('momentsScroll');
-const fileInput = document.getElementById('fileInput');
-const toast = document.getElementById('toast');
-
-// Viewer
-const viewerOverlay = document.getElementById('viewerOverlay');
-const viewerCloseBtn = document.getElementById('viewerCloseBtn');
-const viewerMedia = document.getElementById('viewerMedia');
-const viewerCaption = document.getElementById('viewerCaption');
-const viewerHeartBtn = document.getElementById('viewerHeartBtn');
-const viewerShareBtn = document.getElementById('viewerShareBtn');
-
-// Modals
-const choiceModal = document.getElementById('choiceModal');
-const composeModal = document.getElementById('composeModal');
-const instagramModal = document.getElementById('instagramModal');
-
-// Buttons
-const choicePhotoBtn = document.getElementById('choicePhotoBtn');
-const choiceInstagramBtn = document.getElementById('choiceInstagramBtn');
-const choiceCancelBtn = document.getElementById('choiceCancelBtn');
-const composeGrid = document.getElementById('composeGrid');
-const captionInput = document.getElementById('captionInput');
-const composeStatus = document.getElementById('composeStatus');
-const postBtn = document.getElementById('postBtn');
-const composeCancelBtn = document.getElementById('composeCancelBtn');
-const instagramInput = document.getElementById('instagramInput');
-const instagramStatus = document.getElementById('instagramStatus');
-const instagramSubmitBtn = document.getElementById('instagramSubmitBtn');
-const instagramCancelBtn = document.getElementById('instagramCancelBtn');
-
-// State
-let stagedFiles = [];
-let allMoments = [];
-const MOMENTS_PER_BATCH = 8;
-let momentsOffset = 0;
-let isLoadingMore = false;
-let currentViewerMomentId = null;
-
-// DEMO DATA
-const demoMoments = [
-  { id: 'm1', type: 'photo', caption: 'Delicious khichiya at the event', media: [{ url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-size=%2216%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EImage%3C/text%3E%3C/svg%3E' }] },
-  { id: 'm2', type: 'photo', caption: 'Team at TKG kitchen', media: [{ url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-size=%2216%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EImage%3C/text%3E%3C/svg%3E' }] },
-  { id: 'm3', type: 'photo', caption: 'Customer enjoying the meal', media: [{ url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-size=%2216%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EImage%3C/text%3E%3C/svg%3E' }] },
-  { id: 'm4', type: 'photo', caption: 'Beautiful sunset at TKG', media: [{ url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-size=%2216%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EImage%3C/text%3E%3C/svg%3E' }] },
-  { id: 'm5', type: 'photo', caption: 'Fresh ingredients from local market', media: [{ url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22200%22 font-size=%2216%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3EImage%3C/text%3E%3C/svg%3E' }] }
+const DEMO_MOMENTS = [
+  { id: 'm1', caption: 'Delicious khichiya at the event', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e8e8e8%22/%3E%3C/svg%3E' },
+  { id: 'm2', caption: 'Team at TKG kitchen', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e8e8e8%22/%3E%3C/svg%3E' },
+  { id: 'm3', caption: 'Customer enjoying the meal', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e8e8e8%22/%3E%3C/svg%3E' },
+  { id: 'm4', caption: 'Beautiful sunset at TKG', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e8e8e8%22/%3E%3C/svg%3E' },
+  { id: 'm5', caption: 'Fresh ingredients from local market', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e8e8e8%22/%3E%3C/svg%3E' }
 ];
 
-// NAV
-headerMenuBtn.addEventListener('click', () => window.location.href = './index.html');
+const LIST = document.getElementById('momentsList');
+const VIEWER = document.getElementById('viewer');
+const CLOSE_BTN = document.getElementById('closeViewer');
+const VIEWER_IMG = document.getElementById('viewerImage');
+const HEADER_MENU = document.getElementById('headerMenu');
+const TOAST_EL = document.getElementById('toast');
 
-// MODALS
-choicePhotoBtn.addEventListener('click', () => { choiceModal.classList.remove('show'); fileInput.click(); });
-choiceInstagramBtn.addEventListener('click', () => { choiceModal.classList.remove('show'); instagramModal.classList.add('show'); });
-choiceCancelBtn.addEventListener('click', () => choiceModal.classList.remove('show'));
-composeCancelBtn.addEventListener('click', () => { stagedFiles = []; composeModal.classList.remove('show'); });
-instagramCancelBtn.addEventListener('click', () => instagramModal.classList.remove('show'));
-viewerCloseBtn.addEventListener('click', () => viewerOverlay.classList.remove('open'));
+let likedMoments = new Set();
 
-// LIKES
-const LIKED_KEY = 'tkg_liked_moments';
-function getLiked(){
-  try{ return new Set(JSON.parse(localStorage.getItem(LIKED_KEY) || '[]')); } catch(e){ return new Set(); }
-}
-function toggleLike(id){
-  const liked = getLiked();
-  if(liked.has(id)) liked.delete(id); else liked.add(id);
-  try{ localStorage.setItem(LIKED_KEY, JSON.stringify(Array.from(liked))); }catch(e){}
-  return liked.has(id);
+// Load liked from localStorage
+function loadLiked() {
+  try {
+    const data = localStorage.getItem('tkg_liked_moments');
+    likedMoments = new Set(data ? JSON.parse(data) : []);
+  } catch (e) {}
 }
 
-// RENDER CARDS
-function renderBatch(){
-  const liked = getLiked();
-  const batch = allMoments.slice(momentsOffset, momentsOffset + MOMENTS_PER_BATCH);
-  
-  batch.forEach(m => {
-    if(m.type === 'photo' && m.media && m.media.length){
-      const media = m.media[0];
-      const isLiked = liked.has(m.id);
-      
-      const card = document.createElement('div');
-      card.className = 'moments-card';
-      card.innerHTML = `
-        <img class="moments-card-media" src="${escapeHtml(media.url)}" alt="Moment" loading="lazy">
-        <div class="moments-card-content">
-          <div class="moments-card-text">
-            <div class="moments-card-caption">${escapeHtml(m.caption || '')}</div>
-            <div class="moments-card-meta">Shared by TKG family</div>
-          </div>
-          <div class="moments-card-actions">
-            <button class="moments-action-btn moments-heart-btn ${isLiked ? 'liked' : ''}" data-id="${m.id}" style="font-size:18px;">${isLiked ? '♥' : '♡'}</button>
-            <button class="moments-action-btn moments-share-btn" data-url="${escapeHtml(media.url)}" style="font-size:18px;">→</button>
-          </div>
-        </div>
-      `;
-      
-      card.addEventListener('click', (e) => {
-        if(e.target.closest('.moments-action-btn')) return;
-        openViewer(m);
-      });
-      
-      const heartBtn = card.querySelector('.moments-heart-btn');
-      heartBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isNowLiked = toggleLike(heartBtn.dataset.id);
-        heartBtn.textContent = isNowLiked ? '♥' : '♡';
-        heartBtn.classList.toggle('liked', isNowLiked);
-      });
-      
-      const shareBtn = card.querySelector('.moments-share-btn');
-      shareBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if(navigator.share) navigator.share({ title: 'TKG Moments', url: shareBtn.dataset.url });
-        else { navigator.clipboard.writeText(shareBtn.dataset.url); showToast('Link copied!'); }
-      });
-      
-      momentsScroll.appendChild(card);
-    }
-  });
-  
-  momentsOffset += MOMENTS_PER_BATCH;
+// Save liked to localStorage
+function saveLiked() {
+  try {
+    localStorage.setItem('tkg_liked_moments', JSON.stringify(Array.from(likedMoments)));
+  } catch (e) {}
 }
 
-// VIEWER
-function openViewer(moment){
-  currentViewerMomentId = moment.id;
-  const media = moment.media && moment.media[0] ? moment.media[0] : {};
-  viewerMedia.src = media.url || '';
-  viewerCaption.textContent = moment.caption || '';
-  viewerOverlay.classList.add('open');
-  updateViewerHeartBtn();
+// Show toast
+function showToast(msg) {
+  TOAST_EL.textContent = msg;
+  TOAST_EL.classList.add('show');
+  setTimeout(() => TOAST_EL.classList.remove('show'), 2500);
 }
 
-function updateViewerHeartBtn(){
-  const liked = getLiked();
-  const isLiked = liked.has(currentViewerMomentId);
-  viewerHeartBtn.textContent = (isLiked ? '♥' : '♡') + ' Like';
-  viewerHeartBtn.style.background = isLiked ? '#E85D2C' : 'var(--ember)';
-}
-
-viewerHeartBtn.addEventListener('click', () => {
-  const isNowLiked = toggleLike(currentViewerMomentId);
-  updateViewerHeartBtn();
-});
-
-viewerShareBtn.addEventListener('click', () => {
-  if(navigator.share) navigator.share({ title: 'TKG Moments', url: viewerMedia.src });
-  else { navigator.clipboard.writeText(viewerMedia.src); showToast('Link copied!'); }
-});
-
-// INFINITE SCROLL
-function setupInfiniteScroll(){
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if(entry.isIntersecting && !isLoadingMore && momentsOffset < allMoments.length){
-        isLoadingMore = true;
-        setTimeout(() => {
-          renderBatch();
-          isLoadingMore = false;
-        }, 200);
-      }
-    });
-  }, { threshold: 0.1 });
+// Render moments
+function renderMoments() {
+  LIST.innerHTML = '';
   
-  const sentinel = document.createElement('div');
-  sentinel.style.height = '1px';
-  momentsScroll.appendChild(sentinel);
-  observer.observe(sentinel);
-}
-
-// LOAD MOMENTS
-function loadMoments(){
-  momentsScroll.innerHTML = '<div class="moments-loading">Loading moments…</div>';
-  momentsOffset = 0;
-  
-  allMoments = demoMoments;
-  
-  const loadingEl = momentsScroll.querySelector('.moments-loading');
-  if(loadingEl) loadingEl.remove();
-  
-  if(!allMoments.length){
-    momentsScroll.innerHTML = '<div class="moments-empty"><p>No moments yet — be the first to share one!</p></div>';
+  if (!DEMO_MOMENTS.length) {
+    LIST.innerHTML = '<div class="moments-empty">No moments yet</div>';
     return;
   }
   
-  renderBatch();
-  setupInfiniteScroll();
-}
-
-// UPLOAD
-function readFileAsDataUrl(file){
-  return new Promise((res, rej) => {
-    const reader = new FileReader();
-    reader.onload = () => res(reader.result);
-    reader.onerror = rej;
-    reader.readAsDataURL(file);
+  DEMO_MOMENTS.forEach(m => {
+    const isLiked = likedMoments.has(m.id);
+    
+    const card = document.createElement('div');
+    card.className = 'moments-card';
+    card.innerHTML = `
+      <img class="moments-card-image" src="${m.image}" alt="Moment">
+      <div class="moments-card-content">
+        <div class="moments-card-text">
+          <div class="moments-card-caption">${m.caption}</div>
+          <div class="moments-card-meta">Shared by TKG family</div>
+        </div>
+        <div class="moments-card-buttons">
+          <button class="moments-btn-action heart-btn ${isLiked ? 'liked' : ''}" data-id="${m.id}">${isLiked ? '♥' : '♡'}</button>
+          <button class="moments-btn-action share-btn" data-image="${m.image}">→</button>
+        </div>
+      </div>
+    `;
+    
+    // Click to open viewer
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.moments-btn-action')) return;
+      openViewer(m);
+    });
+    
+    // Heart button
+    const heartBtn = card.querySelector('.heart-btn');
+    heartBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (likedMoments.has(m.id)) {
+        likedMoments.delete(m.id);
+        heartBtn.textContent = '♡';
+        heartBtn.classList.remove('liked');
+      } else {
+        likedMoments.add(m.id);
+        heartBtn.textContent = '♥';
+        heartBtn.classList.add('liked');
+      }
+      saveLiked();
+    });
+    
+    // Share button
+    const shareBtn = card.querySelector('.share-btn');
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (navigator.share) {
+        navigator.share({ title: 'TKG Moments', url: m.image });
+      } else {
+        navigator.clipboard.writeText(m.image);
+        showToast('Link copied!');
+      }
+    });
+    
+    LIST.appendChild(card);
   });
 }
 
-fileInput.addEventListener('change', async () => {
-  const files = Array.from(fileInput.files || []);
-  fileInput.value = '';
-  
-  for(const file of files){
-    if(file.size > 8 * 1024 * 1024){ alert(file.name + ' exceeds 8MB'); continue; }
-    const dataUrl = await readFileAsDataUrl(file);
-    stagedFiles.push({ id: 'f_' + Date.now(), type: file.type, dataUrl, isVideo: file.type.indexOf('video/') === 0 });
-  }
-  
-  if(stagedFiles.length){
-    renderComposeGrid();
-    composeModal.classList.add('show');
-  }
-});
-
-function renderComposeGrid(){
-  composeGrid.innerHTML = stagedFiles.map(f => `
-    <div class="moments-compose-thumb">
-      ${f.isVideo ? `<video src="${f.dataUrl}"></video>` : `<img src="${f.dataUrl}">`}
-      <button class="moments-compose-remove" data-id="${f.id}">×</button>
-    </div>
-  `).join('') + `<button class="moments-compose-add" id="addMoreBtn">+</button>`;
-  
-  composeGrid.querySelectorAll('.moments-compose-remove').forEach(btn => {
-    btn.addEventListener('click', () => {
-      stagedFiles = stagedFiles.filter(f => f.id !== btn.dataset.id);
-      renderComposeGrid();
-    });
-  });
-  
-  const addBtn = document.getElementById('addMoreBtn');
-  if(addBtn) addBtn.addEventListener('click', () => fileInput.click());
+// Open viewer
+function openViewer(moment) {
+  VIEWER_IMG.innerHTML = `<img src="${moment.image}" alt="${moment.caption}">`;
+  VIEWER.classList.add('open');
 }
 
-postBtn.addEventListener('click', async () => {
-  if(!stagedFiles.length) return;
-  postBtn.disabled = true;
-  
-  try{
-    const media = [];
-    for(let i = 0; i < stagedFiles.length; i++){
-      setStatus(composeStatus, 'Uploading ' + (i+1) + '/' + stagedFiles.length + '…');
-      const f = stagedFiles[i];
-      const res = await fetch(APP_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'uploadMomentFile', base64Data: f.dataUrl.split('base64,')[1], mimeType: f.type })
-      });
-      const data = await res.json();
-      if(data.status === 'ok') media.push({ url: data.url, mimeType: data.mimeType });
-    }
-    
-    setStatus(composeStatus, 'Posting…');
-    await fetch(APP_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'uploadMoment', media, caption: captionInput.value.trim() })
-    });
-    
-    stagedFiles = [];
-    captionInput.value = '';
-    composeModal.classList.remove('show');
-    showToast('Moment shared!');
-  }catch(e){
-    setStatus(composeStatus, 'Upload failed', 'error');
-  }finally{
-    postBtn.disabled = false;
-  }
+// Close viewer
+CLOSE_BTN.addEventListener('click', () => VIEWER.classList.remove('open'));
+VIEWER.addEventListener('click', (e) => {
+  if (e.target === VIEWER) VIEWER.classList.remove('open');
 });
 
-instagramSubmitBtn.addEventListener('click', async () => {
-  const url = instagramInput.value.trim();
-  if(!url || url.indexOf('instagram.com') === -1){ setStatus(instagramStatus, 'Invalid URL', 'error'); return; }
-  instagramSubmitBtn.disabled = true;
-  
-  try{
-    await fetch(APP_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'submitMomentLink', instagramUrl: url })
-    });
-    instagramModal.classList.remove('show');
-    instagramInput.value = '';
-    showToast('Instagram link added!');
-  }catch(e){
-    setStatus(instagramStatus, 'Failed', 'error');
-  }finally{
-    instagramSubmitBtn.disabled = false;
-  }
-});
+// Header menu
+HEADER_MENU.addEventListener('click', () => window.location.href = './index.html');
 
-function setStatus(el, text, kind){
-  el.textContent = text || '';
-  el.classList.remove('error');
-  if(kind === 'error') el.classList.add('error');
-}
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-let toastTimer;
-function showToast(m){
-  toast.textContent = m;
-  toast.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
-}
-
-// Share button listener (for FAB)
-document.addEventListener('keydown', (e) => {
-  if(e.key === 's' && (e.ctrlKey || e.metaKey)){
-    e.preventDefault();
-    choiceModal.classList.add('show');
-  }
-});
-
-// Initialize
-loadMoments();
+// Init
+loadLiked();
+renderMoments();
 </script>
 </body>
 </html>
