@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <script>
-// Theme anti-FOUC — same pattern as index.html
 (function(){
   try{
     var theme = localStorage.getItem('tkg_theme');
@@ -20,19 +19,10 @@
 </script>
 
 <style>
-/* ==========================================================================
-   THEME TOKENS (reused from index.html)
-   ========================================================================== */
 :root{
   --charcoal:       #160F0C;
   --charcoal-soft:  #221813;
-  --ember-card:     #2A1E17;
-  --ember-card-top: #32241B;
   --marble:         #FAF7F2;
-  --marble-dim:     #EEEEEC;
-  --marble-warm:    #F7F6F3;
-  --grey-line:      #3D2E24;
-
   --stone-base:      #F6F6F5;
   --tkg-page-bg:     #FFFFFF;
   --tkg-plain-border: #E6E3DD;
@@ -47,27 +37,16 @@
   --tkg-marble-ink-faint: rgba(242,239,234,0.55);
   --tkg-ctrl-bg: #1A1815;
   --tkg-ctrl-fg: #FFFFFF;
-  --stone-card:      rgba(255,255,255,0.62);
-  --stone-card-alt:  rgba(255,255,255,0.5);
-  --stone-vein:      #C9C9C7;
-  --stone-vein-soft: #DCDCDA;
   --stone-line:      rgba(255,255,255,0.65);
-  --stone-divider:   rgba(28,24,21,0.14);
-  --glass-blur:      18px;
   --ink:             #1C1815;
   --ink-soft:        #6B6256;
   --ink-faint:       #9C9286;
-
   --ember:          #E85D2C;
   --ember-bright:   #FF7A45;
   --ember-deep:     #B8431D;
-  --ember-glow:     #FAC646;
-
   --radius-lg: 18px;
   --radius-md: 12px;
-  --radius-sm: 8px;
   --max-w: 430px;
-
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -89,9 +68,6 @@ html[data-tkg-theme="dark"]{
   --ink-faint:       #6B6256;
 }
 
-/* ==========================================================================
-   BASE STYLES
-   ========================================================================== */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { 
   height: 100%; 
@@ -113,9 +89,6 @@ body {
   min-height: 100vh;
 }
 
-/* ==========================================================================
-   HEADER (reusing logo component from index.html)
-   ========================================================================== */
 .moments-header {
   background: var(--tkg-page-bg);
   border-bottom: 0.5px solid var(--tkg-plain-border);
@@ -150,48 +123,44 @@ body {
   color: var(--ink-soft);
 }
 
-/* ==========================================================================
-   FEED (VERTICAL SCROLLING)
-   ========================================================================== */
 .moments-feed {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
+  padding: 12px 0;
 }
 
-/* Instagram-style card: full width, stacked vertically */
-.moment-card {
+.timeline-item {
   width: 100%;
-  border-bottom: 0.5px solid var(--tkg-plain-border);
-  padding: 12px 0;
   display: flex;
   flex-direction: column;
+  border-bottom: 0.5px solid var(--tkg-plain-border);
+  padding: 12px 0;
 }
 
-.moment-media {
+.timeline-item-media {
   width: 100%;
   background: var(--stone-base);
   overflow: hidden;
-  position: relative;
 }
 
-.moment-media-image {
+.timeline-item-image {
   width: 100%;
   height: auto;
   display: block;
   object-fit: contain;
 }
 
-.moment-media-video {
+.timeline-item-video {
   width: 100%;
   height: auto;
   display: block;
+  background: #000;
 }
 
-/* Video thumbnail + play button overlay */
-.moment-video-container {
+.timeline-item-video-container {
   position: relative;
   width: 100%;
   background: #000;
@@ -200,13 +169,13 @@ body {
   justify-content: center;
 }
 
-.moment-video-thumbnail {
+.timeline-item-video-thumbnail {
   width: 100%;
   height: auto;
   display: block;
 }
 
-.moment-video-play-button {
+.timeline-item-video-play {
   position: absolute;
   inset: 0;
   display: flex;
@@ -222,32 +191,100 @@ body {
   transition: background 0.2s ease;
 }
 
-.moment-video-play-button:active {
+.timeline-item-video-play:active {
   background: rgba(0, 0, 0, 0.55);
 }
 
-.moment-info {
+.timeline-item-info {
   padding: 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.moment-caption {
+.timeline-item-caption {
   font-size: 14px;
   line-height: 1.4;
   color: var(--ink);
 }
 
-.moment-meta {
+.timeline-item-meta {
   font-size: 12px;
   color: var(--ink-soft);
 }
 
-/* Empty & loading states */
-.moments-empty,
-.moments-loading,
-.moments-error {
+.cs-review-card{
+  background-color:var(--tkg-marble-bg-color);
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size:auto, cover;
+  background-position:center, center;
+  border:1px solid var(--tkg-marble-border);
+  border-radius:16px;
+  padding:13px 14px;
+  margin: 12px 16px 0;
+  --ink:var(--tkg-marble-ink);
+  --ink-soft:var(--tkg-marble-ink-soft);
+  color:var(--tkg-marble-ink);
+}
+
+.cs-review-top{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:7px;
+}
+
+.cs-review-avatar{
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
+  color:var(--marble);
+  font-size:0.6875rem;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.cs-review-author{
+  flex:1;
+  min-width:0;
+  font-size:0.7812rem;
+  font-weight:700;
+  color:var(--ink);
+}
+
+.cs-review-stars{
+  font-size:0.6562rem;
+  background:linear-gradient(180deg, #FFD873 0%, #F5A623 55%, #C97B0E 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 1.5px rgba(245,166,35,0.35));
+  letter-spacing:1px;
+  flex-shrink:0;
+}
+
+.cs-review-quote{
+  font-size:0.8438rem;
+  line-height:1.5;
+  color:var(--ink);
+}
+
+.moments-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--ink-soft);
+}
+
+.moments-loading {
   flex: 1;
   display: flex;
   align-items: center;
@@ -258,16 +295,19 @@ body {
 }
 
 .moments-error {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
   color: var(--ink);
   background: rgba(181, 57, 47, 0.1);
   border-radius: 12px;
   margin: 12px;
 }
 
-/* ==========================================================================
-   FULLSCREEN VIDEO PLAYER
-   ========================================================================== */
-.fullscreen-video-player {
+.fullscreen-player {
   display: none;
   position: fixed;
   inset: 0;
@@ -279,11 +319,11 @@ body {
   padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px) 0;
 }
 
-.fullscreen-video-player.open {
+.fullscreen-player.open {
   display: flex;
 }
 
-.fullscreen-video-player-close {
+.fullscreen-player-close {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 12px);
   right: 16px;
@@ -302,19 +342,16 @@ body {
   transition: opacity 0.2s ease;
 }
 
-.fullscreen-video-player-close:active {
+.fullscreen-player-close:active {
   opacity: 0.6;
 }
 
-.fullscreen-video-player video {
+.fullscreen-player video {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-/* ==========================================================================
-   BOTTOM NAV
-   ========================================================================== */
 .moments-nav {
   background: var(--tkg-page-bg);
   border-top: 0.5px solid var(--tkg-plain-border);
@@ -361,9 +398,190 @@ body {
   fill: currentColor;
 }
 
-/* ==========================================================================
-   RESPONSIVE
-   ========================================================================== */
+.upload-button {
+  position: fixed;
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  right: 16px;
+  background: linear-gradient(180deg, var(--ember-bright), var(--ember));
+  color: var(--tkg-ctrl-fg);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 8px 18px -6px rgba(232,93,44,0.55);
+  transition: opacity 0.2s ease;
+  z-index: 50;
+}
+
+.upload-button:active {
+  opacity: 0.85;
+}
+
+.upload-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.upload-modal.open {
+  display: flex;
+}
+
+.upload-modal-content {
+  background: var(--tkg-page-bg);
+  width: 100%;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.upload-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--ink);
+}
+
+.upload-form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.upload-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.upload-input {
+  padding: 12px;
+  border: 0.5px solid var(--tkg-plain-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--tkg-page-bg);
+  color: var(--ink);
+}
+
+.upload-input::placeholder {
+  color: var(--ink-faint);
+}
+
+.upload-file-input {
+  padding: 12px;
+  border: 1px dashed var(--tkg-plain-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--stone-base);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.upload-textarea {
+  padding: 12px;
+  border: 0.5px solid var(--tkg-plain-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--tkg-page-bg);
+  color: var(--ink);
+  resize: vertical;
+  min-height: 80px;
+}
+
+.upload-textarea::placeholder {
+  color: var(--ink-faint);
+}
+
+.upload-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.upload-preview-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--stone-base);
+}
+
+.upload-preview-item img,
+.upload-preview-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-preview-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.upload-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.upload-btn-primary {
+  flex: 1;
+  padding: 12px;
+  background: linear-gradient(180deg, var(--ember-bright), var(--ember));
+  color: var(--tkg-ctrl-fg);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.upload-btn-primary:active {
+  opacity: 0.85;
+}
+
+.upload-btn-secondary {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  color: var(--ink);
+  border: 0.5px solid var(--tkg-plain-border);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.upload-btn-secondary:active {
+  opacity: 0.7;
+}
+
 @media (max-width: 380px) {
   .moments-header {
     padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
@@ -379,11 +597,11 @@ body {
     font-size: 14px;
   }
 
-  .moment-info {
+  .timeline-item-info {
     padding: 10px 12px;
   }
 
-  .moment-caption {
+  .timeline-item-caption {
     font-size: 13px;
   }
 }
@@ -392,7 +610,6 @@ body {
 <body>
 
 <div class="moments-app">
-  <!-- HEADER -->
   <div class="moments-header">
     <img class="hero-logo-large" src="./icon-192.png" alt="TKG">
     <div class="moments-header-text">
@@ -401,24 +618,51 @@ body {
     </div>
   </div>
 
-  <!-- FEED (vertical scrolling) -->
   <div class="moments-feed" id="momentsFeed">
     <div class="moments-loading">Loading moments...</div>
   </div>
 
-  <!-- FULLSCREEN VIDEO PLAYER (overlay) -->
-  <div class="fullscreen-video-player" id="fullscreenPlayer">
-    <button class="fullscreen-video-player-close" id="closePlayer">✕</button>
-    <video id="fullscreenVideo" playsinline controls></video>
+  <button class="upload-button" id="shareBtn">📸 Share Your Moment</button>
+
+  <div class="upload-modal" id="uploadModal">
+    <div class="upload-modal-content">
+      <div class="upload-modal-title">Share Your Moment</div>
+      
+      <div class="upload-form-group">
+        <label class="upload-label" for="uploadName">Your Name</label>
+        <input class="upload-input" id="uploadName" type="text" placeholder="Required" maxlength="100">
+      </div>
+
+      <div class="upload-form-group">
+        <label class="upload-label">Photo or Video</label>
+        <input class="upload-file-input" id="uploadFile" type="file" accept="image/*,video/*" multiple>
+      </div>
+
+      <div class="upload-preview" id="uploadPreview"></div>
+
+      <div class="upload-form-group">
+        <label class="upload-label" for="uploadCaption">Caption (optional)</label>
+        <textarea class="upload-textarea" id="uploadCaption" placeholder="Add a caption..."></textarea>
+      </div>
+
+      <div class="upload-actions">
+        <button class="upload-btn-primary" id="uploadSubmitBtn">Share</button>
+        <button class="upload-btn-secondary" id="uploadCancelBtn">Cancel</button>
+      </div>
+    </div>
   </div>
 
-  <!-- BOTTOM NAV -->
+  <div class="fullscreen-player" id="videoplayer">
+    <button class="fullscreen-player-close" id="playerClose">✕</button>
+    <video id="playerVideo" playsinline controls></video>
+  </div>
+
   <nav class="moments-nav">
     <a href="./index.html" class="moments-nav-btn" title="Menu">
       <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span>Menu</span>
     </a>
-    <button class="moments-nav-btn active" id="momentsBtn" title="Moments" disabled>
+    <button class="moments-nav-btn active" disabled>
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
       <span>Moments</span>
     </button>
@@ -434,137 +678,402 @@ body {
 </div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 
 const FEED = document.getElementById('momentsFeed');
-const FULLSCREEN_PLAYER = document.getElementById('fullscreenPlayer');
-const FULLSCREEN_VIDEO = document.getElementById('fullscreenVideo');
-const CLOSE_PLAYER_BTN = document.getElementById('closePlayer');
+const SHARE_BTN = document.getElementById('shareBtn');
+const UPLOAD_MODAL = document.getElementById('uploadModal');
+const UPLOAD_NAME = document.getElementById('uploadName');
+const UPLOAD_FILE = document.getElementById('uploadFile');
+const UPLOAD_CAPTION = document.getElementById('uploadCaption');
+const UPLOAD_PREVIEW = document.getElementById('uploadPreview');
+const UPLOAD_SUBMIT = document.getElementById('uploadSubmitBtn');
+const UPLOAD_CANCEL = document.getElementById('uploadCancelBtn');
+const PLAYER = document.getElementById('videoplayer');
+const PLAYER_VIDEO = document.getElementById('playerVideo');
+const PLAYER_CLOSE = document.getElementById('playerClose');
 
 let moments = [];
+let selectedFiles = [];
 
-// ========== FETCH MOMENTS FROM APPS SCRIPT ==========
+// ========== FETCH MOMENTS ==========
 async function fetchMoments() {
   try {
-    const response = await fetch(APPS_SCRIPT_URL + '?action=moments');
+    const response = await fetch(APP_SCRIPT_URL + '?action=moments');
     if (!response.ok) throw new Error('Network error');
     
     const data = await response.json();
     if (data.status !== 'ok') throw new Error(data.message || 'API error');
     
     moments = data.moments || [];
-    renderFeed();
+    renderTimeline();
   } catch (err) {
     console.error('Failed to fetch moments:', err);
     FEED.innerHTML = '<div class="moments-error">Failed to load moments. Please try again later.</div>';
   }
 }
 
-// ========== RENDER FEED (vertical scrolling cards) ==========
-function renderFeed() {
+// ========== RENDER TIMELINE (CONTENT-TYPE AGNOSTIC) ==========
+function renderTimeline() {
   FEED.innerHTML = '';
   
   if (moments.length === 0) {
     FEED.innerHTML = '<div class="moments-empty">No moments shared yet</div>';
     return;
   }
-  
+
+  // Flatten all content into one timeline
+  let timelineItems = [];
+
   moments.forEach((moment) => {
-    // Handle direct imageUrl (single image)
-    if (moment.imageUrl) {
-      const card = createImageCard(moment, moment.imageUrl);
-      FEED.appendChild(card);
-    }
+    const type = String(moment.type || 'customer_photo').toLowerCase();
     
-    // Handle media array (multiple items per moment)
+    // Handle Google Reviews separately
+    if (type === 'google_review' || type === 'review') {
+      timelineItems.push({
+        type: 'google_review',
+        data: moment
+      });
+      return;
+    }
+
+    // Handle customer photos/videos from media array
     if (moment.media && Array.isArray(moment.media)) {
       moment.media.forEach((item) => {
         const mimeType = item.mimeType || 'image/jpeg';
         const isVideo = mimeType.indexOf('video/') === 0;
         
-        if (isVideo) {
-          const card = createVideoCard(moment, item);
-          FEED.appendChild(card);
-        } else {
-          const card = createImageCard(moment, item.url);
-          FEED.appendChild(card);
+        timelineItems.push({
+          type: isVideo ? 'customer_video' : 'customer_photo',
+          data: {
+            id: moment.id,
+            caption: moment.caption || '',
+            uploaderName: moment.uploaderName || 'Community Member',
+            date: moment.date,
+            time: moment.time,
+            media: item
+          }
+        });
+      });
+      return;
+    }
+
+    // Fallback: single imageUrl
+    if (moment.imageUrl) {
+      timelineItems.push({
+        type: 'customer_photo',
+        data: {
+          id: moment.id,
+          caption: moment.caption || '',
+          uploaderName: moment.uploaderName || 'Community Member',
+          date: moment.date,
+          time: moment.time,
+          media: { url: moment.imageUrl, mimeType: 'image/jpeg' }
         }
       });
     }
   });
+
+  // Render each timeline item
+  timelineItems.forEach((item) => {
+    const element = renderTimelineItem(item);
+    FEED.appendChild(element);
+  });
 }
 
-// ========== CREATE IMAGE CARD ==========
-function createImageCard(moment, imageUrl) {
-  const card = document.createElement('div');
-  card.className = 'moment-card';
-  
-  card.innerHTML = `
-    <div class="moment-media">
-      <img class="moment-media-image" src="${imageUrl}" alt="${moment.caption || 'Moment'}" loading="lazy">
-    </div>
-    <div class="moment-info">
-      ${moment.caption ? `<div class="moment-caption">${moment.caption}</div>` : ''}
-      <div class="moment-meta">Shared by TKG</div>
-    </div>
-  `;
-  
-  return card;
+// ========== RENDER SINGLE TIMELINE ITEM (EXTENSIBLE) ==========
+function renderTimelineItem(item) {
+  const container = document.createElement('div');
+  container.className = 'timeline-item';
+
+  if (item.type === 'google_review') {
+    // Reuse exact Google Review card from index.html
+    const review = item.data;
+    const initials = (review.authorName || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    
+    container.innerHTML = `
+      <div class="cs-review-card">
+        <div class="cs-review-top">
+          <span class="cs-review-avatar">${initials}</span>
+          <span class="cs-review-author">${escapeHtml(review.authorName || 'Anonymous')}</span>
+          <span class="cs-review-stars">★${(review.rating || 5).toString().repeat(review.rating || 5)}</span>
+        </div>
+        <div class="cs-review-quote">${escapeHtml(review.quoteText || '')}</div>
+      </div>
+    `;
+    return container;
+  }
+
+  if (item.type === 'customer_photo') {
+    const { caption, uploaderName, date, time, media } = item.data;
+    const dateDisplay = formatDate(date, time);
+    
+    container.innerHTML = `
+      <div class="timeline-item-media">
+        <img class="timeline-item-image" src="${media.url}" alt="Moment" loading="lazy">
+      </div>
+      <div class="timeline-item-info">
+        ${caption ? `<div class="timeline-item-caption">${escapeHtml(caption)}</div>` : ''}
+        <div class="timeline-item-meta">${escapeHtml(uploaderName || 'Community Member')} • ${dateDisplay}</div>
+      </div>
+    `;
+    return container;
+  }
+
+  if (item.type === 'customer_video') {
+    const { caption, uploaderName, date, time, media } = item.data;
+    const dateDisplay = formatDate(date, time);
+    const thumbnailUrl = media.thumbnailUrl || media.url;
+    
+    const mediaContainer = document.createElement('div');
+    mediaContainer.className = 'timeline-item-media timeline-item-video-container';
+    mediaContainer.innerHTML = `
+      <img class="timeline-item-video-thumbnail" src="${thumbnailUrl}" alt="Video thumbnail" loading="lazy">
+      <button class="timeline-item-video-play" aria-label="Play video">▶</button>
+    `;
+    
+    const playBtn = mediaContainer.querySelector('.timeline-item-video-play');
+    playBtn.addEventListener('click', () => openVideoPlayer(media.url));
+    
+    const info = document.createElement('div');
+    info.className = 'timeline-item-info';
+    info.innerHTML = `
+      ${caption ? `<div class="timeline-item-caption">${escapeHtml(caption)}</div>` : ''}
+      <div class="timeline-item-meta">${escapeHtml(uploaderName || 'Community Member')} • ${dateDisplay}</div>
+    `;
+    
+    container.appendChild(mediaContainer);
+    container.appendChild(info);
+    return container;
+  }
+
+  // Fallback for unknown types (allows adding new types later without error)
+  return container;
 }
 
-// ========== CREATE VIDEO CARD ==========
-function createVideoCard(moment, mediaItem) {
-  const card = document.createElement('div');
-  card.className = 'moment-card';
+// ========== FORMAT DATE ==========
+function formatDate(date, time) {
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let dateObj;
   
-  const thumbnailUrl = mediaItem.thumbnailUrl || mediaItem.url;
+  try {
+    dateObj = new Date(date);
+  } catch (e) {
+    return 'Recently';
+  }
   
-  card.innerHTML = `
-    <div class="moment-media moment-video-container">
-      <img class="moment-video-thumbnail" src="${thumbnailUrl}" alt="Video thumbnail" loading="lazy">
-      <button class="moment-video-play-button" aria-label="Play video">▶</button>
-    </div>
-    <div class="moment-info">
-      ${moment.caption ? `<div class="moment-caption">${moment.caption}</div>` : ''}
-      <div class="moment-meta">Shared by TKG • Video</div>
-    </div>
-  `;
+  if (isNaN(dateObj)) return 'Recently';
   
-  // Tap play button to open fullscreen player
-  const playBtn = card.querySelector('.moment-video-play-button');
-  playBtn.addEventListener('click', () => openFullscreenPlayer(mediaItem.url));
+  const day = dayNames[dateObj.getDay()];
+  const timeStr = time ? String(time).slice(0, 5) : ''; // HH:MM format
   
-  return card;
+  return timeStr ? `${day} ${timeStr}` : day;
 }
 
-// ========== OPEN FULLSCREEN VIDEO PLAYER ==========
-function openFullscreenPlayer(videoUrl) {
-  FULLSCREEN_VIDEO.src = videoUrl;
-  FULLSCREEN_PLAYER.classList.add('open');
+// ========== UPLOAD EXPERIENCE ==========
+SHARE_BTN.addEventListener('click', () => {
+  UPLOAD_MODAL.classList.add('open');
+  UPLOAD_NAME.focus();
+});
+
+UPLOAD_CANCEL.addEventListener('click', () => {
+  closeUploadModal();
+});
+
+UPLOAD_FILE.addEventListener('change', (e) => {
+  selectedFiles = Array.from(e.target.files || []);
+  updatePreview();
+});
+
+function updatePreview() {
+  UPLOAD_PREVIEW.innerHTML = '';
+  selectedFiles.forEach((file, idx) => {
+    const container = document.createElement('div');
+    container.className = 'upload-preview-item';
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (file.type.indexOf('video/') === 0) {
+        const video = document.createElement('video');
+        video.src = e.target.result;
+        container.appendChild(video);
+      } else {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        container.appendChild(img);
+      }
+    };
+    reader.readAsDataURL(file);
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'upload-preview-remove';
+    removeBtn.textContent = '✕';
+    removeBtn.addEventListener('click', () => {
+      selectedFiles.splice(idx, 1);
+      updatePreview();
+    });
+    
+    container.appendChild(removeBtn);
+    UPLOAD_PREVIEW.appendChild(container);
+  });
+}
+
+UPLOAD_SUBMIT.addEventListener('click', () => {
+  const name = UPLOAD_NAME.value.trim();
+  const caption = UPLOAD_CAPTION.value.trim();
+  
+  if (!name) {
+    alert('Please enter your name');
+    return;
+  }
+  
+  if (selectedFiles.length === 0) {
+    alert('Please select a photo or video');
+    return;
+  }
+  
+  uploadMoments(name, caption);
+});
+
+async function uploadMoments(name, caption) {
+  UPLOAD_SUBMIT.disabled = true;
+  UPLOAD_SUBMIT.textContent = 'Uploading...';
+
+  try {
+    const media = [];
+    
+    for (const file of selectedFiles) {
+      const base64 = await fileToBase64(file);
+      const uploaded = await uploadToAppsScript(base64, file.type);
+      
+      if (uploaded) {
+        media.push({
+          url: uploaded.url,
+          thumbnailUrl: uploaded.thumbnailUrl,
+          mimeType: uploaded.mimeType
+        });
+      }
+    }
+    
+    if (media.length === 0) {
+      throw new Error('Upload failed');
+    }
+
+    const payload = {
+      action: 'uploadMoment',
+      uploaderName: name,
+      caption: caption,
+      media: media
+    };
+
+    const response = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error('Submit failed');
+    
+    // Reload and close
+    closeUploadModal();
+    fetchMoments();
+    alert('Moment shared! 🎉');
+  } catch (err) {
+    console.error('Upload error:', err);
+    alert('Failed to share moment. Please try again.');
+  } finally {
+    UPLOAD_SUBMIT.disabled = false;
+    UPLOAD_SUBMIT.textContent = 'Share';
+  }
+}
+
+async function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadToAppsScript(base64, mimeType) {
+  const payload = {
+    action: 'uploadMomentFile',
+    base64Data: base64,
+    mimeType: mimeType
+  };
+
+  try {
+    const response = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    return data.status === 'ok' ? { 
+      url: data.url, 
+      thumbnailUrl: data.thumbnailUrl, 
+      mimeType: data.mimeType 
+    } : null;
+  } catch (err) {
+    console.error('File upload error:', err);
+    return null;
+  }
+}
+
+function closeUploadModal() {
+  UPLOAD_MODAL.classList.remove('open');
+  UPLOAD_NAME.value = '';
+  UPLOAD_CAPTION.value = '';
+  UPLOAD_FILE.value = '';
+  selectedFiles = [];
+  UPLOAD_PREVIEW.innerHTML = '';
+}
+
+// ========== VIDEO PLAYER ==========
+function openVideoPlayer(videoUrl) {
+  PLAYER_VIDEO.src = videoUrl;
+  PLAYER.classList.add('open');
   document.body.style.overflow = 'hidden';
-  FULLSCREEN_VIDEO.play();
+  PLAYER_VIDEO.play();
 }
 
-// ========== CLOSE FULLSCREEN PLAYER ==========
-function closeFullscreenPlayer() {
-  FULLSCREEN_VIDEO.pause();
-  FULLSCREEN_VIDEO.src = '';
-  FULLSCREEN_PLAYER.classList.remove('open');
+function closeVideoPlayer() {
+  PLAYER_VIDEO.pause();
+  PLAYER_VIDEO.src = '';
+  PLAYER.classList.remove('open');
   document.body.style.overflow = '';
 }
 
-// ========== EVENT LISTENERS ==========
-CLOSE_PLAYER_BTN.addEventListener('click', closeFullscreenPlayer);
+PLAYER_CLOSE.addEventListener('click', closeVideoPlayer);
 
-FULLSCREEN_PLAYER.addEventListener('click', (e) => {
-  if (e.target === FULLSCREEN_PLAYER) closeFullscreenPlayer();
+PLAYER.addEventListener('click', (e) => {
+  if (e.target === PLAYER) closeVideoPlayer();
 });
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && FULLSCREEN_PLAYER.classList.contains('open')) {
-    closeFullscreenPlayer();
+  if (e.key === 'Escape' && PLAYER.classList.contains('open')) {
+    closeVideoPlayer();
   }
 });
+
+// ========== ESCAPE TO CLOSE MODAL ==========
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && UPLOAD_MODAL.classList.contains('open')) {
+    closeUploadModal();
+  }
+});
+
+// ========== ESCAPE HTML ==========
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
 
 // ========== INIT ==========
 fetchMoments();
