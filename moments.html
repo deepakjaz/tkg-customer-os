@@ -139,25 +139,38 @@ input{font-family:inherit;}
   object-fit:cover;
 }
 
-/* REELS-STYLE VIDEO CONTAINER */
+/* NATIVE REELS-STYLE VIDEO CONTAINER */
 .moments-video-wrap {
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #000;
 }
-
-/* Offset iframe vertically to crop out Google Drive's bulky overlay controls */
-.moments-video-wrap iframe {
-  position: absolute;
-  top: -65px;
-  left: 0;
+.moments-video-wrap video {
   width: 100%;
-  height: calc(100% + 125px);
-  border: none;
-  pointer-events: auto;
+  height: 100%;
+  object-fit: cover;
 }
+
+.video-mute-indicator {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: 8;
+}
+.video-mute-indicator.show { opacity: 1; }
 
 .moments-slide-media-scroller{
   display:flex;
@@ -385,6 +398,10 @@ input{font-family:inherit;}
 </section>
 
 <script>
+// CLOUDINARY CREDENTIALS
+const CLOUDINARY_CLOUD_NAME = 'llbmc2sb';
+const CLOUDINARY_UPLOAD_PRESET = 'tkgmoment';
+
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 
 const momentsMenuBtn = document.getElementById('momentsMenuBtn');
@@ -444,14 +461,21 @@ function toggleLikedMomentId(id){
   return liked.has(id);
 }
 
-function getDriveFileId(url) {
-  if (!url) return null;
-  const matchD = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-  const matchId = url.match(/[?&]id=([a-zA-Z0-9-_]+)/);
-  if (matchD && matchD[1]) return matchD[1];
-  if (matchId && matchId[1]) return matchId[1];
-  return null;
-}
+// Auto-play videos when scrolled into view
+const videoIntersectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const video = entry.target.querySelector('video');
+    if(!video) return;
+    if(entry.isIntersecting){
+      video.play().catch(() => {
+        video.muted = true;
+        video.play();
+      });
+    } else {
+      video.pause();
+    }
+  });
+}, { threshold: 0.6 });
 
 async function loadMoments(){
   momentsLoadingState.style.display = '';
@@ -480,13 +504,9 @@ async function loadMoments(){
           const isVideo = item.mimeType && item.mimeType.indexOf('video/') === 0;
 
           if(isVideo){
-            const fileId = getDriveFileId(item.url);
-            const embedUrl = fileId 
-              ? 'https://drive.google.com/file/d/' + fileId + '/preview' 
-              : item.url;
-
             return '<div class="moments-video-wrap">' +
-              '<iframe src="' + escapeHtml(embedUrl) + '" allow="autoplay"></iframe>' +
+              '<video class="moments-slide-media" src="' + escapeHtml(item.url) + '" muted loop playsinline preload="metadata"></video>' +
+              '<div class="video-mute-indicator">Muted</div>' +
             '</div>';
           }
           return '<img class="moments-slide-media" src="' + escapeHtml(item.url) + '" alt="TKG moment" loading="lazy">';
@@ -520,6 +540,22 @@ async function loadMoments(){
 
     if(window.instgrm && window.instgrm.Embeds) window.instgrm.Embeds.process();
 
+    document.querySelectorAll('.moments-slide').forEach(slide => {
+      videoIntersectionObserver.observe(slide);
+
+      const video = slide.querySelector('video');
+      const indicator = slide.querySelector('.video-mute-indicator');
+      if(video && indicator){
+        slide.addEventListener('click', (e) => {
+          if(e.target.closest('.moments-slide-actions')) return;
+          video.muted = !video.muted;
+          indicator.textContent = video.muted ? 'Muted' : 'Unmuted';
+          indicator.classList.add('show');
+          setTimeout(() => indicator.classList.remove('show'), 1200);
+        });
+      }
+    });
+
     momentsViewer.querySelectorAll('.moments-heart-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -552,10 +588,8 @@ momentsFileInput.addEventListener('change', async () => {
   momentsFileInput.value = '';
 
   for(const file of files){
-    if(file.size > 8 * 1024 * 1024){ alert('File "' + file.name + '" exceeds 8MB cap.'); continue; }
     const isVideo = file.type.indexOf('video/') === 0;
-    const dataUrl = await readFileAsDataUrl(file);
-    momentsStagedFiles.push({ localId: 'f_' + Date.now(), mimeType: file.type, dataUrl: dataUrl, isVideo: isVideo });
+    momentsStagedFiles.push({ localId: 'f_' + Date.now(), file: file, isVideo: isVideo });
   }
 
   if(momentsStagedFiles.length > 0){
@@ -564,18 +598,10 @@ momentsFileInput.addEventListener('change', async () => {
   }
 });
 
-function readFileAsDataUrl(file){
-  return new Promise((res, rej) => {
-    const reader = new FileReader();
-    reader.onload = () => res(reader.result);
-    reader.onerror = rej;
-    reader.readAsDataURL(file);
-  });
-}
-
 function renderComposeGrid(){
   momentsComposeGrid.innerHTML = momentsStagedFiles.map(f => {
-    const tag = f.isVideo ? '<video src="' + f.dataUrl + '"></video>' : '<img src="' + f.dataUrl + '">';
+    const src = URL.createObjectURL(f.file);
+    const tag = f.isVideo ? '<video src="' + src + '"></video>' : '<img src="' + src + '">';
     return '<div class="moments-compose-thumb-wrap">' + tag + '<button type="button" class="moments-compose-remove-badge" data-id="' + f.localId + '">×</button></div>';
   }).join('') + '<button type="button" class="moments-compose-add-tile" id="addMoreTile">+</button>';
 
@@ -591,6 +617,25 @@ function renderComposeGrid(){
 
 momentsComposeCancelBtn.addEventListener('click', () => { momentsStagedFiles = []; momentsComposeOverlay.classList.add('hidden'); });
 
+// Upload directly to Cloudinary CDN
+async function uploadToCloudinary(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+    method: 'POST',
+    body: formData
+  });
+
+  const data = await res.json();
+  return {
+    url: data.secure_url,
+    thumbnailUrl: data.secure_url.replace(/\.[^/.]+$/, ".jpg"),
+    mimeType: file.type
+  };
+}
+
 momentsComposePostBtn.addEventListener('click', async () => {
   if(!momentsStagedFiles.length) return;
   momentsComposePostBtn.disabled = true;
@@ -599,14 +644,8 @@ momentsComposePostBtn.addEventListener('click', async () => {
     const media = [];
     for(let i = 0; i < momentsStagedFiles.length; i++){
       setMomentsStatus(momentsUploadStatus, 'Uploading ' + (i+1) + '/' + momentsStagedFiles.length + '…');
-      const f = momentsStagedFiles[i];
-      const res = await fetch(APP_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'uploadMomentFile', base64Data: f.dataUrl.split('base64,')[1], mimeType: f.mimeType })
-      });
-      const data = await res.json();
-      if(data.status === 'ok') media.push({ url: data.url, thumbnailUrl: data.thumbnailUrl, mimeType: data.mimeType });
+      const uploaded = await uploadToCloudinary(momentsStagedFiles[i].file);
+      media.push(uploaded);
     }
 
     setMomentsStatus(momentsUploadStatus, 'Posting…');
