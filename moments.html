@@ -7,159 +7,297 @@
 <meta name="theme-color" content="#0B0B0C">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
+<script>
+// Theme anti-FOUC — same pattern as index.html
+(function(){
+  try{
+    var theme = localStorage.getItem('tkg_theme');
+    document.documentElement.setAttribute('data-tkg-theme', theme === 'dark' ? 'dark' : 'light');
+  }catch(e){
+    document.documentElement.setAttribute('data-tkg-theme', 'light');
+  }
+})();
+</script>
+
 <style>
-:root {
-  --charcoal: #160F0C;
-  --tkg-page-bg: #FFFFFF;
-  --tkg-border: #E6E3DD;
-  --ink: #1C1815;
-  --ink-soft: #6B6256;
-  --ember: #E85D2C;
+/* ==========================================================================
+   THEME TOKENS (reused from index.html)
+   ========================================================================== */
+:root{
+  --charcoal:       #160F0C;
+  --charcoal-soft:  #221813;
+  --ember-card:     #2A1E17;
+  --ember-card-top: #32241B;
+  --marble:         #FAF7F2;
+  --marble-dim:     #EEEEEC;
+  --marble-warm:    #F7F6F3;
+  --grey-line:      #3D2E24;
+
+  --stone-base:      #F6F6F5;
+  --tkg-page-bg:     #FFFFFF;
+  --tkg-plain-border: #E6E3DD;
+  --tkg-plain-opaque-bg: #1A1815;
+  --tkg-plain-opaque-fg: #FFFFFF;
+  --tkg-marble-bg-color: #0F0E0C;
+  --tkg-marble-image: url('tkg-marble-black.jpg');
+  --tkg-marble-overlay: rgba(0,0,0,0.42);
+  --tkg-marble-border: rgba(0,0,0,0.06);
+  --tkg-marble-ink: #F2EFEA;
+  --tkg-marble-ink-soft: rgba(242,239,234,0.72);
+  --tkg-marble-ink-faint: rgba(242,239,234,0.55);
+  --tkg-ctrl-bg: #1A1815;
+  --tkg-ctrl-fg: #FFFFFF;
+  --stone-card:      rgba(255,255,255,0.62);
+  --stone-card-alt:  rgba(255,255,255,0.5);
+  --stone-vein:      #C9C9C7;
+  --stone-vein-soft: #DCDCDA;
+  --stone-line:      rgba(255,255,255,0.65);
+  --stone-divider:   rgba(28,24,21,0.14);
+  --glass-blur:      18px;
+  --ink:             #1C1815;
+  --ink-soft:        #6B6256;
+  --ink-faint:       #9C9286;
+
+  --ember:          #E85D2C;
+  --ember-bright:   #FF7A45;
+  --ember-deep:     #B8431D;
+  --ember-glow:     #FAC646;
+
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --max-w: 430px;
+
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; width: 100%; background: var(--tkg-page-bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-body { display: flex; justify-content: center; }
+html[data-tkg-theme="dark"]{
+  --tkg-page-bg:     #0B0B0C;
+  --tkg-plain-border: #2A2420;
+  --tkg-plain-opaque-bg: #FAF7F2;
+  --tkg-plain-opaque-fg: #160F0C;
+  --tkg-marble-bg-color: #FAF7F2;
+  --tkg-marble-overlay: rgba(255,255,255,0.06);
+  --tkg-marble-border: rgba(255,255,255,0.12);
+  --tkg-marble-ink: #160F0C;
+  --tkg-marble-ink-soft: rgba(22,15,12,0.64);
+  --tkg-marble-ink-faint: rgba(22,15,12,0.48);
+  --tkg-ctrl-bg: #FAF7F2;
+  --tkg-ctrl-fg: #160F0C;
+  --ink:             #F2EFEA;
+  --ink-soft:        #A89878;
+  --ink-faint:       #6B6256;
+}
 
-.moments-page {
+/* ==========================================================================
+   BASE STYLES
+   ========================================================================== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { 
+  height: 100%; 
+  width: 100%; 
+  background: var(--tkg-page-bg); 
+  color: var(--ink); 
+  font-family: var(--font-body);
+}
+body { 
+  display: flex; 
+  justify-content: center; 
+}
+
+.moments-app {
   width: 100%;
-  max-width: 430px;
+  max-width: var(--max-w);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-/* HEADER */
+/* ==========================================================================
+   HEADER (reusing logo component from index.html)
+   ========================================================================== */
 .moments-header {
-  background: #fff;
-  border-bottom: 0.5px solid var(--tkg-border);
+  background: var(--tkg-page-bg);
+  border-bottom: 0.5px solid var(--tkg-plain-border);
   padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-}
-
-.moments-header-left {
-  display: flex;
-  align-items: center;
   gap: 12px;
-  cursor: pointer;
 }
 
-.moments-header-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  background: #E85D2C;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-weight: bold;
-  font-size: 16px;
+.hero-logo-large {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .moments-header-text {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink);
-  line-height: 1.2;
+  flex: 1;
 }
 
-.moments-stat {
-  font-size: 11px;
-  font-weight: 700;
+.moments-header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.moments-header-subtitle {
+  font-size: 12px;
   color: var(--ink-soft);
 }
 
-/* SCROLL AREA */
-.moments-scroll {
+/* ==========================================================================
+   GALLERY GRID
+   ========================================================================== */
+.moments-gallery {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
-/* CARD */
-.moments-card {
-  background: #fff;
-  border-radius: 12px;
-  border: 0.5px solid var(--tkg-border);
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.moments-card-image {
+.moments-thumbnail {
   width: 100%;
   aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--stone-base);
+  border: 0.5px solid var(--tkg-plain-border);
+  position: relative;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.moments-thumbnail:active {
+  transform: scale(0.95);
+}
+
+.moments-thumbnail-image {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  display: block;
-  background: #e8e8e8;
 }
 
-.moments-card-content {
-  padding: 12px;
+.moments-thumbnail-video-badge {
+  position: absolute;
+  inset: 0;
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  font-size: 28px;
+  pointer-events: none;
 }
 
-.moments-card-text {
-  flex: 1;
-}
-
-.moments-card-caption {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ink);
-  margin-bottom: 4px;
-}
-
-.moments-card-meta {
-  font-size: 12px;
+.moments-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 24px;
   color: var(--ink-soft);
 }
 
-.moments-card-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-  justify-content: flex-start;
+.moments-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--ink-soft);
 }
 
-.moments-btn-action {
+.moments-error {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 32px 24px;
+  color: var(--ink);
+  background: rgba(181, 57, 47, 0.1);
+  border-radius: 12px;
+  margin: 12px;
+}
+
+/* ==========================================================================
+   FULLSCREEN VIEWERS
+   ========================================================================== */
+.moments-viewer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 100;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.moments-viewer.open {
+  display: flex;
+}
+
+.moments-viewer-close {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  right: 16px;
   background: none;
   border: none;
-  font-size: 18px;
+  color: #fff;
+  font-size: 28px;
   cursor: pointer;
-  color: var(--ink-soft);
+  z-index: 101;
   padding: 0;
-  width: 24px;
-  height: 24px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.moments-btn-action.liked {
-  color: #E85D2C;
+.moments-viewer-close:active {
+  opacity: 0.7;
 }
 
-/* EMPTY */
-.moments-empty {
-  text-align: center;
-  padding: 48px 32px;
-  color: var(--ink-soft);
+/* Image viewer */
+.moments-image-viewer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
 }
 
-/* BOTTOM NAV */
+.moments-image-viewer img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Video viewer */
+.moments-video-viewer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px) 0;
+}
+
+.moments-video-viewer video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   BOTTOM NAV
+   ========================================================================== */
 .moments-nav {
-  background: #fff;
-  border-top: 0.5px solid var(--tkg-border);
+  background: var(--tkg-page-bg);
+  border-top: 0.5px solid var(--tkg-plain-border);
   padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
   display: flex;
   justify-content: space-around;
@@ -179,250 +317,270 @@ body { display: flex; justify-content: center; }
   color: var(--ink-soft);
   font-size: 11px;
   font-weight: 500;
+  transition: color 0.2s ease;
 }
 
 .moments-nav-btn.active {
-  color: #E85D2C;
+  color: var(--ember);
+}
+
+.moments-nav-btn:active {
+  opacity: 0.7;
 }
 
 .moments-nav-btn svg {
   width: 20px;
   height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
 }
 
-/* VIEWER OVERLAY */
-.moments-viewer {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: #000;
-  z-index: 100;
-  flex-direction: column;
+/* Instagram icon is solid */
+.moments-nav-btn.instagram-btn svg {
+  fill: currentColor;
 }
 
-.moments-viewer.open {
-  display: flex;
-}
-
-.moments-viewer-close {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 12px);
-  right: 16px;
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 24px;
-  cursor: pointer;
-  z-index: 101;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-}
-
-.moments-viewer-image {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: auto;
-}
-
-.moments-viewer-image img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-/* TOAST */
-.moments-toast {
-  position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--ink);
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 150;
-}
-
-.moments-toast.show {
-  opacity: 1;
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 380px) {
+  .moments-gallery {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 8px;
+  }
+  
+  .moments-header {
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
+    gap: 8px;
+  }
+  
+  .hero-logo-large {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .moments-header-title {
+    font-size: 14px;
+  }
 }
 </style>
 </head>
 <body>
 
-<div class="moments-page">
+<div class="moments-app">
   <!-- HEADER -->
   <div class="moments-header">
-    <div class="moments-header-left" id="headerMenu">
-      <div class="moments-header-logo">TKG</div>
-      <div class="moments-header-text">THE KHICHIYA<br>GRAVY</div>
+    <img class="hero-logo-large" src="./icon-192.png" alt="TKG">
+    <div class="moments-header-text">
+      <div class="moments-header-title">TKG Moments</div>
+      <div class="moments-header-subtitle">Gallery from the community</div>
     </div>
-    <div class="moments-stat">🔥 34+</div>
   </div>
 
-  <!-- SCROLL -->
-  <div class="moments-scroll" id="momentsList"></div>
-
-  <!-- VIEWER -->
-  <div class="moments-viewer" id="viewer">
-    <button class="moments-viewer-close" id="closeViewer">✕</button>
-    <div class="moments-viewer-image" id="viewerImage"></div>
+  <!-- GALLERY GRID -->
+  <div class="moments-gallery" id="momentsList">
+    <div class="moments-loading">Loading moments...</div>
   </div>
 
-  <!-- NAV -->
+  <!-- IMAGE VIEWER -->
+  <div class="moments-viewer" id="imageViewer">
+    <button class="moments-viewer-close" id="closeImageViewer">✕</button>
+    <div class="moments-image-viewer" id="imageViewerContent"></div>
+  </div>
+
+  <!-- VIDEO VIEWER -->
+  <div class="moments-viewer" id="videoViewer">
+    <button class="moments-viewer-close" id="closeVideoViewer">✕</button>
+    <div class="moments-video-viewer" id="videoViewerContent"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
   <nav class="moments-nav">
-    <a href="./index.html" class="moments-nav-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      Menu
+    <a href="./index.html" class="moments-nav-btn" title="Menu">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Menu</span>
     </a>
-    <button class="moments-nav-btn active" id="momentsBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-      Moments
+    <button class="moments-nav-btn active" id="momentsBtn" title="Moments" disabled>
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      <span>Moments</span>
     </button>
-    <a href="./khichiya-runner.html" class="moments-nav-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 15a3 3 0 0 0 6 0"/></svg>
-      TKR
+    <a href="./khichiya-runner.html" class="moments-nav-btn" title="Khichiya Runner">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 15a3 3 0 0 0 6 0"/></svg>
+      <span>TKR</span>
     </a>
-    <a href="https://www.instagram.com/the.khichiyagravy" target="_blank" class="moments-nav-btn">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
-      Instagram
+    <a href="https://www.instagram.com/the.khichiyagravy" target="_blank" class="moments-nav-btn instagram-btn" title="Instagram">
+      <svg viewBox="0 0 24 24"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+      <span>Instagram</span>
     </a>
   </nav>
-
-  <!-- TOAST -->
-  <div class="moments-toast" id="toast"></div>
 </div>
 
 <script>
-const DEMO_MOMENTS = [
-  { id: 'm1', caption: 'Delicious khichiya at the event', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e8e8e8%22/%3E%3C/svg%3E' },
-  { id: 'm2', caption: 'Team at TKG kitchen', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e8e8e8%22/%3E%3C/svg%3E' },
-  { id: 'm3', caption: 'Customer enjoying the meal', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e8e8e8%22/%3E%3C/svg%3E' },
-  { id: 'm4', caption: 'Beautiful sunset at TKG', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e8e8e8%22/%3E%3C/svg%3E' },
-  { id: 'm5', caption: 'Fresh ingredients from local market', image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22%3E%3Crect width=%22400%22 height=%22400%22 fill=%22%23e8e8e8%22/%3E%3C/svg%3E' }
-];
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 
 const LIST = document.getElementById('momentsList');
-const VIEWER = document.getElementById('viewer');
-const CLOSE_BTN = document.getElementById('closeViewer');
-const VIEWER_IMG = document.getElementById('viewerImage');
-const HEADER_MENU = document.getElementById('headerMenu');
-const TOAST_EL = document.getElementById('toast');
+const IMAGE_VIEWER = document.getElementById('imageViewer');
+const VIDEO_VIEWER = document.getElementById('videoViewer');
+const IMAGE_VIEWER_CONTENT = document.getElementById('imageViewerContent');
+const VIDEO_VIEWER_CONTENT = document.getElementById('videoViewerContent');
 
-let likedMoments = new Set();
+let moments = [];
 
-// Load liked from localStorage
-function loadLiked() {
+// ========== FETCH MOMENTS FROM APPS SCRIPT ==========
+async function fetchMoments() {
   try {
-    const data = localStorage.getItem('tkg_liked_moments');
-    likedMoments = new Set(data ? JSON.parse(data) : []);
-  } catch (e) {}
+    const response = await fetch(APPS_SCRIPT_URL + '?action=moments');
+    if (!response.ok) throw new Error('Network error');
+    
+    const data = await response.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'API error');
+    
+    moments = data.moments || [];
+    renderGallery();
+  } catch (err) {
+    console.error('Failed to fetch moments:', err);
+    LIST.innerHTML = `<div class="moments-error">Failed to load moments. Please try again later.</div>`;
+  }
 }
 
-// Save liked to localStorage
-function saveLiked() {
-  try {
-    localStorage.setItem('tkg_liked_moments', JSON.stringify(Array.from(likedMoments)));
-  } catch (e) {}
-}
-
-// Show toast
-function showToast(msg) {
-  TOAST_EL.textContent = msg;
-  TOAST_EL.classList.add('show');
-  setTimeout(() => TOAST_EL.classList.remove('show'), 2500);
-}
-
-// Render moments
-function renderMoments() {
+// ========== RENDER GALLERY GRID ==========
+function renderGallery() {
   LIST.innerHTML = '';
   
-  if (!DEMO_MOMENTS.length) {
-    LIST.innerHTML = '<div class="moments-empty">No moments yet</div>';
+  if (moments.length === 0) {
+    LIST.innerHTML = '<div class="moments-empty">No moments shared yet</div>';
     return;
   }
   
-  DEMO_MOMENTS.forEach(m => {
-    const isLiked = likedMoments.has(m.id);
+  // Flatten all media from all moments into a single list
+  let allMediaItems = [];
+  moments.forEach((moment, momentIndex) => {
+    // Handle direct imageUrl (single image fallback)
+    if (moment.imageUrl) {
+      allMediaItems.push({
+        url: moment.imageUrl,
+        type: 'image',
+        caption: moment.caption || 'Shared by TKG',
+        momentId: moment.id,
+        momentIndex: momentIndex
+      });
+    }
     
-    const card = document.createElement('div');
-    card.className = 'moments-card';
-    card.innerHTML = `
-      <img class="moments-card-image" src="${m.image}" alt="Moment">
-      <div class="moments-card-content">
-        <div class="moments-card-text">
-          <div class="moments-card-caption">${m.caption}</div>
-          <div class="moments-card-meta">Shared by TKG family</div>
-        </div>
-        <div class="moments-card-buttons">
-          <button class="moments-btn-action heart-btn ${isLiked ? 'liked' : ''}" data-id="${m.id}">${isLiked ? '♥' : '♡'}</button>
-          <button class="moments-btn-action share-btn" data-image="${m.image}">→</button>
-        </div>
-      </div>
-    `;
+    // Handle media array (multiple items)
+    if (moment.media && Array.isArray(moment.media)) {
+      moment.media.forEach((item) => {
+        const mimeType = item.mimeType || 'image/jpeg';
+        const isVideo = mimeType.indexOf('video/') === 0;
+        
+        allMediaItems.push({
+          url: item.url,
+          thumbnailUrl: item.thumbnailUrl || item.url,
+          type: isVideo ? 'video' : 'image',
+          caption: moment.caption || 'Shared by TKG',
+          momentId: moment.id,
+          momentIndex: momentIndex
+        });
+      });
+    }
+  });
+  
+  // Render thumbnails
+  allMediaItems.forEach((item, index) => {
+    const thumbnail = document.createElement('div');
+    thumbnail.className = 'moments-thumbnail';
+    thumbnail.setAttribute('role', 'button');
+    thumbnail.setAttribute('tabindex', '0');
+    
+    if (item.type === 'video') {
+      thumbnail.innerHTML = `
+        <img class="moments-thumbnail-image" src="${item.thumbnailUrl || item.url}" alt="Video thumbnail" loading="lazy">
+        <div class="moments-thumbnail-video-badge">▶</div>
+      `;
+    } else {
+      thumbnail.innerHTML = `
+        <img class="moments-thumbnail-image" src="${item.thumbnailUrl || item.url}" alt="Moment" loading="lazy">
+      `;
+    }
     
     // Click to open viewer
-    card.addEventListener('click', (e) => {
-      if (e.target.closest('.moments-btn-action')) return;
-      openViewer(m);
-    });
-    
-    // Heart button
-    const heartBtn = card.querySelector('.heart-btn');
-    heartBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (likedMoments.has(m.id)) {
-        likedMoments.delete(m.id);
-        heartBtn.textContent = '♡';
-        heartBtn.classList.remove('liked');
-      } else {
-        likedMoments.add(m.id);
-        heartBtn.textContent = '♥';
-        heartBtn.classList.add('liked');
-      }
-      saveLiked();
-    });
-    
-    // Share button
-    const shareBtn = card.querySelector('.share-btn');
-    shareBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (navigator.share) {
-        navigator.share({ title: 'TKG Moments', url: m.image });
-      } else {
-        navigator.clipboard.writeText(m.image);
-        showToast('Link copied!');
+    thumbnail.addEventListener('click', () => openViewer(item));
+    thumbnail.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openViewer(item);
       }
     });
     
-    LIST.appendChild(card);
+    LIST.appendChild(thumbnail);
   });
 }
 
-// Open viewer
-function openViewer(moment) {
-  VIEWER_IMG.innerHTML = `<img src="${moment.image}" alt="${moment.caption}">`;
-  VIEWER.classList.add('open');
+// ========== OPEN IMAGE VIEWER ==========
+function openImageViewer(item) {
+  IMAGE_VIEWER_CONTENT.innerHTML = `<img src="${item.url}" alt="${item.caption}" loading="lazy">`;
+  IMAGE_VIEWER.classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
-// Close viewer
-CLOSE_BTN.addEventListener('click', () => VIEWER.classList.remove('open'));
-VIEWER.addEventListener('click', (e) => {
-  if (e.target === VIEWER) VIEWER.classList.remove('open');
+// ========== OPEN VIDEO VIEWER ==========
+function openVideoViewer(item) {
+  VIDEO_VIEWER_CONTENT.innerHTML = `
+    <video controls playsinline>
+      <source src="${item.url}" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  `;
+  VIDEO_VIEWER.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// ========== OPEN VIEWER (dispatcher) ==========
+function openViewer(item) {
+  if (item.type === 'video') {
+    openVideoViewer(item);
+  } else {
+    openImageViewer(item);
+  }
+}
+
+// ========== CLOSE VIEWERS ==========
+function closeImageViewer() {
+  IMAGE_VIEWER.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeVideoViewer() {
+  const video = VIDEO_VIEWER_CONTENT.querySelector('video');
+  if (video) video.pause();
+  VIDEO_VIEWER.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ========== EVENT LISTENERS ==========
+document.getElementById('closeImageViewer').addEventListener('click', closeImageViewer);
+document.getElementById('closeVideoViewer').addEventListener('click', closeVideoViewer);
+
+// Close on backdrop click
+IMAGE_VIEWER.addEventListener('click', (e) => {
+  if (e.target === IMAGE_VIEWER) closeImageViewer();
 });
 
-// Header menu
-HEADER_MENU.addEventListener('click', () => window.location.href = './index.html');
+VIDEO_VIEWER.addEventListener('click', (e) => {
+  if (e.target === VIDEO_VIEWER) closeVideoViewer();
+});
 
-// Init
-loadLiked();
-renderMoments();
+// Close on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (IMAGE_VIEWER.classList.contains('open')) closeImageViewer();
+    if (VIDEO_VIEWER.classList.contains('open')) closeVideoViewer();
+  }
+});
+
+// ========== INIT ==========
+fetchMoments();
 </script>
 </body>
 </html>
