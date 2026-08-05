@@ -101,65 +101,61 @@ body {
   flex-shrink: 0;
 }
 
-.hero-logo-large {
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.moments-header-text {
-  flex: 1;
-}
-
-.moments-header-title {
-  font-size: 16px;
+.moments-header h1 {
+  font-size: 20px;
   font-weight: 600;
-  color: var(--ink);
-  margin-bottom: 2px;
-}
-
-.moments-header-subtitle {
-  font-size: 12px;
-  color: var(--ink-soft);
-}
-
-.moments-feed {
+  letter-spacing: -0.25px;
   flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+}
+
+.moments-header-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--ink);
+}
+
+.moments-content {
+  flex: 1;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.moments-content::-webkit-scrollbar {
+  display: none;
+}
+
+#momentsFeed {
   display: flex;
   flex-direction: column;
-  padding: 12px 0;
+  gap: 24px;
+  padding: 16px;
+  scroll-snap-type: y mandatory;
 }
 
 .timeline-item {
-  width: 100%;
   display: flex;
   flex-direction: column;
-  border-bottom: 0.5px solid var(--tkg-plain-border);
-  padding: 12px 0;
+  gap: 8px;
+  scroll-snap-align: start;
 }
 
 .timeline-item-media {
   width: 100%;
-  background: var(--stone-base);
+  height: auto;
+  border-radius: var(--radius-md);
   overflow: hidden;
+  background: #000;
+  display: block;
 }
 
 .timeline-item-image {
   width: 100%;
   height: auto;
   display: block;
-  object-fit: contain;
-}
-
-.timeline-item-video {
-  width: 100%;
-  height: auto;
-  display: block;
-  background: #000;
 }
 
 .timeline-item-video-container {
@@ -169,224 +165,145 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
 }
 
-.timeline-item-video-thumbnail {
+.timeline-item-video {
   width: 100%;
-  height: auto;
-  display: block;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+  cursor: pointer;
 }
 
-.timeline-item-video-play {
+/* Video controls overlay */
+.video-controls-overlay {
   position: absolute;
-  inset: 0;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.video-controls-overlay:hover {
+  opacity: 1;
+}
+
+.control-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.35);
-  border: none;
   cursor: pointer;
+  color: white;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
   padding: 0;
-  font-size: 56px;
-  color: #fff;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  transition: background 0.2s ease;
+  font-size: 0;
 }
 
-.timeline-item-video-play:active {
-  background: rgba(0, 0, 0, 0.55);
+.control-btn:active {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(0.95);
+}
+
+.control-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+/* Mute button state */
+.control-btn.muted {
+  opacity: 0.6;
 }
 
 .timeline-item-info {
-  padding: 12px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  padding: 0 4px;
 }
 
 .timeline-item-caption {
   font-size: 14px;
   line-height: 1.4;
   color: var(--ink);
+  margin-bottom: 4px;
+  word-wrap: break-word;
 }
 
 .timeline-item-meta {
   font-size: 12px;
   color: var(--ink-soft);
+  letter-spacing: -0.2px;
 }
 
-.cs-review-card{
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
-  border:1px solid var(--tkg-marble-border);
-  border-radius:16px;
-  padding:13px 14px;
-  margin: 12px 16px 0;
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
-  color:var(--tkg-marble-ink);
+.timeline-item-review {
+  background: linear-gradient(135deg, var(--tkg-marble-bg-color), var(--charcoal-soft));
+  border-radius: var(--radius-md);
+  padding: 16px;
+  border-left: 4px solid var(--ember);
 }
 
-.cs-review-top{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:7px;
-}
-
-.cs-review-avatar{
-  width:26px;
-  height:26px;
-  border-radius:50%;
-  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
-  color:var(--marble);
-  font-size:0.6875rem;
-  font-weight:800;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-shrink:0;
-}
-
-.cs-review-author{
-  flex:1;
-  min-width:0;
-  font-size:0.7812rem;
-  font-weight:700;
-  color:var(--ink);
-}
-
-.cs-review-stars{
-  font-size:0.6562rem;
-  background:linear-gradient(180deg, #FFD873 0%, #F5A623 55%, #C97B0E 100%);
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-  -webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 1.5px rgba(245,166,35,0.35));
-  letter-spacing:1px;
-  flex-shrink:0;
-}
-
-.cs-review-quote{
-  font-size:0.8438rem;
-  line-height:1.5;
-  color:var(--ink);
-}
-
-.moments-empty {
-  flex: 1;
+.timeline-item-review-rating {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--ink-soft);
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 16px;
 }
 
-.moments-loading {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--ink-soft);
+.timeline-item-review-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tkg-marble-ink-soft);
+  margin-bottom: 8px;
+  font-style: italic;
 }
 
-.moments-error {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 32px 24px;
-  color: var(--ink);
-  background: rgba(181, 57, 47, 0.1);
-  border-radius: 12px;
-  margin: 12px;
-}
-
-.fullscreen-player {
-  display: none;
-  position: absolute;
-  inset: 0;
-  background: #000;
-  z-index: 200;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px) 0;
-}
-
-.fullscreen-player.open {
-  display: flex;
-}
-
-.fullscreen-player-close {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 28px;
-  cursor: pointer;
-  z-index: 201;
-  padding: 0;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.2s ease;
-}
-
-.fullscreen-player-close:active {
-  opacity: 0.6;
-}
-
-.fullscreen-player video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: #000;
+.timeline-item-review-author {
+  font-size: 12px;
+  color: var(--tkg-marble-ink-faint);
+  font-weight: 500;
 }
 
 .moments-nav {
   background: var(--tkg-page-bg);
   border-top: 0.5px solid var(--tkg-plain-border);
-  padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
   display: flex;
   justify-content: space-around;
-  align-items: center;
+  padding: env(safe-area-inset-bottom, 0px) 0 0 0;
   flex-shrink: 0;
 }
 
 .moments-nav-btn {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  justify-content: center;
+  padding: 12px 8px;
   background: none;
   border: none;
+  color: var(--ink-faint);
   cursor: pointer;
   text-decoration: none;
-  color: var(--ink-soft);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10px;
   transition: color 0.2s ease;
-}
-
-.moments-nav-btn.active {
-  color: var(--ember);
+  gap: 4px;
 }
 
 .moments-nav-btn:active {
   opacity: 0.7;
+}
+
+.moments-nav-btn.active {
+  color: var(--ink);
 }
 
 .moments-nav-btn svg {
@@ -397,31 +314,19 @@ body {
   stroke-width: 1.5;
 }
 
+.moments-nav-btn.active svg {
+  stroke: var(--ember);
+}
+
+.moments-nav-btn.instagram-btn {
+  color: #E1306C;
+}
+
 .moments-nav-btn.instagram-btn svg {
-  fill: currentColor;
+  stroke: #E1306C;
 }
 
-.upload-button {
-  position: absolute;
-  bottom: calc(70px + 8px);
-  right: 16px;
-  background: linear-gradient(180deg, var(--ember-bright), var(--ember));
-  color: var(--tkg-ctrl-fg);
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 12px 20px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 8px 18px -6px rgba(232,93,44,0.55);
-  transition: opacity 0.2s ease;
-  z-index: 50;
-}
-
-.upload-button:active {
-  opacity: 0.85;
-}
-
+/* Upload Modal */
 .upload-modal {
   display: none;
   position: absolute;
@@ -430,7 +335,8 @@ body {
   z-index: 100;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
+  padding: 16px;
 }
 
 .upload-modal.open {
@@ -439,225 +345,184 @@ body {
 
 .upload-modal-content {
   background: var(--tkg-page-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
   width: 100%;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
-  max-height: 90vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  max-width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
 .upload-modal-title {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 16px;
-  color: var(--ink);
+  text-align: center;
 }
 
-.upload-form-group {
+.upload-modal-field {
   margin-bottom: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
-.upload-label {
-  font-size: 13px;
+.upload-modal-label {
+  display: block;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.upload-input {
-  padding: 12px;
-  border: 0.5px solid var(--tkg-plain-border);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-family: var(--font-body);
+.upload-modal-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--tkg-plain-border);
+  border-radius: 8px;
   background: var(--tkg-page-bg);
   color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
 }
 
-.upload-input::placeholder {
-  color: var(--ink-faint);
+.upload-modal-input:focus {
+  outline: none;
+  border-color: var(--ember);
 }
 
-.upload-file-input {
+.upload-modal-file {
+  display: none;
+}
+
+.upload-modal-file-btn {
+  display: block;
+  width: 100%;
   padding: 12px;
-  border: 1px dashed var(--tkg-plain-border);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  background: var(--stone-base);
+  border: 2px dashed var(--tkg-plain-border);
+  border-radius: 8px;
+  background: transparent;
   color: var(--ink-soft);
   cursor: pointer;
-}
-
-.upload-textarea {
-  padding: 12px;
-  border: 0.5px solid var(--tkg-plain-border);
-  border-radius: var(--radius-sm);
   font-size: 14px;
-  font-family: var(--font-body);
-  background: var(--tkg-page-bg);
-  color: var(--ink);
-  resize: vertical;
-  min-height: 80px;
+  text-align: center;
+  transition: border-color 0.2s ease;
+  font-weight: 500;
 }
 
-.upload-textarea::placeholder {
-  color: var(--ink-faint);
+.upload-modal-file-btn:active {
+  border-color: var(--ember);
+  color: var(--ember);
 }
 
-.upload-preview {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.upload-preview-item {
-  position: relative;
+#uploadPreview {
   width: 100%;
-  aspect-ratio: 1;
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--stone-base);
-}
-
-.upload-preview-item img,
-.upload-preview-item video {
-  width: 100%;
-  height: 100%;
+  max-height: 200px;
   object-fit: cover;
+  border-radius: 8px;
+  margin: 12px 0;
+  display: none;
 }
 
-.upload-preview-remove {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(0,0,0,0.6);
-  border: none;
-  color: #fff;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  cursor: pointer;
+#uploadPreview.show {
+  display: block;
+}
+
+.upload-modal-actions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
+  gap: 12px;
+  margin-top: 20px;
 }
 
-.upload-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.upload-btn-primary {
+.upload-modal-btn {
   flex: 1;
   padding: 12px;
-  background: linear-gradient(180deg, var(--ember-bright), var(--ember));
-  color: var(--tkg-ctrl-fg);
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   font-weight: 600;
-  font-size: 14px;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: all 0.2s ease;
+  font-size: 14px;
 }
 
-.upload-btn-primary:active {
-  opacity: 0.85;
+.upload-modal-btn.submit {
+  background: var(--ember);
+  color: white;
 }
 
-.upload-btn-secondary {
-  flex: 1;
-  padding: 12px;
-  background: none;
+.upload-modal-btn.submit:active {
+  background: var(--ember-deep);
+  transform: scale(0.98);
+}
+
+.upload-modal-btn.cancel {
+  background: var(--tkg-plain-border);
   color: var(--ink);
-  border: 0.5px solid var(--tkg-plain-border);
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
 }
 
-.upload-btn-secondary:active {
+.upload-modal-btn.cancel:active {
   opacity: 0.7;
 }
 
-@media (max-width: 380px) {
-  .moments-header {
-    padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
-    gap: 8px;
-  }
-  
-  .hero-logo-large {
-    width: 48px;
-    height: 48px;
-  }
-  
-  .moments-header-title {
-    font-size: 14px;
-  }
+#shareBtn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: var(--ember);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 10;
+}
 
-  .timeline-item-info {
-    padding: 10px 12px;
-  }
-
-  .timeline-item-caption {
-    font-size: 13px;
-  }
+#shareBtn:active {
+  background: var(--ember-deep);
 }
 </style>
 </head>
 <body>
 
 <div class="moments-app">
-  <div class="moments-header">
-    <img class="hero-logo-large" src="./icon-192.png" alt="TKG">
-    <div class="moments-header-text">
-      <div class="moments-header-title">TKG Moments</div>
-      <div class="moments-header-subtitle">Gallery from the community</div>
-    </div>
-  </div>
+  <header class="moments-header">
+    <h1>Moments</h1>
+    <button id="shareBtn">+ Share</button>
+  </header>
 
-  <div class="moments-feed" id="momentsFeed">
-    <div class="moments-loading">Loading moments...</div>
+  <div class="moments-content">
+    <div id="momentsFeed"></div>
   </div>
-
-  <button class="upload-button" id="shareBtn">📸 Share Your Moment</button>
 
   <div class="upload-modal" id="uploadModal">
     <div class="upload-modal-content">
-      <div class="upload-modal-title">Share Your Moment</div>
+      <h2 class="upload-modal-title">Share a Moment</h2>
       
-      <div class="upload-form-group">
-        <label class="upload-label" for="uploadName">Your Name</label>
-        <input class="upload-input" id="uploadName" type="text" placeholder="Required" maxlength="100">
+      <div class="upload-modal-field">
+        <label class="upload-modal-label">Your Name</label>
+        <input type="text" id="uploadName" class="upload-modal-input" placeholder="First name">
       </div>
 
-      <div class="upload-form-group">
-        <label class="upload-label">Photo or Video</label>
-        <input class="upload-file-input" id="uploadFile" type="file" accept="image/*,video/*" multiple>
+      <div class="upload-modal-field">
+        <label class="upload-modal-label">Photo or Video</label>
+        <input type="file" id="uploadFile" class="upload-modal-file" accept="image/*,video/*">
+        <button class="upload-modal-file-btn" onclick="document.getElementById('uploadFile').click()">
+          📁 Tap to choose file
+        </button>
+        <img id="uploadPreview" alt="Preview">
       </div>
 
-      <div class="upload-preview" id="uploadPreview"></div>
-
-      <div class="upload-form-group">
-        <label class="upload-label" for="uploadCaption">Caption (optional)</label>
-        <textarea class="upload-textarea" id="uploadCaption" placeholder="Add a caption..."></textarea>
+      <div class="upload-modal-field">
+        <label class="upload-modal-label">Caption (Optional)</label>
+        <input type="text" id="uploadCaption" class="upload-modal-input" placeholder="Say something...">
       </div>
 
-      <div class="upload-actions">
-        <button class="upload-btn-primary" id="uploadSubmitBtn">Share</button>
-        <button class="upload-btn-secondary" id="uploadCancelBtn">Cancel</button>
+      <div class="upload-modal-actions">
+        <button class="upload-modal-btn cancel" id="uploadCancelBtn">Cancel</button>
+        <button class="upload-modal-btn submit" id="uploadSubmitBtn">Share</button>
       </div>
     </div>
-  </div>
-
-  <div class="fullscreen-player" id="videoplayer">
-    <button class="fullscreen-player-close" id="playerClose">✕</button>
-    <video id="playerVideo" playsinline></video>
   </div>
 
   <nav class="moments-nav">
@@ -692,24 +557,93 @@ const UPLOAD_CAPTION = document.getElementById('uploadCaption');
 const UPLOAD_PREVIEW = document.getElementById('uploadPreview');
 const UPLOAD_SUBMIT = document.getElementById('uploadSubmitBtn');
 const UPLOAD_CANCEL = document.getElementById('uploadCancelBtn');
-const PLAYER = document.getElementById('videoplayer');
-const PLAYER_VIDEO = document.getElementById('playerVideo');
-const PLAYER_CLOSE = document.getElementById('playerClose');
 
 let moments = [];
 let selectedFiles = [];
 
-// ========== HELPER: DYNAMIC DRIVE URL RESOLVER ==========
-function getStreamableVideoUrl(rawUrl) {
-  if (!rawUrl) return '';
+// ========== GLOBAL MUTE STATE MANAGER ==========
+const MUTE_STATE = {
+  muted: localStorage.getItem('tkg_muted') === 'false' ? false : true,
   
-  // Convert legacy Google Drive /preview or /view URLs to direct lh3 stream URLs
-  const driveIdMatch = rawUrl.match(/\/file\/d\/([^\/]+)/) || rawUrl.match(/id=([^&]+)/);
-  if (driveIdMatch && driveIdMatch[1]) {
-    return `https://lh3.googleusercontent.com/d/${driveIdMatch[1]}`;
+  setMuted: function(isMuted) {
+    this.muted = isMuted;
+    localStorage.setItem('tkg_muted', String(isMuted));
+    this.updateAllVideos();
+  },
+  
+  toggle: function() {
+    this.setMuted(!this.muted);
+  },
+  
+  updateAllVideos: function() {
+    const videos = document.querySelectorAll('.timeline-item-video');
+    videos.forEach(video => {
+      video.muted = this.muted;
+    });
+    
+    // Update mute button UI on active video
+    const muteBtn = document.querySelector('.control-btn.mute-btn');
+    if (muteBtn) {
+      if (this.muted) {
+        muteBtn.classList.add('muted');
+        muteBtn.title = 'Unmute';
+      } else {
+        muteBtn.classList.remove('muted');
+        muteBtn.title = 'Mute';
+      }
+    }
   }
+};
+
+// Global active video tracker
+let activeVideo = null;
+const videoObservers = new Map();
+
+// ========== INTERSECTION OBSERVER ==========
+function setupVideoObserver(videoElement, container) {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.75) {
+        // Video is >75% visible
+        if (activeVideo && activeVideo !== videoElement) {
+          activeVideo.pause();
+        }
+        activeVideo = videoElement;
+        videoElement.play().catch(err => {
+          console.warn("Autoplay blocked:", err);
+        });
+        
+        // Show controls overlay
+        const overlay = container.querySelector('.video-controls-overlay');
+        if (overlay) overlay.style.display = 'flex';
+      } else {
+        // Video is <75% visible
+        if (activeVideo === videoElement) {
+          videoElement.pause();
+          activeVideo = null;
+        }
+        
+        // Hide controls overlay
+        const overlay = container.querySelector('.video-controls-overlay');
+        if (overlay) overlay.style.display = 'none';
+      }
+    });
+  }, { threshold: 0.75 });
   
-  return rawUrl;
+  observer.observe(videoElement);
+  videoObservers.set(videoElement, observer);
+}
+
+// ========== TAP TO PAUSE/PLAY ==========
+function setupVideoTapHandler(videoElement) {
+  videoElement.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (videoElement.paused) {
+      videoElement.play();
+    } else {
+      videoElement.pause();
+    }
+  });
 }
 
 // ========== FETCH MOMENTS ==========
@@ -725,26 +659,24 @@ async function fetchMoments() {
     renderTimeline();
   } catch (err) {
     console.error('Failed to fetch moments:', err);
-    FEED.innerHTML = '<div class="moments-error">Failed to load moments. Please try again later.</div>';
+    FEED.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--ink-soft);">Failed to load moments. Please try again later.</div>';
   }
 }
 
-// ========== RENDER TIMELINE (CONTENT-TYPE AGNOSTIC) ==========
+// ========== RENDER TIMELINE ==========
 function renderTimeline() {
   FEED.innerHTML = '';
   
   if (moments.length === 0) {
-    FEED.innerHTML = '<div class="moments-empty">No moments shared yet</div>';
+    FEED.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--ink-soft);">No moments shared yet</div>';
     return;
   }
 
-  // Flatten all content into one timeline
   let timelineItems = [];
 
   moments.forEach((moment) => {
     const type = String(moment.type || 'customer_photo').toLowerCase();
     
-    // Handle Google Reviews separately
     if (type === 'google_review' || type === 'review') {
       timelineItems.push({
         type: 'google_review',
@@ -753,103 +685,78 @@ function renderTimeline() {
       return;
     }
 
-    // Handle customer photos/videos from media array
     if (moment.media && Array.isArray(moment.media)) {
       moment.media.forEach((item) => {
         const mimeType = item.mimeType || 'image/jpeg';
         const isVideo = mimeType.indexOf('video/') === 0;
         
         timelineItems.push({
-          type: isVideo ? 'customer_video' : 'customer_photo',
+          type: isVideo ? 'video' : 'photo',
           data: {
-            id: moment.id,
-            caption: moment.caption || '',
-            uploaderName: moment.uploaderName || 'Community Member',
-            date: moment.date,
-            time: moment.time,
+            ...moment,
             media: item
           }
         });
       });
-      return;
-    }
-
-    // Fallback: single imageUrl
-    if (moment.imageUrl) {
-      timelineItems.push({
-        type: 'customer_photo',
-        data: {
-          id: moment.id,
-          caption: moment.caption || '',
-          uploaderName: moment.uploaderName || 'Community Member',
-          date: moment.date,
-          time: moment.time,
-          media: { url: moment.imageUrl, mimeType: 'image/jpeg' }
-        }
-      });
     }
   });
 
-  // Render each timeline item
-  timelineItems.forEach((item) => {
-    const element = renderTimelineItem(item);
-    FEED.appendChild(element);
+  timelineItems.forEach(item => {
+    const card = createTimelineCard(item);
+    if (card) FEED.appendChild(card);
   });
+
+  // Initialize mute state for all videos
+  MUTE_STATE.updateAllVideos();
 }
 
-// ========== RENDER SINGLE TIMELINE ITEM (EXTENSIBLE) ==========
-function renderTimelineItem(item) {
+// ========== CREATE TIMELINE CARD ==========
+function createTimelineCard(item) {
   const container = document.createElement('div');
   container.className = 'timeline-item';
 
-  if (item.type === 'google_review') {
-    // Reuse exact Google Review card from index.html
-    const review = item.data;
-    const initials = (review.authorName || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    
-    container.innerHTML = `
-      <div class="cs-review-card">
-        <div class="cs-review-top">
-          <span class="cs-review-avatar">${initials}</span>
-          <span class="cs-review-author">${escapeHtml(review.authorName || 'Anonymous')}</span>
-          <span class="cs-review-stars">★${(review.rating || 5).toString().repeat(review.rating || 5)}</span>
-        </div>
-        <div class="cs-review-quote">${escapeHtml(review.quoteText || '')}</div>
-      </div>
-    `;
-    return container;
-  }
-
-  if (item.type === 'customer_photo') {
+  if (item.type === 'video') {
     const { caption, uploaderName, date, time, media } = item.data;
     const dateDisplay = formatDate(date, time);
-    
-    container.innerHTML = `
-      <div class="timeline-item-media">
-        <img class="timeline-item-image" src="${media.url}" alt="Moment" loading="lazy">
-      </div>
-      <div class="timeline-item-info">
-        ${caption ? `<div class="timeline-item-caption">${escapeHtml(caption)}</div>` : ''}
-        <div class="timeline-item-meta">${escapeHtml(uploaderName || 'Community Member')} • ${dateDisplay}</div>
-      </div>
-    `;
-    return container;
-  }
-
-  if (item.type === 'customer_video') {
-    const { caption, uploaderName, date, time, media } = item.data;
-    const dateDisplay = formatDate(date, time);
-    const thumbnailUrl = media.thumbnailUrl || media.url;
     
     const mediaContainer = document.createElement('div');
     mediaContainer.className = 'timeline-item-media timeline-item-video-container';
-    mediaContainer.innerHTML = `
-      <img class="timeline-item-video-thumbnail" src="${thumbnailUrl}" alt="Video thumbnail" loading="lazy">
-      <button class="timeline-item-video-play" aria-label="Play video">▶</button>
+    
+    const fileId = extractGoogleDriveId(media.url);
+    const streamUrl = fileId ? `/api/stream?id=${fileId}` : media.url;
+    
+    const video = document.createElement('video');
+    video.className = 'timeline-item-video';
+    video.src = streamUrl;
+    video.playsinline = true;
+    video.muted = MUTE_STATE.muted;
+    
+    // Video controls overlay
+    const controlsOverlay = document.createElement('div');
+    controlsOverlay.className = 'video-controls-overlay';
+    controlsOverlay.style.display = 'none';
+    controlsOverlay.innerHTML = `
+      <button class="control-btn mute-btn" title="${MUTE_STATE.muted ? 'Unmute' : 'Mute'}">
+        ${MUTE_STATE.muted ? 
+          '<svg viewBox="0 0 24 24"><path d="M6.3 7c0-1 .8-1.8 1.8-1.8h.5l6-5.5c.6-.5 1.5-.2 1.5.7v16c0 .9-.9 1.2-1.5.7l-6-5.5h-.5c-1 0-1.8-.8-1.8-1.8V7zm12 0c0 3.5-1.8 6.5-4.5 8.3m0-16.6c2.7 1.8 4.5 4.8 4.5 8.3M18 2l3 3m0 6l3-3"/></svg>' :
+          '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>'
+        }
+      </button>
     `;
     
-    const playBtn = mediaContainer.querySelector('.timeline-item-video-play');
-    playBtn.addEventListener('click', () => openVideoPlayer(media.url));
+    mediaContainer.appendChild(video);
+    mediaContainer.appendChild(controlsOverlay);
+    
+    // Setup observers and handlers
+    setupVideoObserver(video, mediaContainer);
+    setupVideoTapHandler(video);
+    
+    // Mute button handler
+    const muteBtn = controlsOverlay.querySelector('.mute-btn');
+    muteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      MUTE_STATE.toggle();
+    });
     
     const info = document.createElement('div');
     info.className = 'timeline-item-info';
@@ -863,7 +770,49 @@ function renderTimelineItem(item) {
     return container;
   }
 
-  // Fallback for unknown types (allows adding new types later without error)
+  if (item.type === 'photo') {
+    const { caption, uploaderName, date, time, media } = item.data;
+    const dateDisplay = formatDate(date, time);
+    
+    const mediaContainer = document.createElement('div');
+    mediaContainer.className = 'timeline-item-media';
+    const img = document.createElement('img');
+    img.className = 'timeline-item-image';
+    img.src = media.url;
+    img.alt = caption || 'Photo';
+    img.loading = 'lazy';
+    mediaContainer.appendChild(img);
+    
+    const info = document.createElement('div');
+    info.className = 'timeline-item-info';
+    info.innerHTML = `
+      ${caption ? `<div class="timeline-item-caption">${escapeHtml(caption)}</div>` : ''}
+      <div class="timeline-item-meta">${escapeHtml(uploaderName || 'Community Member')} • ${dateDisplay}</div>
+    `;
+    
+    container.appendChild(mediaContainer);
+    container.appendChild(info);
+    return container;
+  }
+
+  if (item.type === 'google_review') {
+    const { reviewer, rating, text } = item.data;
+    const container = document.createElement('div');
+    container.className = 'timeline-item';
+    const reviewCard = document.createElement('div');
+    reviewCard.className = 'timeline-item-review';
+    
+    const stars = '★'.repeat(rating || 0) + '☆'.repeat(5 - (rating || 0));
+    reviewCard.innerHTML = `
+      <div class="timeline-item-review-rating">${stars}</div>
+      <div class="timeline-item-review-text">"${escapeHtml(text)}"</div>
+      <div class="timeline-item-review-author">— ${escapeHtml(reviewer)}</div>
+    `;
+    
+    container.appendChild(reviewCard);
+    return container;
+  }
+
   return container;
 }
 
@@ -881,9 +830,25 @@ function formatDate(date, time) {
   if (isNaN(dateObj)) return 'Recently';
   
   const day = dayNames[dateObj.getDay()];
-  const timeStr = time ? String(time).slice(0, 5) : ''; // HH:MM format
+  const timeStr = time ? String(time).slice(0, 5) : '';
   
   return timeStr ? `${day} ${timeStr}` : day;
+}
+
+// ========== EXTRACT GOOGLE DRIVE ID ==========
+function extractGoogleDriveId(rawUrl) {
+  if (!rawUrl) return null;
+  
+  let match = rawUrl.match(/\/file\/d\/([^\/]+)/);
+  if (match && match[1]) return match[1];
+
+  match = rawUrl.match(/id=([^&]+)/);
+  if (match && match[1]) return match[1];
+
+  match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) return match[1];
+
+  return null;
 }
 
 // ========== UPLOAD EXPERIENCE ==========
@@ -898,43 +863,26 @@ UPLOAD_CANCEL.addEventListener('click', () => {
 
 UPLOAD_FILE.addEventListener('change', (e) => {
   selectedFiles = Array.from(e.target.files || []);
-  updatePreview();
+  updateFilePreview();
 });
 
-function updatePreview() {
-  UPLOAD_PREVIEW.innerHTML = '';
-  selectedFiles.forEach((file, idx) => {
-    const container = document.createElement('div');
-    container.className = 'upload-preview-item';
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (file.type.indexOf('video/') === 0) {
-        const video = document.createElement('video');
-        video.src = e.target.result;
-        container.appendChild(video);
-      } else {
-        const img = document.createElement('img');
-        img.src = e.target.result;
-        container.appendChild(img);
-      }
-    };
-    reader.readAsDataURL(file);
-    
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'upload-preview-remove';
-    removeBtn.textContent = '✕';
-    removeBtn.addEventListener('click', () => {
-      selectedFiles.splice(idx, 1);
-      updatePreview();
-    });
-    
-    container.appendChild(removeBtn);
-    UPLOAD_PREVIEW.appendChild(container);
-  });
+function updateFilePreview() {
+  if (selectedFiles.length > 0) {
+    const file = selectedFiles[0];
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        UPLOAD_PREVIEW.src = e.target.result;
+        UPLOAD_PREVIEW.classList.add('show');
+      };
+      reader.readAsDataURL(file);
+    } else {
+      UPLOAD_PREVIEW.classList.remove('show');
+    }
+  }
 }
 
-UPLOAD_SUBMIT.addEventListener('click', () => {
+UPLOAD_SUBMIT.addEventListener('click', async () => {
   const name = UPLOAD_NAME.value.trim();
   const caption = UPLOAD_CAPTION.value.trim();
   
@@ -944,170 +892,52 @@ UPLOAD_SUBMIT.addEventListener('click', () => {
   }
   
   if (selectedFiles.length === 0) {
-    alert('Please select a photo or video');
+    alert('Please select a file');
     return;
   }
   
-  uploadMoments(name, caption);
-});
-
-async function uploadMoments(name, caption) {
-  UPLOAD_SUBMIT.disabled = true;
-  UPLOAD_SUBMIT.textContent = 'Uploading...';
-
+  const file = selectedFiles[0];
+  const formData = new FormData();
+  formData.append('action', 'upload');
+  formData.append('uploaderName', name);
+  formData.append('caption', caption);
+  formData.append('file', file);
+  
   try {
-    const media = [];
+    UPLOAD_SUBMIT.disabled = true;
+    UPLOAD_SUBMIT.textContent = 'Uploading...';
     
-    for (const file of selectedFiles) {
-      const base64 = await fileToBase64(file);
-      const uploaded = await uploadToAppsScript(base64, file.type);
-      
-      if (uploaded) {
-        media.push({
-          url: uploaded.url,
-          thumbnailUrl: uploaded.thumbnailUrl,
-          mimeType: uploaded.mimeType
-        });
-      }
-    }
-    
-    if (media.length === 0) {
-      throw new Error('Upload failed');
-    }
-
-    const payload = {
-      action: 'uploadMoment',
-      uploaderName: name,
-      caption: caption,
-      media: media
-    };
-
     const response = await fetch(APP_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
+      body: formData
     });
-
-    if (!response.ok) throw new Error('Submit failed');
     
-    // Reload and close
-    closeUploadModal();
-    fetchMoments();
-    alert('Moment shared! 🎉');
+    const data = await response.json();
+    
+    if (data.status === 'ok') {
+      closeUploadModal();
+      fetchMoments();
+    } else {
+      alert('Upload failed: ' + (data.message || 'Unknown error'));
+    }
   } catch (err) {
     console.error('Upload error:', err);
-    alert('Failed to share moment. Please try again.');
+    alert('Upload failed. Please try again.');
   } finally {
     UPLOAD_SUBMIT.disabled = false;
     UPLOAD_SUBMIT.textContent = 'Share';
   }
-}
-
-async function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-async function uploadToAppsScript(base64, mimeType) {
-  const payload = {
-    action: 'uploadMomentFile',
-    base64Data: base64,
-    mimeType: mimeType
-  };
-
-  try {
-    const response = await fetch(APP_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-    return data.status === 'ok' ? { 
-      url: data.url, 
-      thumbnailUrl: data.thumbnailUrl, 
-      mimeType: data.mimeType 
-    } : null;
-  } catch (err) {
-    console.error('File upload error:', err);
-    return null;
-  }
-}
+});
 
 function closeUploadModal() {
   UPLOAD_MODAL.classList.remove('open');
   UPLOAD_NAME.value = '';
   UPLOAD_CAPTION.value = '';
   UPLOAD_FILE.value = '';
+  UPLOAD_PREVIEW.classList.remove('show');
   selectedFiles = [];
-  UPLOAD_PREVIEW.innerHTML = '';
 }
 
-// ========== VIDEO PLAYER ==========
-function openVideoPlayer(mediaUrl) {
-  const fileId = extractGoogleDriveId(mediaUrl);
-  if (!fileId) {
-    console.error("Could not extract Google Drive ID from:", mediaUrl);
-    return;
-  }
-
-  PLAYER_VIDEO.src = `/api/stream?id=${fileId}`;
-  PLAYER.classList.add('open');
-  document.body.style.overflow = 'hidden';
-
-  const playPromise = PLAYER_VIDEO.play();
-  if (playPromise !== undefined) {
-    playPromise.catch(err => {
-      console.warn("Autoplay block handled:", err);
-    });
-  }
-}
-
-function closeVideoPlayer() {
-  PLAYER_VIDEO.pause();
-  PLAYER_VIDEO.src = '';
-  PLAYER.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function extractGoogleDriveId(rawUrl) {
-  if (!rawUrl) return null;
-  
-  // Format 1: /file/d/{ID} or /file/d/{ID}/preview
-  let match = rawUrl.match(/\/file\/d\/([^\/]+)/);
-  if (match && match[1]) return match[1];
-
-  // Format 2: id={ID} (from uc?export=download&id=...)
-  match = rawUrl.match(/id=([^&]+)/);
-  if (match && match[1]) return match[1];
-
-  // Format 3: /d/{ID} (from lh3.googleusercontent.com/d/...)
-  match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (match && match[1]) return match[1];
-
-  return null;
-}
-
-PLAYER_CLOSE.addEventListener('click', closeVideoPlayer);
-
-PLAYER.addEventListener('click', (e) => {
-  if (e.target === PLAYER) closeVideoPlayer();
-});
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && PLAYER.classList.contains('open')) {
-    closeVideoPlayer();
-  }
-});
-
-// ========== ESCAPE TO CLOSE MODAL ==========
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && UPLOAD_MODAL.classList.contains('open')) {
     closeUploadModal();
