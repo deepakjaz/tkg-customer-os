@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>TKG Moments</title>
-<meta name="theme-color" content="#0B0B0C">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <script>
@@ -20,60 +20,48 @@
 
 <style>
 :root{
-  --charcoal:       #160F0C;
-  --charcoal-soft:  #221813;
-  --marble:         #FAF7F2;
-  --stone-base:      #F6F6F5;
-  --tkg-page-bg:     #FFFFFF;
-  --tkg-plain-border: #E6E3DD;
-  --tkg-plain-opaque-bg: #1A1815;
-  --tkg-plain-opaque-fg: #FFFFFF;
-  --tkg-marble-bg-color: #0F0E0C;
-  --tkg-marble-image: url('tkg-marble-black.jpg');
-  --tkg-marble-overlay: rgba(0,0,0,0.42);
-  --tkg-marble-border: rgba(0,0,0,0.06);
-  --tkg-marble-ink: #F2EFEA;
-  --tkg-marble-ink-soft: rgba(242,239,234,0.72);
-  --tkg-marble-ink-faint: rgba(242,239,234,0.55);
-  --tkg-ctrl-bg: #1A1815;
-  --tkg-ctrl-fg: #FFFFFF;
-  --stone-line:      rgba(255,255,255,0.65);
-  --ink:             #1C1815;
-  --ink-soft:        #6B6256;
-  --ink-faint:       #9C9286;
-  --ember:          #E85D2C;
-  --ember-bright:   #FF7A45;
-  --ember-deep:     #B8431D;
-  --radius-lg: 18px;
-  --radius-md: 12px;
+  /* PURE B&W PREMIUM AESTHETIC */
+  --page-bg:     #FFFFFF;
+  --page-border: #E0E0E0;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --card-bg: #000000;
+  --card-text: #FFFFFF;
+  --card-text-soft: rgba(255,255,255,0.8);
+  --accent-bg: #1A1A1A;
+  --accent-fg: #FFFFFF;
+  --ctrl-bg: #000000;
+  --ctrl-fg: #FFFFFF;
+  --overlay-dark: rgba(0,0,0,0.5);
+  --overlay-light: rgba(255,255,255,0.1);
+  --border-crisp: rgba(0,0,0,0.12);
+  --border-light: rgba(0,0,0,0.06);
+  --radius-lg: 16px;
+  --radius-md: 8px;
   --max-w: 430px;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 html[data-tkg-theme="dark"]{
-  --tkg-page-bg:     #0B0B0C;
-  --tkg-plain-border: #2A2420;
-  --tkg-plain-opaque-bg: #FAF7F2;
-  --tkg-plain-opaque-fg: #160F0C;
-  --tkg-marble-bg-color: #FAF7F2;
-  --tkg-marble-overlay: rgba(255,255,255,0.06);
-  --tkg-marble-border: rgba(255,255,255,0.12);
-  --tkg-marble-ink: #160F0C;
-  --tkg-marble-ink-soft: rgba(22,15,12,0.64);
-  --tkg-marble-ink-faint: rgba(22,15,12,0.48);
-  --tkg-ctrl-bg: #FAF7F2;
-  --tkg-ctrl-fg: #160F0C;
-  --ink:             #F2EFEA;
-  --ink-soft:        #A89878;
-  --ink-faint:       #6B6256;
+  --page-bg:     #000000;
+  --page-border: #2A2A2A;
+  --text-primary: #FFFFFF;
+  --text-secondary: #CCCCCC;
+  --text-tertiary: #888888;
+  --card-bg: #1A1A1A;
+  --card-text: #FFFFFF;
+  --card-text-soft: rgba(255,255,255,0.7);
+  --accent-bg: #2A2A2A;
+  --accent-fg: #FFFFFF;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { 
   height: 100dvh; 
   width: 100%; 
-  background: var(--tkg-page-bg); 
-  color: var(--ink); 
+  background: var(--page-bg); 
+  color: var(--text-primary); 
   font-family: var(--font-body);
 }
 body { 
@@ -92,8 +80,8 @@ body {
 }
 
 .moments-header {
-  background: var(--tkg-page-bg);
-  border-bottom: 0.5px solid var(--tkg-plain-border);
+  background: var(--page-bg);
+  border-bottom: 1px solid var(--page-border);
   padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
   display: flex;
   align-items: center;
@@ -103,8 +91,8 @@ body {
 
 .moments-header h1 {
   font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.25px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
   flex: 1;
 }
 
@@ -114,7 +102,7 @@ body {
   padding: 8px;
   cursor: pointer;
   font-size: 20px;
-  color: var(--ink);
+  color: var(--text-primary);
 }
 
 .moments-content {
@@ -148,8 +136,9 @@ body {
   height: auto;
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: #000;
+  background: var(--card-bg);
   display: block;
+  border: 1px solid var(--border-crisp);
 }
 
 .timeline-item-image {
@@ -161,23 +150,83 @@ body {
 .timeline-item-video-container {
   position: relative;
   width: 100%;
-  background: #000;
+  background: var(--card-bg);
   display: flex;
   align-items: center;
   justify-content: center;
   aspect-ratio: 9 / 16;
   overflow: hidden;
+  border: 1px solid var(--border-crisp);
 }
 
 .timeline-item-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #000;
+  background: var(--card-bg);
   cursor: pointer;
 }
 
-/* Video controls overlay */
+/* ENGAGEMENT OVERLAY — Floating Icons */
+.engagement-overlay {
+  position: absolute;
+  right: 12px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 10;
+}
+
+.engagement-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  padding: 0;
+}
+
+.engagement-btn:active {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(0.9);
+}
+
+.engagement-btn.liked {
+  color: #FF1744;
+  background: rgba(255, 23, 68, 0.2);
+}
+
+.engagement-btn.liked::before {
+  content: '';
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #FF1744;
+  animation: heartPulse 0.6s ease-out;
+}
+
+@keyframes heartPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* Video controls overlay (mute button) */
 .video-controls-overlay {
   position: absolute;
   bottom: 16px;
@@ -194,8 +243,8 @@ body {
 }
 
 .control-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   width: 48px;
   height: 48px;
@@ -205,13 +254,13 @@ body {
   cursor: pointer;
   color: white;
   transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
   padding: 0;
   font-size: 0;
 }
 
 .control-btn:active {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   transform: scale(0.95);
 }
 
@@ -221,9 +270,8 @@ body {
   fill: currentColor;
 }
 
-/* Mute button state */
 .control-btn.muted {
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .timeline-item-info {
@@ -233,22 +281,23 @@ body {
 .timeline-item-caption {
   font-size: 14px;
   line-height: 1.4;
-  color: var(--ink);
+  color: var(--text-primary);
   margin-bottom: 4px;
   word-wrap: break-word;
 }
 
 .timeline-item-meta {
   font-size: 12px;
-  color: var(--ink-soft);
+  color: var(--text-tertiary);
   letter-spacing: -0.2px;
 }
 
 .timeline-item-review {
-  background: linear-gradient(135deg, var(--tkg-marble-bg-color), var(--charcoal-soft));
+  background: var(--card-bg);
   border-radius: var(--radius-md);
   padding: 16px;
-  border-left: 4px solid var(--ember);
+  border: 1px solid var(--border-crisp);
+  border-left: 4px solid #FFFFFF;
 }
 
 .timeline-item-review-rating {
@@ -261,20 +310,20 @@ body {
 .timeline-item-review-text {
   font-size: 13px;
   line-height: 1.5;
-  color: var(--tkg-marble-ink-soft);
+  color: var(--card-text-soft);
   margin-bottom: 8px;
   font-style: italic;
 }
 
 .timeline-item-review-author {
   font-size: 12px;
-  color: var(--tkg-marble-ink-faint);
+  color: var(--text-tertiary);
   font-weight: 500;
 }
 
 .moments-nav {
-  background: var(--tkg-page-bg);
-  border-top: 0.5px solid var(--tkg-plain-border);
+  background: var(--page-bg);
+  border-top: 1px solid var(--page-border);
   display: flex;
   justify-content: space-around;
   padding: env(safe-area-inset-bottom, 0px) 0 0 0;
@@ -290,7 +339,7 @@ body {
   padding: 12px 8px;
   background: none;
   border: none;
-  color: var(--ink-faint);
+  color: var(--text-tertiary);
   cursor: pointer;
   text-decoration: none;
   font-size: 10px;
@@ -303,7 +352,7 @@ body {
 }
 
 .moments-nav-btn.active {
-  color: var(--ink);
+  color: var(--text-primary);
 }
 
 .moments-nav-btn svg {
@@ -315,7 +364,7 @@ body {
 }
 
 .moments-nav-btn.active svg {
-  stroke: var(--ember);
+  stroke: var(--text-primary);
 }
 
 .moments-nav-btn.instagram-btn {
@@ -344,19 +393,29 @@ body {
 }
 
 .upload-modal-content {
-  background: var(--tkg-page-bg);
+  background: var(--page-bg);
   border-radius: var(--radius-lg);
   padding: 24px;
   width: 100%;
   max-width: 360px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  border: 1px solid var(--page-border);
+  max-height: 85dvh;
+  overflow-y: auto;
 }
 
 .upload-modal-title {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-align: left;
+  letter-spacing: -0.3px;
+}
+
+.upload-modal-subtitle {
+  font-size: 12px;
+  color: var(--text-tertiary);
   margin-bottom: 16px;
-  text-align: center;
 }
 
 .upload-modal-field {
@@ -365,9 +424,9 @@ body {
 
 .upload-modal-label {
   display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -376,10 +435,10 @@ body {
 .upload-modal-input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid var(--tkg-plain-border);
-  border-radius: 8px;
-  background: var(--tkg-page-bg);
-  color: var(--ink);
+  border: 1px solid var(--page-border);
+  border-radius: 6px;
+  background: var(--page-bg);
+  color: var(--text-primary);
   font-family: inherit;
   font-size: 14px;
   transition: border-color 0.2s ease;
@@ -387,21 +446,60 @@ body {
 
 .upload-modal-input:focus {
   outline: none;
-  border-color: var(--ember);
+  border-color: var(--text-primary);
 }
 
 .upload-modal-file {
   display: none;
 }
 
+.upload-modal-file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.file-chip {
+  background: var(--accent-bg);
+  color: var(--card-text);
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-chip-remove {
+  cursor: pointer;
+  font-weight: bold;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.file-chip-remove:active {
+  opacity: 1;
+}
+
+.file-counter {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.file-counter.warning {
+  color: #FF6B00;
+}
+
 .upload-modal-file-btn {
   display: block;
   width: 100%;
   padding: 12px;
-  border: 2px dashed var(--tkg-plain-border);
-  border-radius: 8px;
+  border: 2px dashed var(--page-border);
+  border-radius: 6px;
   background: transparent;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 14px;
   text-align: center;
@@ -410,15 +508,15 @@ body {
 }
 
 .upload-modal-file-btn:active {
-  border-color: var(--ember);
-  color: var(--ember);
+  border-color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 #uploadPreview {
   width: 100%;
   max-height: 200px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 6px;
   margin: 12px 0;
   display: none;
 }
@@ -436,8 +534,8 @@ body {
 .upload-modal-btn {
   flex: 1;
   padding: 12px;
-  border: none;
-  border-radius: 8px;
+  border: 1px solid var(--text-primary);
+  border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -445,33 +543,40 @@ body {
 }
 
 .upload-modal-btn.submit {
-  background: var(--ember);
-  color: white;
+  background: var(--text-primary);
+  color: var(--page-bg);
+  border-color: var(--text-primary);
 }
 
 .upload-modal-btn.submit:active {
-  background: var(--ember-deep);
+  opacity: 0.85;
   transform: scale(0.98);
 }
 
+.upload-modal-btn.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .upload-modal-btn.cancel {
-  background: var(--tkg-plain-border);
-  color: var(--ink);
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--page-border);
 }
 
 .upload-modal-btn.cancel:active {
-  opacity: 0.7;
+  background: var(--accent-bg);
 }
 
 #shareBtn {
   position: absolute;
   top: 12px;
   right: 16px;
-  background: var(--ember);
-  color: white;
+  background: var(--text-primary);
+  color: var(--page-bg);
   border: none;
-  border-radius: 20px;
-  padding: 8px 16px;
+  border-radius: 6px;
+  padding: 10px 16px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -479,7 +584,28 @@ body {
 }
 
 #shareBtn:active {
-  background: var(--ember-deep);
+  opacity: 0.85;
+}
+
+.upload-progress {
+  width: 100%;
+  height: 4px;
+  background: var(--page-border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 12px;
+  display: none;
+}
+
+.upload-progress.show {
+  display: block;
+}
+
+.upload-progress-bar {
+  height: 100%;
+  background: var(--text-primary);
+  width: 0%;
+  transition: width 0.3s ease;
 }
 </style>
 </head>
@@ -498,6 +624,7 @@ body {
   <div class="upload-modal" id="uploadModal">
     <div class="upload-modal-content">
       <h2 class="upload-modal-title">Share a Moment</h2>
+      <p class="upload-modal-subtitle">Upload up to 10 photos or videos</p>
       
       <div class="upload-modal-field">
         <label class="upload-modal-label">Your Name</label>
@@ -505,12 +632,17 @@ body {
       </div>
 
       <div class="upload-modal-field">
-        <label class="upload-modal-label">Photo or Video</label>
-        <input type="file" id="uploadFile" class="upload-modal-file" accept="image/*,video/*">
+        <label class="upload-modal-label">Photos or Videos (Max 10)</label>
+        <input type="file" id="uploadFile" class="upload-modal-file" accept="image/*,video/*" multiple>
         <button class="upload-modal-file-btn" onclick="document.getElementById('uploadFile').click()">
-          📁 Tap to choose file
+          📁 Tap to choose files
         </button>
+        <div id="fileList" class="upload-modal-file-list"></div>
+        <div id="fileCounter" class="file-counter"></div>
         <img id="uploadPreview" alt="Preview">
+        <div id="uploadProgress" class="upload-progress">
+          <div id="uploadProgressBar" class="upload-progress-bar"></div>
+        </div>
       </div>
 
       <div class="upload-modal-field">
@@ -547,6 +679,9 @@ body {
 
 <script>
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
+const MAX_FILES = 10;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per file
+const COMPRESSION_QUALITY = 0.75;
 
 const FEED = document.getElementById('momentsFeed');
 const SHARE_BTN = document.getElementById('shareBtn');
@@ -557,6 +692,10 @@ const UPLOAD_CAPTION = document.getElementById('uploadCaption');
 const UPLOAD_PREVIEW = document.getElementById('uploadPreview');
 const UPLOAD_SUBMIT = document.getElementById('uploadSubmitBtn');
 const UPLOAD_CANCEL = document.getElementById('uploadCancelBtn');
+const FILE_LIST = document.getElementById('fileList');
+const FILE_COUNTER = document.getElementById('fileCounter');
+const UPLOAD_PROGRESS = document.getElementById('uploadProgress');
+const UPLOAD_PROGRESS_BAR = document.getElementById('uploadProgressBar');
 
 let moments = [];
 let selectedFiles = [];
@@ -581,7 +720,6 @@ const MUTE_STATE = {
       video.muted = this.muted;
     });
     
-    // Update mute button UI on active video
     const muteBtn = document.querySelector('.control-btn.mute-btn');
     if (muteBtn) {
       if (this.muted) {
@@ -598,13 +736,13 @@ const MUTE_STATE = {
 // Global active video tracker
 let activeVideo = null;
 const videoObservers = new Map();
+const likedVideos = new Set(JSON.parse(localStorage.getItem('tkg_liked_videos') || '[]'));
 
 // ========== INTERSECTION OBSERVER ==========
 function setupVideoObserver(videoElement, container) {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting && entry.intersectionRatio >= 0.75) {
-        // Video is >75% visible
         if (activeVideo && activeVideo !== videoElement) {
           activeVideo.pause();
         }
@@ -613,17 +751,14 @@ function setupVideoObserver(videoElement, container) {
           console.warn("Autoplay blocked:", err);
         });
         
-        // Show controls overlay
         const overlay = container.querySelector('.video-controls-overlay');
         if (overlay) overlay.style.display = 'flex';
       } else {
-        // Video is <75% visible
         if (activeVideo === videoElement) {
           videoElement.pause();
           activeVideo = null;
         }
         
-        // Hide controls overlay
         const overlay = container.querySelector('.video-controls-overlay');
         if (overlay) overlay.style.display = 'none';
       }
@@ -646,6 +781,88 @@ function setupVideoTapHandler(videoElement) {
   });
 }
 
+// ========== DOUBLE-TAP LIKE GESTURE ==========
+function setupDoubleTapLike(container, videoId) {
+  let lastTap = 0;
+  
+  container.addEventListener('click', (e) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    
+    if (tapLength < 500 && tapLength > 0) {
+      e.preventDefault();
+      toggleLike(videoId, container);
+    }
+    lastTap = currentTime;
+  });
+}
+
+function toggleLike(videoId, container) {
+  const likeBtn = container.querySelector('.like-btn');
+  
+  if (likedVideos.has(videoId)) {
+    likedVideos.delete(videoId);
+    likeBtn.classList.remove('liked');
+  } else {
+    likedVideos.add(videoId);
+    likeBtn.classList.add('liked');
+  }
+  
+  localStorage.setItem('tkg_liked_videos', JSON.stringify([...likedVideos]));
+}
+
+// ========== CANVAS COMPRESSION ==========
+async function compressImage(file) {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) {
+      resolve(file);
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 1200;
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round(height * (maxDim / width));
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round(width * (maxDim / height));
+            height = maxDim;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob(
+          (blob) => {
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: file.lastModified
+            });
+            resolve(compressedFile);
+          },
+          'image/jpeg',
+          COMPRESSION_QUALITY
+        );
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // ========== FETCH MOMENTS ==========
 async function fetchMoments() {
   try {
@@ -659,7 +876,7 @@ async function fetchMoments() {
     renderTimeline();
   } catch (err) {
     console.error('Failed to fetch moments:', err);
-    FEED.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--ink-soft);">Failed to load moments. Please try again later.</div>';
+    FEED.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-tertiary);">Failed to load moments. Please try again later.</div>';
   }
 }
 
@@ -668,7 +885,7 @@ function renderTimeline() {
   FEED.innerHTML = '';
   
   if (moments.length === 0) {
-    FEED.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--ink-soft);">No moments shared yet</div>';
+    FEED.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-tertiary);">No moments shared yet</div>';
     return;
   }
 
@@ -701,17 +918,16 @@ function renderTimeline() {
     }
   });
 
-  timelineItems.forEach(item => {
-    const card = createTimelineCard(item);
+  timelineItems.forEach((item, idx) => {
+    const card = createTimelineCard(item, `card-${idx}`);
     if (card) FEED.appendChild(card);
   });
 
-  // Initialize mute state for all videos
   MUTE_STATE.updateAllVideos();
 }
 
 // ========== CREATE TIMELINE CARD ==========
-function createTimelineCard(item) {
+function createTimelineCard(item, cardId) {
   const container = document.createElement('div');
   container.className = 'timeline-item';
 
@@ -731,7 +947,7 @@ function createTimelineCard(item) {
     video.playsinline = true;
     video.muted = MUTE_STATE.muted;
     
-    // Video controls overlay
+    // Mute control overlay (bottom-left)
     const controlsOverlay = document.createElement('div');
     controlsOverlay.className = 'video-controls-overlay';
     controlsOverlay.style.display = 'none';
@@ -744,18 +960,41 @@ function createTimelineCard(item) {
       </button>
     `;
     
+    // Engagement overlay (right side)
+    const engagementOverlay = document.createElement('div');
+    engagementOverlay.className = 'engagement-overlay';
+    engagementOverlay.innerHTML = `
+      <button class="engagement-btn like-btn ${likedVideos.has(cardId) ? 'liked' : ''}" title="Like">❤️</button>
+      <button class="engagement-btn share-btn" title="Comment / Share">💬</button>
+    `;
+    
     mediaContainer.appendChild(video);
     mediaContainer.appendChild(controlsOverlay);
+    mediaContainer.appendChild(engagementOverlay);
     
     // Setup observers and handlers
     setupVideoObserver(video, mediaContainer);
     setupVideoTapHandler(video);
+    setupDoubleTapLike(mediaContainer, cardId);
     
     // Mute button handler
     const muteBtn = controlsOverlay.querySelector('.mute-btn');
     muteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       MUTE_STATE.toggle();
+    });
+    
+    // Engagement button handlers
+    const likeBtn = engagementOverlay.querySelector('.like-btn');
+    likeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleLike(cardId, mediaContainer);
+    });
+    
+    const shareBtn = engagementOverlay.querySelector('.share-btn');
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      alert('Share feature coming soon');
     });
     
     const info = document.createElement('div');
@@ -851,7 +1090,7 @@ function extractGoogleDriveId(rawUrl) {
   return null;
 }
 
-// ========== UPLOAD EXPERIENCE ==========
+// ========== MULTI-FILE UPLOAD ==========
 SHARE_BTN.addEventListener('click', () => {
   UPLOAD_MODAL.classList.add('open');
   UPLOAD_NAME.focus();
@@ -863,10 +1102,41 @@ UPLOAD_CANCEL.addEventListener('click', () => {
 
 UPLOAD_FILE.addEventListener('change', (e) => {
   selectedFiles = Array.from(e.target.files || []);
+  
+  if (selectedFiles.length > MAX_FILES) {
+    alert(`Maximum ${MAX_FILES} files allowed. ${selectedFiles.length} selected.`);
+    selectedFiles = selectedFiles.slice(0, MAX_FILES);
+    e.target.value = '';
+  }
+  
   updateFilePreview();
 });
 
 function updateFilePreview() {
+  FILE_LIST.innerHTML = '';
+  FILE_COUNTER.textContent = `${selectedFiles.length}/${MAX_FILES} files selected`;
+  
+  if (selectedFiles.length === MAX_FILES) {
+    FILE_COUNTER.classList.add('warning');
+    FILE_COUNTER.textContent += ' (max reached)';
+  } else {
+    FILE_COUNTER.classList.remove('warning');
+  }
+  
+  selectedFiles.forEach((file, idx) => {
+    const chip = document.createElement('div');
+    chip.className = 'file-chip';
+    chip.innerHTML = `
+      ${file.name.substring(0, 20)}
+      <span class="file-chip-remove" data-idx="${idx}">×</span>
+    `;
+    chip.querySelector('.file-chip-remove').addEventListener('click', () => {
+      selectedFiles.splice(idx, 1);
+      updateFilePreview();
+    });
+    FILE_LIST.appendChild(chip);
+  });
+  
   if (selectedFiles.length > 0) {
     const file = selectedFiles[0];
     if (file.type.startsWith('image/')) {
@@ -892,40 +1162,42 @@ UPLOAD_SUBMIT.addEventListener('click', async () => {
   }
   
   if (selectedFiles.length === 0) {
-    alert('Please select a file');
+    alert('Please select at least one file');
     return;
   }
   
-  const file = selectedFiles[0];
-  const formData = new FormData();
-  formData.append('action', 'upload');
-  formData.append('uploaderName', name);
-  formData.append('caption', caption);
-  formData.append('file', file);
+  UPLOAD_SUBMIT.disabled = true;
+  UPLOAD_PROGRESS.classList.add('show');
+  let uploaded = 0;
   
   try {
-    UPLOAD_SUBMIT.disabled = true;
-    UPLOAD_SUBMIT.textContent = 'Uploading...';
-    
-    const response = await fetch(APP_SCRIPT_URL, {
-      method: 'POST',
-      body: formData
-    });
-    
-    const data = await response.json();
-    
-    if (data.status === 'ok') {
-      closeUploadModal();
-      fetchMoments();
-    } else {
-      alert('Upload failed: ' + (data.message || 'Unknown error'));
+    for (const file of selectedFiles) {
+      const compressed = await compressImage(file);
+      
+      const formData = new FormData();
+      formData.append('action', 'upload');
+      formData.append('uploaderName', name);
+      formData.append('caption', caption);
+      formData.append('file', compressed);
+      
+      await fetch(APP_SCRIPT_URL, {
+        method: 'POST',
+        body: formData
+      });
+      
+      uploaded++;
+      UPLOAD_PROGRESS_BAR.style.width = Math.round((uploaded / selectedFiles.length) * 100) + '%';
     }
+    
+    closeUploadModal();
+    fetchMoments();
   } catch (err) {
     console.error('Upload error:', err);
     alert('Upload failed. Please try again.');
   } finally {
     UPLOAD_SUBMIT.disabled = false;
-    UPLOAD_SUBMIT.textContent = 'Share';
+    UPLOAD_PROGRESS.classList.remove('show');
+    UPLOAD_PROGRESS_BAR.style.width = '0%';
   }
 });
 
@@ -935,6 +1207,8 @@ function closeUploadModal() {
   UPLOAD_CAPTION.value = '';
   UPLOAD_FILE.value = '';
   UPLOAD_PREVIEW.classList.remove('show');
+  FILE_LIST.innerHTML = '';
+  FILE_COUNTER.textContent = '';
   selectedFiles = [];
 }
 
