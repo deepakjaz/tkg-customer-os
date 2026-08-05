@@ -348,10 +348,17 @@ body {
   opacity: 0.6;
 }
 
-.fullscreen-player video {
+.player-container {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  position: relative;
+  background: #000;
+}
+
+.player-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 .moments-nav {
@@ -656,7 +663,14 @@ body {
 
   <div class="fullscreen-player" id="videoplayer">
     <button class="fullscreen-player-close" id="playerClose">✕</button>
-    <video id="playerVideo" playsinline controls></video>
+    <div class="player-container">
+      <iframe 
+        id="playerIframe" 
+        class="player-iframe"
+        allow="autoplay"
+        frameborder="0">
+      </iframe>
+    </div>
   </div>
 
   <nav class="moments-nav">
@@ -692,7 +706,7 @@ const UPLOAD_PREVIEW = document.getElementById('uploadPreview');
 const UPLOAD_SUBMIT = document.getElementById('uploadSubmitBtn');
 const UPLOAD_CANCEL = document.getElementById('uploadCancelBtn');
 const PLAYER = document.getElementById('videoplayer');
-const PLAYER_VIDEO = document.getElementById('playerVideo');
+const PLAYER_IFRAME = document.getElementById('playerIframe');
 const PLAYER_CLOSE = document.getElementById('playerClose');
 
 let moments = [];
@@ -702,23 +716,10 @@ let selectedFiles = [];
 function getStreamableVideoUrl(rawUrl) {
   if (!rawUrl) return '';
   
-  // Extract FILE_ID from /preview format
-  // Example: https://drive.google.com/file/d/1d9KaCi8ypXpyfnOZxglV77RfaHIU6bo1/preview
-  const previewMatch = rawUrl.match(/\/file\/d\/([^\/]+)\/preview/);
-  if (previewMatch && previewMatch[1]) {
-    return `https://lh3.googleusercontent.com/d/${previewMatch[1]}`;
-  }
-  
-  // Extract FILE_ID from /uc?export=download format
-  // Example: https://drive.google.com/uc?export=download&id=1ufXuKFBvg9GER8M7QLVH0e5yEBTS0vNC
-  const downloadMatch = rawUrl.match(/id=([^&]+)/);
-  if (downloadMatch && downloadMatch[1]) {
-    return `https://lh3.googleusercontent.com/d/${downloadMatch[1]}`;
-  }
-  
-  // If already lh3 format, return as-is
-  if (rawUrl.indexOf('lh3.googleusercontent.com') !== -1) {
-    return rawUrl;
+  // Convert legacy Google Drive /preview or /view URLs to direct lh3 stream URLs
+  const driveIdMatch = rawUrl.match(/\/file\/d\/([^\/]+)/) || rawUrl.match(/id=([^&]+)/);
+  if (driveIdMatch && driveIdMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${driveIdMatch[1]}`;
   }
   
   return rawUrl;
@@ -1063,26 +1064,51 @@ function closeUploadModal() {
 }
 
 // ========== VIDEO PLAYER ==========
-function openVideoPlayer(videoUrl) {
-  const streamableUrl = getStreamableVideoUrl(videoUrl);
-  
-  PLAYER_VIDEO.src = streamableUrl;
+function openVideoPlayer(mediaUrl) {
+  const previewUrl = buildGoogleDrivePreviewUrl(mediaUrl);
+  PLAYER_IFRAME.src = previewUrl;
   PLAYER.classList.add('open');
   document.body.style.overflow = 'hidden';
-  
-  const playPromise = PLAYER_VIDEO.play();
-  if (playPromise !== undefined) {
-    playPromise.catch(err => {
-      console.warn("Autoplay blocked or stream issue:", err);
-    });
-  }
 }
 
 function closeVideoPlayer() {
-  PLAYER_VIDEO.pause();
-  PLAYER_VIDEO.src = '';
+  PLAYER_IFRAME.src = '';
   PLAYER.classList.remove('open');
   document.body.style.overflow = '';
+}
+
+function buildGoogleDrivePreviewUrl(rawUrl) {
+  if (!rawUrl) return '';
+  
+  let fileId = null;
+  
+  // Format 1: Already a preview URL
+  if (rawUrl.indexOf('/preview') !== -1) {
+    const match = rawUrl.match(/\/file\/d\/([^\/]+)\/preview/);
+    if (match && match[1]) fileId = match[1];
+  }
+  
+  // Format 2: /file/d/{ID}
+  if (!fileId) {
+    const match = rawUrl.match(/\/file\/d\/([^\/]+)/);
+    if (match && match[1]) fileId = match[1];
+  }
+  
+  // Format 3: uc?export=download&id={ID}
+  if (!fileId) {
+    const match = rawUrl.match(/id=([^&]+)/);
+    if (match && match[1]) fileId = match[1];
+  }
+  
+  // Format 4: lh3.googleusercontent.com/d/{ID}
+  if (!fileId) {
+    const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) fileId = match[1];
+  }
+  
+  if (!fileId) return rawUrl;
+  
+  return `https://drive.google.com/file/d/${fileId}/preview`;
 }
 
 PLAYER_CLOSE.addEventListener('click', closeVideoPlayer);
