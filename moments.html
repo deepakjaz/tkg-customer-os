@@ -88,8 +88,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100dvh;
-  display: flex;
-  flex-direction: column;
+  position: relative;
 }
 
 .moments-header {
@@ -312,7 +311,7 @@ body {
 
 .fullscreen-player {
   display: none;
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: #000;
   z-index: 200;
@@ -328,7 +327,7 @@ body {
 
 .fullscreen-player-close {
   position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  top: 12px;
   right: 16px;
   background: none;
   border: none;
@@ -402,8 +401,8 @@ body {
 }
 
 .upload-button {
-  position: fixed;
-  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  position: absolute;
+  bottom: calc(70px + 8px);
   right: 16px;
   background: linear-gradient(180deg, var(--ember-bright), var(--ember));
   color: var(--tkg-ctrl-fg);
@@ -424,7 +423,7 @@ body {
 
 .upload-modal {
   display: none;
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: rgba(0,0,0,0.5);
   z-index: 100;
@@ -698,6 +697,19 @@ const PLAYER_CLOSE = document.getElementById('playerClose');
 
 let moments = [];
 let selectedFiles = [];
+
+// ========== HELPER: DYNAMIC DRIVE URL RESOLVER ==========
+function getStreamableVideoUrl(rawUrl) {
+  if (!rawUrl) return '';
+  
+  // Convert legacy Google Drive /preview or /view URLs to direct lh3 stream URLs
+  const driveIdMatch = rawUrl.match(/\/file\/d\/([^\/]+)/) || rawUrl.match(/id=([^&]+)/);
+  if (driveIdMatch && driveIdMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${driveIdMatch[1]}`;
+  }
+  
+  return rawUrl;
+}
 
 // ========== FETCH MOMENTS ==========
 async function fetchMoments() {
@@ -1039,10 +1051,18 @@ function closeUploadModal() {
 
 // ========== VIDEO PLAYER ==========
 function openVideoPlayer(videoUrl) {
-  PLAYER_VIDEO.src = videoUrl;
+  const streamableUrl = getStreamableVideoUrl(videoUrl);
+  
+  PLAYER_VIDEO.src = streamableUrl;
   PLAYER.classList.add('open');
   document.body.style.overflow = 'hidden';
-  PLAYER_VIDEO.play();
+  
+  const playPromise = PLAYER_VIDEO.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(err => {
+      console.warn("Autoplay blocked or stream issue:", err);
+    });
+  }
 }
 
 function closeVideoPlayer() {
