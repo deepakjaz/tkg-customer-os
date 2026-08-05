@@ -348,17 +348,11 @@ body {
   opacity: 0.6;
 }
 
-.player-container {
+.fullscreen-player video {
   width: 100%;
   height: 100%;
-  position: relative;
+  object-fit: contain;
   background: #000;
-}
-
-.player-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
 }
 
 .moments-nav {
@@ -663,14 +657,7 @@ body {
 
   <div class="fullscreen-player" id="videoplayer">
     <button class="fullscreen-player-close" id="playerClose">✕</button>
-    <div class="player-container">
-      <iframe 
-        id="playerIframe" 
-        class="player-iframe"
-        allow="autoplay"
-        frameborder="0">
-      </iframe>
-    </div>
+    <video id="playerVideo" playsinline></video>
   </div>
 
   <nav class="moments-nav">
@@ -706,7 +693,7 @@ const UPLOAD_PREVIEW = document.getElementById('uploadPreview');
 const UPLOAD_SUBMIT = document.getElementById('uploadSubmitBtn');
 const UPLOAD_CANCEL = document.getElementById('uploadCancelBtn');
 const PLAYER = document.getElementById('videoplayer');
-const PLAYER_IFRAME = document.getElementById('playerIframe');
+const PLAYER_VIDEO = document.getElementById('playerVideo');
 const PLAYER_CLOSE = document.getElementById('playerClose');
 
 let moments = [];
@@ -1065,50 +1052,47 @@ function closeUploadModal() {
 
 // ========== VIDEO PLAYER ==========
 function openVideoPlayer(mediaUrl) {
-  const previewUrl = buildGoogleDrivePreviewUrl(mediaUrl);
-  PLAYER_IFRAME.src = previewUrl;
+  const fileId = extractGoogleDriveId(mediaUrl);
+  if (!fileId) {
+    console.error("Could not extract Google Drive ID from:", mediaUrl);
+    return;
+  }
+
+  PLAYER_VIDEO.src = `/api/stream?id=${fileId}`;
   PLAYER.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  const playPromise = PLAYER_VIDEO.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(err => {
+      console.warn("Autoplay block handled:", err);
+    });
+  }
 }
 
 function closeVideoPlayer() {
-  PLAYER_IFRAME.src = '';
+  PLAYER_VIDEO.pause();
+  PLAYER_VIDEO.src = '';
   PLAYER.classList.remove('open');
   document.body.style.overflow = '';
 }
 
-function buildGoogleDrivePreviewUrl(rawUrl) {
-  if (!rawUrl) return '';
+function extractGoogleDriveId(rawUrl) {
+  if (!rawUrl) return null;
   
-  let fileId = null;
-  
-  // Format 1: Already a preview URL
-  if (rawUrl.indexOf('/preview') !== -1) {
-    const match = rawUrl.match(/\/file\/d\/([^\/]+)\/preview/);
-    if (match && match[1]) fileId = match[1];
-  }
-  
-  // Format 2: /file/d/{ID}
-  if (!fileId) {
-    const match = rawUrl.match(/\/file\/d\/([^\/]+)/);
-    if (match && match[1]) fileId = match[1];
-  }
-  
-  // Format 3: uc?export=download&id={ID}
-  if (!fileId) {
-    const match = rawUrl.match(/id=([^&]+)/);
-    if (match && match[1]) fileId = match[1];
-  }
-  
-  // Format 4: lh3.googleusercontent.com/d/{ID}
-  if (!fileId) {
-    const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match && match[1]) fileId = match[1];
-  }
-  
-  if (!fileId) return rawUrl;
-  
-  return `https://drive.google.com/file/d/${fileId}/preview`;
+  // Format 1: /file/d/{ID} or /file/d/{ID}/preview
+  let match = rawUrl.match(/\/file\/d\/([^\/]+)/);
+  if (match && match[1]) return match[1];
+
+  // Format 2: id={ID} (from uc?export=download&id=...)
+  match = rawUrl.match(/id=([^&]+)/);
+  if (match && match[1]) return match[1];
+
+  // Format 3: /d/{ID} (from lh3.googleusercontent.com/d/...)
+  match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) return match[1];
+
+  return null;
 }
 
 PLAYER_CLOSE.addEventListener('click', closeVideoPlayer);

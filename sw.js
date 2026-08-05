@@ -17,7 +17,7 @@
 // Once V1 stabilizes, switch this back to a deliberate version tied to a
 // release tag (e.g. 'tkg-cache-v3') instead of bumping on every save.
 // ---------------------------------------------------------------------------
-const BUILD_VERSION = '2026-08-06.2'; // <-- update this on every deploy — Journey Trust Layer Completion sprint
+const BUILD_VERSION = '2026-08-06.3'; // <-- Phase 2: Streaming proxy deployment
 const CACHE_NAME = `tkg-cache-${BUILD_VERSION}`;
 const APP_SHELL = [
   './',
@@ -59,12 +59,20 @@ self.addEventListener('activate', (event) => {
 // download. This handler already caches each one the first time it's
 // fetched (see the cache.put below), so a returning customer gets them
 // from cache offline too — no separate caching logic needed for them.
+//
+// Video streams (/api/stream) are never cached — they should always stream
+// fresh from Google Drive to prevent device storage bloat.
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Never intercept calls to Google Apps Script — let app.js handle
   // success/failure of those directly so sync logic stays accurate.
   if (url.hostname.includes('script.google.com') || url.hostname.includes('script.googleusercontent.com')) {
+    return;
+  }
+
+  // Never cache video streams — let them stream fresh from Google Drive
+  if (url.pathname.startsWith('/api/stream')) {
     return;
   }
 
