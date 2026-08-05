@@ -17,7 +17,7 @@
 // Once V1 stabilizes, switch this back to a deliberate version tied to a
 // release tag (e.g. 'tkg-cache-v3') instead of bumping on every save.
 // ---------------------------------------------------------------------------
-const BUILD_VERSION = '2026-08-06.4'; // <-- Phase 2: Streaming proxy deployment
+const BUILD_VERSION = '2026-08-06.5'; // <-- Phase 2: Streaming proxy deployment
 const CACHE_NAME = `tkg-cache-${BUILD_VERSION}`;
 const APP_SHELL = [
   './',
