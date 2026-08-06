@@ -156,33 +156,64 @@ body {
   margin-bottom: 12px;
 }
 
-/* ===== HERO CARD: CUSTOMER MOMENTS ===== */
+/* ===== HERO CARD: CUSTOMER MOMENTS — 4:5 auto-slide carousel ===== */
 .hero-card {
   position: relative;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
-  min-height: 260px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 22px;
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  background: #000000;
   border: 1px solid var(--glass-border);
   cursor: pointer;
-  transition: transform 0.2s ease;
 }
 
 .hero-card:active { transform: scale(0.98); }
 
-.hero-card-content { position: relative; z-index: 2; }
-
-.hero-card-icon {
-  width: 32px; height: 32px;
-  margin-bottom: 12px;
-  color: #FFFFFF;
+.hero-carousel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  z-index: 0;
 }
 
-.hero-card-icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.6; }
+.hero-carousel::-webkit-scrollbar { display: none; }
+
+.hero-carousel-slide {
+  flex: 0 0 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  background-size: cover;
+  background-position: center;
+  background-color: #1A1A1A;
+}
+
+.hero-carousel-empty {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
+  z-index: 0;
+}
+
+.hero-overlay-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.15) 48%, rgba(0,0,0,0.3) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-card-content {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 2;
+  padding: 22px;
+  pointer-events: none;
+}
 
 .hero-card-title {
   font-size: 21px;
@@ -212,17 +243,26 @@ body {
   font-weight: 700;
   cursor: pointer;
   width: fit-content;
+  pointer-events: auto;
 }
 
-/* ===== REVIEWS SECTION ===== */
+/* ===== REVIEWS SECTION — horizontal snap-scroll ===== */
 .reviews-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
   gap: 12px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
 }
+
+.reviews-container::-webkit-scrollbar { display: none; }
 
 .review-card {
   background: var(--card-bg);
+  color: var(--card-text);
   border: 1px solid var(--border-crisp);
   border-left: 4px solid #FFFFFF;
   border-radius: var(--radius-lg);
@@ -230,6 +270,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 0 0 85%;
+  max-width: 280px;
+  height: 152px;
+  scroll-snap-align: start;
+  overflow: hidden;
 }
 
 html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
@@ -238,6 +283,7 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   display: flex;
   gap: 3px;
   font-size: 14px;
+  color: #FFFFFF;
 }
 
 .review-text {
@@ -245,12 +291,17 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   line-height: 1.5;
   color: var(--card-text-soft);
   font-style: italic;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .review-author {
   font-size: 12px;
   color: var(--text-tertiary);
   font-weight: 500;
+  margin-top: auto;
 }
 
 .reviews-loading {
@@ -258,17 +309,18 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   padding: 24px;
   color: var(--text-tertiary);
   font-size: 13px;
+  flex: 0 0 100%;
 }
 
-/* ===== LEADERBOARD CARD ===== */
+/* ===== LEADERBOARD CARD — compact ===== */
 .leaderboard-card {
   background: var(--card-bg);
   border: 1px solid var(--border-crisp);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
 .leaderboard-header {
@@ -278,13 +330,13 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 }
 
 .leaderboard-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--card-text);
 }
 
 .leaderboard-period {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--card-text-soft);
   font-weight: 500;
 }
@@ -292,45 +344,49 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 .leaderboard-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .leaderboard-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: 10px;
+  padding: 7px 10px;
   background: rgba(255,255,255,0.06);
   border-radius: var(--radius-md);
 }
 
 .leaderboard-rank {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--card-text-soft);
-  min-width: 22px;
+  min-width: 20px;
   text-align: center;
 }
 
-.leaderboard-item:nth-child(1) .leaderboard-rank { color: #FFD700; font-size: 18px; }
-.leaderboard-item:nth-child(2) .leaderboard-rank { color: #C0C0C0; }
-.leaderboard-item:nth-child(3) .leaderboard-rank { color: #CD7F32; }
+.leaderboard-item:nth-child(1) {
+  background: rgba(255, 107, 0, 0.14);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+}
+.leaderboard-item:nth-child(1) .leaderboard-rank { color: #FF6B00; font-size: 16px; }
+.leaderboard-item:nth-child(2) .leaderboard-rank { color: #E65100; }
+.leaderboard-item:nth-child(3) .leaderboard-rank { color: #E65100; opacity: 0.75; }
 
 .leaderboard-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .leaderboard-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--card-text);
 }
 
 .leaderboard-score {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--card-text-soft);
 }
 
@@ -342,7 +398,7 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   color: #000000;
   border: none;
   border-radius: var(--radius-md);
-  padding: 12px 16px;
+  padding: 11px 16px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -480,9 +536,8 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 /* ===== RESPONSIVE ===== */
 @media (max-width: 380px) {
   .hub-feed { padding: 16px; gap: 16px; }
-  .hero-card { min-height: 220px; padding: 18px; }
   .hero-card-title { font-size: 19px; }
-  .leaderboard-card { padding: 16px; }
+  .leaderboard-card { padding: 12px 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -507,12 +562,12 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   <div class="hub-content" id="hubContent">
     <div class="hub-feed">
 
-      <!-- HERO: CUSTOMER MOMENTS -->
+      <!-- HERO: CUSTOMER MOMENTS — 4:5 auto-slide preview carousel -->
       <div class="hero-card" id="heroMoments">
+        <div class="hero-carousel-empty" id="heroCarouselEmpty"></div>
+        <div class="hero-carousel" id="heroCarousel"></div>
+        <div class="hero-overlay-gradient"></div>
         <div class="hero-card-content">
-          <div class="hero-card-icon">
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9.5 8.5v7l6-3.5z" fill="currentColor" stroke="none"/></svg>
-          </div>
           <h2 class="hero-card-title">Customer Moments</h2>
           <p class="hero-card-desc">Watch real photos & videos from our community of food lovers.</p>
           <button class="hero-card-cta">Watch Stories →</button>
@@ -703,9 +758,78 @@ function escapeHtml(text) {
   nav.addEventListener('touchstart', expandNav, { passive: true });
 })();
 
+// ========== HERO CAROUSEL — sneak-peek preview from ?action=moments ==========
+const HERO_CAROUSEL = document.getElementById('heroCarousel');
+const HERO_CAROUSEL_EMPTY = document.getElementById('heroCarouselEmpty');
+let heroSlideIndex = 0;
+let heroSlideCount = 0;
+let heroAutoTimer = null;
+let heroUserInteracting = false;
+
+function transformDriveThumbUrl(rawUrl) {
+  if (!rawUrl) return null;
+  let match = rawUrl.match(/\/file\/d\/([^\/]+)/) || rawUrl.match(/id=([^&]+)/) || rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const fileId = match ? match[1] : null;
+  if (!fileId) return rawUrl;
+  return `https://lh3.googleusercontent.com/d/${fileId}`;
+}
+
+async function fetchHeroPreview() {
+  const result = await window.TKGShared.fetchFromAppsScript('moments');
+  if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.moments)) {
+    return; // empty-gradient placeholder stays visible
+  }
+
+  const thumbs = [];
+  result.data.moments.forEach(moment => {
+    if (Array.isArray(moment.media) && moment.media.length > 0) {
+      const first = moment.media[0];
+      const mimeType = first.mimeType || '';
+      // skip videos for the preview strip — a static thumbnail keeps the
+      // carousel lightweight; falls back to the file url if no thumbnailUrl
+      if (mimeType.indexOf('video/') === 0 && !first.thumbnailUrl) return;
+      const src = transformDriveThumbUrl(first.thumbnailUrl || first.url);
+      if (src) thumbs.push(src);
+    }
+  });
+
+  if (thumbs.length === 0) return;
+
+  const slides = thumbs.slice(0, 8);
+  HERO_CAROUSEL.innerHTML = slides
+    .map(src => `<div class="hero-carousel-slide" style="background-image:url('${src}')"></div>`)
+    .join('');
+  HERO_CAROUSEL_EMPTY.style.display = 'none';
+  heroSlideCount = slides.length;
+  startHeroAutoSlide();
+}
+
+function startHeroAutoSlide() {
+  clearInterval(heroAutoTimer);
+  if (heroSlideCount <= 1) return;
+  heroAutoTimer = setInterval(() => {
+    if (heroUserInteracting) return;
+    heroSlideIndex = (heroSlideIndex + 1) % heroSlideCount;
+    HERO_CAROUSEL.scrollTo({ left: HERO_CAROUSEL.clientWidth * heroSlideIndex, behavior: 'smooth' });
+  }, 3500);
+}
+
+// pause auto-advance while the user is manually swiping, resume shortly after
+(function setupHeroSwipePause() {
+  let resumeTimeout;
+  HERO_CAROUSEL.addEventListener('touchstart', () => {
+    heroUserInteracting = true;
+    clearTimeout(resumeTimeout);
+  }, { passive: true });
+  HERO_CAROUSEL.addEventListener('touchend', () => {
+    resumeTimeout = setTimeout(() => { heroUserInteracting = false; }, 4000);
+  }, { passive: true });
+})();
+
 // ========== INIT ==========
 fetchFeaturedReviews();
 fetchLeaderboard();
+fetchHeroPreview();
 </script>
 
 </body>
