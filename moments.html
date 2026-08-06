@@ -18,6 +18,27 @@
 })();
 </script>
 
+<script>
+  if ('serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => {
+          reg.update();
+        })
+        .catch((err) => {
+          console.error('[SW] Registration failed:', err);
+        });
+    });
+  }
+</script>
+
 <style>
 :root{
   /* PURE B&W PREMIUM AESTHETIC */
@@ -167,7 +188,7 @@ body {
   cursor: pointer;
 }
 
-/* ENGAGEMENT OVERLAY — Floating Icons */
+/* ===== ENGAGEMENT OVERLAY — Borderless SVG Icons ===== */
 .engagement-overlay {
   position: absolute;
   right: 12px;
@@ -179,39 +200,37 @@ body {
 }
 
 .engagement-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
   padding: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  position: relative;
+}
+
+.engagement-btn svg {
+  width: 28px;
+  height: 28px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  transition: fill 0.2s ease;
 }
 
 .engagement-btn:active {
-  background: rgba(0, 0, 0, 0.6);
-  transform: scale(0.9);
+  transform: scale(0.88);
 }
 
-.engagement-btn.liked {
+.engagement-btn.liked svg {
+  fill: currentColor;
   color: #FF1744;
-  background: rgba(255, 23, 68, 0.2);
-}
-
-.engagement-btn.liked::before {
-  content: '';
-  position: absolute;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid #FF1744;
   animation: heartPulse 0.6s ease-out;
 }
 
@@ -226,7 +245,7 @@ body {
   }
 }
 
-/* Video controls overlay (mute button) */
+/* ===== VIDEO CONTROLS OVERLAY (MUTE) ===== */
 .video-controls-overlay {
   position: absolute;
   bottom: 16px;
@@ -290,6 +309,8 @@ body {
   font-size: 12px;
   color: var(--text-tertiary);
   letter-spacing: -0.2px;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .timeline-item-review {
@@ -317,75 +338,20 @@ body {
 
 .timeline-item-review-author {
   font-size: 12px;
-  color: var(--text-tertiary);
-  font-weight: 500;
+  color: var(--card-text-soft);
+  opacity: 0.8;
 }
 
-.moments-nav {
-  background: var(--page-bg);
-  border-top: 1px solid var(--page-border);
-  display: flex;
-  justify-content: space-around;
-  padding: env(safe-area-inset-bottom, 0px) 0 0 0;
-  flex-shrink: 0;
-}
-
-.moments-nav-btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 8px;
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  text-decoration: none;
-  font-size: 10px;
-  transition: color 0.2s ease;
-  gap: 4px;
-}
-
-.moments-nav-btn:active {
-  opacity: 0.7;
-}
-
-.moments-nav-btn.active {
-  color: var(--text-primary);
-}
-
-.moments-nav-btn svg {
-  width: 20px;
-  height: 20px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.5;
-}
-
-.moments-nav-btn.active svg {
-  stroke: var(--text-primary);
-}
-
-.moments-nav-btn.instagram-btn {
-  color: #E1306C;
-}
-
-.moments-nav-btn.instagram-btn svg {
-  stroke: #E1306C;
-}
-
-/* Upload Modal */
+/* ===== UPLOAD MODAL ===== */
 .upload-modal {
   display: none;
-  position: absolute;
+  position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   z-index: 100;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  padding: 16px;
+  align-items: flex-end;
 }
 
 .upload-modal.open {
@@ -393,208 +359,154 @@ body {
 }
 
 .upload-modal-content {
-  background: var(--page-bg);
-  border-radius: var(--radius-lg);
-  padding: 24px;
   width: 100%;
-  max-width: 360px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  border: 1px solid var(--page-border);
-  max-height: 85dvh;
+  max-width: var(--max-w);
+  background: var(--page-bg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 24px 16px;
+  max-height: 90dvh;
   overflow-y: auto;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 }
 
-.upload-modal-title {
+.upload-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.upload-modal h2 {
   font-size: 18px;
   font-weight: 700;
-  margin-bottom: 12px;
-  text-align: left;
-  letter-spacing: -0.3px;
 }
 
-.upload-modal-subtitle {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  margin-bottom: 16px;
-}
-
-.upload-modal-field {
-  margin-bottom: 16px;
-}
-
-.upload-modal-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.upload-modal-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--page-border);
-  border-radius: 6px;
-  background: var(--page-bg);
+.upload-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
   color: var(--text-primary);
-  font-family: inherit;
+}
+
+.upload-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.upload-form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.upload-form-group input[type="text"],
+.upload-form-group textarea {
+  padding: 12px;
+  border: 1px solid var(--page-border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  color: var(--card-text);
+  font-family: var(--font-body);
   font-size: 14px;
-  transition: border-color 0.2s ease;
 }
 
-.upload-modal-input:focus {
-  outline: none;
-  border-color: var(--text-primary);
+.upload-form-group input[type="text"]::placeholder,
+.upload-form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
-.upload-modal-file {
+.upload-form-group textarea {
+  resize: none;
+  min-height: 80px;
+}
+
+.upload-file-input-wrapper {
+  position: relative;
+}
+
+.upload-file-input {
   display: none;
 }
 
-.upload-modal-file-list {
+.upload-file-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--accent-bg);
+  color: var(--accent-fg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.upload-file-btn:active {
+  opacity: 0.8;
+}
+
+.file-list {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-top: 12px;
 }
 
 .file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--accent-bg);
-  color: var(--card-text);
+  color: var(--accent-fg);
   padding: 6px 12px;
   border-radius: 16px;
   font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .file-chip-remove {
   cursor: pointer;
   font-weight: bold;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  opacity: 0.8;
 }
 
 .file-chip-remove:active {
-  opacity: 1;
+  opacity: 0.6;
 }
 
 .file-counter {
   font-size: 12px;
-  color: var(--text-tertiary);
-  margin-bottom: 8px;
+  color: var(--text-secondary);
+  margin-top: 8px;
 }
 
 .file-counter.warning {
-  color: #FF6B00;
+  color: #FF6B6B;
 }
 
-.upload-modal-file-btn {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  border: 2px dashed var(--page-border);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 14px;
-  text-align: center;
-  transition: border-color 0.2s ease;
-  font-weight: 500;
-}
-
-.upload-modal-file-btn:active {
-  border-color: var(--text-primary);
-  color: var(--text-primary);
-}
-
-#uploadPreview {
+.upload-preview {
+  display: none;
   width: 100%;
   max-height: 200px;
   object-fit: cover;
-  border-radius: 6px;
-  margin: 12px 0;
-  display: none;
+  border-radius: var(--radius-md);
+  margin-top: 12px;
 }
 
-#uploadPreview.show {
+.upload-preview.show {
   display: block;
 }
 
-.upload-modal-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.upload-modal-btn {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid var(--text-primary);
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-.upload-modal-btn.submit {
-  background: var(--text-primary);
-  color: var(--page-bg);
-  border-color: var(--text-primary);
-}
-
-.upload-modal-btn.submit:active {
-  opacity: 0.85;
-  transform: scale(0.98);
-}
-
-.upload-modal-btn.submit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.upload-modal-btn.cancel {
-  background: transparent;
-  color: var(--text-primary);
-  border-color: var(--page-border);
-}
-
-.upload-modal-btn.cancel:active {
-  background: var(--accent-bg);
-}
-
-#shareBtn {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: var(--text-primary);
-  color: var(--page-bg);
-  border: none;
-  border-radius: 6px;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  z-index: 10;
-}
-
-#shareBtn:active {
-  opacity: 0.85;
-}
-
 .upload-progress {
+  display: none;
   width: 100%;
   height: 4px;
-  background: var(--page-border);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 2px;
   overflow: hidden;
   margin-top: 12px;
-  display: none;
 }
 
 .upload-progress.show {
@@ -603,10 +515,78 @@ body {
 
 .upload-progress-bar {
   height: 100%;
-  background: var(--text-primary);
+  background: var(--accent-fg);
   width: 0%;
   transition: width 0.3s ease;
 }
+
+.upload-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.upload-cancel-btn,
+.upload-submit-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.upload-cancel-btn {
+  background: var(--page-border);
+  color: var(--text-primary);
+}
+
+.upload-submit-btn {
+  background: var(--accent-bg);
+  color: var(--accent-fg);
+}
+
+.upload-cancel-btn:active,
+.upload-submit-btn:active {
+  transform: scale(0.95);
+}
+
+.upload-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== FOOTER ===== */
+.moments-footer {
+  background: var(--page-bg);
+  border-top: 1px solid var(--page-border);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.moments-footer-btn {
+  flex: 1;
+  padding: 12px;
+  background: var(--accent-bg);
+  color: var(--accent-fg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.moments-footer-btn:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
 </style>
 </head>
 <body>
@@ -614,309 +594,214 @@ body {
 <div class="moments-app">
   <header class="moments-header">
     <h1>Moments</h1>
-    <button id="shareBtn">+ Share</button>
+    <button class="moments-header-btn" id="backBtn" title="Back">←</button>
   </header>
 
   <div class="moments-content">
     <div id="momentsFeed"></div>
   </div>
 
-  <div class="upload-modal" id="uploadModal">
-    <div class="upload-modal-content">
-      <h2 class="upload-modal-title">Share a Moment</h2>
-      <p class="upload-modal-subtitle">Upload up to 10 photos or videos</p>
-      
-      <div class="upload-modal-field">
-        <label class="upload-modal-label">Your Name</label>
-        <input type="text" id="uploadName" class="upload-modal-input" placeholder="First name">
-      </div>
+  <footer class="moments-footer">
+    <button class="moments-footer-btn" id="shareBtn">📸 Share Moment</button>
+  </footer>
+</div>
 
-      <div class="upload-modal-field">
-        <label class="upload-modal-label">Photos or Videos (Max 10)</label>
-        <input type="file" id="uploadFile" class="upload-modal-file" accept="image/*,video/*" multiple>
-        <button class="upload-modal-file-btn" onclick="document.getElementById('uploadFile').click()">
-          📁 Tap to choose files
-        </button>
-        <div id="fileList" class="upload-modal-file-list"></div>
-        <div id="fileCounter" class="file-counter"></div>
-        <img id="uploadPreview" alt="Preview">
-        <div id="uploadProgress" class="upload-progress">
-          <div id="uploadProgressBar" class="upload-progress-bar"></div>
-        </div>
-      </div>
+<!-- UPLOAD MODAL -->
+<div class="upload-modal" id="uploadModal">
+  <div class="upload-modal-content">
+    <div class="upload-modal-header">
+      <h2>Share Your Moment</h2>
+      <button class="upload-close-btn" id="uploadCancel">×</button>
+    </div>
 
-      <div class="upload-modal-field">
-        <label class="upload-modal-label">Caption (Optional)</label>
-        <input type="text" id="uploadCaption" class="upload-modal-input" placeholder="Say something...">
-      </div>
+    <div class="upload-form-group">
+      <label for="uploadName">Your Name *</label>
+      <input type="text" id="uploadName" placeholder="e.g. Deepak K." maxlength="50">
+    </div>
 
-      <div class="upload-modal-actions">
-        <button class="upload-modal-btn cancel" id="uploadCancelBtn">Cancel</button>
-        <button class="upload-modal-btn submit" id="uploadSubmitBtn">Share</button>
+    <div class="upload-form-group">
+      <label for="uploadCaption">Caption (Optional)</label>
+      <textarea id="uploadCaption" placeholder="Share a story about this moment..."></textarea>
+    </div>
+
+    <div class="upload-form-group">
+      <label>Select Photos/Videos (Max 5) *</label>
+      <div class="upload-file-input-wrapper">
+        <button class="upload-file-btn">Choose Files</button>
+        <input type="file" id="uploadFile" multiple accept="image/*,video/*">
       </div>
+      <div class="file-counter" id="fileCounter"></div>
+      <div class="file-list" id="fileList"></div>
+      <img id="uploadPreview" class="upload-preview">
+    </div>
+
+    <div class="upload-progress" id="uploadProgress">
+      <div class="upload-progress-bar" id="uploadProgressBar"></div>
+    </div>
+
+    <div class="upload-actions">
+      <button class="upload-cancel-btn" id="uploadCancelFinal">Cancel</button>
+      <button class="upload-submit-btn" id="uploadSubmit">Share</button>
     </div>
   </div>
-
-  <nav class="moments-nav">
-    <a href="./index.html" class="moments-nav-btn" title="Menu">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      <span>Menu</span>
-    </a>
-    <button class="moments-nav-btn active" disabled>
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-      <span>Moments</span>
-    </button>
-    <a href="./khichiya-runner.html" class="moments-nav-btn" title="Khichiya Runner">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 15a3 3 0 0 0 6 0"/></svg>
-      <span>TKR</span>
-    </a>
-    <a href="https://www.instagram.com/the.khichiyagravy" target="_blank" class="moments-nav-btn instagram-btn" title="Instagram">
-      <svg viewBox="0 0 24 24"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
-      <span>Instagram</span>
-    </a>
-  </nav>
 </div>
 
 <script>
+// ========== CONFIG ==========
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
-const MAX_FILES = 10;
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per file
-const COMPRESSION_QUALITY = 0.75;
+const CACHE_KEY = 'tkg_moments_cache';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const MAX_FILES = 5;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
+// ========== DOM ELEMENTS ==========
 const FEED = document.getElementById('momentsFeed');
 const SHARE_BTN = document.getElementById('shareBtn');
 const UPLOAD_MODAL = document.getElementById('uploadModal');
 const UPLOAD_NAME = document.getElementById('uploadName');
-const UPLOAD_FILE = document.getElementById('uploadFile');
 const UPLOAD_CAPTION = document.getElementById('uploadCaption');
-const UPLOAD_PREVIEW = document.getElementById('uploadPreview');
-const UPLOAD_SUBMIT = document.getElementById('uploadSubmitBtn');
-const UPLOAD_CANCEL = document.getElementById('uploadCancelBtn');
-const FILE_LIST = document.getElementById('fileList');
-const FILE_COUNTER = document.getElementById('fileCounter');
+const UPLOAD_FILE = document.getElementById('uploadFile');
+const UPLOAD_CANCEL = document.getElementById('uploadCancel');
+const UPLOAD_CANCEL_FINAL = document.getElementById('uploadCancelFinal');
+const UPLOAD_SUBMIT = document.getElementById('uploadSubmit');
 const UPLOAD_PROGRESS = document.getElementById('uploadProgress');
 const UPLOAD_PROGRESS_BAR = document.getElementById('uploadProgressBar');
+const FILE_LIST = document.getElementById('fileList');
+const FILE_COUNTER = document.getElementById('fileCounter');
+const UPLOAD_PREVIEW = document.getElementById('uploadPreview');
+const UPLOAD_FILE_BTN = document.querySelector('.upload-file-btn');
+const BACK_BTN = document.getElementById('backBtn');
 
-let moments = [];
+// ========== STATE ==========
 let selectedFiles = [];
+const likedVideos = new Set(JSON.parse(localStorage.getItem('tkg_liked_moments') || '[]'));
 
-// ========== GLOBAL MUTE STATE MANAGER ==========
 const MUTE_STATE = {
-  muted: localStorage.getItem('tkg_muted') === 'false' ? false : true,
+  muted: localStorage.getItem('tkg_muted') === 'true',
+  listeners: [],
   
-  setMuted: function(isMuted) {
-    this.muted = isMuted;
-    localStorage.setItem('tkg_muted', String(isMuted));
-    this.updateAllVideos();
+  toggle() {
+    this.muted = !this.muted;
+    localStorage.setItem('tkg_muted', this.muted);
+    this.notifyListeners();
   },
   
-  toggle: function() {
-    this.setMuted(!this.muted);
+  subscribe(fn) {
+    this.listeners.push(fn);
   },
   
-  updateAllVideos: function() {
-    const videos = document.querySelectorAll('.timeline-item-video');
-    videos.forEach(video => {
+  notifyListeners() {
+    this.listeners.forEach(fn => fn(this.muted));
+  },
+  
+  updateAllVideos() {
+    document.querySelectorAll('.timeline-item-video').forEach(video => {
       video.muted = this.muted;
     });
-    
-    const muteBtn = document.querySelector('.control-btn.mute-btn');
-    if (muteBtn) {
-      if (this.muted) {
-        muteBtn.classList.add('muted');
-        muteBtn.title = 'Unmute';
-      } else {
-        muteBtn.classList.remove('muted');
-        muteBtn.title = 'Mute';
-      }
-    }
   }
 };
 
-// Global active video tracker
-let activeVideo = null;
-const videoObservers = new Map();
-const likedVideos = new Set(JSON.parse(localStorage.getItem('tkg_liked_videos') || '[]'));
+// ========== BACK NAVIGATION ==========
+BACK_BTN.addEventListener('click', () => {
+  window.history.back();
+});
 
-// ========== INTERSECTION OBSERVER ==========
-function setupVideoObserver(videoElement, container) {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting && entry.intersectionRatio >= 0.75) {
-        if (activeVideo && activeVideo !== videoElement) {
-          activeVideo.pause();
-        }
-        activeVideo = videoElement;
-        videoElement.play().catch(err => {
-          console.warn("Autoplay blocked:", err);
-        });
-        
-        const overlay = container.querySelector('.video-controls-overlay');
-        if (overlay) overlay.style.display = 'flex';
-      } else {
-        if (activeVideo === videoElement) {
-          videoElement.pause();
-          activeVideo = null;
-        }
-        
-        const overlay = container.querySelector('.video-controls-overlay');
-        if (overlay) overlay.style.display = 'none';
-      }
-    });
-  }, { threshold: 0.75 });
-  
-  observer.observe(videoElement);
-  videoObservers.set(videoElement, observer);
-}
-
-// ========== TAP TO PAUSE/PLAY ==========
-function setupVideoTapHandler(videoElement) {
-  videoElement.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (videoElement.paused) {
-      videoElement.play();
-    } else {
-      videoElement.pause();
-    }
-  });
-}
-
-// ========== DOUBLE-TAP LIKE GESTURE ==========
-function setupDoubleTapLike(container, videoId) {
-  let lastTap = 0;
-  
-  container.addEventListener('click', (e) => {
-    const currentTime = new Date().getTime();
-    const tapLength = currentTime - lastTap;
-    
-    if (tapLength < 500 && tapLength > 0) {
-      e.preventDefault();
-      toggleLike(videoId, container);
-    }
-    lastTap = currentTime;
-  });
-}
-
-function toggleLike(videoId, container) {
-  const likeBtn = container.querySelector('.like-btn');
-  
-  if (likedVideos.has(videoId)) {
-    likedVideos.delete(videoId);
-    likeBtn.classList.remove('liked');
-  } else {
-    likedVideos.add(videoId);
-    likeBtn.classList.add('liked');
-  }
-  
-  localStorage.setItem('tkg_liked_videos', JSON.stringify([...likedVideos]));
-}
-
-// ========== CANVAS COMPRESSION ==========
-async function compressImage(file) {
-  return new Promise((resolve) => {
-    if (!file.type.startsWith('image/')) {
-      resolve(file);
-      return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxDim = 1200;
-        let width = img.width;
-        let height = img.height;
-        
-        if (width > height) {
-          if (width > maxDim) {
-            height = Math.round(height * (maxDim / width));
-            width = maxDim;
-          }
-        } else {
-          if (height > maxDim) {
-            width = Math.round(width * (maxDim / height));
-            height = maxDim;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        canvas.toBlob(
-          (blob) => {
-            const compressedFile = new File([blob], file.name, {
-              type: 'image/jpeg',
-              lastModified: file.lastModified
-            });
-            resolve(compressedFile);
-          },
-          'image/jpeg',
-          COMPRESSION_QUALITY
-        );
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
+UPLOAD_FILE_BTN.addEventListener('click', () => {
+  UPLOAD_FILE.click();
+});
 
 // ========== FETCH MOMENTS ==========
 async function fetchMoments() {
   try {
-    const response = await fetch(APP_SCRIPT_URL + '?action=moments');
-    if (!response.ok) throw new Error('Network error');
-    
+    // Check cache first
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        renderMoments(data);
+        return;
+      }
+    }
+
+    const response = await fetch(`${APP_SCRIPT_URL}?action=getTimelineItems`);
     const data = await response.json();
-    if (data.status !== 'ok') throw new Error(data.message || 'API error');
     
-    moments = data.moments || [];
-    renderTimeline();
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      data: data.timeline || [],
+      timestamp: Date.now()
+    }));
+
+    renderMoments(data.timeline || []);
   } catch (err) {
-    console.error('Failed to fetch moments:', err);
-    FEED.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-tertiary);">Failed to load moments. Please try again later.</div>';
+    console.error('Fetch error:', err);
+    FEED.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-tertiary);">Unable to load moments. Please refresh.</div>';
   }
 }
 
-// ========== RENDER TIMELINE ==========
-function renderTimeline() {
+function renderMoments(timelineItems) {
   FEED.innerHTML = '';
-  
-  if (moments.length === 0) {
-    FEED.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-tertiary);">No moments shared yet</div>';
+
+  if (!timelineItems || timelineItems.length === 0) {
+    FEED.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-tertiary);">No moments yet. Be the first to share!</div>';
     return;
   }
 
-  let timelineItems = [];
-
-  moments.forEach((moment) => {
-    const type = String(moment.type || 'customer_photo').toLowerCase();
-    
-    if (type === 'google_review' || type === 'review') {
-      timelineItems.push({
-        type: 'google_review',
-        data: moment
-      });
-      return;
-    }
-
-    if (moment.media && Array.isArray(moment.media)) {
-      moment.media.forEach((item) => {
-        const mimeType = item.mimeType || 'image/jpeg';
-        const isVideo = mimeType.indexOf('video/') === 0;
-        
-        timelineItems.push({
-          type: isVideo ? 'video' : 'photo',
-          data: {
-            ...moment,
-            media: item
-          }
-        });
-      });
-    }
+  MUTE_STATE.subscribe((muted) => {
+    document.querySelectorAll('.timeline-item-video').forEach(video => {
+      video.muted = muted;
+    });
   });
+
+  function setupVideoObserver(video, container) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    }, { threshold: 0.5 });
+    
+    observer.observe(container);
+  }
+
+  function setupVideoTapHandler(video) {
+    video.addEventListener('click', () => {
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    });
+  }
+
+  function setupDoubleTapLike(container, cardId) {
+    let lastTap = 0;
+    container.addEventListener('click', (e) => {
+      const now = Date.now();
+      if (now - lastTap < 300) {
+        e.stopPropagation();
+        const likeBtn = container.querySelector('.like-btn');
+        if (likeBtn) likeBtn.click();
+      }
+      lastTap = now;
+    });
+  }
+
+  function toggleLike(cardId, container) {
+    if (likedVideos.has(cardId)) {
+      likedVideos.delete(cardId);
+    } else {
+      likedVideos.add(cardId);
+    }
+    localStorage.setItem('tkg_liked_moments', JSON.stringify(Array.from(likedVideos)));
+    
+    const likeBtn = container.querySelector('.like-btn');
+    if (likeBtn) {
+      likeBtn.classList.toggle('liked');
+    }
+  }
 
   timelineItems.forEach((item, idx) => {
     const card = createTimelineCard(item, `card-${idx}`);
@@ -960,12 +845,25 @@ function createTimelineCard(item, cardId) {
       </button>
     `;
     
-    // Engagement overlay (right side)
+    // Engagement overlay (right side) — Borderless SVG Icons
     const engagementOverlay = document.createElement('div');
     engagementOverlay.className = 'engagement-overlay';
     engagementOverlay.innerHTML = `
-      <button class="engagement-btn like-btn ${likedVideos.has(cardId) ? 'liked' : ''}" title="Like">❤️</button>
-      <button class="engagement-btn share-btn" title="Comment / Share">💬</button>
+      <button class="engagement-btn like-btn ${likedVideos.has(cardId) ? 'liked' : ''}" title="Like">
+        <svg viewBox="0 0 24 24">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </button>
+      <button class="engagement-btn comment-btn" title="Comment">
+        <svg viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+      <button class="engagement-btn share-btn" title="Share">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-4-6l-4-4m0 0L8 6m0 0v6"/>
+        </svg>
+      </button>
     `;
     
     mediaContainer.appendChild(video);
@@ -989,6 +887,12 @@ function createTimelineCard(item, cardId) {
     likeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       toggleLike(cardId, mediaContainer);
+    });
+    
+    const commentBtn = engagementOverlay.querySelector('.comment-btn');
+    commentBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      alert('Comments coming soon');
     });
     
     const shareBtn = engagementOverlay.querySelector('.share-btn');
@@ -1100,6 +1004,10 @@ UPLOAD_CANCEL.addEventListener('click', () => {
   closeUploadModal();
 });
 
+UPLOAD_CANCEL_FINAL.addEventListener('click', () => {
+  closeUploadModal();
+});
+
 UPLOAD_FILE.addEventListener('change', (e) => {
   selectedFiles = Array.from(e.target.files || []);
   
@@ -1152,6 +1060,45 @@ function updateFilePreview() {
   }
 }
 
+async function compressImage(file) {
+  if (!file.type.startsWith('image/')) return file;
+  
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        const maxSize = 1200;
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+        }, 'image/jpeg', 0.8);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 UPLOAD_SUBMIT.addEventListener('click', async () => {
   const name = UPLOAD_NAME.value.trim();
   const caption = UPLOAD_CAPTION.value.trim();
@@ -1190,6 +1137,7 @@ UPLOAD_SUBMIT.addEventListener('click', async () => {
     }
     
     closeUploadModal();
+    localStorage.removeItem(CACHE_KEY);
     fetchMoments();
   } catch (err) {
     console.error('Upload error:', err);

@@ -1,5 +1,7 @@
 /* ==========================================================================
-   TKG Service Worker
+   TKG Service Worker — PWA Cache & Auto-Reload v2
+   
+   Dynamic cache purging + explicit video stream bypass + auto-reload support.
    Handles offline caching of the app shell so registration + menu work
    with zero network connection. Data sync is handled separately in app.js
    via the "online" event and a background retry loop — the service worker
@@ -7,27 +9,30 @@
    ========================================================================== */
 
 // ---------------------------------------------------------------------------
-// CACHE VERSION
-// Active development: bump BUILD_VERSION on every deploy that changes
-// index.html, manifest.json, or this file, so the browser always detects
-// the service worker as "new" and the old cache is purged automatically
-// (see the activate handler below). Use a timestamp — date + time is
-// enough resolution for one deploy at a time and needs no build tooling.
-//
-// Once V1 stabilizes, switch this back to a deliberate version tied to a
-// release tag (e.g. 'tkg-cache-v3') instead of bumping on every save.
+// CACHE VERSION — Dynamic Timestamp
+// Every deploy gets a new cache key based on current timestamp, so old
+// caches are automatically purged during activate. This ensures all assets
+// (HTML, CSS, JS, images, manifest) are always fresh after deployment.
 // ---------------------------------------------------------------------------
-const BUILD_VERSION = '2026-08-06.5'; // <-- Phase 2: Streaming proxy deployment
-const CACHE_NAME = `tkg-cache-${BUILD_VERSION}`;
+const CACHE_NAME = 'tkg-os-v-' + Date.now();
+
+// Full precache list: all core static assets for the app shell
 const APP_SHELL = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  '/',
+  '/index.html',
+  '/moments.html',
+  '/moments-hub.html',
+  '/dashboard.html',
+  '/khichiya-runner.html',
+  '/leaderboard.html',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
-// Install: pre-cache the app shell
+// =========================================================================
+// INSTALL: Pre-cache the full app shell
+// =========================================================================
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -36,64 +41,96 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate: clean up old cache versions
+// =========================================================================
+// ACTIVATE: Clean up old cache versions + claim all clients
+// =========================================================================
+// This fires when a new Service Worker takes over. Delete all old caches
+// (identified by their versioned names), then claim all clients so
+// they start using this new worker immediately.
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then((keys) => {
+        return Promise.all(
+          keys
+            .filter((key) => key !== CACHE_NAME)
+            .map((key) => caches.delete(key))
+        );
+      })
+      .then(() => {
+        // Claim all clients immediately so they use the new service worker
+        return self.clients.claim();
+      })
   );
 });
 
-// Fetch: cache-first for app shell, network-first fallback for everything else.
-// Google Sheets / Apps Script requests are never cached — they always hit
-// the network (and fail gracefully in app.js if offline).
-//
-// Product images (assets/products/*.webp) are intentionally NOT added to
-// APP_SHELL / precached at install time — they're lazy-loaded in the HTML
-// (loading="lazy") so only images the customer actually scrolls to ever
-// download. This handler already caches each one the first time it's
-// fetched (see the cache.put below), so a returning customer gets them
-// from cache offline too — no separate caching logic needed for them.
-//
-// Video streams (/api/stream) are never cached — they should always stream
-// fresh from Google Drive to prevent device storage bloat.
+// =========================================================================
+// FETCH: Cache-first for app shell, network-first for everything else
+// =========================================================================
+// Strategy:
+// 1. BYPASS: Google Apps Script (never cache sync calls)
+// 2. BYPASS: /api/stream (video streams, never cache)
+// 3. BYPASS: Non-GET requests (POST, PUT, DELETE, etc.)
+// 4. SERVE: GET requests from cache if available, then network
+// 5. FALLBACK: If offline and no cache, return index.html
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+  const method = event.request.method;
 
-  // Never intercept calls to Google Apps Script — let app.js handle
-  // success/failure of those directly so sync logic stays accurate.
+  // -----------------------------------------------------------------------
+  // BYPASS #1: Never intercept Google Apps Script calls
+  // These are data sync calls that must always hit the network.
+  // Let app.js handle success/failure directly.
+  // -----------------------------------------------------------------------
   if (url.hostname.includes('script.google.com') || url.hostname.includes('script.googleusercontent.com')) {
-    return;
+    return; // Don't intercept — let it pass through
   }
 
-  // Never cache video streams — let them stream fresh from Google Drive
+  // -----------------------------------------------------------------------
+  // BYPASS #2: Never cache video streams (/api/stream)
+  // These should always stream fresh from Google Drive to prevent
+  // device storage bloat and ensure up-to-date content.
+  // -----------------------------------------------------------------------
   if (url.pathname.startsWith('/api/stream')) {
-    return;
+    return; // Don't intercept — let it pass through
   }
 
-  if (event.request.method !== 'GET') {
-    return;
+  // -----------------------------------------------------------------------
+  // BYPASS #3: Never cache non-GET requests (POST, PUT, DELETE, etc.)
+  // These are mutations that must go to the network.
+  // -----------------------------------------------------------------------
+  if (method !== 'GET') {
+    return; // Don't intercept — let it pass through
   }
 
+  // -----------------------------------------------------------------------
+  // CACHE-FIRST for GET requests
+  // Serve from cache if available, fall back to network.
+  // On success, store the response in cache for next time.
+  // -----------------------------------------------------------------------
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) {
-        return cached;
-      }
-      return fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => caches.match('./index.html'));
-    })
+    caches.match(event.request)
+      .then((cached) => {
+        if (cached) {
+          return cached; // Serve from cache
+        }
+
+        // Not in cache — fetch from network
+        return fetch(event.request)
+          .then((response) => {
+            // Only cache successful (200), non-opaque responses
+            if (response && response.status === 200 && response.type === 'basic') {
+              const clone = response.clone();
+              caches.open(CACHE_NAME)
+                .then((cache) => cache.put(event.request, clone));
+            }
+            return response;
+          })
+          .catch(() => {
+            // Network failed and nothing in cache — serve fallback
+            return caches.match('./index.html');
+          });
+      })
   );
 });

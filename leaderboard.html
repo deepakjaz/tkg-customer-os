@@ -6,6 +6,28 @@
 <title>TKG — Khichiya Runner Leaderboard</title>
 <meta name="theme-color" content="#F6F6F5">
 <meta name="description" content="Khichiya Runner — see who's on top right now">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => {
+          reg.update();
+        })
+        .catch((err) => {
+          console.error('[SW] Registration failed:', err);
+        });
+    });
+  }
+</script>
+
 <style>
 /* ==========================================================================
    TOKENS — same light/customer-facing palette as index.html, so this page

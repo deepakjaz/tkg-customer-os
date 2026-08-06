@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>TKG — The Khichiya Gravy</title>
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<script>
+(function(){
+  try{
+    var theme = localStorage.getItem('tkg_theme');
+    if(theme) document.documentElement.setAttribute('data-tkg-theme', theme);
+    else {
+      var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-tkg-theme', dark ? 'dark' : 'light');
+    }
+  }catch(e){
+    document.documentElement.setAttribute('data-tkg-theme', 'light');
+  }
+})();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => {
+          reg.update();
+        })
+        .catch((err) => {
+          console.error('[SW] Registration failed:', err);
+        });
+    });
+  }
+</script>
+
+<style>
+:root {
+  /* Light Mode */
+  --page-bg: #FFFFFF;
+  --page-border: #E8E8E8;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --card-bg: #FFFFFF;
+  --card-border: #E8E8E8;
+  --accent-bg: #000000;
+  --accent-fg: #FFFFFF;
+  --hero-overlay: rgba(0, 0, 0, 0.3);
+  --divider: rgba(0, 0, 0, 0.06);
+  --max-w: 430px;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page-bg: #000000;
+    --page-border: #2A2A2A;
+    --text-primary: #FFFFFF;
+    --text-secondary: #CCCCCC;
+    --text-tertiary: #888888;
+    --card-bg: #1A1A1A;
+    --card-border: #2A2A2A;
+    --accent-bg: #FFFFFF;
+    --accent-fg: #000000;
+    --hero-overlay: rgba(0, 0, 0, 0.5);
+    --divider: rgba(255, 255, 255, 0.06);
+  }
+}
+
+html[data-tkg-theme="dark"] {
+  --page-bg: #000000;
+  --page-border: #2A2A2A;
+  --text-primary: #FFFFFF;
+  --text-secondary: #CCCCCC;
+  --text-tertiary: #888888;
+  --card-bg: #1A1A1A;
+  --card-border: #2A2A2A;
+  --accent-bg: #FFFFFF;
+  --accent-fg: #000000;
+  --hero-overlay: rgba(0, 0, 0, 0.5);
+  --divider: rgba(255, 255, 255, 0.06);
+}
+
+html[data-tkg-theme="light"] {
+  --page-bg: #FFFFFF;
+  --page-border: #E8E8E8;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --card-bg: #FFFFFF;
+  --card-border: #E8E8E8;
+  --accent-bg: #000000;
+  --accent-fg: #FFFFFF;
+  --hero-overlay: rgba(0, 0, 0, 0.3);
+  --divider: rgba(0, 0, 0, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  background: var(--page-bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
+.hub-container {
+  width: 100%;
+  max-width: var(--max-w);
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--page-bg);
+  position: relative;
+}
+
+/* ===== HEADER ===== */
+.hub-header {
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px 20px;
+  border-bottom: 1px solid var(--divider);
+  background: var(--page-bg);
+  flex-shrink: 0;
+}
+
+.hub-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.hub-logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+}
+
+.hub-tagline {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  margin-top: 4px;
+}
+
+.hub-theme-toggle {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--text-primary);
+  transition: transform 0.2s ease;
+}
+
+.hub-theme-toggle:active {
+  transform: scale(0.88);
+}
+
+/* ===== CONTENT SCROLL ===== */
+.hub-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  padding: 0;
+}
+
+.hub-content::-webkit-scrollbar {
+  display: none;
+}
+
+.hub-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ===== SECTION HEADERS ===== */
+.hub-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+}
+
+/* ===== HERO CARD: CUSTOMER MOMENTS ===== */
+.hero-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+  border: 1px solid var(--card-border);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.hero-card:active {
+  transform: scale(0.98);
+}
+
+.hero-card-backdrop {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, 
+    rgba(0,0,0,0.1) 0%, 
+    rgba(0,0,0,0.3) 50%, 
+    rgba(0,0,0,0.5) 100%);
+  z-index: 1;
+}
+
+.hero-card-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-card-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.hero-card-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+}
+
+.hero-card-desc {
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.hero-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: black;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hero-card-cta:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+
+/* ===== REVIEWS SECTION ===== */
+.reviews-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-rating {
+  display: flex;
+  gap: 3px;
+  font-size: 14px;
+}
+
+.review-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: 4px;
+}
+
+.review-author {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.reviews-loading {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+/* ===== LEADERBOARD CARD ===== */
+.leaderboard-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.leaderboard-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.leaderboard-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.leaderboard-period {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+html[data-tkg-theme="dark"] .leaderboard-item {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.leaderboard-rank {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  min-width: 24px;
+  text-align: center;
+}
+
+.leaderboard-item:nth-child(1) .leaderboard-rank { color: #FFD700; font-size: 20px; }
+.leaderboard-item:nth-child(2) .leaderboard-rank { color: #C0C0C0; }
+.leaderboard-item:nth-child(3) .leaderboard-rank { color: #CD7F32; }
+
+.leaderboard-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.leaderboard-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.leaderboard-score {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.leaderboard-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-bg);
+  color: var(--accent-fg);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s ease;
+}
+
+.leaderboard-cta:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+
+/* ===== ANNOUNCEMENTS SECTION ===== */
+.announcements-card {
+  background: linear-gradient(135deg, #1A1A1A 0%, #2A2A2A 100%);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: white;
+}
+
+html[data-tkg-theme="light"] .announcements-card {
+  background: linear-gradient(135deg, #F5F5F5 0%, #EFEFEF 100%);
+  color: var(--text-primary);
+}
+
+.announcements-icon {
+  font-size: 24px;
+}
+
+.announcements-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.announcements-text {
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* ===== FOOTER / SOCIAL SECTION ===== */
+.hub-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-top: 1px solid var(--divider);
+  padding-top: 20px;
+  margin-top: 4px;
+}
+
+.social-section-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+.social-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.social-btn:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+.social-btn-icon {
+  font-size: 18px;
+}
+
+.social-btn-text {
+  flex: 1;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 380px) {
+  .hub-feed {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .hero-card {
+    min-height: 240px;
+    padding: 20px;
+  }
+
+  .hero-card-title {
+    font-size: 20px;
+  }
+
+  .leaderboard-card {
+    padding: 16px;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div class="hub-container">
+  <!-- HEADER -->
+  <header class="hub-header">
+    <div class="hub-header-top">
+      <div>
+        <div class="hub-logo">TKG</div>
+        <div class="hub-tagline">THE KHICHIYA GRAVY</div>
+      </div>
+      <button class="hub-theme-toggle" id="themeToggle" title="Toggle theme">
+        <span id="themeIcon">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENT SCROLL -->
+  <div class="hub-content">
+    <div class="hub-feed">
+
+      <!-- HERO: CUSTOMER MOMENTS -->
+      <div class="hero-card" id="heroMoments">
+        <div class="hero-card-backdrop"></div>
+        <div class="hero-card-content">
+          <div class="hero-card-icon">📸</div>
+          <h2 class="hero-card-title">Customer Moments</h2>
+          <p class="hero-card-desc">Watch real photos & videos from our community of food lovers.</p>
+          <button class="hero-card-cta">Watch Stories →</button>
+        </div>
+      </div>
+
+      <!-- FEATURED REVIEWS SECTION -->
+      <div>
+        <h3 class="hub-section-title">⭐ What Customers Say</h3>
+        <div class="reviews-container" id="reviewsContainer">
+          <div class="reviews-loading">Loading reviews...</div>
+        </div>
+      </div>
+
+      <!-- LEADERBOARD SECTION -->
+      <div class="leaderboard-card">
+        <div>
+          <div class="leaderboard-header">
+            <h3 class="leaderboard-title">🎮 Weekly Champions</h3>
+            <span class="leaderboard-period">This Week</span>
+          </div>
+          <div class="leaderboard-list" id="leaderboardList">
+            <div class="leaderboard-item">
+              <div class="leaderboard-rank">1</div>
+              <div class="leaderboard-info">
+                <div class="leaderboard-name">Loading...</div>
+                <div class="leaderboard-score">0 points</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="leaderboard-cta">Play & Beat High Score 🚀</button>
+      </div>
+
+      <!-- ANNOUNCEMENTS -->
+      <div class="announcements-card">
+        <div class="announcements-icon">🎉</div>
+        <h3 class="announcements-title">Weekend Special</h3>
+        <p class="announcements-text">Fresh khichiya bowls at 20% off this Saturday & Sunday. Come hungry, leave satisfied!</p>
+      </div>
+
+      <!-- FOOTER: SOCIAL SECTION -->
+      <footer class="hub-footer">
+        <h4 class="social-section-title">Connect With Us</h4>
+        <div class="social-buttons">
+          <a href="https://instagram.com/the.khichiyagravy" target="_blank" rel="noopener" class="social-btn">
+            <span class="social-btn-icon">📱</span>
+            <span class="social-btn-text">Follow @the.khichiyagravy</span>
+            <span>→</span>
+          </a>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== THEME TOGGLE ==========
+const THEME_KEY = 'tkg_theme';
+const THEME_TOGGLE = document.getElementById('themeToggle');
+const THEME_ICON = document.getElementById('themeIcon');
+const HTML_ELEM = document.documentElement;
+
+function updateThemeIcon() {
+  const theme = HTML_ELEM.getAttribute('data-tkg-theme');
+  THEME_ICON.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+THEME_TOGGLE.addEventListener('click', () => {
+  const current = HTML_ELEM.getAttribute('data-tkg-theme');
+  const newTheme = current === 'dark' ? 'light' : 'dark';
+  HTML_ELEM.setAttribute('data-tkg-theme', newTheme);
+  localStorage.setItem(THEME_KEY, newTheme);
+  updateThemeIcon();
+});
+
+updateThemeIcon();
+
+// ========== NAVIGATION ==========
+document.getElementById('heroMoments').addEventListener('click', () => {
+  window.location.href = './moments.html';
+});
+
+document.querySelector('.leaderboard-cta').addEventListener('click', () => {
+  window.location.href = './khichiya-runner.html';
+});
+
+// ========== FETCH FEATURED REVIEWS ==========
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
+const REVIEWS_CONTAINER = document.getElementById('reviewsContainer');
+
+async function fetchFeaturedReviews() {
+  try {
+    const response = await fetch(`${APP_SCRIPT_URL}?action=getFeaturedReviews`);
+    const data = await response.json();
+
+    if (!data || !data.reviews || data.reviews.length === 0) {
+      REVIEWS_CONTAINER.innerHTML = '<div class="reviews-loading">No reviews yet. Be the first to share!</div>';
+      return;
+    }
+
+    REVIEWS_CONTAINER.innerHTML = '';
+    
+    data.reviews.slice(0, 3).forEach(review => {
+      const { reviewer, rating, text } = review;
+      const stars = '★'.repeat(rating || 5) + '☆'.repeat(5 - (rating || 5));
+      
+      const card = document.createElement('div');
+      card.className = 'review-card';
+      card.innerHTML = `
+        <div class="review-rating">${stars}</div>
+        <div class="review-text">"${escapeHtml(text)}"</div>
+        <div class="review-author">— ${escapeHtml(reviewer)}</div>
+      `;
+      REVIEWS_CONTAINER.appendChild(card);
+    });
+  } catch (err) {
+    console.error('Failed to fetch reviews:', err);
+    REVIEWS_CONTAINER.innerHTML = '<div class="reviews-loading">Unable to load reviews right now.</div>';
+  }
+}
+
+// ========== FETCH LEADERBOARD ==========
+const LEADERBOARD_LIST = document.getElementById('leaderboardList');
+
+async function fetchLeaderboard() {
+  try {
+    const response = await fetch(`${APP_SCRIPT_URL}?action=getLeaderboard`);
+    const data = await response.json();
+
+    if (!data || !data.leaderboard || data.leaderboard.length === 0) {
+      LEADERBOARD_LIST.innerHTML = '<div class="reviews-loading">Leaderboard loading...</div>';
+      return;
+    }
+
+    LEADERBOARD_LIST.innerHTML = '';
+
+    data.leaderboard.slice(0, 5).forEach((player, idx) => {
+      const { name, score } = player;
+      const rank = idx + 1;
+
+      const item = document.createElement('div');
+      item.className = 'leaderboard-item';
+      item.innerHTML = `
+        <div class="leaderboard-rank">${rank}</div>
+        <div class="leaderboard-info">
+          <div class="leaderboard-name">${escapeHtml(name || 'Anonymous')}</div>
+          <div class="leaderboard-score">${Math.round(score || 0)} points</div>
+        </div>
+      `;
+      LEADERBOARD_LIST.appendChild(item);
+    });
+  } catch (err) {
+    console.error('Failed to fetch leaderboard:', err);
+  }
+}
+
+// ========== ESCAPE HTML ==========
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ========== INIT ==========
+fetchFeaturedReviews();
+fetchLeaderboard();
+</script>
+
+</body>
+</html>
