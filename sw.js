@@ -5,14 +5,13 @@
    allows browser's native network engine to handle CORS/redirects naturally.
    ========================================================================== */
 
-// Build timestamp bump: 1
-const CACHE_NAME = 'tkg-os-v-' + Date.now();
+const CACHE_NAME = 'tkg-os-v-1.0.2';
 
 const APP_SHELL = [
   '/',
   '/index.html',
   '/moments.html',
-  '/moments-hub.html',
+  '/moments_hub.html',
   '/dashboard.html',
   '/khichiya-runner.html',
   '/leaderboard.html',
