@@ -52,7 +52,8 @@
       }
     });
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
+      // updateViaCache: 'none' forces browser to bypass sw.js local cache
+      navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update();
         })
