@@ -186,6 +186,29 @@ body {
   cursor: pointer;
 }
 
+.timeline-item-video.error {
+  display: none;
+}
+
+.video-error-placeholder {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: var(--card-bg);
+  border: 2px solid var(--page-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.video-error-placeholder.show {
+  display: flex;
+}
+
 .engagement-overlay {
   position: absolute;
   right: 12px;
@@ -550,197 +573,139 @@ body {
   transform: scale(0.95);
 }
 
-.moments-nav {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background: var(--page-bg);
-  border-top: 1px solid var(--page-border);
-  padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
-  flex-shrink: 0;
-}
-
-.moments-nav-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 8px 12px;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.moments-nav-btn:active {
-  transform: scale(0.95);
-}
-
-.moments-nav-btn.active {
-  color: var(--text-primary);
-}
-
-.moments-nav-btn svg {
-  width: 24px;
-  height: 24px;
-  stroke: currentColor;
-  stroke-width: 2;
-  fill: none;
-}
-
-.moments-nav-btn.active svg {
-  fill: currentColor;
-}
-
-.moments-nav-btn.instagram-btn svg {
-  fill: currentColor;
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
 }
 </style>
 </head>
 <body>
 
 <div class="moments-app">
-  <header class="moments-header">
+  <div class="moments-header">
+    <button class="moments-header-btn" id="backBtn">←</button>
     <h1>Moments</h1>
-    <button class="moments-header-btn" id="backBtn" title="Back">←</button>
-  </header>
+    <button class="moments-header-btn" id="settingsBtn">⚙️</button>
+  </div>
 
   <div class="moments-content">
     <div id="momentsFeed"></div>
   </div>
 
-  <footer class="moments-footer">
-    <button class="moments-footer-btn" id="shareBtn">📸 Share Moment</button>
-  </footer>
+  <div class="moments-footer">
+    <button class="moments-footer-btn" id="openUploadBtn">📸 Share Moment</button>
+  </div>
+</div>
 
-  <!-- UPLOAD MODAL -->
-  <div class="upload-modal" id="uploadModal">
-    <div class="upload-modal-content">
-      <h2 class="upload-modal-title">Share a Moment</h2>
-      <p class="upload-modal-subtitle">Upload photos/videos or share a social link</p>
+<div class="upload-modal" id="uploadModal">
+  <div class="upload-modal-content">
+    <h2 class="upload-modal-title">Share a Moment</h2>
+    <p class="upload-modal-subtitle">Upload media or share a link</p>
 
-      <div class="upload-modal-tabs">
-        <button class="upload-modal-tab active" id="tabUpload">📸 Upload Media</button>
-        <button class="upload-modal-tab" id="tabSocial">🔗 Share Link</button>
+    <div class="upload-modal-tabs">
+      <button class="upload-modal-tab active" id="tabUpload">📸 Upload Media</button>
+      <button class="upload-modal-tab" id="tabSocial">🔗 Share Link</button>
+    </div>
+
+    <!-- Upload Media Tab -->
+    <div id="uploadPanel">
+      <div class="upload-modal-field">
+        <label class="upload-modal-label">Your Name</label>
+        <input class="upload-modal-input" id="uploadName" placeholder="Enter your name" />
       </div>
 
-      <div id="uploadPanel">
-        <div class="upload-modal-field">
-          <label class="upload-modal-label">Your Name *</label>
-          <input type="text" id="uploadName" class="upload-modal-input" placeholder="First name" maxlength="50">
-        </div>
-
-        <div class="upload-modal-field">
-          <label class="upload-modal-label">Photos or Videos (Max 10) *</label>
-          <button class="upload-modal-file-btn">📁 Choose files</button>
-          <input type="file" id="uploadFile" class="upload-modal-file" accept="image/*,video/*" multiple>
-          <div class="file-counter" id="fileCounter"></div>
-          <div id="fileList" class="upload-modal-file-list"></div>
-          <img id="uploadPreview" alt="Preview">
-        </div>
-
-        <div class="upload-modal-field">
-          <label class="upload-modal-label">Caption (Optional)</label>
-          <input type="text" id="uploadCaption" class="upload-modal-input" placeholder="Say something..." maxlength="200">
-        </div>
-
-        <div id="uploadProgress" class="upload-progress">
-          <div id="uploadProgressBar" class="upload-progress-bar"></div>
-        </div>
+      <div class="upload-modal-field">
+        <label class="upload-modal-label">Files (Max 10)</label>
+        <button class="upload-modal-file-btn" id="selectFilesBtn">Choose Images or Videos</button>
+        <input type="file" id="uploadFile" class="upload-modal-file" multiple accept="image/*,video/*" />
+        <div id="fileList"></div>
+        <div id="fileCounter"></div>
+        <img id="uploadPreview" class="upload-preview" />
       </div>
 
-      <div id="socialPanel" style="display: none;">
-        <div class="upload-modal-field">
-          <label class="upload-modal-label">Social Link *</label>
-          <input type="text" id="socialLink" class="upload-modal-input" placeholder="Paste Instagram, Facebook, YouTube, or TikTok link">
-          <small style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
-            Examples: instagram.com/reel/..., facebook.com/..., youtube.com/shorts/..., tiktok.com/@.../video/...
-          </small>
-        </div>
+      <div class="upload-modal-field">
+        <label class="upload-modal-label">Caption (Optional)</label>
+        <input class="upload-modal-input" id="uploadCaption" placeholder="What's on your mind?" />
       </div>
 
-      <div class="upload-modal-actions">
-        <button class="upload-modal-btn cancel" id="uploadCancelBtn">Cancel</button>
-        <button class="upload-modal-btn submit" id="uploadSubmitBtn">Share</button>
+      <div id="uploadProgress" class="upload-progress">
+        <div class="upload-progress-bar" id="uploadProgressBar"></div>
       </div>
     </div>
-  </div>
 
-  <nav class="moments-nav">
-    <a href="./moments_hub.html" class="moments-nav-btn" title="Hub">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      <span>Hub</span>
-    </a>
-    <button class="moments-nav-btn active" disabled>
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-      <span>Moments</span>
-    </button>
-    <a href="./khichiya-runner.html" class="moments-nav-btn" title="Khichiya Runner">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 15a3 3 0 0 0 6 0"/></svg>
-      <span>TKR</span>
-    </a>
-    <a href="https://www.instagram.com/the.khichiyagravy" target="_blank" class="moments-nav-btn instagram-btn" title="Instagram">
-      <svg viewBox="0 0 24 24"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
-      <span>Instagram</span>
-    </a>
-  </nav>
+    <!-- Social Link Tab -->
+    <div id="socialPanel" style="display: none;">
+      <div class="upload-modal-field">
+        <label class="upload-modal-label">Social Media Link</label>
+        <input class="upload-modal-input" id="socialLink" placeholder="Paste Instagram, Facebook, YouTube, or TikTok link" />
+      </div>
+    </div>
+
+    <div class="upload-modal-actions">
+      <button class="upload-modal-btn cancel" id="uploadCancel">Cancel</button>
+      <button class="upload-modal-btn submit" id="uploadSubmit">Share</button>
+    </div>
+  </div>
 </div>
 
 <script>
-// ========== CONFIG ==========
+// ========== CONSTANTS ==========
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 const CACHE_KEY = 'tkg_moments_cache';
-const CACHE_DURATION = 5 * 60 * 1000;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const MAX_FILES = 10;
 
 // ========== DOM ELEMENTS ==========
 const FEED = document.getElementById('momentsFeed');
-const SHARE_BTN = document.getElementById('shareBtn');
 const UPLOAD_MODAL = document.getElementById('uploadModal');
 const UPLOAD_NAME = document.getElementById('uploadName');
 const UPLOAD_CAPTION = document.getElementById('uploadCaption');
 const UPLOAD_FILE = document.getElementById('uploadFile');
-const UPLOAD_CANCEL = document.getElementById('uploadCancelBtn');
-const UPLOAD_SUBMIT = document.getElementById('uploadSubmitBtn');
-const UPLOAD_PROGRESS = document.getElementById('uploadProgress');
-const UPLOAD_PROGRESS_BAR = document.getElementById('uploadProgressBar');
+const SELECT_FILES_BTN = document.getElementById('selectFilesBtn');
 const FILE_LIST = document.getElementById('fileList');
 const FILE_COUNTER = document.getElementById('fileCounter');
 const UPLOAD_PREVIEW = document.getElementById('uploadPreview');
-const SOCIAL_LINK = document.getElementById('socialLink');
+const UPLOAD_PROGRESS = document.getElementById('uploadProgress');
+const UPLOAD_PROGRESS_BAR = document.getElementById('uploadProgressBar');
+const UPLOAD_SUBMIT = document.getElementById('uploadSubmit');
+const UPLOAD_CANCEL = document.getElementById('uploadCancel');
+const OPEN_UPLOAD_BTN = document.getElementById('openUploadBtn');
+const BACK_BTN = document.getElementById('backBtn');
+const SETTINGS_BTN = document.getElementById('settingsBtn');
 const TAB_UPLOAD = document.getElementById('tabUpload');
 const TAB_SOCIAL = document.getElementById('tabSocial');
 const UPLOAD_PANEL = document.getElementById('uploadPanel');
 const SOCIAL_PANEL = document.getElementById('socialPanel');
-const BACK_BTN = document.getElementById('backBtn');
+const SOCIAL_LINK = document.getElementById('socialLink');
 
 // ========== STATE ==========
 let selectedFiles = [];
 let currentTab = 'upload';
-const likedVideos = new Set(JSON.parse(localStorage.getItem('tkg_liked_moments') || '[]'));
+let likedVideos = new Set();
 
+try {
+  const saved = localStorage.getItem('tkg_liked_moments');
+  if (saved) likedVideos = new Set(JSON.parse(saved));
+} catch (e) {}
+
+// ========== MUTE STATE MANAGEMENT ==========
 const MUTE_STATE = {
   muted: localStorage.getItem('tkg_muted') === 'true',
   listeners: [],
-  
+
+  subscribe(callback) {
+    this.listeners.push(callback);
+  },
+
+  notifyListeners() {
+    this.listeners.forEach(cb => cb(this.muted));
+  },
+
   toggle() {
     this.muted = !this.muted;
     localStorage.setItem('tkg_muted', String(this.muted));
     this.notifyListeners();
   },
-  
-  subscribe(fn) {
-    this.listeners.push(fn);
-  },
-  
-  notifyListeners() {
-    this.listeners.forEach(fn => fn(this.muted));
-  },
-  
+
   updateAllVideos() {
     document.querySelectorAll('.timeline-item-video').forEach(video => {
       video.muted = this.muted;
@@ -748,59 +713,38 @@ const MUTE_STATE = {
   }
 };
 
-// ========== NAVIGATION ==========
+// ========== NAVIGATION & MODAL ==========
 BACK_BTN.addEventListener('click', () => {
   window.location.href = './moments_hub.html';
 });
 
-// ========== TAB SWITCHING ==========
-TAB_UPLOAD.addEventListener('click', () => {
-  currentTab = 'upload';
-  TAB_UPLOAD.classList.add('active');
-  TAB_SOCIAL.classList.remove('active');
-  UPLOAD_PANEL.style.display = '';
-  SOCIAL_PANEL.style.display = 'none';
+SETTINGS_BTN.addEventListener('click', () => {
+  const currentTheme = localStorage.getItem('tkg_theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('tkg_theme', newTheme);
+  document.documentElement.setAttribute('data-tkg-theme', newTheme);
 });
 
-TAB_SOCIAL.addEventListener('click', () => {
-  currentTab = 'social';
-  TAB_SOCIAL.classList.add('active');
-  TAB_UPLOAD.classList.remove('active');
-  UPLOAD_PANEL.style.display = 'none';
-  SOCIAL_PANEL.style.display = '';
-});
-
-// ========== UPLOAD MODAL ==========
-SHARE_BTN.addEventListener('click', () => {
+OPEN_UPLOAD_BTN.addEventListener('click', () => {
   UPLOAD_MODAL.classList.add('open');
-  UPLOAD_NAME.focus();
 });
 
-UPLOAD_CANCEL.addEventListener('click', () => {
-  closeUploadModal();
-});
+UPLOAD_CANCEL.addEventListener('click', closeUploadModal);
 
-document.querySelector('.upload-modal-file-btn').addEventListener('click', () => {
+// ========== FILE SELECTION ==========
+SELECT_FILES_BTN.addEventListener('click', () => {
   UPLOAD_FILE.click();
 });
 
-// ========== FILE SELECTION ==========
 UPLOAD_FILE.addEventListener('change', (e) => {
-  selectedFiles = Array.from(e.target.files || []);
-  
-  if (selectedFiles.length > MAX_FILES) {
-    alert(`Maximum ${MAX_FILES} files allowed`);
-    selectedFiles = selectedFiles.slice(0, MAX_FILES);
-    e.target.value = '';
-  }
-  
+  selectedFiles = Array.from(e.target.files || []).slice(0, MAX_FILES);
   updateFilePreview();
 });
 
 function updateFilePreview() {
   FILE_LIST.innerHTML = '';
   FILE_COUNTER.textContent = `${selectedFiles.length}/${MAX_FILES} files`;
-  
+
   selectedFiles.forEach((file, idx) => {
     const chip = document.createElement('div');
     chip.className = 'file-chip';
@@ -811,7 +755,7 @@ function updateFilePreview() {
     });
     FILE_LIST.appendChild(chip);
   });
-  
+
   if (selectedFiles.length > 0 && selectedFiles[0].type.startsWith('image/')) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -824,10 +768,27 @@ function updateFilePreview() {
   }
 }
 
+// ========== TAB SWITCHING ==========
+TAB_UPLOAD.addEventListener('click', () => {
+  currentTab = 'upload';
+  TAB_UPLOAD.classList.add('active');
+  TAB_SOCIAL.classList.remove('active');
+  UPLOAD_PANEL.style.display = '';
+  SOCIAL_PANEL.style.display = 'none';
+});
+
+TAB_SOCIAL.addEventListener('click', () => {
+  currentTab = 'social';
+  TAB_UPLOAD.classList.remove('active');
+  TAB_SOCIAL.classList.add('active');
+  UPLOAD_PANEL.style.display = 'none';
+  SOCIAL_PANEL.style.display = '';
+});
+
 // ========== COMPRESSION ==========
 async function compressImage(file) {
   if (!file.type.startsWith('image/')) return file;
-  
+
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -836,7 +797,7 @@ async function compressImage(file) {
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-        
+
         const maxSize = 1200;
         if (width > height) {
           if (width > maxSize) {
@@ -849,11 +810,11 @@ async function compressImage(file) {
             height = maxSize;
           }
         }
-        
+
         canvas.width = width;
         canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        
+
         canvas.toBlob((blob) => {
           resolve(new File([blob], file.name, { type: 'image/jpeg' }));
         }, 'image/jpeg', 0.8);
@@ -889,59 +850,68 @@ UPLOAD_SUBMIT.addEventListener('click', async () => {
 async function handleMediaUpload() {
   const name = UPLOAD_NAME.value.trim();
   const caption = UPLOAD_CAPTION.value.trim();
-  
+
   if (!name) {
     alert('Please enter your name');
     return;
   }
-  
+
   if (selectedFiles.length === 0) {
     alert('Please select at least one file');
     return;
   }
-  
+
   UPLOAD_SUBMIT.disabled = true;
   UPLOAD_PROGRESS.classList.add('show');
-  
+
   try {
     const mediaArray = [];
-    
+
     for (const file of selectedFiles) {
       const compressed = await compressImage(file);
       const base64 = await fileToBase64(compressed);
-      
+
       mediaArray.push({
         fileName: file.name,
         fileType: compressed.type,
         fileData: base64
       });
     }
-    
+
     const payload = {
       action: 'uploadMoment',
       uploaderName: name,
       caption: caption,
       media: mediaArray
     };
-    
+
+    console.log('[Upload] Sending payload to Apps Script...');
+    console.log('[Upload] Payload size (KB):', JSON.stringify(payload).length / 1024);
+
     const response = await fetch(APP_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
     const result = await response.json();
-    
+    console.log('[Upload] Server response:', result);
+
     if (result.status !== 'ok') {
       throw new Error(result.message || 'Upload failed');
     }
-    
+
+    console.log('[Upload] Success! Closing modal and refreshing feed...');
     closeUploadModal();
     localStorage.removeItem(CACHE_KEY);
     fetchMoments();
   } catch (err) {
-    console.error('Upload error:', err);
-    alert('Upload failed. Please try again.');
+    console.error('[Upload] Error:', err);
+    alert(`Upload failed: ${err.message}`);
   } finally {
     UPLOAD_SUBMIT.disabled = false;
     UPLOAD_PROGRESS.classList.remove('show');
@@ -951,46 +921,54 @@ async function handleMediaUpload() {
 
 async function handleSocialLinkSubmit() {
   const link = SOCIAL_LINK.value.trim();
-  
+
   if (!link) {
     alert('Please enter a social media link');
     return;
   }
-  
+
   const validDomains = ['instagram.com', 'facebook.com', 'youtube.com', 'tiktok.com'];
   const isValid = validDomains.some(domain => link.includes(domain));
-  
+
   if (!isValid) {
     alert('Please enter a valid Instagram, Facebook, YouTube, or TikTok link');
     return;
   }
-  
+
   UPLOAD_SUBMIT.disabled = true;
-  
+
   try {
     const payload = {
       action: 'submitMomentLink',
       instagramUrl: link
     };
-    
+
+    console.log('[Social Link] Sending to Apps Script...');
+
     const response = await fetch(APP_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
     const result = await response.json();
-    
+    console.log('[Social Link] Server response:', result);
+
     if (result.status !== 'ok') {
       throw new Error(result.message || 'Submission failed');
     }
-    
+
+    console.log('[Social Link] Success!');
     closeUploadModal();
     localStorage.removeItem(CACHE_KEY);
     fetchMoments();
   } catch (err) {
-    console.error('Social link error:', err);
-    alert('Submission failed. Please try again.');
+    console.error('[Social Link] Error:', err);
+    alert(`Submission failed: ${err.message}`);
   } finally {
     UPLOAD_SUBMIT.disabled = false;
   }
@@ -1001,8 +979,6 @@ function closeUploadModal() {
   UPLOAD_NAME.value = '';
   UPLOAD_CAPTION.value = '';
   SOCIAL_LINK.value = '';
-  UPLOAD_FILE.value = '';
-  UPLOAD_PREVIEW.classList.remove('show');
   FILE_LIST.innerHTML = '';
   FILE_COUNTER.textContent = '';
   selectedFiles = [];
@@ -1013,6 +989,56 @@ function closeUploadModal() {
   SOCIAL_PANEL.style.display = 'none';
 }
 
+// ========== GOOGLE DRIVE URL TRANSFORMER ==========
+/**
+ * Extracts Google Drive File ID from various Drive URL formats
+ * Examples:
+ *   https://drive.google.com/file/d/ABC123XYZ/preview → ABC123XYZ
+ *   https://drive.google.com/uc?id=ABC123XYZ&export=download → ABC123XYZ
+ */
+function extractGoogleDriveId(url) {
+  if (!url || typeof url !== 'string') return null;
+
+  try {
+    // Format 1: /file/d/FILE_ID/...
+    const match1 = url.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
+    if (match1) return match1[1];
+
+    // Format 2: ?id=FILE_ID
+    const match2 = url.match(/[?&]id=([a-zA-Z0-9-_]+)/);
+    if (match2) return match2[1];
+  } catch (e) {
+    console.error('[Drive ID Extract] Error:', e);
+  }
+
+  return null;
+}
+
+/**
+ * Transforms Google Drive URLs to stream proxy URLs
+ * If it's a Drive URL, extracts ID and returns /api/stream?id=FILE_ID
+ * Otherwise returns the URL as-is
+ */
+function transformMediaUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+
+  // If it's already a data URL or a proxy URL, return as-is
+  if (url.startsWith('data:') || url.startsWith('/api/stream')) {
+    return url;
+  }
+
+  // Try to extract Drive file ID
+  if (url.includes('drive.google.com')) {
+    const fileId = extractGoogleDriveId(url);
+    if (fileId) {
+      return `/api/stream?id=${fileId}`;
+    }
+  }
+
+  // Return original URL if not a Drive URL
+  return url;
+}
+
 // ========== FETCH MOMENTS ==========
 async function fetchMoments() {
   try {
@@ -1021,40 +1047,48 @@ async function fetchMoments() {
       try {
         const { data, timestamp } = JSON.parse(cached);
         if (Date.now() - timestamp < CACHE_DURATION) {
+          console.log('[Moments] Using cached data');
           renderMoments(data);
           return;
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[Moments] Cache parse error:', e);
+      }
     }
 
+    console.log('[Moments] Fetching from Apps Script...');
     const response = await fetch(`${APP_SCRIPT_URL}?action=moments`);
-    
+
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    
+    console.log('[Moments] Received data:', data);
+
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({
         data: data.moments || [],
         timestamp: Date.now()
       }));
-    } catch (e) {}
+    } catch (e) {
+      console.warn('[Moments] Cache write error:', e);
+    }
 
     renderMoments(data.moments || []);
   } catch (err) {
     console.error('[Moments] Fetch failed:', err);
-    
+
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
       try {
         const { data } = JSON.parse(cached);
+        console.log('[Moments] Using stale cache as fallback');
         renderMoments(data);
         return;
       } catch (e) {}
     }
-    
+
     FEED.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-tertiary);">Unable to load moments. Please refresh.</div>';
   }
 }
@@ -1095,6 +1129,17 @@ function renderMoments(timelineItems) {
     });
   }
 
+  function setupVideoErrorHandler(video, container) {
+    video.addEventListener('error', (e) => {
+      console.error('[Video] Playback error:', e, 'Source:', video.src);
+      video.classList.add('error');
+      const placeholder = container.querySelector('.video-error-placeholder');
+      if (placeholder) {
+        placeholder.classList.add('show');
+      }
+    });
+  }
+
   function setupDoubleTapLike(container, cardId) {
     let lastTap = 0;
     container.addEventListener('click', (e) => {
@@ -1115,7 +1160,7 @@ function renderMoments(timelineItems) {
       likedVideos.add(cardId);
     }
     localStorage.setItem('tkg_liked_moments', JSON.stringify(Array.from(likedVideos)));
-    
+
     const likeBtn = container.querySelector('.like-btn');
     if (likeBtn) {
       likeBtn.classList.toggle('liked');
@@ -1131,52 +1176,97 @@ function renderMoments(timelineItems) {
 }
 
 // ========== MEDIA DETAILS HELPER ==========
+/**
+ * Defensive parser for media objects from Google Apps Script
+ * Handles various shapes and applies URL transformation
+ */
 function getMediaDetails(item) {
-  // Defensive parsing for various data shapes from Google Apps Script
   if (!item) return null;
-  
+
   let media = null;
-  
+
   // Handle array of media
   if (Array.isArray(item.media) && item.media.length > 0) {
     media = item.media[0];
-  } else if (item.media) {
+  } else if (item.media && typeof item.media === 'object') {
     media = item.media;
   }
-  
+
   if (!media) return null;
-  
-  const url = media.url || (media.fileData ? `data:${media.fileType || 'image/jpeg'};base64,${media.fileData}` : null);
+
+  // Build URL: prefer raw URL, fallback to Base64
+  let url = null;
+  if (media.url) {
+    url = transformMediaUrl(media.url); // Apply stream proxy transformation
+  } else if (media.fileData) {
+    url = `data:${media.fileType || 'image/jpeg'};base64,${media.fileData}`;
+  }
+
   const fileType = media.fileType || '';
-  
+
   return { url, fileType, media };
 }
 
 // ========== CREATE TIMELINE CARD ==========
+/**
+ * Renders a single timeline card (video, photo, review, or social link)
+ */
 function createTimelineCard(item, cardId) {
   if (!item) return null;
-  
+
   const container = document.createElement('div');
   container.className = 'timeline-item';
-  
+
   const caption = item.caption || '';
   const uploaderName = item.uploaderName || 'Community Member';
   const dateDisplay = formatDate(item.date, item.time);
 
+  // Detect media type
+  const mediaDetails = getMediaDetails(item);
+  let isVideo = false;
+  let isPhoto = false;
+
+  if (item.type === 'video') {
+    isVideo = true;
+  } else if (item.type === 'photo') {
+    isPhoto = true;
+  } else if (mediaDetails) {
+    // Auto-detect from fileType
+    if (mediaDetails.fileType.startsWith('video/')) {
+      isVideo = true;
+    } else if (mediaDetails.fileType.startsWith('image/')) {
+      isPhoto = true;
+    } else {
+      // Fallback: treat as photo if we have a URL
+      isPhoto = !!mediaDetails.url;
+    }
+  }
+
   // Handle video
-  if (item.type === 'video' || (item.media && getMediaDetails(item)?.fileType.startsWith('video/'))) {
-    const mediaDetails = getMediaDetails(item);
-    if (!mediaDetails?.url) return null;
-    
+  if (isVideo) {
+    if (!mediaDetails?.url) {
+      console.warn('[Card] Video card missing URL for:', item);
+      return null;
+    }
+
     const mediaContainer = document.createElement('div');
     mediaContainer.className = 'timeline-item-media timeline-item-video-container';
-    
+
     const video = document.createElement('video');
     video.className = 'timeline-item-video';
     video.src = mediaDetails.url;
     video.playsinline = true;
     video.muted = MUTE_STATE.muted;
-    
+
+    const errorPlaceholder = document.createElement('div');
+    errorPlaceholder.className = 'video-error-placeholder';
+    errorPlaceholder.innerHTML = `
+      <svg style="width: 48px; height: 48px; opacity: 0.5;" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+      </svg>
+      <div>Video unavailable</div>
+    `;
+
     const controlsOverlay = document.createElement('div');
     controlsOverlay.className = 'video-controls-overlay';
     controlsOverlay.innerHTML = `
@@ -1184,7 +1274,7 @@ function createTimelineCard(item, cardId) {
         ${MUTE_STATE.muted ? '<svg viewBox="0 0 24 24"><path d="M6.3 7c0-1 .8-1.8 1.8-1.8h.5l6-5.5c.6-.5 1.5-.2 1.5.7v16c0 .9-.9 1.2-1.5.7l-6-5.5h-.5c-1 0-1.8-.8-1.8-1.8V7zm12 0c0 3.5-1.8 6.5-4.5 8.3m0-16.6c2.7 1.8 4.5 4.8 4.5 8.3M18 2l3 3m0 6l3-3"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>'}
       </button>
     `;
-    
+
     const engagementOverlay = document.createElement('div');
     engagementOverlay.className = 'engagement-overlay';
     engagementOverlay.innerHTML = `
@@ -1198,44 +1288,48 @@ function createTimelineCard(item, cardId) {
         <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-4-6l-4-4m0 0L8 6m0 0v6"/></svg>
       </button>
     `;
-    
+
     mediaContainer.appendChild(video);
+    mediaContainer.appendChild(errorPlaceholder);
     mediaContainer.appendChild(controlsOverlay);
     mediaContainer.appendChild(engagementOverlay);
-    
+
     setupVideoObserver(video, mediaContainer);
     setupVideoTapHandler(video);
+    setupVideoErrorHandler(video, mediaContainer);
     setupDoubleTapLike(mediaContainer, cardId);
-    
+
     const muteBtn = controlsOverlay.querySelector('.mute-btn');
     muteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       MUTE_STATE.toggle();
     });
-    
+
     const likeBtn = engagementOverlay.querySelector('.like-btn');
     likeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       toggleLike(cardId, mediaContainer);
     });
-    
+
     const info = document.createElement('div');
     info.className = 'timeline-item-info';
     info.innerHTML = `
       ${caption ? `<div class="timeline-item-caption">${escapeHtml(caption)}</div>` : ''}
       <div class="timeline-item-meta">${escapeHtml(uploaderName)} • ${dateDisplay}</div>
     `;
-    
+
     container.appendChild(mediaContainer);
     container.appendChild(info);
     return container;
   }
 
   // Handle photo
-  if (item.type === 'photo' || (item.media && getMediaDetails(item)?.fileType.startsWith('image/'))) {
-    const mediaDetails = getMediaDetails(item);
-    if (!mediaDetails?.url) return null;
-    
+  if (isPhoto) {
+    if (!mediaDetails?.url) {
+      console.warn('[Card] Photo card missing URL for:', item);
+      return null;
+    }
+
     const mediaContainer = document.createElement('div');
     mediaContainer.className = 'timeline-item-media';
     const img = document.createElement('img');
@@ -1243,15 +1337,20 @@ function createTimelineCard(item, cardId) {
     img.src = mediaDetails.url;
     img.alt = caption || 'Photo';
     img.loading = 'lazy';
+
+    img.addEventListener('error', (e) => {
+      console.error('[Image] Load error:', e, 'Source:', img.src);
+    });
+
     mediaContainer.appendChild(img);
-    
+
     const info = document.createElement('div');
     info.className = 'timeline-item-info';
     info.innerHTML = `
       ${caption ? `<div class="timeline-item-caption">${escapeHtml(caption)}</div>` : ''}
       <div class="timeline-item-meta">${escapeHtml(uploaderName)} • ${dateDisplay}</div>
     `;
-    
+
     container.appendChild(mediaContainer);
     container.appendChild(info);
     return container;
@@ -1261,14 +1360,14 @@ function createTimelineCard(item, cardId) {
   if (item.type === 'google_review') {
     const reviewCard = document.createElement('div');
     reviewCard.className = 'timeline-item-review';
-    
+
     const stars = '★'.repeat(item.rating || 0) + '☆'.repeat(5 - (item.rating || 0));
     reviewCard.innerHTML = `
       <div class="timeline-item-review-rating">${stars}</div>
       <div class="timeline-item-review-text">"${escapeHtml(item.text)}"</div>
       <div class="timeline-item-review-author">— ${escapeHtml(item.reviewer)}</div>
     `;
-    
+
     container.appendChild(reviewCard);
     return container;
   }
@@ -1280,18 +1379,18 @@ function createTimelineCard(item, cardId) {
 function formatDate(date, time) {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   let dateObj;
-  
+
   try {
     dateObj = new Date(date);
   } catch (e) {
     return 'Recently';
   }
-  
+
   if (isNaN(dateObj)) return 'Recently';
-  
+
   const day = dayNames[dateObj.getDay()];
   const timeStr = time ? String(time).slice(0, 5) : '';
-  
+
   return timeStr ? `${day} ${timeStr}` : day;
 }
 
