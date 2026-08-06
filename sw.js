@@ -1,8 +1,11 @@
 /* ==========================================================================
-   TKG Service Worker — CORS & Mobile Update Fix
+   TKG Service Worker — Production Ready
    
-   CRITICAL: Early return (no event.respondWith) for third-party APIs
-   allows browser's native network engine to handle CORS/redirects naturally.
+   Fixes:
+   1. Precache path corrected: /moments_hub.html (underscore)
+   2. Explicit version string: tkg-os-v-1.0.2
+   3. CORS bypass with early return for Apps Script
+   4. Cache-first strategy for static assets
    ========================================================================== */
 
 const CACHE_NAME = 'tkg-os-v-1.0.2';
@@ -40,13 +43,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // =========================================================================
-  // CRITICAL BYPASS: Return early without event.respondWith()
-  // =========================================================================
-  // This hands control back to the standard browser network engine, which
-  // naturally handles CORS headers and 302 redirects (script.google.com
-  // -> script.googleusercontent.com). Using event.respondWith(fetch())
-  // intercepts redirects and causes CORS failures.
+  // CRITICAL BYPASS: Hand control back to native browser engine for Google Apps Script CORS/redirects & stream proxy
   if (
     url.hostname.includes('script.google.com') ||
     url.hostname.includes('script.googleusercontent.com') ||
@@ -56,9 +53,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // =========================================================================
   // Cache-first strategy for static app shell
-  // =========================================================================
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;

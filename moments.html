@@ -43,7 +43,6 @@
 
 <style>
 :root{
-  /* PURE B&W PREMIUM AESTHETIC */
   --page-bg:     #FFFFFF;
   --page-border: #E0E0E0;
   --text-primary: #000000;
@@ -56,10 +55,7 @@
   --accent-fg: #FFFFFF;
   --ctrl-bg: #000000;
   --ctrl-fg: #FFFFFF;
-  --overlay-dark: rgba(0,0,0,0.5);
-  --overlay-light: rgba(255,255,255,0.1);
   --border-crisp: rgba(0,0,0,0.12);
-  --border-light: rgba(0,0,0,0.06);
   --radius-lg: 16px;
   --radius-md: 8px;
   --max-w: 430px;
@@ -190,56 +186,6 @@ body {
   cursor: pointer;
 }
 
-.timeline-item-social-embed {
-  width: 100%;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--card-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  border: 1px solid var(--border-crisp);
-}
-
-.timeline-item-social-embed iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-.social-link-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-crisp);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  text-align: center;
-  color: var(--card-text);
-}
-
-.social-link-icon {
-  font-size: 32px;
-  margin-bottom: 12px;
-}
-
-.social-link-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.social-link-btn {
-  display: inline-block;
-  background: var(--card-text);
-  color: var(--card-bg);
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 600;
-  margin-top: 8px;
-}
-
 .engagement-overlay {
   position: absolute;
   right: 12px;
@@ -261,8 +207,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  position: relative;
+  transition: transform 0.2s ease;
 }
 
 .engagement-btn svg {
@@ -286,14 +231,8 @@ body {
 }
 
 @keyframes heartPulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1.4);
-    opacity: 0;
-  }
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
 }
 
 .video-controls-overlay {
@@ -304,11 +243,6 @@ body {
   gap: 12px;
   z-index: 10;
   opacity: 0.9;
-  transition: opacity 0.3s ease;
-}
-
-.video-controls-overlay:hover {
-  opacity: 1;
 }
 
 .control-btn {
@@ -325,7 +259,6 @@ body {
   transition: all 0.2s ease;
   backdrop-filter: blur(8px);
   padding: 0;
-  font-size: 0;
 }
 
 .control-btn:active {
@@ -337,10 +270,6 @@ body {
   width: 24px;
   height: 24px;
   fill: currentColor;
-}
-
-.control-btn.muted {
-  opacity: 0.7;
 }
 
 .timeline-item-info {
@@ -358,7 +287,6 @@ body {
 .timeline-item-meta {
   font-size: 12px;
   color: var(--text-tertiary);
-  letter-spacing: -0.2px;
   white-space: normal;
   word-break: break-word;
 }
@@ -526,20 +454,6 @@ body {
   opacity: 0.8;
 }
 
-.file-chip-remove:active {
-  opacity: 0.6;
-}
-
-.file-counter {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 8px;
-}
-
-.file-counter.warning {
-  color: #FF6B6B;
-}
-
 .upload-preview {
   display: none;
   width: 100%;
@@ -616,7 +530,6 @@ body {
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
   display: flex;
   justify-content: center;
-  gap: 12px;
   flex-shrink: 0;
 }
 
@@ -635,7 +548,6 @@ body {
 
 .moments-footer-btn:active {
   transform: scale(0.95);
-  opacity: 0.8;
 }
 
 .moments-nav {
@@ -687,7 +599,6 @@ body {
 .moments-nav-btn.instagram-btn svg {
   fill: currentColor;
 }
-
 </style>
 </head>
 <body>
@@ -712,13 +623,11 @@ body {
       <h2 class="upload-modal-title">Share a Moment</h2>
       <p class="upload-modal-subtitle">Upload photos/videos or share a social link</p>
 
-      <!-- TAB SWITCHER -->
       <div class="upload-modal-tabs">
         <button class="upload-modal-tab active" id="tabUpload">📸 Upload Media</button>
         <button class="upload-modal-tab" id="tabSocial">🔗 Share Link</button>
       </div>
 
-      <!-- TAB 1: FILE UPLOAD -->
       <div id="uploadPanel">
         <div class="upload-modal-field">
           <label class="upload-modal-label">Your Name *</label>
@@ -744,7 +653,6 @@ body {
         </div>
       </div>
 
-      <!-- TAB 2: SOCIAL LINK -->
       <div id="socialPanel" style="display: none;">
         <div class="upload-modal-field">
           <label class="upload-modal-label">Social Link *</label>
@@ -786,9 +694,8 @@ body {
 // ========== CONFIG ==========
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 const CACHE_KEY = 'tkg_moments_cache';
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
 const MAX_FILES = 10;
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 // ========== DOM ELEMENTS ==========
 const FEED = document.getElementById('momentsFeed');
@@ -813,7 +720,7 @@ const BACK_BTN = document.getElementById('backBtn');
 
 // ========== STATE ==========
 let selectedFiles = [];
-let currentTab = 'upload'; // 'upload' or 'social'
+let currentTab = 'upload';
 const likedVideos = new Set(JSON.parse(localStorage.getItem('tkg_liked_moments') || '[]'));
 
 const MUTE_STATE = {
@@ -841,9 +748,7 @@ const MUTE_STATE = {
   }
 };
 
-console.log('[Moments] MUTE_STATE initialized:', MUTE_STATE.muted);
-
-// ========== BACK NAVIGATION ==========
+// ========== NAVIGATION ==========
 BACK_BTN.addEventListener('click', () => {
   window.location.href = './moments_hub.html';
 });
@@ -865,7 +770,7 @@ TAB_SOCIAL.addEventListener('click', () => {
   SOCIAL_PANEL.style.display = '';
 });
 
-// ========== UPLOAD MODAL TRIGGERS ==========
+// ========== UPLOAD MODAL ==========
 SHARE_BTN.addEventListener('click', () => {
   UPLOAD_MODAL.classList.add('open');
   UPLOAD_NAME.focus();
@@ -884,7 +789,7 @@ UPLOAD_FILE.addEventListener('change', (e) => {
   selectedFiles = Array.from(e.target.files || []);
   
   if (selectedFiles.length > MAX_FILES) {
-    alert(`Maximum ${MAX_FILES} files allowed. ${selectedFiles.length} selected.`);
+    alert(`Maximum ${MAX_FILES} files allowed`);
     selectedFiles = selectedFiles.slice(0, MAX_FILES);
     e.target.value = '';
   }
@@ -894,22 +799,12 @@ UPLOAD_FILE.addEventListener('change', (e) => {
 
 function updateFilePreview() {
   FILE_LIST.innerHTML = '';
-  FILE_COUNTER.textContent = `${selectedFiles.length}/${MAX_FILES} files selected`;
-  
-  if (selectedFiles.length === MAX_FILES) {
-    FILE_COUNTER.classList.add('warning');
-    FILE_COUNTER.textContent += ' (max reached)';
-  } else {
-    FILE_COUNTER.classList.remove('warning');
-  }
+  FILE_COUNTER.textContent = `${selectedFiles.length}/${MAX_FILES} files`;
   
   selectedFiles.forEach((file, idx) => {
     const chip = document.createElement('div');
     chip.className = 'file-chip';
-    chip.innerHTML = `
-      ${file.name.substring(0, 20)}
-      <span class="file-chip-remove" data-idx="${idx}">×</span>
-    `;
+    chip.innerHTML = `${file.name.substring(0, 20)}<span class="file-chip-remove" data-idx="${idx}">×</span>`;
     chip.querySelector('.file-chip-remove').addEventListener('click', () => {
       selectedFiles.splice(idx, 1);
       updateFilePreview();
@@ -917,22 +812,19 @@ function updateFilePreview() {
     FILE_LIST.appendChild(chip);
   });
   
-  if (selectedFiles.length > 0) {
-    const file = selectedFiles[0];
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        UPLOAD_PREVIEW.src = e.target.result;
-        UPLOAD_PREVIEW.classList.add('show');
-      };
-      reader.readAsDataURL(file);
-    } else {
-      UPLOAD_PREVIEW.classList.remove('show');
-    }
+  if (selectedFiles.length > 0 && selectedFiles[0].type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      UPLOAD_PREVIEW.src = e.target.result;
+      UPLOAD_PREVIEW.classList.add('show');
+    };
+    reader.readAsDataURL(selectedFiles[0]);
+  } else {
+    UPLOAD_PREVIEW.classList.remove('show');
   }
 }
 
-// ========== FILE COMPRESSION ==========
+// ========== COMPRESSION ==========
 async function compressImage(file) {
   if (!file.type.startsWith('image/')) return file;
   
@@ -972,7 +864,7 @@ async function compressImage(file) {
   });
 }
 
-// ========== FILE TO BASE64 ==========
+// ========== BASE64 ENCODING ==========
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1010,7 +902,6 @@ async function handleMediaUpload() {
   
   UPLOAD_SUBMIT.disabled = true;
   UPLOAD_PROGRESS.classList.add('show');
-  let uploaded = 0;
   
   try {
     const mediaArray = [];
@@ -1026,7 +917,6 @@ async function handleMediaUpload() {
       });
     }
     
-    // Send all files as one JSON payload to Google Apps Script
     const payload = {
       action: 'uploadMoment',
       uploaderName: name,
@@ -1036,9 +926,7 @@ async function handleMediaUpload() {
     
     const response = await fetch(APP_SCRIPT_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     
@@ -1069,11 +957,10 @@ async function handleSocialLinkSubmit() {
     return;
   }
   
-  // Validate social link
   const validDomains = ['instagram.com', 'facebook.com', 'youtube.com', 'tiktok.com'];
-  const isValidLink = validDomains.some(domain => link.includes(domain));
+  const isValid = validDomains.some(domain => link.includes(domain));
   
-  if (!isValidLink) {
+  if (!isValid) {
     alert('Please enter a valid Instagram, Facebook, YouTube, or TikTok link');
     return;
   }
@@ -1083,14 +970,12 @@ async function handleSocialLinkSubmit() {
   try {
     const payload = {
       action: 'submitMomentLink',
-      instagramUrl: link // Backend will handle any social link
+      instagramUrl: link
     };
     
     const response = await fetch(APP_SCRIPT_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     
@@ -1104,7 +989,7 @@ async function handleSocialLinkSubmit() {
     localStorage.removeItem(CACHE_KEY);
     fetchMoments();
   } catch (err) {
-    console.error('Social link submit error:', err);
+    console.error('Social link error:', err);
     alert('Submission failed. Please try again.');
   } finally {
     UPLOAD_SUBMIT.disabled = false;
@@ -1131,61 +1016,46 @@ function closeUploadModal() {
 // ========== FETCH MOMENTS ==========
 async function fetchMoments() {
   try {
-    console.log('[Moments] Starting fetch...');
-    
-    // Check cache first
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
       try {
         const { data, timestamp } = JSON.parse(cached);
         if (Date.now() - timestamp < CACHE_DURATION) {
-          console.log('[Moments] Using cached data');
           renderMoments(data);
           return;
         }
-      } catch (cacheErr) {
-        console.warn('[Moments] Cache parse error, fetching fresh:', cacheErr);
-      }
+      } catch (e) {}
     }
 
-    console.log('[Moments] Fetching from Apps Script...');
     const response = await fetch(`${APP_SCRIPT_URL}?action=moments`);
     
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(`HTTP ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('[Moments] Fetch successful, got', data.moments?.length || 0, 'items');
     
-    // Store in cache
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({
         data: data.moments || [],
         timestamp: Date.now()
       }));
-    } catch (cacheStoreErr) {
-      console.warn('[Moments] Failed to cache:', cacheStoreErr);
-    }
+    } catch (e) {}
 
     renderMoments(data.moments || []);
   } catch (err) {
     console.error('[Moments] Fetch failed:', err);
     
-    // Try fallback cache even if expired
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
       try {
         const { data } = JSON.parse(cached);
-        console.log('[Moments] Using stale cache as fallback');
         renderMoments(data);
         return;
-      } catch (e) {
-        console.warn('[Moments] Stale cache also failed');
-      }
+      } catch (e) {}
     }
     
-    FEED.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-tertiary);">Unable to load moments. Please check your connection and refresh.</div>';
+    FEED.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-tertiary);">Unable to load moments. Please refresh.</div>';
   }
 }
 
@@ -1214,18 +1084,14 @@ function renderMoments(timelineItems) {
         }
       });
     }, { threshold: 0.5 });
-    
     observer.observe(container);
   }
 
   function setupVideoTapHandler(video) {
     video.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (video.paused) {
-        video.play();
-      } else {
-        video.pause();
-      }
+      if (video.paused) video.play();
+      else video.pause();
     });
   }
 
@@ -1264,86 +1130,72 @@ function renderMoments(timelineItems) {
   MUTE_STATE.updateAllVideos();
 }
 
+// ========== MEDIA DETAILS HELPER ==========
+function getMediaDetails(item) {
+  // Defensive parsing for various data shapes from Google Apps Script
+  if (!item) return null;
+  
+  let media = null;
+  
+  // Handle array of media
+  if (Array.isArray(item.media) && item.media.length > 0) {
+    media = item.media[0];
+  } else if (item.media) {
+    media = item.media;
+  }
+  
+  if (!media) return null;
+  
+  const url = media.url || (media.fileData ? `data:${media.fileType || 'image/jpeg'};base64,${media.fileData}` : null);
+  const fileType = media.fileType || '';
+  
+  return { url, fileType, media };
+}
+
 // ========== CREATE TIMELINE CARD ==========
 function createTimelineCard(item, cardId) {
+  if (!item) return null;
+  
   const container = document.createElement('div');
   container.className = 'timeline-item';
+  
+  const caption = item.caption || '';
+  const uploaderName = item.uploaderName || 'Community Member';
+  const dateDisplay = formatDate(item.date, item.time);
 
-  // Handle social link items (Instagram, Facebook, YouTube, TikTok)
-  if (item.type === 'social' || (item.instagramUrl && !item.imageUrl && !item.media)) {
-    const url = item.instagramUrl || item.url || '';
-    if (!url) return null;
-    
-    const mediaContainer = document.createElement('div');
-    mediaContainer.className = 'timeline-item-media timeline-item-social-embed';
-    
-    // Detect social platform and create appropriate embed
-    let embedHTML = '';
-    if (url.includes('instagram.com')) {
-      embedHTML = `<div style="padding: 20px; text-align: center;"><div class="social-link-icon">📱</div><div class="social-link-title">Instagram Post</div><a href="${escapeHtml(url)}" target="_blank" class="social-link-btn">View on Instagram →</a></div>`;
-    } else if (url.includes('facebook.com')) {
-      embedHTML = `<div style="padding: 20px; text-align: center;"><div class="social-link-icon">👍</div><div class="social-link-title">Facebook Post</div><a href="${escapeHtml(url)}" target="_blank" class="social-link-btn">View on Facebook →</a></div>`;
-    } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      embedHTML = `<div style="padding: 20px; text-align: center;"><div class="social-link-icon">▶️</div><div class="social-link-title">YouTube Video</div><a href="${escapeHtml(url)}" target="_blank" class="social-link-btn">Watch on YouTube →</a></div>`;
-    } else if (url.includes('tiktok.com')) {
-      embedHTML = `<div style="padding: 20px; text-align: center;"><div class="social-link-icon">🎵</div><div class="social-link-title">TikTok Video</div><a href="${escapeHtml(url)}" target="_blank" class="social-link-btn">Watch on TikTok →</a></div>`;
-    }
-    
-    mediaContainer.innerHTML = embedHTML;
-    container.appendChild(mediaContainer);
-    return container;
-  }
-
-  // Handle video items
-  if (item.type === 'video' || (item.media && Array.isArray(item.media) && item.media.length > 0 && item.media[0].fileType?.startsWith('video/'))) {
-    const caption = item.caption || '';
-    const uploaderName = item.uploaderName || 'Community Member';
-    const date = item.date || '';
-    const time = item.time || '';
-    const dateDisplay = formatDate(date, time);
-    
-    const media = Array.isArray(item.media) ? item.media[0] : (item.media || {});
-    const streamUrl = media.url || (media.fileData ? `data:${media.fileType};base64,${media.fileData}` : '');
-    
-    if (!streamUrl) return null;
+  // Handle video
+  if (item.type === 'video' || (item.media && getMediaDetails(item)?.fileType.startsWith('video/'))) {
+    const mediaDetails = getMediaDetails(item);
+    if (!mediaDetails?.url) return null;
     
     const mediaContainer = document.createElement('div');
     mediaContainer.className = 'timeline-item-media timeline-item-video-container';
     
     const video = document.createElement('video');
     video.className = 'timeline-item-video';
-    video.src = streamUrl;
+    video.src = mediaDetails.url;
     video.playsinline = true;
     video.muted = MUTE_STATE.muted;
     
     const controlsOverlay = document.createElement('div');
     controlsOverlay.className = 'video-controls-overlay';
     controlsOverlay.innerHTML = `
-      <button class="control-btn mute-btn" title="${MUTE_STATE.muted ? 'Unmute' : 'Mute'}">
-        ${MUTE_STATE.muted ? 
-          '<svg viewBox="0 0 24 24"><path d="M6.3 7c0-1 .8-1.8 1.8-1.8h.5l6-5.5c.6-.5 1.5-.2 1.5.7v16c0 .9-.9 1.2-1.5.7l-6-5.5h-.5c-1 0-1.8-.8-1.8-1.8V7zm12 0c0 3.5-1.8 6.5-4.5 8.3m0-16.6c2.7 1.8 4.5 4.8 4.5 8.3M18 2l3 3m0 6l3-3"/></svg>' :
-          '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>'
-        }
+      <button class="control-btn mute-btn">
+        ${MUTE_STATE.muted ? '<svg viewBox="0 0 24 24"><path d="M6.3 7c0-1 .8-1.8 1.8-1.8h.5l6-5.5c.6-.5 1.5-.2 1.5.7v16c0 .9-.9 1.2-1.5.7l-6-5.5h-.5c-1 0-1.8-.8-1.8-1.8V7zm12 0c0 3.5-1.8 6.5-4.5 8.3m0-16.6c2.7 1.8 4.5 4.8 4.5 8.3M18 2l3 3m0 6l3-3"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>'}
       </button>
     `;
     
     const engagementOverlay = document.createElement('div');
     engagementOverlay.className = 'engagement-overlay';
     engagementOverlay.innerHTML = `
-      <button class="engagement-btn like-btn ${likedVideos.has(cardId) ? 'liked' : ''}" title="Like">
-        <svg viewBox="0 0 24 24">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
+      <button class="engagement-btn like-btn ${likedVideos.has(cardId) ? 'liked' : ''}">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       </button>
-      <button class="engagement-btn comment-btn" title="Comment">
-        <svg viewBox="0 0 24 24">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
+      <button class="engagement-btn comment-btn">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </button>
-      <button class="engagement-btn share-btn" title="Share">
-        <svg viewBox="0 0 24 24">
-          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-4-6l-4-4m0 0L8 6m0 0v6"/>
-        </svg>
+      <button class="engagement-btn share-btn">
+        <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-4-6l-4-4m0 0L8 6m0 0v6"/></svg>
       </button>
     `;
     
@@ -1367,12 +1219,6 @@ function createTimelineCard(item, cardId) {
       toggleLike(cardId, mediaContainer);
     });
     
-    const shareBtn = engagementOverlay.querySelector('.share-btn');
-    shareBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      alert('Share feature coming soon');
-    });
-    
     const info = document.createElement('div');
     info.className = 'timeline-item-info';
     info.innerHTML = `
@@ -1385,24 +1231,16 @@ function createTimelineCard(item, cardId) {
     return container;
   }
 
-  // Handle photo items
-  if (item.type === 'photo' || (item.media && Array.isArray(item.media) && item.media.length > 0 && item.media[0].fileType?.startsWith('image/'))) {
-    const caption = item.caption || '';
-    const uploaderName = item.uploaderName || 'Community Member';
-    const date = item.date || '';
-    const time = item.time || '';
-    const dateDisplay = formatDate(date, time);
-    
-    const media = Array.isArray(item.media) ? item.media[0] : (item.media || {});
-    const imgUrl = media.url || (media.fileData ? `data:${media.fileType};base64,${media.fileData}` : '');
-    
-    if (!imgUrl) return null;
+  // Handle photo
+  if (item.type === 'photo' || (item.media && getMediaDetails(item)?.fileType.startsWith('image/'))) {
+    const mediaDetails = getMediaDetails(item);
+    if (!mediaDetails?.url) return null;
     
     const mediaContainer = document.createElement('div');
     mediaContainer.className = 'timeline-item-media';
     const img = document.createElement('img');
     img.className = 'timeline-item-image';
-    img.src = imgUrl;
+    img.src = mediaDetails.url;
     img.alt = caption || 'Photo';
     img.loading = 'lazy';
     mediaContainer.appendChild(img);
@@ -1419,10 +1257,26 @@ function createTimelineCard(item, cardId) {
     return container;
   }
 
+  // Handle review
+  if (item.type === 'google_review') {
+    const reviewCard = document.createElement('div');
+    reviewCard.className = 'timeline-item-review';
+    
+    const stars = '★'.repeat(item.rating || 0) + '☆'.repeat(5 - (item.rating || 0));
+    reviewCard.innerHTML = `
+      <div class="timeline-item-review-rating">${stars}</div>
+      <div class="timeline-item-review-text">"${escapeHtml(item.text)}"</div>
+      <div class="timeline-item-review-author">— ${escapeHtml(item.reviewer)}</div>
+    `;
+    
+    container.appendChild(reviewCard);
+    return container;
+  }
+
   return null;
 }
 
-// ========== FORMAT DATE ==========
+// ========== HELPERS ==========
 function formatDate(date, time) {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   let dateObj;
@@ -1441,7 +1295,6 @@ function formatDate(date, time) {
   return timeStr ? `${day} ${timeStr}` : day;
 }
 
-// ========== ESCAPE HTML ==========
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
@@ -1451,14 +1304,10 @@ function escapeHtml(text) {
 // ========== INIT ==========
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-      fetchMoments();
-    }, 100);
+    setTimeout(() => fetchMoments(), 100);
   });
 } else {
-  setTimeout(() => {
-    fetchMoments();
-  }, 100);
+  setTimeout(() => fetchMoments(), 100);
 }
 </script>
 </body>
