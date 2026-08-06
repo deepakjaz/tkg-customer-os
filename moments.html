@@ -365,7 +365,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.8));
   transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
 }
 
@@ -1654,6 +1654,7 @@ UPLOAD_SUBMIT.addEventListener('click', async () => {
   }
 });
 
+// FIXED 2-STEP UPLOAD PROCESS matching Google Apps Script
 async function handleMediaUpload() {
   const name = UPLOAD_NAME.value.trim();
   const caption = UPLOAD_CAPTION.value.trim();
@@ -1671,52 +1672,80 @@ async function handleMediaUpload() {
   UPLOAD_SUBMIT.disabled = true;
   UPLOAD_PROGRESS.classList.add('show');
   UPLOAD_PROGRESS_BAR.style.width = '0%';
-  let uploaded = 0;
+  let uploadedCount = 0;
 
   try {
+    const uploadedMediaArray = [];
+
+    // STEP 1: Upload each file to Google Drive via 'uploadMomentFile'
     for (const file of selectedFiles) {
       if (file.size > MAX_FILE_SIZE && !file.type.startsWith('image/')) {
-        throw new Error(`"${file.name}" is larger than ${Math.round(MAX_FILE_SIZE / (1024 * 1024))}MB. Please choose a smaller file.`);
+        throw new Error(`"${file.name}" is larger than ${Math.round(MAX_FILE_SIZE / (1024 * 1024))}MB.`);
       }
 
       const compressed = await compressImage(file);
       const base64 = await fileToBase64(compressed);
 
-      const payload = {
-        action: 'upload',
-        uploaderName: name,
-        caption: caption,
-        media: [{
-          fileName: compressed.name,
-          fileType: compressed.type,
-          fileData: base64
-        }]
+      const filePayload = {
+        action: 'uploadMomentFile',
+        base64Data: base64,
+        mimeType: compressed.type
       };
 
-      const response = await fetch(APP_SCRIPT_URL, {
+      const fileResponse = await fetch(APP_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(filePayload)
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!fileResponse.ok) {
+        throw new Error(`Server error uploading file: ${fileResponse.statusText}`);
       }
 
-      const result = await response.json();
-      if (result.status !== 'ok') {
-        throw new Error(result.message || 'Upload failed');
+      const fileResult = await fileResponse.json();
+      if (fileResult.status !== 'ok' || !fileResult.url) {
+        throw new Error(fileResult.message || 'Could not upload file to Google Drive');
       }
 
-      uploaded++;
-      UPLOAD_PROGRESS_BAR.style.width = Math.round((uploaded / selectedFiles.length) * 100) + '%';
+      uploadedMediaArray.push({
+        url: fileResult.url,
+        thumbnailUrl: fileResult.thumbnailUrl,
+        mimeType: fileResult.mimeType
+      });
+
+      uploadedCount++;
+      UPLOAD_PROGRESS_BAR.style.width = Math.round((uploadedCount / selectedFiles.length) * 80) + '%';
     }
 
+    // STEP 2: Record the row in Google Sheets via 'uploadMoment'
+    const sheetPayload = {
+      action: 'uploadMoment',
+      uploaderName: name,
+      caption: caption,
+      media: uploadedMediaArray
+    };
+
+    const sheetResponse = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(sheetPayload)
+    });
+
+    if (!sheetResponse.ok) {
+      throw new Error(`Server error saving row: ${sheetResponse.statusText}`);
+    }
+
+    const sheetResult = await sheetResponse.json();
+    if (sheetResult.status !== 'ok') {
+      throw new Error(sheetResult.message || 'Failed to save moment to Google Sheet');
+    }
+
+    UPLOAD_PROGRESS_BAR.style.width = '100%';
     closeUploadModal();
     fetchMoments();
   } catch (err) {
     console.error('Upload error:', err);
-    alert(`Upload failed: ${err.message}${uploaded > 0 ? ` (${uploaded}/${selectedFiles.length} file(s) uploaded before error)` : ''}`);
+    alert(`Upload failed: ${err.message}`);
   } finally {
     UPLOAD_SUBMIT.disabled = false;
     UPLOAD_PROGRESS.classList.remove('show');
