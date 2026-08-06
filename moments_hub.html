@@ -609,9 +609,9 @@ document.getElementById('leaderboardCta').addEventListener('click', () => {
 const REVIEWS_CONTAINER = document.getElementById('reviewsContainer');
 
 async function fetchFeaturedReviews() {
-  const result = await window.TKGShared.fetchFromAppsScript('getFeaturedReviews');
+  const result = await window.TKGShared.fetchFromAppsScript('featuredReviews');
 
-  if (!result.success || !result.data || !result.data.reviews || result.data.reviews.length === 0) {
+  if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.reviews) || result.data.reviews.length === 0) {
     REVIEWS_CONTAINER.innerHTML = '<div class="reviews-loading">No reviews yet. Be the first to share!</div>';
     return;
   }
@@ -619,15 +619,15 @@ async function fetchFeaturedReviews() {
   REVIEWS_CONTAINER.innerHTML = '';
 
   result.data.reviews.slice(0, 3).forEach(review => {
-    const { reviewer, rating, text } = review;
+    const { quoteText, authorName, rating } = review;
     const stars = '★'.repeat(rating || 5) + '☆'.repeat(5 - (rating || 5));
 
     const card = document.createElement('div');
     card.className = 'review-card';
     card.innerHTML = `
       <div class="review-rating">${stars}</div>
-      <div class="review-text">"${escapeHtml(text)}"</div>
-      <div class="review-author">— ${escapeHtml(reviewer)}</div>
+      <div class="review-text">"${escapeHtml(quoteText || '')}"</div>
+      <div class="review-author">— ${escapeHtml(authorName || 'Customer')}</div>
     `;
     REVIEWS_CONTAINER.appendChild(card);
   });
@@ -637,16 +637,20 @@ async function fetchFeaturedReviews() {
 const LEADERBOARD_LIST = document.getElementById('leaderboardList');
 
 async function fetchLeaderboard() {
-  const result = await window.TKGShared.fetchFromAppsScript('getLeaderboard');
+  const result = await window.TKGShared.fetchFromAppsScript('runnerScores');
 
-  if (!result.success || !result.data || !result.data.leaderboard || result.data.leaderboard.length === 0) {
+  if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.scores) || result.data.scores.length === 0) {
     LEADERBOARD_LIST.innerHTML = '<div class="reviews-loading">Leaderboard loading...</div>';
     return;
   }
 
+  const topScores = [...result.data.scores]
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, 5);
+
   LEADERBOARD_LIST.innerHTML = '';
 
-  result.data.leaderboard.slice(0, 5).forEach((player, idx) => {
+  topScores.forEach((player, idx) => {
     const { name, score } = player;
     const rank = idx + 1;
 
