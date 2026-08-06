@@ -163,7 +163,7 @@ body {
   background: #000;
 }
 
-/* ===== COMPACT CARD (review / instagram embed) ===== */
+/* ===== COMPACT CARD (google review) ===== */
 .timeline-item.compact-item {
   padding: 80px 16px 16px;
   margin-bottom: 16px;
@@ -333,7 +333,7 @@ body {
   pointer-events: auto;
 }
 
-/* ===== RIGHT-SIDE ACTION STACK (CLEAN FLOATING ICONS - NO CIRCLE/BG) ===== */
+/* ===== RIGHT-SIDE ACTION STACK (CLEAN FLOATING ICONS) ===== */
 .engagement-overlay {
   position: absolute;
   right: 14px;
@@ -409,7 +409,7 @@ body {
 .fab-share svg { width: 20px; height: 20px; stroke: currentColor; fill: none; }
 .fab-share:active { transform: scale(0.9); }
 
-/* ===== COMPACT CARDS: Google Review + Instagram Embed ===== */
+/* ===== COMPACT CARD: Google Review ===== */
 .timeline-item-review {
   background: var(--card-bg);
   border-radius: var(--radius-lg);
@@ -438,79 +438,6 @@ body {
   color: var(--text-tertiary);
   font-weight: 500;
 }
-
-.instagram-embed-card {
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  border: 1px solid var(--border-crisp);
-}
-
-.instagram-embed-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.instagram-embed-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.instagram-embed-meta .creator-name {
-  color: var(--card-text);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.instagram-embed-date {
-  color: var(--card-text-soft);
-  font-size: 11px;
-}
-
-.instagram-embed-caption {
-  color: var(--card-text-soft);
-  font-size: 13px;
-  line-height: 1.4;
-  margin-bottom: 12px;
-}
-
-.instagram-embed-frame {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 24px 16px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, rgba(225,48,108,0.18), rgba(120,60,220,0.18));
-  border: 1px dashed rgba(255,255,255,0.2);
-  color: var(--card-text-soft);
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.instagram-embed-frame svg { width: 22px; height: 22px; stroke: #E1306C; fill: none; }
-
-.instagram-embed-cta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  background: #fff;
-  color: #000;
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-}
-
-.instagram-embed-cta svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
-.instagram-embed-cta:active { opacity: 0.85; }
 
 /* ===== EXPANDABLE / CONDENSING BOTTOM NAVIGATION ===== */
 .moments-nav {
@@ -861,7 +788,7 @@ body {
 
       <div class="upload-modal-field" id="uploadLinkPanel" style="display:none;">
         <label class="upload-modal-label">Social Link</label>
-        <input type="text" id="socialLinkInput" class="upload-modal-input" placeholder="Paste an Instagram, Facebook, YouTube, or TikTok link">
+        <input type="text" id="socialLinkInput" class="upload-modal-input" placeholder="Paste an Instagram Reel or post link">
       </div>
 
       <div class="upload-modal-field">
@@ -1095,6 +1022,19 @@ function fileToBase64(file) {
   });
 }
 
+// ========== DYNAMIC INSTAGRAM MEDIA EXTRACTION ==========
+// Converts Instagram post/reel URLs into direct media streams so they render in 9:16 TKG Style
+function extractInstagramMediaUrl(url) {
+  if (!url) return null;
+  const match = url.match(/instagram\.com\/(?:p|reel|reels)\/([^/?#&]+)/i);
+  if (!match || !match[1]) return null;
+  const shortcode = match[1];
+  return {
+    videoUrl: `https://instagram.com/p/${shortcode}/media/?size=l`,
+    imageUrl: `https://instagram.com/p/${shortcode}/media/?size=l`
+  };
+}
+
 // ========== FETCH MOMENTS ==========
 async function fetchMoments() {
   try {
@@ -1112,7 +1052,7 @@ async function fetchMoments() {
   }
 }
 
-// ========== RENDER TIMELINE (WITH ROBUST KEY FALLBACKS) ==========
+// ========== RENDER TIMELINE ==========
 function renderTimeline() {
   FEED.innerHTML = '';
   
@@ -1126,7 +1066,7 @@ function renderTimeline() {
   moments.forEach((moment) => {
     const type = String(moment.type || '').toLowerCase();
     
-    // Comprehensive key fallbacks for Instagram / Social Links from Google Sheets
+    // Check all possible Instagram link column keys from Google Sheet
     const instagramLink = moment.instagramUrl || moment['Instagram URL'] || moment.instagram_url || moment.socialUrl || moment['Social URL'] || moment.social_url;
 
     if (type === 'google_review' || type === 'review') {
@@ -1138,13 +1078,23 @@ function renderTimeline() {
     }
 
     if (type === 'instagram' || type === 'social_link' || type === 'link' || instagramLink) {
-      timelineItems.push({
-        type: 'instagram',
-        data: {
-          ...moment,
-          instagramUrl: instagramLink
-        }
-      });
+      const extracted = extractInstagramMediaUrl(instagramLink);
+      if (extracted) {
+        // Render as full-bleed 9:16 TKG Video/Photo Moment
+        timelineItems.push({
+          type: 'video',
+          data: {
+            caption: moment.caption || 'Shared via Instagram',
+            uploaderName: moment.uploaderName || 'Community Member',
+            date: moment.date,
+            time: moment.time,
+            media: {
+              url: extracted.videoUrl,
+              mimeType: 'video/mp4'
+            }
+          }
+        });
+      }
       return;
     }
 
@@ -1184,8 +1134,6 @@ const ICON_HEART_FILLED = '<svg class="icon-fill" viewBox="0 0 24 24" fill="curr
 const ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>';
 const ICON_MUTED = '<svg viewBox="0 0 24 24"><path d="M6.3 7c0-1 .8-1.8 1.8-1.8h.5l6-5.5c.6-.5 1.5-.2 1.5.7v16c0 .9-.9 1.2-1.5.7l-6-5.5h-.5c-1 0-1.8-.8-1.8-1.8V7zm12 0c0 3.5-1.8 6.5-4.5 8.3m0-16.6c2.7 1.8 4.5 4.8 4.5 8.3M18 2l3 3m0 6l3-3"/></svg>';
 const ICON_UNMUTED = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
-const ICON_INSTAGRAM_GLYPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>';
-const ICON_EXTERNAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>';
 
 // ========== CAPTION SCRIM + BESOINS OVERLAY FOLLOW BUTTON ==========
 function buildCaptionScrimHtml(caption, uploaderName, dateDisplay) {
@@ -1488,36 +1436,6 @@ function createTimelineCard(item, cardId) {
     return container;
   }
 
-  if (item.type === 'instagram') {
-    const { uploaderName, caption, date, time } = item.data;
-    const link = item.data.instagramUrl || '#';
-    const dateDisplay = formatDate(date, time);
-
-    const embedCard = document.createElement('div');
-    embedCard.className = 'instagram-embed-card';
-    embedCard.innerHTML = `
-      <div class="instagram-embed-header">
-        <div class="instagram-embed-meta">
-          <div class="creator-name">${escapeHtml(uploaderName || 'Community Member')}</div>
-          <div class="instagram-embed-date">${escapeHtml(dateDisplay)}</div>
-        </div>
-        <a class="follow-btn" href="https://www.instagram.com/the.khichiyagravy" target="_blank" rel="noopener">Follow</a>
-      </div>
-      ${caption ? `<div class="instagram-embed-caption">${escapeHtml(caption)}</div>` : ''}
-      <div class="instagram-embed-frame">
-        ${ICON_INSTAGRAM_GLYPH}
-        <span>Shared via Instagram</span>
-      </div>
-      <a class="instagram-embed-cta" href="${escapeHtml(link)}" target="_blank" rel="noopener">
-        View on Instagram ${ICON_EXTERNAL}
-      </a>
-    `;
-
-    container.classList.add('compact-item');
-    container.appendChild(embedCard);
-    return container;
-  }
-
   return container;
 }
 
@@ -1585,7 +1503,7 @@ UPLOAD_TABS.querySelectorAll('.upload-modal-tab').forEach((tabBtn) => {
     if (currentUploadTab === 'link') {
       UPLOAD_MEDIA_PANEL.style.display = 'none';
       UPLOAD_LINK_PANEL.style.display = '';
-      UPLOAD_SUBTITLE.textContent = 'Share an Instagram, Facebook, YouTube, or TikTok link';
+      UPLOAD_SUBTITLE.textContent = 'Share an Instagram Reel or post link';
     } else {
       UPLOAD_MEDIA_PANEL.style.display = '';
       UPLOAD_LINK_PANEL.style.display = 'none';
@@ -1757,14 +1675,14 @@ async function handleSocialLinkSubmit() {
   const link = SOCIAL_LINK_INPUT.value.trim();
 
   if (!link) {
-    alert('Please paste a social media link');
+    alert('Please paste an Instagram link');
     return;
   }
 
-  const validDomains = ['instagram.com', 'facebook.com', 'youtube.com', 'youtu.be', 'tiktok.com'];
+  const validDomains = ['instagram.com'];
   const isRecognized = validDomains.some((domain) => link.includes(domain));
   if (!isRecognized) {
-    const proceed = confirm('This doesn\'t look like an Instagram, Facebook, YouTube, or TikTok link. Share it anyway?');
+    const proceed = confirm('This doesn\'t look like an Instagram link. Share it anyway?');
     if (!proceed) return;
   }
 
