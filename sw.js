@@ -1,7 +1,7 @@
 /* ==========================================================================
-   TKG Service Worker — v1.0.3
+   TKG Service Worker — v1.0.4
    
-   Changes in v1.0.3:
+   Changes in v1.0.4:
    1. Bumped version to force cache purge across all devices
    2. Precache array verified: /moments_hub.html (underscore, not hyphen)
    3. CORS bypass confirmed: Early return for Apps Script + Stream Proxy
@@ -9,7 +9,7 @@
    
    ========================================================================== */
 
-const CACHE_NAME = 'tkg-os-v-1.0.3';
+const CACHE_NAME = 'tkg-os-v-1.0.4';
 
 const APP_SHELL = [
   '/',
