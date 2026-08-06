@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>TKG Moments</title>
+<title>The Khichiya Gravy — Moments</title>
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -64,8 +64,8 @@
   --radius-md: 8px;
   --max-w: 430px;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --glass-bg: rgba(20,20,20,0.55);
-  --glass-border: rgba(255,255,255,0.14);
+  --glass-bg: rgba(20,20,20,0.65);
+  --glass-border: rgba(255,255,255,0.18);
 }
 
 html[data-tkg-theme="dark"]{
@@ -104,6 +104,36 @@ body {
   overflow: hidden;
 }
 
+/* ===== APP HEADER BAR ===== */
+.brand-header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
+  z-index: 40;
+  pointer-events: none;
+}
+
+.brand-header-text {
+  pointer-events: auto;
+}
+
+.brand-header-title {
+  color: #FFFFFF;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.brand-header-subtitle {
+  color: rgba(255,255,255,0.7);
+  font-size: 11px;
+  font-weight: 500;
+}
+
 .moments-content {
   height: 100%;
   overflow-y: scroll;
@@ -119,7 +149,7 @@ body {
 #momentsFeed {
   display: flex;
   flex-direction: column;
-  padding-bottom: 110px; /* keeps trailing cards clear of the floating nav */
+  padding-bottom: 110px;
 }
 
 /* ===== FULL-BLEED MEDIA CARD (video / photo) ===== */
@@ -135,7 +165,7 @@ body {
 
 /* ===== COMPACT CARD (review / instagram embed) ===== */
 .timeline-item.compact-item {
-  padding: 16px;
+  padding: 80px 16px 16px;
   margin-bottom: 16px;
   scroll-snap-align: start;
 }
@@ -166,8 +196,6 @@ body {
   display: block;
 }
 
-/* Blurred background fill for photos that aren't natively 9:16, so
-   object-fit:cover never leaves a bare gap at the top/bottom of the frame */
 .media-bg-blur {
   position: absolute;
   inset: -24px;
@@ -244,71 +272,48 @@ body {
   pointer-events: none;
 }
 
-/* ===== CREATOR HEADER OVERLAY (top of media) ===== */
-.creator-header {
+/* ===== CAPTION SCRIM + BESOINS OVERLAY FOLLOW BUTTON ===== */
+.caption-scrim {
   position: absolute;
-  top: 0; left: 0; right: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px 44px;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.28) 55%, transparent 100%);
-  z-index: 15;
+  left: 0; right: 0; bottom: 0;
+  padding: 60px 84px calc(110px + env(safe-area-inset-bottom, 0px)) 16px;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+  z-index: 12;
   pointer-events: none;
 }
 
-.creator-header .follow-btn { pointer-events: auto; }
-
-.creator-avatar {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: var(--accent-bg);
-  color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 14px;
-  border: 1.5px solid rgba(255,255,255,0.35);
-  flex-shrink: 0;
+.caption-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  pointer-events: auto;
 }
 
-.creator-name {
-  color: #fff;
+.caption-uploader-name {
+  color: #FFFFFF;
   font-size: 14px;
-  font-weight: 600;
-  flex: 1;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
 
 .follow-btn {
-  padding: 6px 14px;
+  padding: 4px 12px;
   border-radius: 999px;
-  border: 1.5px solid rgba(255,255,255,0.7);
-  color: #fff;
-  font-size: 12px;
+  border: 1px solid rgba(255,255,255,0.8);
+  color: #FFFFFF;
+  font-size: 11px;
   font-weight: 700;
   text-decoration: none;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.15);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  flex-shrink: 0;
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .follow-btn:active {
-  transform: scale(0.94);
-  background: rgba(255,255,255,0.2);
-}
-
-/* ===== CAPTION SCRIM (bottom of media) ===== */
-.caption-scrim {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  padding: 60px 84px calc(120px + env(safe-area-inset-bottom, 0px)) 16px;
-  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 45%, transparent 100%);
-  z-index: 12;
-  pointer-events: none;
+  transform: scale(0.92);
+  background: rgba(255,255,255,0.3);
 }
 
 .caption-scrim .timeline-item-caption {
@@ -317,61 +322,61 @@ body {
   line-height: 1.4;
   margin-bottom: 4px;
   word-wrap: break-word;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  pointer-events: auto;
 }
 
 .caption-scrim .timeline-item-meta {
   color: rgba(255,255,255,0.75);
   font-size: 12px;
   letter-spacing: -0.1px;
+  pointer-events: auto;
 }
 
-/* ===== RIGHT-SIDE ACTION STACK (icon-only, glass pills) ===== */
+/* ===== RIGHT-SIDE ACTION STACK (CLEAN FLOATING ICONS - NO CIRCLE/BG) ===== */
 .engagement-overlay {
   position: absolute;
   right: 14px;
   bottom: 210px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
   z-index: 20;
 }
 
 .video-controls-overlay {
   position: absolute;
   right: 14px;
-  bottom: 150px;
+  bottom: 154px;
   display: none;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
   z-index: 20;
 }
 
 .engagement-btn, .control-btn {
   position: relative;
-  width: 46px; height: 46px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: white;
+  width: 44px; height: 44px;
+  background: none;
+  border: none;
+  color: #FFFFFF;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), background 0.2s ease;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
+  transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
 }
 
 .engagement-btn svg, .control-btn svg {
-  width: 23px; height: 23px;
+  width: 26px; height: 26px;
   fill: currentColor;
 }
 
 .engagement-btn:active, .control-btn:active {
-  background: rgba(0, 0, 0, 0.6);
-  transform: scale(0.88);
+  background: none;
+  transform: scale(0.85);
 }
 
 .engagement-btn .icon-fill { display: none; }
@@ -380,33 +385,15 @@ body {
 
 .engagement-btn.liked {
   color: #FF1744;
-  background: rgba(255, 23, 68, 0.22);
-  border-color: rgba(255, 23, 68, 0.5);
-  transform: scale(1.06);
-}
-
-.engagement-btn.liked::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 50%;
-  border: 2px solid #FF1744;
-  animation: heartPulse 0.6s ease-out;
-}
-
-@keyframes heartPulse {
-  0% { transform: scale(0.85); opacity: 1; }
-  100% { transform: scale(1.5); opacity: 0; }
+  transform: scale(1.1);
 }
 
 .control-btn.muted { opacity: 0.75; }
 
-/* ===== FLOATING ACTION BUTTON (Share) ===== */
+/* ===== FLOATING ACTION BUTTON (Share / +) ===== */
 .fab-share {
-  position: fixed;
-  top: calc(env(safe-area-inset-top, 0px) + 16px);
-  right: 16px;
-  width: 44px; height: 44px;
+  pointer-events: auto;
+  width: 40px; height: 40px;
   border-radius: 50%;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -415,12 +402,11 @@ body {
   color: #fff;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  z-index: 55;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
   transition: transform 0.2s ease;
 }
 
-.fab-share svg { width: 22px; height: 22px; stroke: currentColor; fill: none; }
+.fab-share svg { width: 20px; height: 20px; stroke: currentColor; fill: none; }
 .fab-share:active { transform: scale(0.9); }
 
 /* ===== COMPACT CARDS: Google Review + Instagram Embed ===== */
@@ -456,30 +442,27 @@ body {
 .instagram-embed-card {
   background: var(--card-bg);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 18px;
   border: 1px solid var(--border-crisp);
 }
 
 .instagram-embed-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   margin-bottom: 10px;
 }
 
 .instagram-embed-meta {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-width: 0;
 }
 
 .instagram-embed-meta .creator-name {
   color: var(--card-text);
   font-size: 14px;
-  font-weight: 600;
-  text-shadow: none;
+  font-weight: 700;
 }
 
 .instagram-embed-date {
@@ -529,11 +512,7 @@ body {
 .instagram-embed-cta svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
 .instagram-embed-cta:active { opacity: 0.85; }
 
-/* ===== EXPANDABLE / CONDENSING BOTTOM NAVIGATION =====
-   Default (top-of-page): full-width glass dock, flush to the bottom edge.
-   .nav-condensed (scrolled down): shrinks into a centered floating pill.
-   Left/transform stay constant across both states so the width/bottom/
-   radius/padding changes animate smoothly instead of snapping. */
+/* ===== EXPANDABLE / CONDENSING BOTTOM NAVIGATION ===== */
 .moments-nav {
   position: fixed;
   left: 50%;
@@ -550,13 +529,12 @@ body {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-bottom: none;
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   box-shadow: 0 -6px 24px rgba(0,0,0,0.25);
   z-index: 50;
   transition: width 0.4s cubic-bezier(.4,0,.2,1), bottom 0.4s cubic-bezier(.4,0,.2,1),
-              border-radius 0.4s ease, padding 0.4s ease, box-shadow 0.4s ease,
-              border-color 0.4s ease;
+              border-radius 0.4s ease, padding 0.4s ease, box-shadow 0.4s ease;
 }
 
 .moments-nav.nav-condensed {
@@ -600,12 +578,12 @@ body {
 
 .moments-nav-btn.instagram-btn { color: #E1306C; }
 
-/* ===== UPLOAD MODAL (unchanged structurally, icon-only tweaks) ===== */
+/* ===== UPLOAD / SHARE MODAL ===== */
 .upload-modal {
   display: none;
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.6);
   z-index: 100;
   flex-direction: column;
   align-items: center;
@@ -621,7 +599,7 @@ body {
   padding: 24px;
   width: 100%;
   max-width: 360px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   border: 1px solid var(--page-border);
   max-height: 85dvh;
   overflow-y: auto;
@@ -630,7 +608,7 @@ body {
 .upload-modal-title {
   font-size: 18px;
   font-weight: 700;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   text-align: left;
   letter-spacing: -0.3px;
 }
@@ -640,8 +618,6 @@ body {
   color: var(--text-tertiary);
   margin-bottom: 16px;
 }
-
-.upload-modal-field { margin-bottom: 16px; }
 
 .upload-modal-tabs {
   display: flex;
@@ -668,6 +644,8 @@ body {
   color: var(--page-bg);
   border-color: var(--text-primary);
 }
+
+.upload-modal-field { margin-bottom: 16px; }
 
 .upload-modal-label {
   display: block;
@@ -835,14 +813,22 @@ body {
 
 <div class="moments-app">
 
+  <!-- TOP BRAND HEADER BAR -->
+  <header class="brand-header">
+    <div class="brand-header-text">
+      <div class="brand-header-title">The Khichiya Gravy</div>
+      <div class="brand-header-subtitle">Gallery from the community</div>
+    </div>
+    <button id="shareBtn" class="fab-share" title="Share a moment">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </header>
+
   <div class="moments-content" id="momentsContent">
     <div id="momentsFeed"></div>
   </div>
 
-  <button id="shareBtn" class="fab-share" title="Share a moment">
-    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-  </button>
-
+  <!-- SHARE / UPLOAD MODAL -->
   <div class="upload-modal" id="uploadModal">
     <div class="upload-modal-content">
       <h2 class="upload-modal-title">Share a Moment</h2>
@@ -890,6 +876,7 @@ body {
     </div>
   </div>
 
+  <!-- FLOATING / EXPANDABLE DOCK -->
   <nav class="moments-nav" id="momentsNav">
     <a href="./moments_hub.html" class="moments-nav-btn" title="Hub">
       <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
@@ -1102,7 +1089,7 @@ async function compressImage(file) {
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]); // strip data: prefix, keep raw base64
+    reader.onload = () => resolve(reader.result.split(',')[1]);
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -1125,7 +1112,7 @@ async function fetchMoments() {
   }
 }
 
-// ========== RENDER TIMELINE ==========
+// ========== RENDER TIMELINE (WITH ROBUST KEY FALLBACKS) ==========
 function renderTimeline() {
   FEED.innerHTML = '';
   
@@ -1137,8 +1124,11 @@ function renderTimeline() {
   let timelineItems = [];
 
   moments.forEach((moment) => {
-    const type = String(moment.type || 'customer_photo').toLowerCase();
+    const type = String(moment.type || '').toLowerCase();
     
+    // Comprehensive key fallbacks for Instagram / Social Links from Google Sheets
+    const instagramLink = moment.instagramUrl || moment['Instagram URL'] || moment.instagram_url || moment.socialUrl || moment['Social URL'] || moment.social_url;
+
     if (type === 'google_review' || type === 'review') {
       timelineItems.push({
         type: 'google_review',
@@ -1147,17 +1137,19 @@ function renderTimeline() {
       return;
     }
 
-    if (type === 'instagram' || type === 'social_link' || moment.instagramUrl || moment.socialUrl) {
+    if (type === 'instagram' || type === 'social_link' || type === 'link' || instagramLink) {
       timelineItems.push({
         type: 'instagram',
-        data: moment
+        data: {
+          ...moment,
+          instagramUrl: instagramLink
+        }
       });
       return;
     }
 
     if (moment.media && Array.isArray(moment.media) && moment.media.length > 0) {
       if (moment.media.length > 1) {
-        // Multi-item post: one card, rendered as a horizontal carousel — not split into separate cards
         timelineItems.push({
           type: 'carousel',
           data: moment
@@ -1186,7 +1178,7 @@ function renderTimeline() {
   MUTE_STATE.updateAllVideos();
 }
 
-// ========== ICONS (24px outline SVGs, filled variants for active states) ==========
+// ========== ICONS ==========
 const ICON_HEART_OUTLINE = '<svg class="icon-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
 const ICON_HEART_FILLED = '<svg class="icon-fill" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
 const ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>';
@@ -1195,27 +1187,17 @@ const ICON_UNMUTED = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13
 const ICON_INSTAGRAM_GLYPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>';
 const ICON_EXTERNAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>';
 
-// ========== CREATOR HEADER / CAPTION SCRIM HELPERS ==========
-function getInitial(name) {
-  const trimmed = (name || '').trim();
-  return trimmed ? trimmed.charAt(0).toUpperCase() : 'T';
-}
-
-function buildCreatorHeaderHtml(uploaderName) {
-  return `
-    <div class="creator-header">
-      <div class="creator-avatar">${escapeHtml(getInitial(uploaderName))}</div>
-      <div class="creator-name">${escapeHtml(uploaderName || 'Community Member')}</div>
-      <a class="follow-btn" href="https://www.instagram.com/the.khichiyagravy" target="_blank" rel="noopener">Follow</a>
-    </div>
-  `;
-}
-
+// ========== CAPTION SCRIM + BESOINS OVERLAY FOLLOW BUTTON ==========
 function buildCaptionScrimHtml(caption, uploaderName, dateDisplay) {
+  const name = uploaderName || 'Community Member';
   return `
     <div class="caption-scrim">
+      <div class="caption-meta-row">
+        <span class="caption-uploader-name">${escapeHtml(name)}</span>
+        <a class="follow-btn" href="https://www.instagram.com/the.khichiyagravy" target="_blank" rel="noopener">Follow</a>
+      </div>
       ${caption ? `<div class="timeline-item-caption">${escapeHtml(caption)}</div>` : ''}
-      <div class="timeline-item-meta">${escapeHtml(uploaderName || 'Community Member')} • ${escapeHtml(dateDisplay)}</div>
+      <div class="timeline-item-meta">${escapeHtml(dateDisplay)}</div>
     </div>
   `;
 }
@@ -1241,7 +1223,6 @@ function createTimelineCard(item, cardId) {
     video.playsinline = true;
     video.muted = MUTE_STATE.muted;
 
-    // Mute control (right-side stack, visibility toggled by the IntersectionObserver)
     const controlsOverlay = document.createElement('div');
     controlsOverlay.className = 'video-controls-overlay';
     controlsOverlay.style.display = 'none';
@@ -1251,7 +1232,6 @@ function createTimelineCard(item, cardId) {
       </button>
     `;
 
-    // Like + Share (right-side stack, always visible)
     const engagementOverlay = document.createElement('div');
     engagementOverlay.className = 'engagement-overlay';
     engagementOverlay.innerHTML = `
@@ -1263,30 +1243,24 @@ function createTimelineCard(item, cardId) {
       </button>
     `;
 
-    const headerWrap = document.createElement('div');
-    headerWrap.innerHTML = buildCreatorHeaderHtml(uploaderName);
     const captionWrap = document.createElement('div');
     captionWrap.innerHTML = buildCaptionScrimHtml(caption, uploaderName, dateDisplay);
 
     mediaContainer.appendChild(video);
-    mediaContainer.appendChild(headerWrap.firstElementChild);
     mediaContainer.appendChild(captionWrap.firstElementChild);
     mediaContainer.appendChild(controlsOverlay);
     mediaContainer.appendChild(engagementOverlay);
 
-    // Setup observers and handlers
     setupVideoObserver(video, mediaContainer);
     setupVideoTapHandler(video);
     setupDoubleTapLike(mediaContainer, cardId);
 
-    // Mute button handler
     const muteBtn = controlsOverlay.querySelector('.mute-btn');
     muteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       MUTE_STATE.toggle();
     });
 
-    // Engagement button handlers
     const likeBtn = engagementOverlay.querySelector('.like-btn');
     likeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1313,7 +1287,6 @@ function createTimelineCard(item, cardId) {
 
     const transformedUrl = transformDriveImageUrl(media.url);
 
-    // Blurred fill layer behind the image so non-9:16 photos never show a gap
     const bgBlur = document.createElement('div');
     bgBlur.className = 'media-bg-blur';
     bgBlur.style.backgroundImage = `url("${transformedUrl}")`;
@@ -1323,7 +1296,6 @@ function createTimelineCard(item, cardId) {
     img.src = transformedUrl;
     img.alt = caption || 'Photo';
     img.loading = 'lazy';
-    // If the primary lh3.googleusercontent.com URL fails (e.g. permissions), fall back to the uc?export=view format once
     img.addEventListener('error', function onImgError() {
       img.removeEventListener('error', onImgError);
       const fileId = extractGoogleDriveId(media.url);
@@ -1334,8 +1306,6 @@ function createTimelineCard(item, cardId) {
       }
     });
 
-    const headerWrap = document.createElement('div');
-    headerWrap.innerHTML = buildCreatorHeaderHtml(uploaderName);
     const captionWrap = document.createElement('div');
     captionWrap.innerHTML = buildCaptionScrimHtml(caption, uploaderName, dateDisplay);
 
@@ -1352,7 +1322,6 @@ function createTimelineCard(item, cardId) {
 
     mediaContainer.appendChild(bgBlur);
     mediaContainer.appendChild(img);
-    mediaContainer.appendChild(headerWrap.firstElementChild);
     mediaContainer.appendChild(captionWrap.firstElementChild);
     mediaContainer.appendChild(engagementOverlay);
 
@@ -1406,8 +1375,6 @@ function createTimelineCard(item, cardId) {
         video.muted = MUTE_STATE.muted;
         slide.appendChild(video);
 
-        // Pass mediaContainer (not the slide) so the shared mute overlay's
-        // querySelector in setupVideoObserver resolves correctly
         setupVideoObserver(video, mediaContainer);
         setupVideoTapHandler(video);
       } else {
@@ -1439,7 +1406,6 @@ function createTimelineCard(item, cardId) {
       track.appendChild(slide);
     });
 
-    // Top-right slide counter (e.g. "1/3"), updates as the user swipes horizontally
     const counter = document.createElement('div');
     counter.className = 'carousel-counter';
     counter.textContent = `1/${mediaList.length}`;
@@ -1449,8 +1415,6 @@ function createTimelineCard(item, cardId) {
       counter.textContent = `${clamped + 1}/${mediaList.length}`;
     }, { passive: true });
 
-    const headerWrap = document.createElement('div');
-    headerWrap.innerHTML = buildCreatorHeaderHtml(uploaderName);
     const captionWrap = document.createElement('div');
     captionWrap.innerHTML = buildCaptionScrimHtml(caption, uploaderName, dateDisplay);
 
@@ -1467,7 +1431,6 @@ function createTimelineCard(item, cardId) {
 
     mediaContainer.appendChild(track);
     mediaContainer.appendChild(counter);
-    mediaContainer.appendChild(headerWrap.firstElementChild);
     mediaContainer.appendChild(captionWrap.firstElementChild);
     mediaContainer.appendChild(engagementOverlay);
 
@@ -1485,7 +1448,6 @@ function createTimelineCard(item, cardId) {
       alert('Share feature coming soon');
     });
 
-    // Shared mute control — only needed if at least one slide is a video
     if (hasVideo) {
       const controlsOverlay = document.createElement('div');
       controlsOverlay.className = 'video-controls-overlay';
@@ -1528,18 +1490,18 @@ function createTimelineCard(item, cardId) {
 
   if (item.type === 'instagram') {
     const { uploaderName, caption, date, time } = item.data;
-    const link = item.data.instagramUrl || item.data.socialUrl || '#';
+    const link = item.data.instagramUrl || '#';
     const dateDisplay = formatDate(date, time);
 
     const embedCard = document.createElement('div');
     embedCard.className = 'instagram-embed-card';
     embedCard.innerHTML = `
       <div class="instagram-embed-header">
-        <div class="creator-avatar">${escapeHtml(getInitial(uploaderName))}</div>
         <div class="instagram-embed-meta">
           <div class="creator-name">${escapeHtml(uploaderName || 'Community Member')}</div>
           <div class="instagram-embed-date">${escapeHtml(dateDisplay)}</div>
         </div>
+        <a class="follow-btn" href="https://www.instagram.com/the.khichiyagravy" target="_blank" rel="noopener">Follow</a>
       </div>
       ${caption ? `<div class="instagram-embed-caption">${escapeHtml(caption)}</div>` : ''}
       <div class="instagram-embed-frame">
@@ -1558,6 +1520,7 @@ function createTimelineCard(item, cardId) {
 
   return container;
 }
+
 // ========== FORMAT DATE ==========
 function formatDate(date, time) {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -1598,7 +1561,6 @@ function transformDriveImageUrl(rawUrl) {
   if (!rawUrl) return rawUrl;
   const fileId = extractGoogleDriveId(rawUrl);
   if (!fileId) return rawUrl;
-  // lh3.googleusercontent.com loads cleanly in <img> tags without Drive's viewer chrome
   return `https://lh3.googleusercontent.com/d/${fileId}`;
 }
 
@@ -1612,7 +1574,6 @@ UPLOAD_CANCEL.addEventListener('click', () => {
   closeUploadModal();
 });
 
-// Tab switcher: "Upload Media" vs "Share Link"
 UPLOAD_TABS.querySelectorAll('.upload-modal-tab').forEach((tabBtn) => {
   tabBtn.addEventListener('click', () => {
     currentUploadTab = tabBtn.dataset.tab;
@@ -1713,12 +1674,8 @@ async function handleMediaUpload() {
   let uploaded = 0;
 
   try {
-    // Upload sequentially, one file per request, so no single payload ever
-    // grows large enough to risk hitting Apps Script's request-size ceiling.
     for (const file of selectedFiles) {
       if (file.size > MAX_FILE_SIZE && !file.type.startsWith('image/')) {
-        // Images get compressed below regardless of starting size; only guard
-        // non-image files (e.g. video) here since they're sent as-is.
         throw new Error(`"${file.name}" is larger than ${Math.round(MAX_FILE_SIZE / (1024 * 1024))}MB. Please choose a smaller file.`);
       }
 
@@ -1736,13 +1693,6 @@ async function handleMediaUpload() {
         }]
       };
 
-      // IMPORTANT: 'text/plain' avoids a CORS preflight (OPTIONS) request.
-      // Google Apps Script web apps don't implement doOptions(), so a
-      // preflighted request (which 'application/json' triggers) fails
-      // before it ever reaches doPost() — this is what produces the
-      // generic "Failed to fetch" error in the browser. Apps Script still
-      // reads the raw body via e.postData.contents and JSON.parse()s it
-      // regardless of the header, so this is safe for the backend.
       const response = await fetch(APP_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1762,12 +1712,11 @@ async function handleMediaUpload() {
       UPLOAD_PROGRESS_BAR.style.width = Math.round((uploaded / selectedFiles.length) * 100) + '%';
     }
 
-    // Modal closes and feed refreshes only after every file has finished
     closeUploadModal();
     fetchMoments();
   } catch (err) {
     console.error('Upload error:', err);
-    alert(`Upload failed: ${err.message}${uploaded > 0 ? ` (${uploaded}/${selectedFiles.length} file(s) uploaded before the error)` : ''}`);
+    alert(`Upload failed: ${err.message}${uploaded > 0 ? ` (${uploaded}/${selectedFiles.length} file(s) uploaded before error)` : ''}`);
   } finally {
     UPLOAD_SUBMIT.disabled = false;
     UPLOAD_PROGRESS.classList.remove('show');
@@ -1798,7 +1747,6 @@ async function handleSocialLinkSubmit() {
       instagramUrl: link
     };
 
-    // Same CORS-preflight-avoidance fix as handleMediaUpload() above.
     const response = await fetch(APP_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1858,17 +1806,14 @@ function escapeHtml(text) {
 }
 
 // ========== EXPANDABLE / CONDENSING BOTTOM NAV ==========
-// Additive only: does not touch video/mute/upload logic.
-// Top-of-page -> full-width dock. Scroll down -> condenses into a centered
-// floating pill. Scroll up, or a tap/touch on the nav itself -> expands back.
 (function setupExpandableNav() {
   const scrollEl = document.getElementById('momentsContent');
   const nav = document.getElementById('momentsNav');
   if (!scrollEl || !nav) return;
 
   let lastScrollTop = scrollEl.scrollTop;
-  const DELTA_THRESHOLD = 10; // ignore tiny scroll jitter
-  const TOP_ZONE = 24; // px from top that always counts as "top of page"
+  const DELTA_THRESHOLD = 10;
+  const TOP_ZONE = 24;
 
   function expandNav() { nav.classList.remove('nav-condensed'); }
   function condenseNav() { nav.classList.add('nav-condensed'); }
@@ -1881,19 +1826,17 @@ function escapeHtml(text) {
       expandNav();
     } else if (Math.abs(delta) > DELTA_THRESHOLD) {
       if (delta > 0) {
-        condenseNav(); // scrolling down
+        condenseNav();
       } else {
-        expandNav(); // scrolling up
+        expandNav();
       }
     }
     lastScrollTop = current;
   }, { passive: true });
 
-  // Touch/tap on the nav itself always expands it back
   nav.addEventListener('click', expandNav);
   nav.addEventListener('touchstart', expandNav, { passive: true });
 })();
-
 
 // ========== INIT ==========
 fetchMoments();
