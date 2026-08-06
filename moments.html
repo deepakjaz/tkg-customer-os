@@ -187,6 +187,63 @@ body {
   display: block;
 }
 
+/* ===== INSTAGRAM-STYLE MULTI-MEDIA CAROUSEL ===== */
+.timeline-item-carousel-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.carousel-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.carousel-track::-webkit-scrollbar { display: none; }
+
+.carousel-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  overflow: hidden;
+  background: #000;
+}
+
+.carousel-slide .timeline-item-video,
+.carousel-slide .timeline-item-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carousel-counter {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 66px);
+  right: 14px;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 16;
+  pointer-events: none;
+}
+
 /* ===== CREATOR HEADER OVERLAY (top of media) ===== */
 .creator-header {
   position: absolute;
@@ -472,30 +529,44 @@ body {
 .instagram-embed-cta svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
 .instagram-embed-cta:active { opacity: 0.85; }
 
-/* ===== FLOATING ISLAND BOTTOM NAVIGATION ===== */
+/* ===== EXPANDABLE / CONDENSING BOTTOM NAVIGATION =====
+   Default (top-of-page): full-width glass dock, flush to the bottom edge.
+   .nav-condensed (scrolled down): shrinks into a centered floating pill.
+   Left/transform stay constant across both states so the width/bottom/
+   radius/padding changes animate smoothly instead of snapping. */
 .moments-nav {
   position: fixed;
   left: 50%;
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  bottom: 0;
   transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: calc(var(--max-w) - 24px);
   display: flex;
   align-items: center;
+  justify-content: space-around;
   gap: 2px;
-  padding: 6px;
-  border-radius: 999px;
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+  border-radius: 22px 22px 0 0;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  border-bottom: none;
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: 0 -6px 24px rgba(0,0,0,0.25);
   z-index: 50;
-  transition: transform 0.4s cubic-bezier(.4,0,.2,1), opacity 0.3s ease;
+  transition: width 0.4s cubic-bezier(.4,0,.2,1), bottom 0.4s cubic-bezier(.4,0,.2,1),
+              border-radius 0.4s ease, padding 0.4s ease, box-shadow 0.4s ease,
+              border-color 0.4s ease;
 }
 
 .moments-nav.nav-condensed {
-  transform: translateX(-50%) translateY(160%);
-  opacity: 0;
-  pointer-events: none;
+  width: 208px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  border-radius: 999px;
+  border-bottom: 1px solid var(--glass-border);
+  padding: 6px;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
 
 .moments-nav-btn {
@@ -509,6 +580,7 @@ body {
   color: rgba(255,255,255,0.7);
   cursor: pointer;
   text-decoration: none;
+  flex-shrink: 0;
   transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
 }
 
@@ -1041,11 +1113,18 @@ function renderTimeline() {
       return;
     }
 
-    if (moment.media && Array.isArray(moment.media)) {
-      moment.media.forEach((item) => {
+    if (moment.media && Array.isArray(moment.media) && moment.media.length > 0) {
+      if (moment.media.length > 1) {
+        // Multi-item post: one card, rendered as a horizontal carousel — not split into separate cards
+        timelineItems.push({
+          type: 'carousel',
+          data: moment
+        });
+      } else {
+        const item = moment.media[0];
         const mimeType = item.mimeType || 'image/jpeg';
         const isVideo = mimeType.indexOf('video/') === 0;
-        
+
         timelineItems.push({
           type: isVideo ? 'video' : 'photo',
           data: {
@@ -1053,7 +1132,7 @@ function renderTimeline() {
             media: item
           }
         });
-      });
+      }
     }
   });
 
@@ -1248,6 +1327,140 @@ function createTimelineCard(item, cardId) {
       e.stopPropagation();
       alert('Share feature coming soon');
     });
+
+    container.classList.add('media-item');
+    container.appendChild(mediaContainer);
+    return container;
+  }
+
+  if (item.type === 'carousel') {
+    const { caption, uploaderName, date, time, media } = item.data;
+    const dateDisplay = formatDate(date, time);
+    const mediaList = media;
+
+    const mediaContainer = document.createElement('div');
+    mediaContainer.className = 'timeline-item-media timeline-item-carousel-container';
+
+    const track = document.createElement('div');
+    track.className = 'carousel-track';
+
+    let hasVideo = false;
+
+    mediaList.forEach((mediaItem) => {
+      const mimeType = mediaItem.mimeType || 'image/jpeg';
+      const isVideo = mimeType.indexOf('video/') === 0;
+      const slide = document.createElement('div');
+      slide.className = 'carousel-slide';
+
+      if (isVideo) {
+        hasVideo = true;
+        const fileId = extractGoogleDriveId(mediaItem.url);
+        const streamUrl = fileId ? `/api/stream?id=${fileId}` : mediaItem.url;
+
+        const video = document.createElement('video');
+        video.className = 'timeline-item-video';
+        video.src = streamUrl;
+        video.playsinline = true;
+        video.muted = MUTE_STATE.muted;
+        slide.appendChild(video);
+
+        // Pass mediaContainer (not the slide) so the shared mute overlay's
+        // querySelector in setupVideoObserver resolves correctly
+        setupVideoObserver(video, mediaContainer);
+        setupVideoTapHandler(video);
+      } else {
+        const transformedUrl = transformDriveImageUrl(mediaItem.url);
+
+        const bgBlur = document.createElement('div');
+        bgBlur.className = 'media-bg-blur';
+        bgBlur.style.backgroundImage = `url("${transformedUrl}")`;
+
+        const img = document.createElement('img');
+        img.className = 'timeline-item-image';
+        img.src = transformedUrl;
+        img.alt = caption || 'Photo';
+        img.loading = 'lazy';
+        img.addEventListener('error', function onImgError() {
+          img.removeEventListener('error', onImgError);
+          const fileId = extractGoogleDriveId(mediaItem.url);
+          if (fileId) {
+            const fallbackUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+            img.src = fallbackUrl;
+            bgBlur.style.backgroundImage = `url("${fallbackUrl}")`;
+          }
+        });
+
+        slide.appendChild(bgBlur);
+        slide.appendChild(img);
+      }
+
+      track.appendChild(slide);
+    });
+
+    // Top-right slide counter (e.g. "1/3"), updates as the user swipes horizontally
+    const counter = document.createElement('div');
+    counter.className = 'carousel-counter';
+    counter.textContent = `1/${mediaList.length}`;
+    track.addEventListener('scroll', () => {
+      const rawIndex = Math.round(track.scrollLeft / track.clientWidth);
+      const clamped = Math.min(Math.max(rawIndex, 0), mediaList.length - 1);
+      counter.textContent = `${clamped + 1}/${mediaList.length}`;
+    }, { passive: true });
+
+    const headerWrap = document.createElement('div');
+    headerWrap.innerHTML = buildCreatorHeaderHtml(uploaderName);
+    const captionWrap = document.createElement('div');
+    captionWrap.innerHTML = buildCaptionScrimHtml(caption, uploaderName, dateDisplay);
+
+    const engagementOverlay = document.createElement('div');
+    engagementOverlay.className = 'engagement-overlay';
+    engagementOverlay.innerHTML = `
+      <button class="engagement-btn like-btn ${likedVideos.has(cardId) ? 'liked' : ''}" title="Like">
+        ${ICON_HEART_OUTLINE}${ICON_HEART_FILLED}
+      </button>
+      <button class="engagement-btn share-btn" title="Share">
+        ${ICON_SHARE}
+      </button>
+    `;
+
+    mediaContainer.appendChild(track);
+    mediaContainer.appendChild(counter);
+    mediaContainer.appendChild(headerWrap.firstElementChild);
+    mediaContainer.appendChild(captionWrap.firstElementChild);
+    mediaContainer.appendChild(engagementOverlay);
+
+    setupDoubleTapLike(mediaContainer, cardId);
+
+    const likeBtn = engagementOverlay.querySelector('.like-btn');
+    likeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleLike(cardId, mediaContainer);
+    });
+
+    const shareBtn = engagementOverlay.querySelector('.share-btn');
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      alert('Share feature coming soon');
+    });
+
+    // Shared mute control — only needed if at least one slide is a video
+    if (hasVideo) {
+      const controlsOverlay = document.createElement('div');
+      controlsOverlay.className = 'video-controls-overlay';
+      controlsOverlay.style.display = 'none';
+      controlsOverlay.innerHTML = `
+        <button class="control-btn mute-btn" title="${MUTE_STATE.muted ? 'Unmute' : 'Mute'}">
+          ${MUTE_STATE.muted ? ICON_MUTED : ICON_UNMUTED}
+        </button>
+      `;
+      mediaContainer.appendChild(controlsOverlay);
+
+      const muteBtn = controlsOverlay.querySelector('.mute-btn');
+      muteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        MUTE_STATE.toggle();
+      });
+    }
 
     container.classList.add('media-item');
     container.appendChild(mediaContainer);
@@ -1498,40 +1711,41 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// ========== FLOATING NAV — SCROLL-RESPONSIVE CONDENSE/REVEAL ==========
-// Additive only: does not touch video/mute/upload logic. Hides the pill on
-// scroll-down to maximize media viewing area, restores it on scroll-up, on
-// tap, or once scrolling settles for a moment.
-(function setupFloatingNavScroll() {
+// ========== EXPANDABLE / CONDENSING BOTTOM NAV ==========
+// Additive only: does not touch video/mute/upload logic.
+// Top-of-page -> full-width dock. Scroll down -> condenses into a centered
+// floating pill. Scroll up, or a tap/touch on the nav itself -> expands back.
+(function setupExpandableNav() {
   const scrollEl = document.getElementById('momentsContent');
   const nav = document.getElementById('momentsNav');
   if (!scrollEl || !nav) return;
 
   let lastScrollTop = scrollEl.scrollTop;
-  let settleTimer = null;
-  const DELTA_THRESHOLD = 12; // ignore tiny scroll jitter
+  const DELTA_THRESHOLD = 10; // ignore tiny scroll jitter
+  const TOP_ZONE = 24; // px from top that always counts as "top of page"
 
-  function showNav() { nav.classList.remove('nav-condensed'); }
-  function hideNav() { nav.classList.add('nav-condensed'); }
+  function expandNav() { nav.classList.remove('nav-condensed'); }
+  function condenseNav() { nav.classList.add('nav-condensed'); }
 
   scrollEl.addEventListener('scroll', () => {
     const current = scrollEl.scrollTop;
     const delta = current - lastScrollTop;
 
-    if (Math.abs(delta) > DELTA_THRESHOLD) {
-      if (delta > 0 && current > 40) {
-        hideNav(); // scrolling down past the first screen
+    if (current <= TOP_ZONE) {
+      expandNav();
+    } else if (Math.abs(delta) > DELTA_THRESHOLD) {
+      if (delta > 0) {
+        condenseNav(); // scrolling down
       } else {
-        showNav(); // scrolling up
+        expandNav(); // scrolling up
       }
-      lastScrollTop = current;
     }
-
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(showNav, 900); // reveal once scrolling settles
+    lastScrollTop = current;
   }, { passive: true });
 
-  nav.addEventListener('click', showNav);
+  // Touch/tap on the nav itself always expands it back
+  nav.addEventListener('click', expandNav);
+  nav.addEventListener('touchstart', expandNav, { passive: true });
 })();
 
 
