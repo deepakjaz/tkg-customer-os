@@ -682,7 +682,7 @@ const MUTE_STATE = {
   
   toggle() {
     this.muted = !this.muted;
-    localStorage.setItem('tkg_muted', this.muted);
+    localStorage.setItem('tkg_muted', String(this.muted));
     this.notifyListeners();
   },
   
@@ -701,6 +701,9 @@ const MUTE_STATE = {
   }
 };
 
+// Debug: Log mute state initialization
+console.log('[Moments] MUTE_STATE initialized:', MUTE_STATE.muted);
+
 // ========== BACK NAVIGATION ==========
 BACK_BTN.addEventListener('click', () => {
   window.history.back();
@@ -713,28 +716,62 @@ UPLOAD_FILE_BTN.addEventListener('click', () => {
 // ========== FETCH MOMENTS ==========
 async function fetchMoments() {
   try {
+    console.log('[Moments] Starting fetch...');
+    
     // Check cache first
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
-      const { data, timestamp } = JSON.parse(cached);
-      if (Date.now() - timestamp < CACHE_DURATION) {
-        renderMoments(data);
-        return;
+      try {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          console.log('[Moments] Using cached data');
+          renderMoments(data);
+          return;
+        }
+      } catch (cacheErr) {
+        console.warn('[Moments] Cache parse error, fetching fresh:', cacheErr);
       }
     }
 
+    console.log('[Moments] Fetching from Apps Script...');
     const response = await fetch(`${APP_SCRIPT_URL}?action=getTimelineItems`);
-    const data = await response.json();
     
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: data.timeline || [],
-      timestamp: Date.now()
-    }));
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('[Moments] Fetch successful, got', data.timeline?.length || 0, 'items');
+    
+    // Store in cache
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        data: data.timeline || [],
+        timestamp: Date.now()
+      }));
+    } catch (cacheStoreErr) {
+      console.warn('[Moments] Failed to cache:', cacheStoreErr);
+    }
 
     renderMoments(data.timeline || []);
   } catch (err) {
-    console.error('Fetch error:', err);
-    FEED.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-tertiary);">Unable to load moments. Please refresh.</div>';
+    console.error('[Moments] Fetch failed:', err);
+    
+    // Try fallback cache even if expired
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      try {
+        const { data } = JSON.parse(cached);
+        console.log('[Moments] Using stale cache as fallback');
+        renderMoments(data);
+        return;
+      } catch (e) {
+        console.warn('[Moments] Stale cache also failed');
+      }
+    }
+    
+    // No cache available — show error
+    FEED.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-tertiary);">Unable to load moments. Please check your connection and refresh.</div>';
   }
 }
 
@@ -1174,7 +1211,20 @@ function escapeHtml(text) {
 }
 
 // ========== INIT ==========
-fetchMoments();
+// Ensure fetchMoments runs after DOM is fully loaded
+// (it should already be, but this is a safeguard for timing issues)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      fetchMoments();
+    }, 100);
+  });
+} else {
+  // DOM is already loaded
+  setTimeout(() => {
+    fetchMoments();
+  }, 100);
+}
 </script>
 </body>
 </html>

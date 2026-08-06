@@ -77,14 +77,23 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   const method = event.request.method;
+  const hostname = url.hostname;
 
   // -----------------------------------------------------------------------
   // BYPASS #1: Never intercept Google Apps Script calls
   // These are data sync calls that must always hit the network.
-  // Let app.js handle success/failure directly.
+  // Explicitly pass through both script.google.com and script.googleusercontent.com
+  // (the latter is used after redirect from the former).
   // -----------------------------------------------------------------------
-  if (url.hostname.includes('script.google.com') || url.hostname.includes('script.googleusercontent.com')) {
-    return; // Don't intercept — let it pass through
+  if (
+    hostname === 'script.google.com' ||
+    hostname === 'script.googleusercontent.com' ||
+    hostname.endsWith('.script.google.com') ||
+    hostname.endsWith('.script.googleusercontent.com')
+  ) {
+    // Explicitly pass through to network without caching
+    event.respondWith(fetch(event.request));
+    return;
   }
 
   // -----------------------------------------------------------------------
@@ -93,7 +102,8 @@ self.addEventListener('fetch', (event) => {
   // device storage bloat and ensure up-to-date content.
   // -----------------------------------------------------------------------
   if (url.pathname.startsWith('/api/stream')) {
-    return; // Don't intercept — let it pass through
+    event.respondWith(fetch(event.request));
+    return;
   }
 
   // -----------------------------------------------------------------------
@@ -101,7 +111,8 @@ self.addEventListener('fetch', (event) => {
   // These are mutations that must go to the network.
   // -----------------------------------------------------------------------
   if (method !== 'GET') {
-    return; // Don't intercept — let it pass through
+    event.respondWith(fetch(event.request));
+    return;
   }
 
   // -----------------------------------------------------------------------
