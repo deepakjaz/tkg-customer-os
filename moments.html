@@ -43,7 +43,7 @@
 
 <style>
 :root{
-  /* PURE B&W PREMIUM AESTHETIC */
+  /* PURE B&W PREMIUM AESTHETIC + GLASS SURFACES */
   --page-bg:     #FFFFFF;
   --page-border: #E0E0E0;
   --text-primary: #000000;
@@ -64,6 +64,8 @@
   --radius-md: 8px;
   --max-w: 430px;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --glass-bg: rgba(20,20,20,0.55);
+  --glass-border: rgba(255,255,255,0.14);
 }
 
 html[data-tkg-theme="dark"]{
@@ -80,15 +82,15 @@ html[data-tkg-theme="dark"]{
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { 
-  height: 100dvh; 
-  width: 100%; 
-  background: var(--page-bg); 
-  color: var(--text-primary); 
+html, body {
+  height: 100dvh;
+  width: 100%;
+  background: #000000;
+  color: var(--text-primary);
   font-family: var(--font-body);
 }
-body { 
-  display: flex; 
+body {
+  display: flex;
   justify-content: center;
   overflow: hidden;
 }
@@ -96,42 +98,17 @@ body {
 .moments-app {
   width: 100%;
   max-width: var(--max-w);
-  display: flex;
-  flex-direction: column;
   height: 100dvh;
   position: relative;
-}
-
-.moments-header {
   background: var(--page-bg);
-  border-bottom: 1px solid var(--page-border);
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.moments-header h1 {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-  flex: 1;
-}
-
-.moments-header-btn {
-  background: none;
-  border: none;
-  padding: 8px;
-  cursor: pointer;
-  font-size: 20px;
-  color: var(--text-primary);
+  overflow: hidden;
 }
 
 .moments-content {
-  flex: 1;
+  height: 100%;
   overflow-y: scroll;
   scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
   scrollbar-width: none;
 }
 
@@ -142,183 +119,258 @@ body {
 #momentsFeed {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 16px;
-  scroll-snap-type: y mandatory;
+  padding-bottom: 110px; /* keeps trailing cards clear of the floating nav */
 }
 
-.timeline-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* ===== FULL-BLEED MEDIA CARD (video / photo) ===== */
+.timeline-item.media-item {
+  height: 100dvh;
+  width: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+/* ===== COMPACT CARD (review / instagram embed) ===== */
+.timeline-item.compact-item {
+  padding: 16px;
+  margin-bottom: 16px;
   scroll-snap-align: start;
 }
 
 .timeline-item-media {
   width: 100%;
-  height: auto;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--card-bg);
-  display: block;
-  border: 1px solid var(--border-crisp);
-}
-
-.timeline-item-image {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.timeline-item-video-container {
+  height: 100%;
   position: relative;
-  width: 100%;
-  background: var(--card-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 9 / 16;
   overflow: hidden;
-  border: 1px solid var(--border-crisp);
+  background: var(--card-bg);
+}
+
+.timeline-item-video-container,
+.timeline-item-photo-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #000;
 }
 
 .timeline-item-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: var(--card-bg);
+  background: #000;
   cursor: pointer;
+  display: block;
 }
 
-/* ENGAGEMENT OVERLAY — Floating Icons */
+/* Blurred background fill for photos that aren't natively 9:16, so
+   object-fit:cover never leaves a bare gap at the top/bottom of the frame */
+.media-bg-blur {
+  position: absolute;
+  inset: -24px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(28px) brightness(0.55) saturate(1.1);
+  transform: scale(1.15);
+  z-index: 0;
+}
+
+.timeline-item-image {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ===== CREATOR HEADER OVERLAY (top of media) ===== */
+.creator-header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px 44px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.28) 55%, transparent 100%);
+  z-index: 15;
+  pointer-events: none;
+}
+
+.creator-header .follow-btn { pointer-events: auto; }
+
+.creator-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  flex-shrink: 0;
+}
+
+.creator-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.follow-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,0.7);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  flex-shrink: 0;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.follow-btn:active {
+  transform: scale(0.94);
+  background: rgba(255,255,255,0.2);
+}
+
+/* ===== CAPTION SCRIM (bottom of media) ===== */
+.caption-scrim {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 60px 84px calc(120px + env(safe-area-inset-bottom, 0px)) 16px;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 45%, transparent 100%);
+  z-index: 12;
+  pointer-events: none;
+}
+
+.caption-scrim .timeline-item-caption {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  word-wrap: break-word;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.caption-scrim .timeline-item-meta {
+  color: rgba(255,255,255,0.75);
+  font-size: 12px;
+  letter-spacing: -0.1px;
+}
+
+/* ===== RIGHT-SIDE ACTION STACK (icon-only, glass pills) ===== */
 .engagement-overlay {
   position: absolute;
-  right: 12px;
-  bottom: 16px;
+  right: 14px;
+  bottom: 210px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  z-index: 10;
+  gap: 14px;
+  z-index: 20;
 }
 
-.engagement-btn {
-  width: 48px;
-  height: 48px;
+.video-controls-overlay {
+  position: absolute;
+  right: 14px;
+  bottom: 150px;
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 20;
+}
+
+.engagement-btn, .control-btn {
+  position: relative;
+  width: 46px; height: 46px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
   padding: 0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), background 0.2s ease;
 }
 
-.engagement-btn:active {
-  background: rgba(0, 0, 0, 0.6);
-  transform: scale(0.9);
+.engagement-btn svg, .control-btn svg {
+  width: 23px; height: 23px;
+  fill: currentColor;
 }
+
+.engagement-btn:active, .control-btn:active {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(0.88);
+}
+
+.engagement-btn .icon-fill { display: none; }
+.engagement-btn.liked .icon-outline { display: none; }
+.engagement-btn.liked .icon-fill { display: block; }
 
 .engagement-btn.liked {
   color: #FF1744;
-  background: rgba(255, 23, 68, 0.2);
+  background: rgba(255, 23, 68, 0.22);
+  border-color: rgba(255, 23, 68, 0.5);
+  transform: scale(1.06);
 }
 
-.engagement-btn.liked::before {
+.engagement-btn.liked::after {
   content: '';
   position: absolute;
-  width: 48px;
-  height: 48px;
+  inset: -1px;
   border-radius: 50%;
   border: 2px solid #FF1744;
   animation: heartPulse 0.6s ease-out;
 }
 
 @keyframes heartPulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1.4);
-    opacity: 0;
-  }
+  0% { transform: scale(0.85); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
 }
 
-/* Video controls overlay (mute button) */
-.video-controls-overlay {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  display: flex;
-  gap: 12px;
-  z-index: 10;
-  opacity: 0.9;
-  transition: opacity 0.3s ease;
-}
+.control-btn.muted { opacity: 0.75; }
 
-.video-controls-overlay:hover {
-  opacity: 1;
-}
-
-.control-btn {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+/* ===== FLOATING ACTION BUTTON (Share) ===== */
+.fab-share {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 16px);
+  right: 16px;
+  width: 44px; height: 44px;
   border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  color: white;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
-  padding: 0;
-  font-size: 0;
+  z-index: 55;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease;
 }
 
-.control-btn:active {
-  background: rgba(0, 0, 0, 0.6);
-  transform: scale(0.95);
-}
+.fab-share svg { width: 22px; height: 22px; stroke: currentColor; fill: none; }
+.fab-share:active { transform: scale(0.9); }
 
-.control-btn svg {
-  width: 24px;
-  height: 24px;
-  fill: currentColor;
-}
-
-.control-btn.muted {
-  opacity: 0.7;
-}
-
-.timeline-item-info {
-  padding: 0 4px;
-}
-
-.timeline-item-caption {
-  font-size: 14px;
-  line-height: 1.4;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-  word-wrap: break-word;
-}
-
-.timeline-item-meta {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  letter-spacing: -0.2px;
-}
-
+/* ===== COMPACT CARDS: Google Review + Instagram Embed ===== */
 .timeline-item-review {
   background: var(--card-bg);
-  border-radius: var(--radius-md);
-  padding: 16px;
+  border-radius: var(--radius-lg);
+  padding: 18px;
   border: 1px solid var(--border-crisp);
   border-left: 4px solid #FFFFFF;
 }
@@ -344,61 +396,139 @@ body {
   font-weight: 500;
 }
 
-.moments-nav {
-  background: var(--page-bg);
-  border-top: 1px solid var(--page-border);
-  display: flex;
-  justify-content: space-around;
-  padding: env(safe-area-inset-bottom, 0px) 0 0 0;
-  flex-shrink: 0;
+.instagram-embed-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  border: 1px solid var(--border-crisp);
 }
 
-.moments-nav-btn {
+.instagram-embed-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.instagram-embed-meta {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 8px;
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  text-decoration: none;
-  font-size: 10px;
-  transition: color 0.2s ease;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
 }
 
-.moments-nav-btn:active {
-  opacity: 0.7;
+.instagram-embed-meta .creator-name {
+  color: var(--card-text);
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: none;
+}
+
+.instagram-embed-date {
+  color: var(--card-text-soft);
+  font-size: 11px;
+}
+
+.instagram-embed-caption {
+  color: var(--card-text-soft);
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.instagram-embed-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 16px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(225,48,108,0.18), rgba(120,60,220,0.18));
+  border: 1px dashed rgba(255,255,255,0.2);
+  color: var(--card-text-soft);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.instagram-embed-frame svg { width: 22px; height: 22px; stroke: #E1306C; fill: none; }
+
+.instagram-embed-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.instagram-embed-cta svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+.instagram-embed-cta:active { opacity: 0.85; }
+
+/* ===== FLOATING ISLAND BOTTOM NAVIGATION ===== */
+.moments-nav {
+  position: fixed;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  z-index: 50;
+  transition: transform 0.4s cubic-bezier(.4,0,.2,1), opacity 0.3s ease;
+}
+
+.moments-nav.nav-condensed {
+  transform: translateX(-50%) translateY(160%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.moments-nav-btn {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.moments-nav-btn:active { transform: scale(0.88); }
+
+.moments-nav-btn svg {
+  width: 21px; height: 21px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
 }
 
 .moments-nav-btn.active {
-  color: var(--text-primary);
+  background: rgba(255,255,255,0.16);
+  color: #fff;
 }
 
-.moments-nav-btn svg {
-  width: 20px;
-  height: 20px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.5;
-}
+.moments-nav-btn.instagram-btn { color: #E1306C; }
 
-.moments-nav-btn.active svg {
-  stroke: var(--text-primary);
-}
-
-.moments-nav-btn.instagram-btn {
-  color: #E1306C;
-}
-
-.moments-nav-btn.instagram-btn svg {
-  stroke: #E1306C;
-}
-
-/* Upload Modal */
+/* ===== UPLOAD MODAL (unchanged structurally, icon-only tweaks) ===== */
 .upload-modal {
   display: none;
   position: absolute;
@@ -411,9 +541,7 @@ body {
   padding: 16px;
 }
 
-.upload-modal.open {
-  display: flex;
-}
+.upload-modal.open { display: flex; }
 
 .upload-modal-content {
   background: var(--page-bg);
@@ -441,9 +569,7 @@ body {
   margin-bottom: 16px;
 }
 
-.upload-modal-field {
-  margin-bottom: 16px;
-}
+.upload-modal-field { margin-bottom: 16px; }
 
 .upload-modal-label {
   display: block;
@@ -472,9 +598,7 @@ body {
   border-color: var(--text-primary);
 }
 
-.upload-modal-file {
-  display: none;
-}
+.upload-modal-file { display: none; }
 
 .upload-modal-file-list {
   display: flex;
@@ -501,9 +625,7 @@ body {
   transition: opacity 0.2s;
 }
 
-.file-chip-remove:active {
-  opacity: 1;
-}
+.file-chip-remove:active { opacity: 1; }
 
 .file-counter {
   font-size: 12px;
@@ -511,12 +633,13 @@ body {
   margin-bottom: 8px;
 }
 
-.file-counter.warning {
-  color: #FF6B00;
-}
+.file-counter.warning { color: #FF6B00; }
 
 .upload-modal-file-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 12px;
   border: 2px dashed var(--page-border);
@@ -529,6 +652,8 @@ body {
   transition: border-color 0.2s ease;
   font-weight: 500;
 }
+
+.upload-modal-file-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
 
 .upload-modal-file-btn:active {
   border-color: var(--text-primary);
@@ -544,9 +669,7 @@ body {
   display: none;
 }
 
-#uploadPreview.show {
-  display: block;
-}
+#uploadPreview.show { display: block; }
 
 .upload-modal-actions {
   display: flex;
@@ -587,28 +710,7 @@ body {
   border-color: var(--page-border);
 }
 
-.upload-modal-btn.cancel:active {
-  background: var(--accent-bg);
-}
-
-#shareBtn {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: var(--text-primary);
-  color: var(--page-bg);
-  border: none;
-  border-radius: 6px;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  z-index: 10;
-}
-
-#shareBtn:active {
-  opacity: 0.85;
-}
+.upload-modal-btn.cancel:active { background: var(--accent-bg); }
 
 .upload-progress {
   width: 100%;
@@ -620,9 +722,7 @@ body {
   display: none;
 }
 
-.upload-progress.show {
-  display: block;
-}
+.upload-progress.show { display: block; }
 
 .upload-progress-bar {
   height: 100%;
@@ -630,19 +730,20 @@ body {
   width: 0%;
   transition: width 0.3s ease;
 }
+
 </style>
 </head>
 <body>
 
 <div class="moments-app">
-  <header class="moments-header">
-    <h1>Moments</h1>
-    <button id="shareBtn">+ Share</button>
-  </header>
 
-  <div class="moments-content">
+  <div class="moments-content" id="momentsContent">
     <div id="momentsFeed"></div>
   </div>
+
+  <button id="shareBtn" class="fab-share" title="Share a moment">
+    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
 
   <div class="upload-modal" id="uploadModal">
     <div class="upload-modal-content">
@@ -658,7 +759,8 @@ body {
         <label class="upload-modal-label">Photos or Videos (Max 10)</label>
         <input type="file" id="uploadFile" class="upload-modal-file" accept="image/*,video/*" multiple>
         <button class="upload-modal-file-btn" onclick="document.getElementById('uploadFile').click()">
-          📁 Tap to choose files
+          <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l2-3h6l2 3h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span>Tap to choose files</span>
         </button>
         <div id="fileList" class="upload-modal-file-list"></div>
         <div id="fileCounter" class="file-counter"></div>
@@ -680,22 +782,18 @@ body {
     </div>
   </div>
 
-  <nav class="moments-nav">
+  <nav class="moments-nav" id="momentsNav">
     <a href="./moments_hub.html" class="moments-nav-btn" title="Hub">
       <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      <span>Menu</span>
     </a>
-    <button class="moments-nav-btn active" disabled>
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-      <span>Moments</span>
+    <button class="moments-nav-btn active" disabled title="Moments">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9.5 8.5v7l6-3.5z" fill="currentColor" stroke="none"/></svg>
     </button>
     <a href="./khichiya-runner.html" class="moments-nav-btn" title="Khichiya Runner">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 15a3 3 0 0 0 6 0"/></svg>
-      <span>TKR</span>
     </a>
-    <a href="https://www.instagram.com/the.khichiyagravy" target="_blank" class="moments-nav-btn instagram-btn" title="Instagram">
+    <a href="https://www.instagram.com/the.khichiyagravy" target="_blank" rel="noopener" class="moments-nav-btn instagram-btn" title="Instagram">
       <svg viewBox="0 0 24 24"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
-      <span>Instagram</span>
     </a>
   </nav>
 </div>
@@ -935,6 +1033,14 @@ function renderTimeline() {
       return;
     }
 
+    if (type === 'instagram' || type === 'social_link' || moment.instagramUrl || moment.socialUrl) {
+      timelineItems.push({
+        type: 'instagram',
+        data: moment
+      });
+      return;
+    }
+
     if (moment.media && Array.isArray(moment.media)) {
       moment.media.forEach((item) => {
         const mimeType = item.mimeType || 'image/jpeg';
@@ -959,6 +1065,40 @@ function renderTimeline() {
   MUTE_STATE.updateAllVideos();
 }
 
+// ========== ICONS (24px outline SVGs, filled variants for active states) ==========
+const ICON_HEART_OUTLINE = '<svg class="icon-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+const ICON_HEART_FILLED = '<svg class="icon-fill" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+const ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>';
+const ICON_MUTED = '<svg viewBox="0 0 24 24"><path d="M6.3 7c0-1 .8-1.8 1.8-1.8h.5l6-5.5c.6-.5 1.5-.2 1.5.7v16c0 .9-.9 1.2-1.5.7l-6-5.5h-.5c-1 0-1.8-.8-1.8-1.8V7zm12 0c0 3.5-1.8 6.5-4.5 8.3m0-16.6c2.7 1.8 4.5 4.8 4.5 8.3M18 2l3 3m0 6l3-3"/></svg>';
+const ICON_UNMUTED = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
+const ICON_INSTAGRAM_GLYPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>';
+const ICON_EXTERNAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg>';
+
+// ========== CREATOR HEADER / CAPTION SCRIM HELPERS ==========
+function getInitial(name) {
+  const trimmed = (name || '').trim();
+  return trimmed ? trimmed.charAt(0).toUpperCase() : 'T';
+}
+
+function buildCreatorHeaderHtml(uploaderName) {
+  return `
+    <div class="creator-header">
+      <div class="creator-avatar">${escapeHtml(getInitial(uploaderName))}</div>
+      <div class="creator-name">${escapeHtml(uploaderName || 'Community Member')}</div>
+      <a class="follow-btn" href="https://www.instagram.com/the.khichiyagravy" target="_blank" rel="noopener">Follow</a>
+    </div>
+  `;
+}
+
+function buildCaptionScrimHtml(caption, uploaderName, dateDisplay) {
+  return `
+    <div class="caption-scrim">
+      ${caption ? `<div class="timeline-item-caption">${escapeHtml(caption)}</div>` : ''}
+      <div class="timeline-item-meta">${escapeHtml(uploaderName || 'Community Member')} • ${escapeHtml(dateDisplay)}</div>
+    </div>
+  `;
+}
+
 // ========== CREATE TIMELINE CARD ==========
 function createTimelineCard(item, cardId) {
   const container = document.createElement('div');
@@ -967,90 +1107,99 @@ function createTimelineCard(item, cardId) {
   if (item.type === 'video') {
     const { caption, uploaderName, date, time, media } = item.data;
     const dateDisplay = formatDate(date, time);
-    
+
     const mediaContainer = document.createElement('div');
     mediaContainer.className = 'timeline-item-media timeline-item-video-container';
-    
+
     const fileId = extractGoogleDriveId(media.url);
     const streamUrl = fileId ? `/api/stream?id=${fileId}` : media.url;
-    
+
     const video = document.createElement('video');
     video.className = 'timeline-item-video';
     video.src = streamUrl;
     video.playsinline = true;
     video.muted = MUTE_STATE.muted;
-    
-    // Mute control overlay (bottom-left)
+
+    // Mute control (right-side stack, visibility toggled by the IntersectionObserver)
     const controlsOverlay = document.createElement('div');
     controlsOverlay.className = 'video-controls-overlay';
     controlsOverlay.style.display = 'none';
     controlsOverlay.innerHTML = `
       <button class="control-btn mute-btn" title="${MUTE_STATE.muted ? 'Unmute' : 'Mute'}">
-        ${MUTE_STATE.muted ? 
-          '<svg viewBox="0 0 24 24"><path d="M6.3 7c0-1 .8-1.8 1.8-1.8h.5l6-5.5c.6-.5 1.5-.2 1.5.7v16c0 .9-.9 1.2-1.5.7l-6-5.5h-.5c-1 0-1.8-.8-1.8-1.8V7zm12 0c0 3.5-1.8 6.5-4.5 8.3m0-16.6c2.7 1.8 4.5 4.8 4.5 8.3M18 2l3 3m0 6l3-3"/></svg>' :
-          '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>'
-        }
+        ${MUTE_STATE.muted ? ICON_MUTED : ICON_UNMUTED}
       </button>
     `;
-    
-    // Engagement overlay (right side)
+
+    // Like + Share (right-side stack, always visible)
     const engagementOverlay = document.createElement('div');
     engagementOverlay.className = 'engagement-overlay';
     engagementOverlay.innerHTML = `
-      <button class="engagement-btn like-btn ${likedVideos.has(cardId) ? 'liked' : ''}" title="Like">❤️</button>
-      <button class="engagement-btn share-btn" title="Comment / Share">💬</button>
+      <button class="engagement-btn like-btn ${likedVideos.has(cardId) ? 'liked' : ''}" title="Like">
+        ${ICON_HEART_OUTLINE}${ICON_HEART_FILLED}
+      </button>
+      <button class="engagement-btn share-btn" title="Share">
+        ${ICON_SHARE}
+      </button>
     `;
-    
+
+    const headerWrap = document.createElement('div');
+    headerWrap.innerHTML = buildCreatorHeaderHtml(uploaderName);
+    const captionWrap = document.createElement('div');
+    captionWrap.innerHTML = buildCaptionScrimHtml(caption, uploaderName, dateDisplay);
+
     mediaContainer.appendChild(video);
+    mediaContainer.appendChild(headerWrap.firstElementChild);
+    mediaContainer.appendChild(captionWrap.firstElementChild);
     mediaContainer.appendChild(controlsOverlay);
     mediaContainer.appendChild(engagementOverlay);
-    
+
     // Setup observers and handlers
     setupVideoObserver(video, mediaContainer);
     setupVideoTapHandler(video);
     setupDoubleTapLike(mediaContainer, cardId);
-    
+
     // Mute button handler
     const muteBtn = controlsOverlay.querySelector('.mute-btn');
     muteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       MUTE_STATE.toggle();
     });
-    
+
     // Engagement button handlers
     const likeBtn = engagementOverlay.querySelector('.like-btn');
     likeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       toggleLike(cardId, mediaContainer);
     });
-    
+
     const shareBtn = engagementOverlay.querySelector('.share-btn');
     shareBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       alert('Share feature coming soon');
     });
-    
-    const info = document.createElement('div');
-    info.className = 'timeline-item-info';
-    info.innerHTML = `
-      ${caption ? `<div class="timeline-item-caption">${escapeHtml(caption)}</div>` : ''}
-      <div class="timeline-item-meta">${escapeHtml(uploaderName || 'Community Member')} • ${dateDisplay}</div>
-    `;
-    
+
+    container.classList.add('media-item');
     container.appendChild(mediaContainer);
-    container.appendChild(info);
     return container;
   }
 
   if (item.type === 'photo') {
     const { caption, uploaderName, date, time, media } = item.data;
     const dateDisplay = formatDate(date, time);
-    
+
     const mediaContainer = document.createElement('div');
-    mediaContainer.className = 'timeline-item-media';
+    mediaContainer.className = 'timeline-item-media timeline-item-photo-container';
+
+    const transformedUrl = transformDriveImageUrl(media.url);
+
+    // Blurred fill layer behind the image so non-9:16 photos never show a gap
+    const bgBlur = document.createElement('div');
+    bgBlur.className = 'media-bg-blur';
+    bgBlur.style.backgroundImage = `url("${transformedUrl}")`;
+
     const img = document.createElement('img');
     img.className = 'timeline-item-image';
-    img.src = transformDriveImageUrl(media.url);
+    img.src = transformedUrl;
     img.alt = caption || 'Photo';
     img.loading = 'lazy';
     // If the primary lh3.googleusercontent.com URL fails (e.g. permissions), fall back to the uc?export=view format once
@@ -1058,44 +1207,102 @@ function createTimelineCard(item, cardId) {
       img.removeEventListener('error', onImgError);
       const fileId = extractGoogleDriveId(media.url);
       if (fileId) {
-        img.src = `https://drive.google.com/uc?export=view&id=${fileId}`;
+        const fallbackUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+        img.src = fallbackUrl;
+        bgBlur.style.backgroundImage = `url("${fallbackUrl}")`;
       }
     });
-    mediaContainer.appendChild(img);
-    
-    const info = document.createElement('div');
-    info.className = 'timeline-item-info';
-    info.innerHTML = `
-      ${caption ? `<div class="timeline-item-caption">${escapeHtml(caption)}</div>` : ''}
-      <div class="timeline-item-meta">${escapeHtml(uploaderName || 'Community Member')} • ${dateDisplay}</div>
+
+    const headerWrap = document.createElement('div');
+    headerWrap.innerHTML = buildCreatorHeaderHtml(uploaderName);
+    const captionWrap = document.createElement('div');
+    captionWrap.innerHTML = buildCaptionScrimHtml(caption, uploaderName, dateDisplay);
+
+    const engagementOverlay = document.createElement('div');
+    engagementOverlay.className = 'engagement-overlay';
+    engagementOverlay.innerHTML = `
+      <button class="engagement-btn like-btn ${likedVideos.has(cardId) ? 'liked' : ''}" title="Like">
+        ${ICON_HEART_OUTLINE}${ICON_HEART_FILLED}
+      </button>
+      <button class="engagement-btn share-btn" title="Share">
+        ${ICON_SHARE}
+      </button>
     `;
-    
+
+    mediaContainer.appendChild(bgBlur);
+    mediaContainer.appendChild(img);
+    mediaContainer.appendChild(headerWrap.firstElementChild);
+    mediaContainer.appendChild(captionWrap.firstElementChild);
+    mediaContainer.appendChild(engagementOverlay);
+
+    setupDoubleTapLike(mediaContainer, cardId);
+
+    const likeBtn = engagementOverlay.querySelector('.like-btn');
+    likeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleLike(cardId, mediaContainer);
+    });
+
+    const shareBtn = engagementOverlay.querySelector('.share-btn');
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      alert('Share feature coming soon');
+    });
+
+    container.classList.add('media-item');
     container.appendChild(mediaContainer);
-    container.appendChild(info);
     return container;
   }
 
   if (item.type === 'google_review') {
     const { reviewer, rating, text } = item.data;
-    const container = document.createElement('div');
-    container.className = 'timeline-item';
     const reviewCard = document.createElement('div');
     reviewCard.className = 'timeline-item-review';
-    
+
     const stars = '★'.repeat(rating || 0) + '☆'.repeat(5 - (rating || 0));
     reviewCard.innerHTML = `
       <div class="timeline-item-review-rating">${stars}</div>
       <div class="timeline-item-review-text">"${escapeHtml(text)}"</div>
       <div class="timeline-item-review-author">— ${escapeHtml(reviewer)}</div>
     `;
-    
+
+    container.classList.add('compact-item');
     container.appendChild(reviewCard);
+    return container;
+  }
+
+  if (item.type === 'instagram') {
+    const { uploaderName, caption, date, time } = item.data;
+    const link = item.data.instagramUrl || item.data.socialUrl || '#';
+    const dateDisplay = formatDate(date, time);
+
+    const embedCard = document.createElement('div');
+    embedCard.className = 'instagram-embed-card';
+    embedCard.innerHTML = `
+      <div class="instagram-embed-header">
+        <div class="creator-avatar">${escapeHtml(getInitial(uploaderName))}</div>
+        <div class="instagram-embed-meta">
+          <div class="creator-name">${escapeHtml(uploaderName || 'Community Member')}</div>
+          <div class="instagram-embed-date">${escapeHtml(dateDisplay)}</div>
+        </div>
+      </div>
+      ${caption ? `<div class="instagram-embed-caption">${escapeHtml(caption)}</div>` : ''}
+      <div class="instagram-embed-frame">
+        ${ICON_INSTAGRAM_GLYPH}
+        <span>Shared via Instagram</span>
+      </div>
+      <a class="instagram-embed-cta" href="${escapeHtml(link)}" target="_blank" rel="noopener">
+        View on Instagram ${ICON_EXTERNAL}
+      </a>
+    `;
+
+    container.classList.add('compact-item');
+    container.appendChild(embedCard);
     return container;
   }
 
   return container;
 }
-
 // ========== FORMAT DATE ==========
 function formatDate(date, time) {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -1290,6 +1497,43 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+// ========== FLOATING NAV — SCROLL-RESPONSIVE CONDENSE/REVEAL ==========
+// Additive only: does not touch video/mute/upload logic. Hides the pill on
+// scroll-down to maximize media viewing area, restores it on scroll-up, on
+// tap, or once scrolling settles for a moment.
+(function setupFloatingNavScroll() {
+  const scrollEl = document.getElementById('momentsContent');
+  const nav = document.getElementById('momentsNav');
+  if (!scrollEl || !nav) return;
+
+  let lastScrollTop = scrollEl.scrollTop;
+  let settleTimer = null;
+  const DELTA_THRESHOLD = 12; // ignore tiny scroll jitter
+
+  function showNav() { nav.classList.remove('nav-condensed'); }
+  function hideNav() { nav.classList.add('nav-condensed'); }
+
+  scrollEl.addEventListener('scroll', () => {
+    const current = scrollEl.scrollTop;
+    const delta = current - lastScrollTop;
+
+    if (Math.abs(delta) > DELTA_THRESHOLD) {
+      if (delta > 0 && current > 40) {
+        hideNav(); // scrolling down past the first screen
+      } else {
+        showNav(); // scrolling up
+      }
+      lastScrollTop = current;
+    }
+
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(showNav, 900); // reveal once scrolling settles
+  }, { passive: true });
+
+  nav.addEventListener('click', showNav);
+})();
+
 
 // ========== INIT ==========
 fetchMoments();
