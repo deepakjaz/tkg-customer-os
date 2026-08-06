@@ -5,6 +5,7 @@
    allows browser's native network engine to handle CORS/redirects naturally.
    ========================================================================== */
 
+// Build timestamp bump: 1
 const CACHE_NAME = 'tkg-os-v-' + Date.now();
 
 const APP_SHELL = [
