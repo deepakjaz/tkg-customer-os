@@ -643,6 +643,32 @@ body {
 
 .upload-modal-field { margin-bottom: 16px; }
 
+.upload-modal-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.upload-modal-tab {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--page-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-modal-tab.active {
+  background: var(--text-primary);
+  color: var(--page-bg);
+  border-color: var(--text-primary);
+}
+
 .upload-modal-label {
   display: block;
   font-size: 11px;
@@ -820,14 +846,19 @@ body {
   <div class="upload-modal" id="uploadModal">
     <div class="upload-modal-content">
       <h2 class="upload-modal-title">Share a Moment</h2>
-      <p class="upload-modal-subtitle">Upload up to 10 photos or videos</p>
-      
+      <p class="upload-modal-subtitle" id="uploadSubtitle">Upload up to 10 photos or videos</p>
+
+      <div class="upload-modal-tabs" id="uploadTabs">
+        <button type="button" class="upload-modal-tab active" data-tab="media">Upload Media</button>
+        <button type="button" class="upload-modal-tab" data-tab="link">Share Link</button>
+      </div>
+
       <div class="upload-modal-field">
         <label class="upload-modal-label">Your Name</label>
         <input type="text" id="uploadName" class="upload-modal-input" placeholder="First name">
       </div>
 
-      <div class="upload-modal-field">
+      <div class="upload-modal-field" id="uploadMediaPanel">
         <label class="upload-modal-label">Photos or Videos (Max 10)</label>
         <input type="file" id="uploadFile" class="upload-modal-file" accept="image/*,video/*" multiple>
         <button class="upload-modal-file-btn" onclick="document.getElementById('uploadFile').click()">
@@ -840,6 +871,11 @@ body {
         <div id="uploadProgress" class="upload-progress">
           <div id="uploadProgressBar" class="upload-progress-bar"></div>
         </div>
+      </div>
+
+      <div class="upload-modal-field" id="uploadLinkPanel" style="display:none;">
+        <label class="upload-modal-label">Social Link</label>
+        <input type="text" id="socialLinkInput" class="upload-modal-input" placeholder="Paste an Instagram, Facebook, YouTube, or TikTok link">
       </div>
 
       <div class="upload-modal-field">
@@ -889,9 +925,15 @@ const FILE_LIST = document.getElementById('fileList');
 const FILE_COUNTER = document.getElementById('fileCounter');
 const UPLOAD_PROGRESS = document.getElementById('uploadProgress');
 const UPLOAD_PROGRESS_BAR = document.getElementById('uploadProgressBar');
+const UPLOAD_SUBTITLE = document.getElementById('uploadSubtitle');
+const UPLOAD_TABS = document.getElementById('uploadTabs');
+const UPLOAD_MEDIA_PANEL = document.getElementById('uploadMediaPanel');
+const UPLOAD_LINK_PANEL = document.getElementById('uploadLinkPanel');
+const SOCIAL_LINK_INPUT = document.getElementById('socialLinkInput');
 
 let moments = [];
 let selectedFiles = [];
+let currentUploadTab = 'media';
 
 // ========== GLOBAL MUTE STATE MANAGER ==========
 const MUTE_STATE = {
@@ -1560,7 +1602,7 @@ function transformDriveImageUrl(rawUrl) {
   return `https://lh3.googleusercontent.com/d/${fileId}`;
 }
 
-// ========== MULTI-FILE UPLOAD ==========
+// ========== MULTI-FILE UPLOAD + SOCIAL LINK SUBMISSION ==========
 SHARE_BTN.addEventListener('click', () => {
   UPLOAD_MODAL.classList.add('open');
   UPLOAD_NAME.focus();
@@ -1568,6 +1610,27 @@ SHARE_BTN.addEventListener('click', () => {
 
 UPLOAD_CANCEL.addEventListener('click', () => {
   closeUploadModal();
+});
+
+// Tab switcher: "Upload Media" vs "Share Link"
+UPLOAD_TABS.querySelectorAll('.upload-modal-tab').forEach((tabBtn) => {
+  tabBtn.addEventListener('click', () => {
+    currentUploadTab = tabBtn.dataset.tab;
+
+    UPLOAD_TABS.querySelectorAll('.upload-modal-tab').forEach((btn) => {
+      btn.classList.toggle('active', btn === tabBtn);
+    });
+
+    if (currentUploadTab === 'link') {
+      UPLOAD_MEDIA_PANEL.style.display = 'none';
+      UPLOAD_LINK_PANEL.style.display = '';
+      UPLOAD_SUBTITLE.textContent = 'Share an Instagram, Facebook, YouTube, or TikTok link';
+    } else {
+      UPLOAD_MEDIA_PANEL.style.display = '';
+      UPLOAD_LINK_PANEL.style.display = 'none';
+      UPLOAD_SUBTITLE.textContent = 'Upload up to 10 photos or videos';
+    }
+  });
 });
 
 UPLOAD_FILE.addEventListener('change', (e) => {
@@ -1623,28 +1686,45 @@ function updateFilePreview() {
 }
 
 UPLOAD_SUBMIT.addEventListener('click', async () => {
+  if (currentUploadTab === 'link') {
+    await handleSocialLinkSubmit();
+  } else {
+    await handleMediaUpload();
+  }
+});
+
+async function handleMediaUpload() {
   const name = UPLOAD_NAME.value.trim();
   const caption = UPLOAD_CAPTION.value.trim();
-  
+
   if (!name) {
     alert('Please enter your name');
     return;
   }
-  
+
   if (selectedFiles.length === 0) {
     alert('Please select at least one file');
     return;
   }
-  
+
   UPLOAD_SUBMIT.disabled = true;
   UPLOAD_PROGRESS.classList.add('show');
+  UPLOAD_PROGRESS_BAR.style.width = '0%';
   let uploaded = 0;
-  
+
   try {
+    // Upload sequentially, one file per request, so no single payload ever
+    // grows large enough to risk hitting Apps Script's request-size ceiling.
     for (const file of selectedFiles) {
+      if (file.size > MAX_FILE_SIZE && !file.type.startsWith('image/')) {
+        // Images get compressed below regardless of starting size; only guard
+        // non-image files (e.g. video) here since they're sent as-is.
+        throw new Error(`"${file.name}" is larger than ${Math.round(MAX_FILE_SIZE / (1024 * 1024))}MB. Please choose a smaller file.`);
+      }
+
       const compressed = await compressImage(file);
       const base64 = await fileToBase64(compressed);
-      
+
       const payload = {
         action: 'upload',
         uploaderName: name,
@@ -1655,37 +1735,94 @@ UPLOAD_SUBMIT.addEventListener('click', async () => {
           fileData: base64
         }]
       };
-      
+
+      // IMPORTANT: 'text/plain' avoids a CORS preflight (OPTIONS) request.
+      // Google Apps Script web apps don't implement doOptions(), so a
+      // preflighted request (which 'application/json' triggers) fails
+      // before it ever reaches doPost() — this is what produces the
+      // generic "Failed to fetch" error in the browser. Apps Script still
+      // reads the raw body via e.postData.contents and JSON.parse()s it
+      // regardless of the header, so this is safe for the backend.
       const response = await fetch(APP_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const result = await response.json();
       if (result.status !== 'ok') {
         throw new Error(result.message || 'Upload failed');
       }
-      
+
       uploaded++;
       UPLOAD_PROGRESS_BAR.style.width = Math.round((uploaded / selectedFiles.length) * 100) + '%';
     }
-    
+
+    // Modal closes and feed refreshes only after every file has finished
     closeUploadModal();
     fetchMoments();
   } catch (err) {
     console.error('Upload error:', err);
-    alert('Upload failed: ' + err.message);
+    alert(`Upload failed: ${err.message}${uploaded > 0 ? ` (${uploaded}/${selectedFiles.length} file(s) uploaded before the error)` : ''}`);
   } finally {
     UPLOAD_SUBMIT.disabled = false;
     UPLOAD_PROGRESS.classList.remove('show');
     UPLOAD_PROGRESS_BAR.style.width = '0%';
   }
-});
+}
+
+async function handleSocialLinkSubmit() {
+  const link = SOCIAL_LINK_INPUT.value.trim();
+
+  if (!link) {
+    alert('Please paste a social media link');
+    return;
+  }
+
+  const validDomains = ['instagram.com', 'facebook.com', 'youtube.com', 'youtu.be', 'tiktok.com'];
+  const isRecognized = validDomains.some((domain) => link.includes(domain));
+  if (!isRecognized) {
+    const proceed = confirm('This doesn\'t look like an Instagram, Facebook, YouTube, or TikTok link. Share it anyway?');
+    if (!proceed) return;
+  }
+
+  UPLOAD_SUBMIT.disabled = true;
+
+  try {
+    const payload = {
+      action: 'submitMomentLink',
+      instagramUrl: link
+    };
+
+    // Same CORS-preflight-avoidance fix as handleMediaUpload() above.
+    const response = await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    if (result.status !== 'ok') {
+      throw new Error(result.message || 'Submission failed');
+    }
+
+    closeUploadModal();
+    fetchMoments();
+  } catch (err) {
+    console.error('Social link submission error:', err);
+    alert('Submission failed: ' + err.message);
+  } finally {
+    UPLOAD_SUBMIT.disabled = false;
+  }
+}
 
 function closeUploadModal() {
   UPLOAD_MODAL.classList.remove('open');
@@ -1696,6 +1833,15 @@ function closeUploadModal() {
   FILE_LIST.innerHTML = '';
   FILE_COUNTER.textContent = '';
   selectedFiles = [];
+
+  SOCIAL_LINK_INPUT.value = '';
+  currentUploadTab = 'media';
+  UPLOAD_TABS.querySelectorAll('.upload-modal-tab').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.tab === 'media');
+  });
+  UPLOAD_MEDIA_PANEL.style.display = '';
+  UPLOAD_LINK_PANEL.style.display = 'none';
+  UPLOAD_SUBTITLE.textContent = 'Upload up to 10 photos or videos';
 }
 
 document.addEventListener('keydown', (e) => {
