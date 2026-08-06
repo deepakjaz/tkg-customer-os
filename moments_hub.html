@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>TKG — The Khichiya Gravy</title>
+<title>TKG Moments Hub — The Khichiya Gravy</title>
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -11,11 +11,7 @@
 (function(){
   try{
     var theme = localStorage.getItem('tkg_theme');
-    if(theme) document.documentElement.setAttribute('data-tkg-theme', theme);
-    else {
-      var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-tkg-theme', dark ? 'dark' : 'light');
-    }
+    document.documentElement.setAttribute('data-tkg-theme', theme === 'dark' ? 'dark' : 'light');
   }catch(e){
     document.documentElement.setAttribute('data-tkg-theme', 'light');
   }
@@ -32,7 +28,6 @@
       }
     });
     window.addEventListener('load', () => {
-      // updateViaCache: 'none' forces browser to bypass sw.js local cache
       navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
         .then((reg) => {
           reg.update();
@@ -44,39 +39,30 @@
   }
 </script>
 
+<script src="./tkg-shared.js"></script>
+
 <style>
 :root {
-  /* Light Mode */
-  --page-bg: #FFFFFF;
-  --page-border: #E8E8E8;
+  /* PURE B&W PREMIUM AESTHETIC + GLASS SURFACES — matches moments.html */
+  --page-bg:     #FFFFFF;
+  --page-border: #E0E0E0;
   --text-primary: #000000;
   --text-secondary: #666666;
   --text-tertiary: #999999;
-  --card-bg: #FFFFFF;
-  --card-border: #E8E8E8;
-  --accent-bg: #000000;
+  --card-bg: #000000;
+  --card-text: #FFFFFF;
+  --card-text-soft: rgba(255,255,255,0.8);
+  --accent-bg: #1A1A1A;
   --accent-fg: #FFFFFF;
-  --hero-overlay: rgba(0, 0, 0, 0.3);
-  --divider: rgba(0, 0, 0, 0.06);
+  --border-crisp: rgba(0,0,0,0.12);
+  --border-light: rgba(0,0,0,0.06);
+  --radius-lg: 16px;
+  --radius-md: 8px;
   --max-w: 430px;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --page-bg: #000000;
-    --page-border: #2A2A2A;
-    --text-primary: #FFFFFF;
-    --text-secondary: #CCCCCC;
-    --text-tertiary: #888888;
-    --card-bg: #1A1A1A;
-    --card-border: #2A2A2A;
-    --accent-bg: #FFFFFF;
-    --accent-fg: #000000;
-    --hero-overlay: rgba(0, 0, 0, 0.5);
-    --divider: rgba(255, 255, 255, 0.06);
-  }
+  --glass-bg: rgba(20,20,20,0.65);
+  --glass-border: rgba(255,255,255,0.18);
+  --divider: rgba(0, 0, 0, 0.06);
 }
 
 html[data-tkg-theme="dark"] {
@@ -86,32 +72,14 @@ html[data-tkg-theme="dark"] {
   --text-secondary: #CCCCCC;
   --text-tertiary: #888888;
   --card-bg: #1A1A1A;
-  --card-border: #2A2A2A;
-  --accent-bg: #FFFFFF;
-  --accent-fg: #000000;
-  --hero-overlay: rgba(0, 0, 0, 0.5);
+  --card-text: #FFFFFF;
+  --card-text-soft: rgba(255,255,255,0.7);
+  --accent-bg: #2A2A2A;
+  --accent-fg: #FFFFFF;
   --divider: rgba(255, 255, 255, 0.06);
 }
 
-html[data-tkg-theme="light"] {
-  --page-bg: #FFFFFF;
-  --page-border: #E8E8E8;
-  --text-primary: #000000;
-  --text-secondary: #666666;
-  --text-tertiary: #999999;
-  --card-bg: #FFFFFF;
-  --card-border: #E8E8E8;
-  --accent-bg: #000000;
-  --accent-fg: #FFFFFF;
-  --hero-overlay: rgba(0, 0, 0, 0.3);
-  --divider: rgba(0, 0, 0, 0.06);
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 html, body {
   height: 100%;
@@ -137,53 +105,26 @@ body {
   position: relative;
 }
 
-/* ===== HEADER ===== */
+/* ===== HEADER — matches moments.html brand-header typography ===== */
 .hub-header {
-  padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px 20px;
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px 18px;
   border-bottom: 1px solid var(--divider);
   background: var(--page-bg);
   flex-shrink: 0;
 }
 
-.hub-header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 4px;
-}
-
 .hub-logo {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 800;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
   color: var(--text-primary);
 }
 
 .hub-tagline {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   font-weight: 500;
-  letter-spacing: 0.3px;
-  margin-top: 4px;
-}
-
-.hub-theme-toggle {
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: var(--text-primary);
-  transition: transform 0.2s ease;
-}
-
-.hub-theme-toggle:active {
-  transform: scale(0.88);
+  margin-top: 3px;
 }
 
 /* ===== CONTENT SCROLL ===== */
@@ -193,85 +134,67 @@ body {
   overflow-x: hidden;
   scroll-behavior: smooth;
   scrollbar-width: none;
-  padding: 0;
 }
 
-.hub-content::-webkit-scrollbar {
-  display: none;
-}
+.hub-content::-webkit-scrollbar { display: none; }
 
 .hub-feed {
   display: flex;
   flex-direction: column;
   gap: 20px;
   padding: 20px;
-  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ===== SECTION HEADERS ===== */
 .hub-section-title {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-  color: var(--text-primary);
-  margin-bottom: 12px;
-  text-transform: uppercase;
   font-size: 13px;
-  letter-spacing: 0.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
   color: var(--text-tertiary);
+  margin-bottom: 12px;
 }
 
 /* ===== HERO CARD: CUSTOMER MOMENTS ===== */
 .hero-card {
   position: relative;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));
-  min-height: 280px;
+  background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
+  min-height: 260px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 24px;
-  border: 1px solid var(--card-border);
+  padding: 22px;
+  border: 1px solid var(--glass-border);
   cursor: pointer;
   transition: transform 0.2s ease;
 }
 
-.hero-card:active {
-  transform: scale(0.98);
-}
+.hero-card:active { transform: scale(0.98); }
 
-.hero-card-backdrop {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, 
-    rgba(0,0,0,0.1) 0%, 
-    rgba(0,0,0,0.3) 50%, 
-    rgba(0,0,0,0.5) 100%);
-  z-index: 1;
-}
-
-.hero-card-content {
-  position: relative;
-  z-index: 2;
-}
+.hero-card-content { position: relative; z-index: 2; }
 
 .hero-card-icon {
-  font-size: 28px;
+  width: 32px; height: 32px;
   margin-bottom: 12px;
+  color: #FFFFFF;
 }
 
+.hero-card-icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.6; }
+
 .hero-card-title {
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 700;
-  color: white;
+  color: #FFFFFF;
   margin-bottom: 4px;
   letter-spacing: -0.3px;
 }
 
 .hero-card-desc {
-  font-size: 14px;
-  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
   line-height: 1.5;
   margin-bottom: 16px;
 }
@@ -280,20 +203,15 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: white;
-  color: black;
+  background: #FFFFFF;
+  color: #000000;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 10px 16px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.hero-card-cta:active {
-  transform: scale(0.95);
-  opacity: 0.9;
+  width: fit-content;
 }
 
 /* ===== REVIEWS SECTION ===== */
@@ -305,13 +223,16 @@ body {
 
 .review-card {
   background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border: 1px solid var(--border-crisp);
+  border-left: 4px solid #FFFFFF;
+  border-radius: var(--radius-lg);
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
+html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 
 .review-rating {
   display: flex;
@@ -322,9 +243,8 @@ body {
 .review-text {
   font-size: 13px;
   line-height: 1.5;
-  color: var(--text-secondary);
+  color: var(--card-text-soft);
   font-style: italic;
-  margin-bottom: 4px;
 }
 
 .review-author {
@@ -343,8 +263,8 @@ body {
 /* ===== LEADERBOARD CARD ===== */
 .leaderboard-card {
   background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border: 1px solid var(--border-crisp);
+  border-radius: var(--radius-lg);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -355,50 +275,44 @@ body {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin-bottom: 4px;
 }
 
 .leaderboard-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--card-text);
 }
 
 .leaderboard-period {
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: var(--card-text-soft);
   font-weight: 500;
 }
 
 .leaderboard-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .leaderboard-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 6px;
-  transition: background 0.2s ease;
-}
-
-html[data-tkg-theme="dark"] .leaderboard-item {
-  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-md);
 }
 
 .leaderboard-rank {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--text-tertiary);
-  min-width: 24px;
+  color: var(--card-text-soft);
+  min-width: 22px;
   text-align: center;
 }
 
-.leaderboard-item:nth-child(1) .leaderboard-rank { color: #FFD700; font-size: 20px; }
+.leaderboard-item:nth-child(1) .leaderboard-rank { color: #FFD700; font-size: 18px; }
 .leaderboard-item:nth-child(2) .leaderboard-rank { color: #C0C0C0; }
 .leaderboard-item:nth-child(3) .leaderboard-rank { color: #CD7F32; }
 
@@ -412,58 +326,42 @@ html[data-tkg-theme="dark"] .leaderboard-item {
 .leaderboard-name {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--card-text);
 }
 
 .leaderboard-score {
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: var(--card-text-soft);
 }
 
 .leaderboard-cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--accent-bg);
-  color: var(--accent-fg);
+  background: #FFFFFF;
+  color: #000000;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 12px 16px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  margin-top: 8px;
-  transition: all 0.2s ease;
-}
-
-.leaderboard-cta:active {
-  transform: scale(0.95);
-  opacity: 0.9;
 }
 
 /* ===== ANNOUNCEMENTS SECTION ===== */
 .announcements-card {
-  background: linear-gradient(135deg, #1A1A1A 0%, #2A2A2A 100%);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-crisp);
+  border-radius: var(--radius-lg);
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  color: white;
-}
-
-html[data-tkg-theme="light"] .announcements-card {
-  background: linear-gradient(135deg, #F5F5F5 0%, #EFEFEF 100%);
-  color: var(--text-primary);
-}
-
-.announcements-icon {
-  font-size: 24px;
+  gap: 8px;
+  color: var(--card-text);
 }
 
 .announcements-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.2px;
 }
@@ -471,17 +369,16 @@ html[data-tkg-theme="light"] .announcements-card {
 .announcements-text {
   font-size: 13px;
   line-height: 1.5;
-  opacity: 0.9;
+  color: var(--card-text-soft);
 }
 
 /* ===== FOOTER / SOCIAL SECTION ===== */
 .hub-footer {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   border-top: 1px solid var(--divider);
   padding-top: 20px;
-  margin-top: 4px;
 }
 
 .social-section-title {
@@ -492,63 +389,102 @@ html[data-tkg-theme="light"] .announcements-card {
   font-weight: 600;
 }
 
-.social-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .social-btn {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  cursor: pointer;
+  background: var(--page-bg);
+  border: 1px solid var(--page-border);
+  border-radius: var(--radius-md);
   text-decoration: none;
   color: var(--text-primary);
   font-size: 14px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: transform 0.15s ease;
 }
 
-.social-btn:active {
-  transform: scale(0.98);
-  opacity: 0.8;
+.social-btn:active { transform: scale(0.98); }
+
+.social-btn-icon { color: #E1306C; display: flex; }
+.social-btn-icon svg { width: 20px; height: 20px; }
+
+.social-btn-text { flex: 1; }
+
+/* ===== EXPANDABLE / CONDENSING BOTTOM NAVIGATION — matches moments.html exactly ===== */
+.hub-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: calc(var(--max-w) - 24px);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 2px;
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+  border-radius: 22px 22px 0 0;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-bottom: none;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: 0 -6px 24px rgba(0,0,0,0.25);
+  z-index: 50;
+  transition: width 0.4s cubic-bezier(.4,0,.2,1), bottom 0.4s cubic-bezier(.4,0,.2,1),
+              border-radius 0.4s ease, padding 0.4s ease, box-shadow 0.4s ease;
 }
 
-.social-btn-icon {
-  font-size: 18px;
+.hub-nav.nav-condensed {
+  width: 208px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  border-radius: 999px;
+  border-bottom: 1px solid var(--glass-border);
+  padding: 6px;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
 
-.social-btn-text {
-  flex: 1;
+.hub-nav-btn {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
 }
+
+.hub-nav-btn:active { transform: scale(0.88); }
+
+.hub-nav-btn svg {
+  width: 21px; height: 21px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+}
+
+.hub-nav-btn.active {
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+}
+
+.hub-nav-btn.instagram-btn { color: #E1306C; }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 380px) {
-  .hub-feed {
-    padding: 16px;
-    gap: 16px;
-  }
-
-  .hero-card {
-    min-height: 240px;
-    padding: 20px;
-  }
-
-  .hero-card-title {
-    font-size: 20px;
-  }
-
-  .leaderboard-card {
-    padding: 16px;
-  }
+  .hub-feed { padding: 16px; gap: 16px; }
+  .hero-card { min-height: 220px; padding: 18px; }
+  .hero-card-title { font-size: 19px; }
+  .leaderboard-card { padding: 16px; }
 }
 
-/* ===== ACCESSIBILITY ===== */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -556,7 +492,6 @@ html[data-tkg-theme="light"] .announcements-card {
     transition-duration: 0.01ms !important;
   }
 }
-
 </style>
 </head>
 <body>
@@ -564,26 +499,20 @@ html[data-tkg-theme="light"] .announcements-card {
 <div class="hub-container">
   <!-- HEADER -->
   <header class="hub-header">
-    <div class="hub-header-top">
-      <div>
-        <div class="hub-logo">TKG</div>
-        <div class="hub-tagline">THE KHICHIYA GRAVY</div>
-      </div>
-      <button class="hub-theme-toggle" id="themeToggle" title="Toggle theme">
-        <span id="themeIcon">🌙</span>
-      </button>
-    </div>
+    <div class="hub-logo">The Khichiya Gravy</div>
+    <div class="hub-tagline" id="hubTagline">Gallery from the community</div>
   </header>
 
   <!-- CONTENT SCROLL -->
-  <div class="hub-content">
+  <div class="hub-content" id="hubContent">
     <div class="hub-feed">
 
       <!-- HERO: CUSTOMER MOMENTS -->
       <div class="hero-card" id="heroMoments">
-        <div class="hero-card-backdrop"></div>
         <div class="hero-card-content">
-          <div class="hero-card-icon">📸</div>
+          <div class="hero-card-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9.5 8.5v7l6-3.5z" fill="currentColor" stroke="none"/></svg>
+          </div>
           <h2 class="hero-card-title">Customer Moments</h2>
           <p class="hero-card-desc">Watch real photos & videos from our community of food lovers.</p>
           <button class="hero-card-cta">Watch Stories →</button>
@@ -592,7 +521,7 @@ html[data-tkg-theme="light"] .announcements-card {
 
       <!-- FEATURED REVIEWS SECTION -->
       <div>
-        <h3 class="hub-section-title">⭐ What Customers Say</h3>
+        <h3 class="hub-section-title">What Customers Say</h3>
         <div class="reviews-container" id="reviewsContainer">
           <div class="reviews-loading">Loading reviews...</div>
         </div>
@@ -602,7 +531,7 @@ html[data-tkg-theme="light"] .announcements-card {
       <div class="leaderboard-card">
         <div>
           <div class="leaderboard-header">
-            <h3 class="leaderboard-title">🎮 Weekly Champions</h3>
+            <h3 class="leaderboard-title">Weekly Champions</h3>
             <span class="leaderboard-period">This Week</span>
           </div>
           <div class="leaderboard-list" id="leaderboardList">
@@ -615,12 +544,11 @@ html[data-tkg-theme="light"] .announcements-card {
             </div>
           </div>
         </div>
-        <button class="leaderboard-cta">Play & Beat High Score 🚀</button>
+        <button class="leaderboard-cta" id="leaderboardCta">Play & Beat High Score →</button>
       </div>
 
       <!-- ANNOUNCEMENTS -->
       <div class="announcements-card">
-        <div class="announcements-icon">🎉</div>
         <h3 class="announcements-title">Weekend Special</h3>
         <p class="announcements-text">Fresh khichiya bowls at 20% off this Saturday & Sunday. Come hungry, leave satisfied!</p>
       </div>
@@ -628,126 +556,148 @@ html[data-tkg-theme="light"] .announcements-card {
       <!-- FOOTER: SOCIAL SECTION -->
       <footer class="hub-footer">
         <h4 class="social-section-title">Connect With Us</h4>
-        <div class="social-buttons">
-          <a href="https://instagram.com/the.khichiyagravy" target="_blank" rel="noopener" class="social-btn">
-            <span class="social-btn-icon">📱</span>
-            <span class="social-btn-text">Follow @the.khichiyagravy</span>
-            <span>→</span>
-          </a>
-        </div>
+        <a href="https://instagram.com/the.khichiyagravy" target="_blank" rel="noopener" class="social-btn">
+          <span class="social-btn-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg></span>
+          <span class="social-btn-text">Follow @the.khichiyagravy</span>
+          <span>→</span>
+        </a>
       </footer>
 
     </div>
   </div>
+
+  <!-- FLOATING / EXPANDABLE DOCK — same pattern as moments.html -->
+  <nav class="hub-nav" id="hubNav">
+    <button class="hub-nav-btn active" disabled title="Hub">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    </button>
+    <a href="./moments.html" class="hub-nav-btn" title="Moments">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9.5 8.5v7l6-3.5z" fill="currentColor" stroke="none"/></svg>
+    </a>
+    <a href="./khichiya-runner.html" class="hub-nav-btn" title="Khichiya Runner">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 15a3 3 0 0 0 6 0"/></svg>
+    </a>
+    <a href="https://www.instagram.com/the.khichiyagravy" target="_blank" rel="noopener" class="hub-nav-btn instagram-btn" title="Instagram">
+      <svg viewBox="0 0 24 24"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+    </a>
+  </nav>
 </div>
 
 <script>
-// ========== THEME TOGGLE ==========
-const THEME_KEY = 'tkg_theme';
-const THEME_TOGGLE = document.getElementById('themeToggle');
-const THEME_ICON = document.getElementById('themeIcon');
-const HTML_ELEM = document.documentElement;
-
-function updateThemeIcon() {
-  const theme = HTML_ELEM.getAttribute('data-tkg-theme');
-  THEME_ICON.textContent = theme === 'dark' ? '☀️' : '🌙';
-}
-
-THEME_TOGGLE.addEventListener('click', () => {
-  const current = HTML_ELEM.getAttribute('data-tkg-theme');
-  const newTheme = current === 'dark' ? 'light' : 'dark';
-  HTML_ELEM.setAttribute('data-tkg-theme', newTheme);
-  localStorage.setItem(THEME_KEY, newTheme);
-  updateThemeIcon();
-});
-
-updateThemeIcon();
+// ========== PERSONALIZATION VIA SHARED IDENTITY ==========
+// Auto-fills a returning-customer greeting instead of asking again —
+// reads the same tkg_customer identity set by moments.html's upload flow.
+(function personalizeGreeting() {
+  if (!window.TKGShared) return;
+  const identity = window.TKGShared.getCustomerIdentity();
+  const tagline = document.getElementById('hubTagline');
+  if (identity && identity.name) {
+    tagline.textContent = `Welcome back, ${identity.name} 👋`;
+  }
+})();
 
 // ========== NAVIGATION ==========
 document.getElementById('heroMoments').addEventListener('click', () => {
   window.location.href = './moments.html';
 });
 
-document.querySelector('.leaderboard-cta').addEventListener('click', () => {
+document.getElementById('leaderboardCta').addEventListener('click', () => {
   window.location.href = './khichiya-runner.html';
 });
 
-// ========== FETCH FEATURED REVIEWS ==========
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
+// ========== FETCH FEATURED REVIEWS (via tkg-shared.js) ==========
 const REVIEWS_CONTAINER = document.getElementById('reviewsContainer');
 
 async function fetchFeaturedReviews() {
-  try {
-    const response = await fetch(`${APP_SCRIPT_URL}?action=getFeaturedReviews`);
-    const data = await response.json();
+  const result = await window.TKGShared.fetchFromAppsScript('getFeaturedReviews');
 
-    if (!data || !data.reviews || data.reviews.length === 0) {
-      REVIEWS_CONTAINER.innerHTML = '<div class="reviews-loading">No reviews yet. Be the first to share!</div>';
-      return;
-    }
-
-    REVIEWS_CONTAINER.innerHTML = '';
-    
-    data.reviews.slice(0, 3).forEach(review => {
-      const { reviewer, rating, text } = review;
-      const stars = '★'.repeat(rating || 5) + '☆'.repeat(5 - (rating || 5));
-      
-      const card = document.createElement('div');
-      card.className = 'review-card';
-      card.innerHTML = `
-        <div class="review-rating">${stars}</div>
-        <div class="review-text">"${escapeHtml(text)}"</div>
-        <div class="review-author">— ${escapeHtml(reviewer)}</div>
-      `;
-      REVIEWS_CONTAINER.appendChild(card);
-    });
-  } catch (err) {
-    console.error('Failed to fetch reviews:', err);
-    REVIEWS_CONTAINER.innerHTML = '<div class="reviews-loading">Unable to load reviews right now.</div>';
+  if (!result.success || !result.data || !result.data.reviews || result.data.reviews.length === 0) {
+    REVIEWS_CONTAINER.innerHTML = '<div class="reviews-loading">No reviews yet. Be the first to share!</div>';
+    return;
   }
+
+  REVIEWS_CONTAINER.innerHTML = '';
+
+  result.data.reviews.slice(0, 3).forEach(review => {
+    const { reviewer, rating, text } = review;
+    const stars = '★'.repeat(rating || 5) + '☆'.repeat(5 - (rating || 5));
+
+    const card = document.createElement('div');
+    card.className = 'review-card';
+    card.innerHTML = `
+      <div class="review-rating">${stars}</div>
+      <div class="review-text">"${escapeHtml(text)}"</div>
+      <div class="review-author">— ${escapeHtml(reviewer)}</div>
+    `;
+    REVIEWS_CONTAINER.appendChild(card);
+  });
 }
 
-// ========== FETCH LEADERBOARD ==========
+// ========== FETCH LEADERBOARD (via tkg-shared.js) ==========
 const LEADERBOARD_LIST = document.getElementById('leaderboardList');
 
 async function fetchLeaderboard() {
-  try {
-    const response = await fetch(`${APP_SCRIPT_URL}?action=getLeaderboard`);
-    const data = await response.json();
+  const result = await window.TKGShared.fetchFromAppsScript('getLeaderboard');
 
-    if (!data || !data.leaderboard || data.leaderboard.length === 0) {
-      LEADERBOARD_LIST.innerHTML = '<div class="reviews-loading">Leaderboard loading...</div>';
-      return;
-    }
-
-    LEADERBOARD_LIST.innerHTML = '';
-
-    data.leaderboard.slice(0, 5).forEach((player, idx) => {
-      const { name, score } = player;
-      const rank = idx + 1;
-
-      const item = document.createElement('div');
-      item.className = 'leaderboard-item';
-      item.innerHTML = `
-        <div class="leaderboard-rank">${rank}</div>
-        <div class="leaderboard-info">
-          <div class="leaderboard-name">${escapeHtml(name || 'Anonymous')}</div>
-          <div class="leaderboard-score">${Math.round(score || 0)} points</div>
-        </div>
-      `;
-      LEADERBOARD_LIST.appendChild(item);
-    });
-  } catch (err) {
-    console.error('Failed to fetch leaderboard:', err);
+  if (!result.success || !result.data || !result.data.leaderboard || result.data.leaderboard.length === 0) {
+    LEADERBOARD_LIST.innerHTML = '<div class="reviews-loading">Leaderboard loading...</div>';
+    return;
   }
+
+  LEADERBOARD_LIST.innerHTML = '';
+
+  result.data.leaderboard.slice(0, 5).forEach((player, idx) => {
+    const { name, score } = player;
+    const rank = idx + 1;
+
+    const item = document.createElement('div');
+    item.className = 'leaderboard-item';
+    item.innerHTML = `
+      <div class="leaderboard-rank">${rank}</div>
+      <div class="leaderboard-info">
+        <div class="leaderboard-name">${escapeHtml(name || 'Anonymous')}</div>
+        <div class="leaderboard-score">${Math.round(score || 0)} points</div>
+      </div>
+    `;
+    LEADERBOARD_LIST.appendChild(item);
+  });
 }
 
-// ========== ESCAPE HTML ==========
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
 }
+
+// ========== EXPANDABLE NAV — identical behavior to moments.html ==========
+(function setupExpandableNav() {
+  const scrollEl = document.getElementById('hubContent');
+  const nav = document.getElementById('hubNav');
+  if (!scrollEl || !nav) return;
+
+  let lastScrollTop = scrollEl.scrollTop;
+  const DELTA_THRESHOLD = 10;
+  const TOP_ZONE = 24;
+
+  function expandNav() { nav.classList.remove('nav-condensed'); }
+  function condenseNav() { nav.classList.add('nav-condensed'); }
+
+  scrollEl.addEventListener('scroll', () => {
+    const current = scrollEl.scrollTop;
+    const delta = current - lastScrollTop;
+
+    if (current <= TOP_ZONE) {
+      expandNav();
+    } else if (Math.abs(delta) > DELTA_THRESHOLD) {
+      if (delta > 0) condenseNav();
+      else expandNav();
+    }
+    lastScrollTop = current;
+  }, { passive: true });
+
+  nav.addEventListener('click', expandNav);
+  nav.addEventListener('touchstart', expandNav, { passive: true });
+})();
 
 // ========== INIT ==========
 fetchFeaturedReviews();

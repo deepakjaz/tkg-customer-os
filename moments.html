@@ -41,6 +41,8 @@
   }
 </script>
 
+<script src="./tkg-shared.js"></script>
+
 <style>
 :root{
   /* PURE B&W PREMIUM AESTHETIC + GLASS SURFACES */
@@ -821,6 +823,11 @@ body {
         <input type="text" id="uploadName" class="upload-modal-input" placeholder="First name">
       </div>
 
+      <div class="upload-modal-field">
+        <label class="upload-modal-label">Mobile Number</label>
+        <input type="tel" id="uploadMobile" class="upload-modal-input" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10">
+      </div>
+
       <div class="upload-modal-field" id="uploadMediaPanel">
         <label class="upload-modal-label">Photos or Videos (Max 10)</label>
         <input type="file" id="uploadFile" class="upload-modal-file" accept="image/*,video/*" multiple>
@@ -880,6 +887,7 @@ const FEED = document.getElementById('momentsFeed');
 const SHARE_BTN = document.getElementById('shareBtn');
 const UPLOAD_MODAL = document.getElementById('uploadModal');
 const UPLOAD_NAME = document.getElementById('uploadName');
+const UPLOAD_MOBILE = document.getElementById('uploadMobile');
 const UPLOAD_FILE = document.getElementById('uploadFile');
 const UPLOAD_CAPTION = document.getElementById('uploadCaption');
 const UPLOAD_PREVIEW = document.getElementById('uploadPreview');
@@ -1541,8 +1549,17 @@ function transformDriveImageUrl(rawUrl) {
 
 // ========== MULTI-FILE UPLOAD + SOCIAL LINK SUBMISSION ==========
 SHARE_BTN.addEventListener('click', () => {
+  const savedIdentity = window.TKGShared ? window.TKGShared.getCustomerIdentity() : null;
+  if (savedIdentity) {
+    UPLOAD_NAME.value = savedIdentity.name || '';
+    UPLOAD_MOBILE.value = savedIdentity.mobile || '';
+  }
   UPLOAD_MODAL.classList.add('open');
-  UPLOAD_NAME.focus();
+  if (savedIdentity) {
+    UPLOAD_CAPTION.focus();
+  } else {
+    UPLOAD_NAME.focus();
+  }
 });
 
 UPLOAD_CANCEL.addEventListener('click', () => {
@@ -1631,10 +1648,12 @@ UPLOAD_SUBMIT.addEventListener('click', async () => {
 
 async function handleMediaUpload() {
   const name = UPLOAD_NAME.value.trim();
+  const mobile = UPLOAD_MOBILE.value.trim();
   const caption = UPLOAD_CAPTION.value.trim();
 
-  if (!name) {
-    alert('Please enter your name');
+  const identityResult = window.TKGShared.setCustomerIdentity(name, mobile);
+  if (!identityResult.success) {
+    alert(identityResult.error.message);
     return;
   }
 
@@ -1690,26 +1709,14 @@ async function handleMediaUpload() {
       UPLOAD_PROGRESS_BAR.style.width = Math.round((uploadedCount / selectedFiles.length) * 80) + '%';
     }
 
-    const sheetPayload = {
-      action: 'uploadMoment',
+    const sheetResult = await window.TKGShared.submitToAppsScript('uploadMoment', {
       uploaderName: name,
       caption: caption,
       media: uploadedMediaArray
-    };
-
-    const sheetResponse = await fetch(APP_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(sheetPayload)
     });
 
-    if (!sheetResponse.ok) {
-      throw new Error(`Server error saving row: ${sheetResponse.statusText}`);
-    }
-
-    const sheetResult = await sheetResponse.json();
-    if (sheetResult.status !== 'ok') {
-      throw new Error(sheetResult.message || 'Failed to save moment to Google Sheet');
+    if (!sheetResult.success) {
+      throw new Error(sheetResult.error.message || 'Failed to save moment to Google Sheet');
     }
 
     UPLOAD_PROGRESS_BAR.style.width = '100%';
@@ -1726,7 +1733,15 @@ async function handleMediaUpload() {
 }
 
 async function handleSocialLinkSubmit() {
+  const name = UPLOAD_NAME.value.trim();
+  const mobile = UPLOAD_MOBILE.value.trim();
   const link = SOCIAL_LINK_INPUT.value.trim();
+
+  const identityResult = window.TKGShared.setCustomerIdentity(name, mobile);
+  if (!identityResult.success) {
+    alert(identityResult.error.message);
+    return;
+  }
 
   if (!link) {
     alert('Please paste an Instagram link');
@@ -1743,24 +1758,12 @@ async function handleSocialLinkSubmit() {
   UPLOAD_SUBMIT.disabled = true;
 
   try {
-    const payload = {
-      action: 'submitMomentLink',
+    const result = await window.TKGShared.submitToAppsScript('submitMomentLink', {
       instagramUrl: link
-    };
-
-    const response = await fetch(APP_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    if (result.status !== 'ok') {
-      throw new Error(result.message || 'Submission failed');
+    if (!result.success) {
+      throw new Error(result.error.message || 'Submission failed');
     }
 
     closeUploadModal();
@@ -1776,6 +1779,7 @@ async function handleSocialLinkSubmit() {
 function closeUploadModal() {
   UPLOAD_MODAL.classList.remove('open');
   UPLOAD_NAME.value = '';
+  UPLOAD_MOBILE.value = '';
   UPLOAD_CAPTION.value = '';
   UPLOAD_FILE.value = '';
   UPLOAD_PREVIEW.classList.remove('show');
