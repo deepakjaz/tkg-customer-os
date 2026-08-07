@@ -157,6 +157,40 @@ body {
   margin-bottom: 12px;
 }
 
+.reviews-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.google-brand-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+.google-overall-rating {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.google-overall-num {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--star-gold);
+}
+
+.google-overall-stars {
+  font-size: 12px;
+  color: var(--star-gold);
+  letter-spacing: 1px;
+}
+
 /* ===== HERO CARD: CUSTOMER MOMENTS — 4:5 auto-slide carousel ===== */
 .hero-card {
   position: relative;
@@ -270,10 +304,10 @@ body {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   flex: 0 0 85%;
   max-width: 280px;
-  height: 152px;
+  height: 178px;
   scroll-snap-align: start;
   overflow: hidden;
   cursor: pointer;
@@ -297,7 +331,7 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   color: var(--card-text-soft);
   font-style: italic;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -306,7 +340,20 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   font-size: 12px;
   color: var(--text-tertiary);
   font-weight: 500;
+}
+
+.review-source-badge {
   margin-top: auto;
+  width: fit-content;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--card-text-soft);
+  background: rgba(255,255,255,0.08);
+  padding: 3px 9px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .reviews-loading {
@@ -440,6 +487,20 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   color: var(--card-text-soft);
 }
 
+.lightbox-source-badge {
+  margin-top: 4px;
+  width: fit-content;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--card-text-soft);
+  background: rgba(255,255,255,0.08);
+  padding: 4px 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
 /* ===== LEADERBOARD CARD — compact ===== */
 .leaderboard-card {
   background: var(--card-bg);
@@ -453,20 +514,61 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 
 .leaderboard-header {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .leaderboard-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--card-text);
 }
 
-.leaderboard-period {
+.leaderboard-subtitle {
   font-size: 11px;
   color: var(--card-text-soft);
   font-weight: 500;
+  line-height: 1.4;
+}
+
+/* ===== CROWN CHAMPION HERO — gold metallic surface ===== */
+.champion-hero {
+  text-align: center;
+  border-radius: var(--radius-md);
+  padding: 20px 16px;
+  background: linear-gradient(135deg, #1f1a0a 0%, #3a2e0b 50%, #1a1608 100%);
+  border: 1px solid #D4AF37;
+  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.18);
+}
+
+.champion-crown {
+  font-size: 30px;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.4));
+}
+
+.champion-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 2px;
+}
+
+.champion-score {
+  font-size: 26px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.top-scores-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-tertiary);
+  font-weight: 700;
 }
 
 .leaderboard-list {
@@ -493,10 +595,10 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 }
 
 .leaderboard-item:nth-child(1) {
-  background: rgba(255, 107, 0, 0.14);
-  border: 1px solid rgba(255, 107, 0, 0.3);
+  background: rgba(212, 175, 55, 0.14);
+  border: 1px solid rgba(212, 175, 55, 0.35);
 }
-.leaderboard-item:nth-child(1) .leaderboard-rank { color: #FF6B00; font-size: 16px; }
+.leaderboard-item:nth-child(1) .leaderboard-rank { color: #D4AF37; font-size: 16px; }
 .leaderboard-item:nth-child(2) .leaderboard-rank { color: #E65100; }
 .leaderboard-item:nth-child(3) .leaderboard-rank { color: #E65100; opacity: 0.75; }
 
@@ -516,6 +618,31 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 .leaderboard-score {
   font-size: 11px;
   color: var(--card-text-soft);
+}
+
+/* ===== LIVE RIGHT NOW ===== */
+.live-now-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-tertiary);
+  font-weight: 700;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FF3B30;
+  animation: livePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
 .leaderboard-cta {
@@ -704,6 +831,13 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 
       <!-- FEATURED REVIEWS SECTION -->
       <div>
+        <div class="reviews-section-header">
+          <div class="google-brand-title"><span style="color:#4285F4">G</span><span style="color:#EA4335">o</span><span style="color:#FBBC05">o</span><span style="color:#4285F4">g</span><span style="color:#34A853">l</span><span style="color:#EA4335">e</span> Reviews</div>
+          <div class="google-overall-rating">
+            <span class="google-overall-num" id="googleOverallNum">5.0</span>
+            <span class="google-overall-stars" id="googleOverallStars">★★★★★</span>
+          </div>
+        </div>
         <h3 class="hub-section-title">What Customers Say</h3>
         <div class="reviews-container" id="reviewsContainer">
           <div class="reviews-loading">Loading reviews...</div>
@@ -726,27 +860,40 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
             <p class="lightbox-body-text" id="lightboxBodyText"></p>
             <div class="lightbox-body-author" id="lightboxBodyAuthor"></div>
             <div class="lightbox-body-date" id="lightboxBodyDate"></div>
+            <div class="lightbox-source-badge">Posted on <span style="color:#4285F4">G</span><span style="color:#EA4335">o</span><span style="color:#FBBC05">o</span><span style="color:#4285F4">g</span><span style="color:#34A853">l</span><span style="color:#EA4335">e</span> Reviews</div>
           </div>
         </div>
       </div>
 
       <!-- LEADERBOARD SECTION -->
       <div class="leaderboard-card">
-        <div>
-          <div class="leaderboard-header">
-            <h3 class="leaderboard-title">Weekly Champions</h3>
-            <span class="leaderboard-period">This Week</span>
-          </div>
-          <div class="leaderboard-list" id="leaderboardList">
-            <div class="leaderboard-item">
-              <div class="leaderboard-rank">1</div>
-              <div class="leaderboard-info">
-                <div class="leaderboard-name">Loading...</div>
-                <div class="leaderboard-score">0 points</div>
-              </div>
+        <div class="leaderboard-header">
+          <h3 class="leaderboard-title">🏆 Khichiya Runner Leaderboard</h3>
+          <p class="leaderboard-subtitle">One continuous leaderboard — the top score holds the crown until someone beats it.</p>
+        </div>
+
+        <div class="champion-hero" id="championHero">
+          <div class="champion-crown">👑</div>
+          <div class="champion-name" id="championName">Loading...</div>
+          <div class="champion-score" id="championScore">0</div>
+        </div>
+
+        <div class="top-scores-label">Top Scores</div>
+        <div class="leaderboard-list" id="leaderboardList">
+          <div class="leaderboard-item">
+            <div class="leaderboard-rank">1</div>
+            <div class="leaderboard-info">
+              <div class="leaderboard-name">Loading...</div>
+              <div class="leaderboard-score">0 points</div>
             </div>
           </div>
         </div>
+
+        <div class="live-now-label" id="liveNowLabel" style="display:none;">
+          <span class="live-dot"></span> Live Right Now
+        </div>
+        <div class="leaderboard-list" id="liveNowList"></div>
+
         <button class="leaderboard-cta" id="leaderboardCta">Play & Beat High Score →</button>
       </div>
 
@@ -820,8 +967,16 @@ async function fetchFeaturedReviews() {
     return;
   }
 
-  REVIEWS_DATA = result.data.reviews.slice(0, 3);
+  const allReviews = result.data.reviews;
+  REVIEWS_DATA = allReviews.slice(0, 3);
   REVIEWS_CONTAINER.innerHTML = '';
+
+  // Overall rating header — averaged across all fetched reviews (the API
+  // response doesn't include a separate business-level aggregate score)
+  const avg = allReviews.reduce((sum, r) => sum + (r.rating || 5), 0) / allReviews.length;
+  const avgRounded = Math.round(avg);
+  document.getElementById('googleOverallNum').textContent = avg.toFixed(1);
+  document.getElementById('googleOverallStars').textContent = '★'.repeat(avgRounded) + '☆'.repeat(5 - avgRounded);
 
   REVIEWS_DATA.forEach((review, idx) => {
     const { quoteText, authorName, rating } = review;
@@ -835,6 +990,7 @@ async function fetchFeaturedReviews() {
       <div class="review-rating">${stars}</div>
       <div class="review-text">"${escapeHtml(quoteText || '')}"</div>
       <div class="review-author">— ${escapeHtml(authorName || 'Customer')}</div>
+      <div class="review-source-badge">Posted on <span style="color:#4285F4">G</span><span style="color:#EA4335">o</span><span style="color:#FBBC05">o</span><span style="color:#4285F4">g</span><span style="color:#34A853">l</span><span style="color:#EA4335">e</span> Reviews</div>
     `;
     card.addEventListener('click', () => openReviewLightbox(idx));
     REVIEWS_CONTAINER.appendChild(card);
@@ -843,35 +999,75 @@ async function fetchFeaturedReviews() {
 
 // ========== FETCH LEADERBOARD (via tkg-shared.js) ==========
 const LEADERBOARD_LIST = document.getElementById('leaderboardList');
+const CHAMPION_HERO = document.getElementById('championHero');
 
 async function fetchLeaderboard() {
   const result = await window.TKGShared.fetchFromAppsScript('runnerScores');
 
   if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.scores) || result.data.scores.length === 0) {
     LEADERBOARD_LIST.innerHTML = '<div class="reviews-loading">Leaderboard loading...</div>';
+    CHAMPION_HERO.style.display = 'none';
     return;
   }
 
   const topScores = [...result.data.scores]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
-    .slice(0, 5);
+    .slice(0, 6);
+
+  // Crown Champion hero — rank #1
+  const champion = topScores[0];
+  document.getElementById('championName').textContent = champion.name || 'Anonymous';
+  document.getElementById('championScore').textContent = Math.round(champion.score || 0);
 
   LEADERBOARD_LIST.innerHTML = '';
 
   topScores.forEach((player, idx) => {
     const { name, score } = player;
     const rank = idx + 1;
+    const displayName = escapeHtml(name || 'Anonymous') + (rank === 1 ? ' 👑' : '');
 
     const item = document.createElement('div');
     item.className = 'leaderboard-item';
     item.innerHTML = `
       <div class="leaderboard-rank">${rank}</div>
       <div class="leaderboard-info">
-        <div class="leaderboard-name">${escapeHtml(name || 'Anonymous')}</div>
+        <div class="leaderboard-name">${displayName}</div>
         <div class="leaderboard-score">${Math.round(score || 0)} points</div>
       </div>
     `;
     LEADERBOARD_LIST.appendChild(item);
+  });
+}
+
+// ========== LIVE RIGHT NOW ==========
+// NOTE: the documented `runnerScores` contract only returns static top
+// scores — it has no field marking a score as an active/in-progress
+// session. This attempts an optional `liveRunnerFeed` action; if that
+// action doesn't exist on the backend yet, the section stays hidden
+// rather than showing fabricated "Anonymous player" activity.
+async function fetchLiveRightNow() {
+  const result = await window.TKGShared.fetchFromAppsScript('liveRunnerFeed');
+  const label = document.getElementById('liveNowLabel');
+  const list = document.getElementById('liveNowList');
+
+  if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.live) || result.data.live.length === 0) {
+    label.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+
+  label.style.display = 'flex';
+  list.innerHTML = '';
+  result.data.live.slice(0, 3).forEach((entry) => {
+    const item = document.createElement('div');
+    item.className = 'leaderboard-item';
+    item.innerHTML = `
+      <div class="leaderboard-info">
+        <div class="leaderboard-name">🎮 ${escapeHtml(entry.name || 'Anonymous player')}</div>
+      </div>
+      <div class="leaderboard-score">${Math.round(entry.score || 0)}</div>
+    `;
+    list.appendChild(item);
   });
 }
 
@@ -1027,6 +1223,7 @@ function startHeroAutoSlide() {
 // ========== INIT ==========
 fetchFeaturedReviews();
 fetchLeaderboard();
+fetchLiveRightNow();
 fetchHeroPreview();
 </script>
 
