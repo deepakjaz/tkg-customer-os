@@ -11,7 +11,12 @@
 (function(){
   try{
     var theme = localStorage.getItem('tkg_theme');
-    document.documentElement.setAttribute('data-tkg-theme', theme === 'dark' ? 'dark' : 'light');
+    if (theme === 'dark' || theme === 'light') {
+      document.documentElement.setAttribute('data-tkg-theme', theme);
+    } else {
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-tkg-theme', prefersDark ? 'dark' : 'light');
+    }
   }catch(e){
     document.documentElement.setAttribute('data-tkg-theme', 'light');
   }
@@ -112,6 +117,37 @@ body {
   border-bottom: 1px solid var(--divider);
   background: var(--page-bg);
   flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.theme-toggle-btn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.theme-toggle-btn:active { transform: scale(0.88); }
+
+.theme-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
 }
 
 .hub-logo {
@@ -389,16 +425,17 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 .lightbox-modal {
   width: 100%;
   max-width: 340px;
-  max-height: 78vh;
-  overflow-y: auto;
+  max-height: 84vh;
   background: var(--card-bg);
   color: var(--card-text);
   border: 1px solid var(--border-crisp);
   border-radius: var(--radius-lg);
-  padding: 22px;
   position: relative;
   transform: scale(0.94);
   transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .lightbox-overlay.open .lightbox-modal {
@@ -421,13 +458,16 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
 
 .lightbox-close:active { transform: scale(0.9); }
 
 .lightbox-header {
-  padding-right: 30px;
-  margin-bottom: 16px;
+  flex-shrink: 0;
+  padding: 22px 22px 14px;
+  padding-right: 52px;
+  border-bottom: 1px solid var(--border-crisp);
 }
 
 .lightbox-header-label {
@@ -457,10 +497,29 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   letter-spacing: 1px;
 }
 
+/* Scrollable body holding ALL reviews */
 .lightbox-body {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 80vh;
+  padding: 16px 22px 22px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lightbox-review-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-crisp);
+}
+
+.lightbox-review-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .lightbox-body-stars {
@@ -488,7 +547,7 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 }
 
 .lightbox-source-badge {
-  margin-top: 4px;
+  margin-top: 2px;
   width: fit-content;
   font-size: 11px;
   font-weight: 600;
@@ -499,6 +558,17 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   display: inline-flex;
   align-items: center;
   gap: 3px;
+}
+
+.see-all-reviews-btn {
+  margin-top: 10px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0;
 }
 
 /* ===== LEADERBOARD CARD — compact ===== */
@@ -809,8 +879,19 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 <div class="hub-container">
   <!-- HEADER -->
   <header class="hub-header">
-    <div class="hub-logo">The Khichiya Gravy</div>
-    <div class="hub-tagline" id="hubTagline">Gallery from the community</div>
+    <div>
+      <div class="hub-logo">The Khichiya Gravy</div>
+      <div class="hub-tagline" id="hubTagline">Gallery from the community</div>
+    </div>
+    <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle theme">
+      <svg id="themeToggleIconSun" viewBox="0 0 24 24" style="display:none;">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+      <svg id="themeToggleIconMoon" viewBox="0 0 24 24" style="display:none;">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>
+      </svg>
+    </button>
   </header>
 
   <!-- CONTENT SCROLL -->
@@ -842,9 +923,10 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
         <div class="reviews-container" id="reviewsContainer">
           <div class="reviews-loading">Loading reviews...</div>
         </div>
+        <button class="see-all-reviews-btn" id="seeAllReviewsBtn">See All Reviews →</button>
       </div>
 
-      <!-- REVIEW LIGHTBOX MODAL -->
+      <!-- REVIEW LIGHTBOX MODAL — shows ALL reviews, scrollable -->
       <div class="lightbox-overlay" id="reviewLightbox">
         <div class="lightbox-modal" id="reviewLightboxModal">
           <button class="lightbox-close" id="lightboxClose" aria-label="Close">×</button>
@@ -855,12 +937,8 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
               <span class="lightbox-rating-stars" id="lightboxRatingStars">★★★★★</span>
             </div>
           </div>
-          <div class="lightbox-body">
-            <div class="lightbox-body-stars" id="lightboxBodyStars">★★★★★</div>
-            <p class="lightbox-body-text" id="lightboxBodyText"></p>
-            <div class="lightbox-body-author" id="lightboxBodyAuthor"></div>
-            <div class="lightbox-body-date" id="lightboxBodyDate"></div>
-            <div class="lightbox-source-badge">Posted on <span style="color:#4285F4">G</span><span style="color:#EA4335">o</span><span style="color:#FBBC05">o</span><span style="color:#4285F4">g</span><span style="color:#34A853">l</span><span style="color:#EA4335">e</span> Reviews</div>
+          <div class="lightbox-body" id="lightboxBody">
+            <!-- all review items injected here by openReviewLightbox() -->
           </div>
         </div>
       </div>
@@ -934,6 +1012,31 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 </div>
 
 <script>
+// ========== THEME TOGGLE ==========
+// Icon shows the theme a tap will switch TO: sun visible while in dark
+// mode (tap for light), moon visible while in light mode (tap for dark).
+(function setupThemeToggle() {
+  const btn = document.getElementById('themeToggleBtn');
+  const sunIcon = document.getElementById('themeToggleIconSun');
+  const moonIcon = document.getElementById('themeToggleIconMoon');
+
+  function syncIcon() {
+    const isDark = document.documentElement.getAttribute('data-tkg-theme') === 'dark';
+    sunIcon.style.display = isDark ? 'block' : 'none';
+    moonIcon.style.display = isDark ? 'none' : 'block';
+  }
+
+  btn.addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-tkg-theme') === 'dark';
+    const next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-tkg-theme', next);
+    try { localStorage.setItem('tkg_theme', next); } catch (e) {}
+    syncIcon();
+  });
+
+  syncIcon();
+})();
+
 // ========== PERSONALIZATION VIA SHARED IDENTITY ==========
 // Auto-fills a returning-customer greeting instead of asking again —
 // reads the same tkg_customer identity set by moments.html's upload flow.
@@ -957,7 +1060,7 @@ document.getElementById('leaderboardCta').addEventListener('click', () => {
 
 // ========== FETCH FEATURED REVIEWS (via tkg-shared.js) ==========
 const REVIEWS_CONTAINER = document.getElementById('reviewsContainer');
-let REVIEWS_DATA = [];
+let ALL_REVIEWS_DATA = [];
 
 async function fetchFeaturedReviews() {
   const result = await window.TKGShared.fetchFromAppsScript('featuredReviews');
@@ -967,32 +1070,35 @@ async function fetchFeaturedReviews() {
     return;
   }
 
-  const allReviews = result.data.reviews;
-  REVIEWS_DATA = allReviews.slice(0, 3);
+  ALL_REVIEWS_DATA = result.data.reviews;
+  const previewReviews = ALL_REVIEWS_DATA.slice(0, 5);
   REVIEWS_CONTAINER.innerHTML = '';
 
-  // Overall rating header — averaged across all fetched reviews (the API
-  // response doesn't include a separate business-level aggregate score)
-  const avg = allReviews.reduce((sum, r) => sum + (r.rating || 5), 0) / allReviews.length;
+  // Overall rating — averaged across ALL fetched reviews (the API response
+  // doesn't include a separate business-level aggregate score). Used for
+  // both the section header and the lightbox header, set once here.
+  const avg = ALL_REVIEWS_DATA.reduce((sum, r) => sum + (r.rating || 5), 0) / ALL_REVIEWS_DATA.length;
   const avgRounded = Math.round(avg);
+  const avgStars = '★'.repeat(avgRounded) + '☆'.repeat(5 - avgRounded);
   document.getElementById('googleOverallNum').textContent = avg.toFixed(1);
-  document.getElementById('googleOverallStars').textContent = '★'.repeat(avgRounded) + '☆'.repeat(5 - avgRounded);
+  document.getElementById('googleOverallStars').textContent = avgStars;
+  document.getElementById('lightboxRatingNum').textContent = avg.toFixed(1);
+  document.getElementById('lightboxRatingStars').textContent = avgStars;
 
-  REVIEWS_DATA.forEach((review, idx) => {
+  previewReviews.forEach((review) => {
     const { quoteText, authorName, rating } = review;
     const r = rating || 5;
     const stars = '★'.repeat(r) + '☆'.repeat(5 - r);
 
     const card = document.createElement('div');
     card.className = 'review-card';
-    card.dataset.idx = idx;
     card.innerHTML = `
       <div class="review-rating">${stars}</div>
       <div class="review-text">"${escapeHtml(quoteText || '')}"</div>
       <div class="review-author">— ${escapeHtml(authorName || 'Customer')}</div>
       <div class="review-source-badge">Posted on <span style="color:#4285F4">G</span><span style="color:#EA4335">o</span><span style="color:#FBBC05">o</span><span style="color:#4285F4">g</span><span style="color:#34A853">l</span><span style="color:#EA4335">e</span> Reviews</div>
     `;
-    card.addEventListener('click', () => openReviewLightbox(idx));
+    card.addEventListener('click', () => openReviewLightbox());
     REVIEWS_CONTAINER.appendChild(card);
   });
 }
@@ -1081,29 +1187,29 @@ function escapeHtml(text) {
 const LIGHTBOX_OVERLAY = document.getElementById('reviewLightbox');
 const LIGHTBOX_MODAL = document.getElementById('reviewLightboxModal');
 
-function openReviewLightbox(idx) {
-  const review = REVIEWS_DATA[idx];
-  if (!review) return;
+function openReviewLightbox() {
+  const body = document.getElementById('lightboxBody');
+  body.innerHTML = '';
 
-  const { quoteText, authorName, rating, date, time, publishedAt } = review;
-  const r = rating || 5;
-  const stars = '★'.repeat(r) + '☆'.repeat(5 - r);
-  const dateLabel = date || time || publishedAt || '';
+  ALL_REVIEWS_DATA.forEach((review) => {
+    const { quoteText, authorName, rating, date, time, publishedAt } = review;
+    const r = rating || 5;
+    const stars = '★'.repeat(r) + '☆'.repeat(5 - r);
+    const dateLabel = date || time || publishedAt || '';
 
-  document.getElementById('lightboxRatingNum').textContent = `${r.toFixed ? r.toFixed(1) : r}.0`;
-  document.getElementById('lightboxRatingStars').textContent = stars;
-  document.getElementById('lightboxBodyStars').textContent = stars;
-  document.getElementById('lightboxBodyText').textContent = `"${quoteText || ''}"`;
-  document.getElementById('lightboxBodyAuthor').textContent = authorName || 'Customer';
+    const item = document.createElement('div');
+    item.className = 'lightbox-review-item';
+    item.innerHTML = `
+      <div class="lightbox-body-stars">${stars}</div>
+      <p class="lightbox-body-text">"${escapeHtml(quoteText || '')}"</p>
+      <div class="lightbox-body-author">${escapeHtml(authorName || 'Customer')}</div>
+      ${dateLabel ? `<div class="lightbox-body-date">${escapeHtml(dateLabel)}</div>` : ''}
+      <div class="lightbox-source-badge">Posted on <span style="color:#4285F4">G</span><span style="color:#EA4335">o</span><span style="color:#FBBC05">o</span><span style="color:#4285F4">g</span><span style="color:#34A853">l</span><span style="color:#EA4335">e</span> Reviews</div>
+    `;
+    body.appendChild(item);
+  });
 
-  const dateEl = document.getElementById('lightboxBodyDate');
-  if (dateLabel) {
-    dateEl.textContent = dateLabel;
-    dateEl.style.display = '';
-  } else {
-    dateEl.style.display = 'none';
-  }
-
+  body.scrollTop = 0;
   LIGHTBOX_OVERLAY.classList.add('open');
 }
 
@@ -1112,6 +1218,7 @@ function closeReviewLightbox() {
 }
 
 document.getElementById('lightboxClose').addEventListener('click', closeReviewLightbox);
+document.getElementById('seeAllReviewsBtn').addEventListener('click', () => openReviewLightbox());
 
 // backdrop-click dismissal — only closes when the click lands outside the modal itself
 LIGHTBOX_OVERLAY.addEventListener('click', (e) => {
