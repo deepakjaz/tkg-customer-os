@@ -63,6 +63,7 @@
   --glass-bg: rgba(20,20,20,0.65);
   --glass-border: rgba(255,255,255,0.18);
   --divider: rgba(0, 0, 0, 0.06);
+  --star-gold: #FBBC04;
 }
 
 html[data-tkg-theme="dark"] {
@@ -275,7 +276,11 @@ body {
   height: 152px;
   scroll-snap-align: start;
   overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease;
 }
+
+.review-card:active { transform: scale(0.97); }
 
 html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 
@@ -283,7 +288,7 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   display: flex;
   gap: 3px;
   font-size: 14px;
-  color: #FFFFFF;
+  color: var(--star-gold);
 }
 
 .review-text {
@@ -310,6 +315,129 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   color: var(--text-tertiary);
   font-size: 13px;
   flex: 0 0 100%;
+}
+
+/* ===== REVIEW LIGHTBOX MODAL ===== */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.lightbox-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lightbox-modal {
+  width: 100%;
+  max-width: 340px;
+  max-height: 78vh;
+  overflow-y: auto;
+  background: var(--card-bg);
+  color: var(--card-text);
+  border: 1px solid var(--border-crisp);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  position: relative;
+  transform: scale(0.94);
+  transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+}
+
+.lightbox-overlay.open .lightbox-modal {
+  transform: scale(1);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.12);
+  color: var(--card-text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-close:active { transform: scale(0.9); }
+
+.lightbox-header {
+  padding-right: 30px;
+  margin-bottom: 16px;
+}
+
+.lightbox-header-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--card-text-soft);
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.lightbox-header-rating {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.lightbox-rating-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--star-gold);
+}
+
+.lightbox-rating-stars {
+  font-size: 16px;
+  color: var(--star-gold);
+  letter-spacing: 1px;
+}
+
+.lightbox-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lightbox-body-stars {
+  font-size: 14px;
+  color: var(--star-gold);
+  letter-spacing: 1px;
+}
+
+.lightbox-body-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--card-text);
+  font-style: italic;
+}
+
+.lightbox-body-author {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--card-text);
+}
+
+.lightbox-body-date {
+  font-size: 12px;
+  color: var(--card-text-soft);
 }
 
 /* ===== LEADERBOARD CARD — compact ===== */
@@ -582,6 +710,26 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
         </div>
       </div>
 
+      <!-- REVIEW LIGHTBOX MODAL -->
+      <div class="lightbox-overlay" id="reviewLightbox">
+        <div class="lightbox-modal" id="reviewLightboxModal">
+          <button class="lightbox-close" id="lightboxClose" aria-label="Close">×</button>
+          <div class="lightbox-header">
+            <div class="lightbox-header-label">Reviews</div>
+            <div class="lightbox-header-rating">
+              <span class="lightbox-rating-num" id="lightboxRatingNum">5.0</span>
+              <span class="lightbox-rating-stars" id="lightboxRatingStars">★★★★★</span>
+            </div>
+          </div>
+          <div class="lightbox-body">
+            <div class="lightbox-body-stars" id="lightboxBodyStars">★★★★★</div>
+            <p class="lightbox-body-text" id="lightboxBodyText"></p>
+            <div class="lightbox-body-author" id="lightboxBodyAuthor"></div>
+            <div class="lightbox-body-date" id="lightboxBodyDate"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- LEADERBOARD SECTION -->
       <div class="leaderboard-card">
         <div>
@@ -662,6 +810,7 @@ document.getElementById('leaderboardCta').addEventListener('click', () => {
 
 // ========== FETCH FEATURED REVIEWS (via tkg-shared.js) ==========
 const REVIEWS_CONTAINER = document.getElementById('reviewsContainer');
+let REVIEWS_DATA = [];
 
 async function fetchFeaturedReviews() {
   const result = await window.TKGShared.fetchFromAppsScript('featuredReviews');
@@ -671,19 +820,23 @@ async function fetchFeaturedReviews() {
     return;
   }
 
+  REVIEWS_DATA = result.data.reviews.slice(0, 3);
   REVIEWS_CONTAINER.innerHTML = '';
 
-  result.data.reviews.slice(0, 3).forEach(review => {
+  REVIEWS_DATA.forEach((review, idx) => {
     const { quoteText, authorName, rating } = review;
-    const stars = '★'.repeat(rating || 5) + '☆'.repeat(5 - (rating || 5));
+    const r = rating || 5;
+    const stars = '★'.repeat(r) + '☆'.repeat(5 - r);
 
     const card = document.createElement('div');
     card.className = 'review-card';
+    card.dataset.idx = idx;
     card.innerHTML = `
       <div class="review-rating">${stars}</div>
       <div class="review-text">"${escapeHtml(quoteText || '')}"</div>
       <div class="review-author">— ${escapeHtml(authorName || 'Customer')}</div>
     `;
+    card.addEventListener('click', () => openReviewLightbox(idx));
     REVIEWS_CONTAINER.appendChild(card);
   });
 }
@@ -727,6 +880,51 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+// ========== REVIEW LIGHTBOX ==========
+const LIGHTBOX_OVERLAY = document.getElementById('reviewLightbox');
+const LIGHTBOX_MODAL = document.getElementById('reviewLightboxModal');
+
+function openReviewLightbox(idx) {
+  const review = REVIEWS_DATA[idx];
+  if (!review) return;
+
+  const { quoteText, authorName, rating, date, time, publishedAt } = review;
+  const r = rating || 5;
+  const stars = '★'.repeat(r) + '☆'.repeat(5 - r);
+  const dateLabel = date || time || publishedAt || '';
+
+  document.getElementById('lightboxRatingNum').textContent = `${r.toFixed ? r.toFixed(1) : r}.0`;
+  document.getElementById('lightboxRatingStars').textContent = stars;
+  document.getElementById('lightboxBodyStars').textContent = stars;
+  document.getElementById('lightboxBodyText').textContent = `"${quoteText || ''}"`;
+  document.getElementById('lightboxBodyAuthor').textContent = authorName || 'Customer';
+
+  const dateEl = document.getElementById('lightboxBodyDate');
+  if (dateLabel) {
+    dateEl.textContent = dateLabel;
+    dateEl.style.display = '';
+  } else {
+    dateEl.style.display = 'none';
+  }
+
+  LIGHTBOX_OVERLAY.classList.add('open');
+}
+
+function closeReviewLightbox() {
+  LIGHTBOX_OVERLAY.classList.remove('open');
+}
+
+document.getElementById('lightboxClose').addEventListener('click', closeReviewLightbox);
+
+// backdrop-click dismissal — only closes when the click lands outside the modal itself
+LIGHTBOX_OVERLAY.addEventListener('click', (e) => {
+  if (e.target === LIGHTBOX_OVERLAY) closeReviewLightbox();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeReviewLightbox();
+});
 
 // ========== EXPANDABLE NAV — identical behavior to moments.html ==========
 (function setupExpandableNav() {
