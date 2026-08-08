@@ -491,71 +491,93 @@ body {
   font-weight: 500;
 }
 
-/* ===== EXPANDABLE / CONDENSING BOTTOM NAVIGATION ===== */
-.moments-nav {
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  width: calc(100% - 24px);
-  max-width: calc(var(--max-w) - 24px);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 2px;
-  padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px));
-  border-radius: 22px 22px 0 0;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-bottom: none;
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  box-shadow: 0 -6px 24px rgba(0,0,0,0.25);
-  z-index: 50;
-  transition: width 0.4s cubic-bezier(.4,0,.2,1), bottom 0.4s cubic-bezier(.4,0,.2,1),
-              border-radius 0.4s ease, padding 0.4s ease, box-shadow 0.4s ease;
+/* ============================================================
+   TKG FLOATING GLASS PILL NAVIGATION (DIRECTIONAL TRANSITION)
+   Standardized component — identical to moments_hub.html's verified
+   version. Geometry is INVARIANT; .scrolled only ever changes
+   opacity/scale, never width/height/border-radius.
+   ============================================================ */
+.tkg-global-nav {
+  position: fixed !important;
+  bottom: 16px !important;
+  left: 50% !important;
+  transform: translateX(-50%) scale(1) !important;
+  width: min(320px, calc(100vw - 32px)) !important;
+  height: 46px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-evenly !important;
+  padding: 0 4px !important;
+  box-sizing: border-box !important;
+  z-index: 99999 !important;
+  opacity: 1 !important;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease,
+              background-color 0.3s ease !important;
 }
 
-.moments-nav.nav-condensed {
-  width: 208px;
-  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-  border-radius: 999px;
-  border-bottom: 1px solid var(--glass-border);
-  padding: 6px;
-  justify-content: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+.tkg-global-nav.scrolled {
+  transform: translateX(-50%) scale(0.96) !important;
+  opacity: 0.88 !important;
+  background: rgba(255, 255, 255, 0.55) !important;
 }
 
-.moments-nav-btn {
-  width: 46px; height: 46px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.7);
-  cursor: pointer;
-  text-decoration: none;
-  flex-shrink: 0;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+[data-tkg-theme="dark"] .tkg-global-nav,
+.theme-dark .tkg-global-nav,
+body.dark-mode .tkg-global-nav {
+  background: rgba(18, 18, 18, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
 }
 
-.moments-nav-btn:active { transform: scale(0.88); }
-
-.moments-nav-btn svg {
-  width: 21px; height: 21px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.8;
+[data-tkg-theme="dark"] .tkg-global-nav.scrolled,
+.theme-dark .tkg-global-nav.scrolled,
+body.dark-mode .tkg-global-nav.scrolled {
+  background: rgba(18, 18, 18, 0.62) !important;
 }
 
-.moments-nav-btn.active {
-  background: rgba(255,255,255,0.16);
-  color: #fff;
+.tkg-nav-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 32px !important;
+  border-radius: 9999px !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  text-decoration: none !important;
+  transition: background-color 0.2s ease, color 0.2s ease !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.moments-nav-btn.instagram-btn { color: #E1306C; }
+.tkg-nav-item svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke-width: 2 !important;
+}
+
+.tkg-nav-item.active {
+  color: #000000 !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-tkg-theme="dark"] .tkg-nav-item,
+.theme-dark .tkg-nav-item,
+body.dark-mode .tkg-nav-item {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+[data-tkg-theme="dark"] .tkg-nav-item.active,
+.theme-dark .tkg-nav-item.active,
+body.dark-mode .tkg-nav-item.active {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+}
 
 /* ===== UPLOAD / SHARE MODAL ===== */
 .upload-modal {
@@ -860,19 +882,21 @@ body {
     </div>
   </div>
 
-  <!-- FLOATING / EXPANDABLE DOCK -->
-  <nav class="moments-nav" id="momentsNav">
-    <a href="./moments_hub.html" class="moments-nav-btn" title="Hub">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+  <!-- TKG GLOBAL NAV — Instagram intentionally not here; social triggers
+       remain embedded within individual media cards (Follow buttons on
+       each post/embed) per Sprint 1.1 decision. -->
+  <nav class="tkg-global-nav" id="globalNav" aria-label="Main Navigation">
+    <a href="./index.html" class="tkg-nav-item" aria-label="Menu" title="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </a>
-    <button class="moments-nav-btn active" disabled title="Moments">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9.5 8.5v7l6-3.5z" fill="currentColor" stroke="none"/></svg>
-    </button>
-    <a href="./khichiya-runner.html" class="moments-nav-btn" title="Khichiya Runner">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9 15a3 3 0 0 0 6 0"/></svg>
+    <a href="./moments.html" class="tkg-nav-item active" aria-label="Moments" title="Moments" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
     </a>
-    <a href="https://www.instagram.com/the.khichiyagravy" target="_blank" rel="noopener" class="moments-nav-btn instagram-btn" title="Instagram">
-      <svg viewBox="0 0 24 24"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.6 2c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h9.6c2 0 3.6-1.6 3.6-3.6V7.6c0-2-1.6-3.6-3.6-3.6H7.2m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 16.9 6a1.25 1.25 0 0 1-1.25-1.25 1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+    <a href="./moments_hub.html" class="tkg-nav-item" aria-label="Moments Hub" title="Hub">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    </a>
+    <a href="./leaderboard.html" class="tkg-nav-item" aria-label="Leaderboard" title="Leaderboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
     </a>
   </nav>
 </div>
@@ -1809,36 +1833,36 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-(function setupExpandableNav() {
+// tkg-global-nav keeps its capsule geometry invariant at all times — this
+// listener only toggles opacity/scale via .scrolled, never width/height/
+// border-radius. Direction-based, same pattern verified on moments_hub.html.
+// Attached to #momentsContent (not window) because that's the actual
+// scrolling element on this page — html/body don't scroll here,
+// .moments-content is the overflow-y:scroll container.
+(function initDirectionalPillScroll() {
+  const nav = document.getElementById('globalNav');
   const scrollEl = document.getElementById('momentsContent');
-  const nav = document.getElementById('momentsNav');
-  if (!scrollEl || !nav) return;
+  if (!nav || !scrollEl) return;
 
   let lastScrollTop = scrollEl.scrollTop;
-  const DELTA_THRESHOLD = 10;
-  const TOP_ZONE = 24;
+  const DELTA_THRESHOLD = 6;
+  const TOP_ZONE = 4;
 
-  function expandNav() { nav.classList.remove('nav-condensed'); }
-  function condenseNav() { nav.classList.add('nav-condensed'); }
+  function compact() { nav.classList.add('scrolled'); }
+  function normal() { nav.classList.remove('scrolled'); }
 
   scrollEl.addEventListener('scroll', () => {
     const current = scrollEl.scrollTop;
     const delta = current - lastScrollTop;
 
     if (current <= TOP_ZONE) {
-      expandNav();
+      normal();
     } else if (Math.abs(delta) > DELTA_THRESHOLD) {
-      if (delta > 0) {
-        condenseNav();
-      } else {
-        expandNav();
-      }
+      if (delta > 0) compact();
+      else normal();
     }
     lastScrollTop = current;
   }, { passive: true });
-
-  nav.addEventListener('click', expandNav);
-  nav.addEventListener('touchstart', expandNav, { passive: true });
 })();
 
 fetchMoments();
