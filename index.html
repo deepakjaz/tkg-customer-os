@@ -197,13 +197,13 @@
   position:relative;
 }
 .menu-item, .fun-activity-card, .journey-option, .cs-review-card,
-.review-teaser-card, .reg-card, .bottom-nav, .ticket-strip, .extra-chip, .hero-story-strip,
+.review-teaser-card, .reg-card, .ticket-strip, .extra-chip, .hero-story-strip,
 #thanksOverlay, #khichiyaRunnerOverlay, #productPreviewSheet, #infoSheet{
   border-color:rgba(217,164,65, var(--tkg-amber-op)) !important;
 }
 .menu-item::before, .fun-activity-card::before, .journey-option::before,
 .cs-review-card::before, .review-teaser-card::before, .reg-card::before,
-.bottom-nav::before, .ticket-strip::before, .extra-chip::before, .hero-story-strip::before,
+.ticket-strip::before, .extra-chip::before, .hero-story-strip::before,
 #thanksOverlay::before, #khichiyaRunnerOverlay::before,
 #productPreviewSheet::before, #infoSheet::before{
   content:"";
@@ -223,7 +223,7 @@
 body.tkg-ember-run .menu-item::before, body.tkg-ember-run .fun-activity-card::before,
 body.tkg-ember-run .journey-option::before, body.tkg-ember-run .cs-review-card::before,
 body.tkg-ember-run .review-teaser-card::before, body.tkg-ember-run .reg-card::before,
-body.tkg-ember-run .bottom-nav::before, body.tkg-ember-run .ticket-strip::before, body.tkg-ember-run .hero-story-strip::before,
+body.tkg-ember-run .ticket-strip::before, body.tkg-ember-run .hero-story-strip::before,
 body.tkg-ember-run .extra-chip::before, body.tkg-ember-run #thanksOverlay::before,
 body.tkg-ember-run #khichiyaRunnerOverlay::before, body.tkg-ember-run #productPreviewSheet::before,
 body.tkg-ember-run #infoSheet::before{
@@ -644,6 +644,8 @@ input{font-family:inherit;}
   position:relative;
   overflow:hidden;
   border-radius:16px;
+  border:none !important;
+  box-shadow:none !important;
 }
 .hero-greeting-row{
   display:flex;
@@ -670,12 +672,14 @@ input{font-family:inherit;}
   overflow:hidden;
   backdrop-filter:blur(var(--glass-blur));
   -webkit-backdrop-filter:blur(var(--glass-blur));
+  border:none !important;
+  box-shadow:none !important;
 }
 
-.hero-weather-backdrop.show{opacity:1;}
+.hero-weather-backdrop.show{opacity:1 !important;}
 
 .hero-weather-backdrop.wx-morning{
-  background:linear-gradient(180deg, rgba(253,235,201,0.35) 0%, rgba(251,209,162,0.25) 55%, rgba(251,209,162,0) 100%);
+  background:linear-gradient(180deg, #FDECC9 0%, #FBD1A2 55%, #F5B87E 100%);
 }
 .hero-weather-backdrop.wx-morning::before,
 .hero-weather-backdrop.wx-morning::after{
@@ -696,7 +700,7 @@ input{font-family:inherit;}
 }
 
 .hero-weather-backdrop.wx-afternoon{
-  background:linear-gradient(180deg, rgba(234,246,255,0.3) 0%, rgba(251,254,255,0.2) 60%, rgba(251,254,255,0) 100%);
+  background:linear-gradient(180deg, #D8ECFF 0%, #BEE0FF 60%, #A2CFF5 100%);
 }
 .hero-weather-backdrop.wx-afternoon::before{
   content:'';
@@ -726,13 +730,13 @@ input{font-family:inherit;}
 }
 
 .hero-weather-backdrop.wx-evening{
-  background:linear-gradient(180deg, #6E86B8 0%, #3C4C7A 55%, rgba(60,76,122,0) 100%);
+  background:linear-gradient(180deg, #E89A6B 0%, #6E86B8 55%, #3C4C7A 100%);
   animation:wxEveningFall 70s ease-in forwards;
 }
 @keyframes wxEveningFall{
-  0%{background:linear-gradient(180deg, rgba(232,154,107,0.3) 0%, rgba(110,134,184,0.25) 55%, rgba(110,134,184,0) 100%);}
-  50%{background:linear-gradient(180deg, rgba(110,134,184,0.3) 0%, rgba(60,76,122,0.25) 55%, rgba(60,76,122,0) 100%);}
-  100%{background:linear-gradient(180deg, rgba(42,47,74,0.35) 0%, rgba(20,19,30,0.28) 55%, rgba(20,19,30,0) 100%);}
+  0%{background:linear-gradient(180deg, #E89A6B 0%, #6E86B8 55%, #3C4C7A 100%);}
+  50%{background:linear-gradient(180deg, #6E86B8 0%, #3C4C7A 55%, #2A2F4A 100%);}
+  100%{background:linear-gradient(180deg, #2A2F4A 0%, #14131E 55%, #0D0E18 100%);}
 }
 
 .hero-weather-backdrop.wx-night{
@@ -1005,52 +1009,146 @@ input{font-family:inherit;}
 
 
 /* ==========================================================================
-   FIXED QUICK ACTIONS BAR — Visual hierarchy redesign. Not page navigation:
-   4 existing actions surfaced at thumb height so Reviews/FAQ/Register no
-   longer need to occupy above-the-fold space. Visible only on the primary
-   Menu screen (screen-menu); toggled in showScreen(). Every button calls a
-   function that already existed — see navRateUsBtn/navMessageBtn/
-   navAboutBtn/navJourneyBtn handlers near the bottom of the script
-   (openCustomerStoriesSheet/openRegisterOverlay/openInfoSheet/showScreen).
+   FIXED QUICK ACTIONS BAR — Sprint 1.1: this 4-item bar was replaced by
+   the persistent .tkg-global-nav ecosystem dock. Rate Us and About TKG
+   were relocated into moments_hub.html (Round 1); Message/Register and
+   Journey now live in the pinned bubble buttons (#pinnedRegisterBtn,
+   #pinnedJourneyBtn) near the bottom of the script, still calling the
+   same functions as before (openRegisterOverlay/showScreen).
    ========================================================================== */
-.bottom-nav{
-  position:fixed;
-  left:50%;
-  bottom:0;
-  transform:translateX(-50%);
-  width:100%;
-  max-width:var(--max-w);
-  display:flex;
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
-  border-top:1px solid var(--tkg-marble-border);
-  padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
-  z-index:130;
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
+/* ============================================================
+   TKG FLOATING GLASS PILL NAVIGATION (DIRECTIONAL TRANSITION)
+   Standardized component — identical to moments_hub.html's verified
+   version. Geometry is INVARIANT; .scrolled only ever changes
+   opacity/scale, never width/height/border-radius. Persistent across
+   every screen on this page (not menu-only, unlike the old bar) —
+   that's the point of a global/ecosystem-wide nav.
+   ============================================================ */
+.tkg-global-nav {
+  position: fixed !important;
+  bottom: 16px !important;
+  left: 50% !important;
+  transform: translateX(-50%) scale(1) !important;
+  width: min(320px, calc(100vw - 32px)) !important;
+  height: 46px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-evenly !important;
+  padding: 0 4px !important;
+  box-sizing: border-box !important;
+  z-index: 99999 !important;
+  opacity: 1 !important;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease,
+              background-color 0.3s ease !important;
 }
-.bottom-nav.hidden{ display:none; }
-.bottom-nav-item{
-  flex:1;
+.tkg-global-nav.hidden{ display:none !important; }
+
+.tkg-global-nav.scrolled {
+  transform: translateX(-50%) scale(0.96) !important;
+  opacity: 0.88 !important;
+  background: rgba(255, 255, 255, 0.55) !important;
+}
+
+[data-tkg-theme="dark"] .tkg-global-nav,
+.theme-dark .tkg-global-nav,
+body.dark-mode .tkg-global-nav {
+  background: rgba(18, 18, 18, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-tkg-theme="dark"] .tkg-global-nav.scrolled,
+.theme-dark .tkg-global-nav.scrolled,
+body.dark-mode .tkg-global-nav.scrolled {
+  background: rgba(18, 18, 18, 0.62) !important;
+}
+
+.tkg-nav-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 32px !important;
+  border-radius: 9999px !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  text-decoration: none !important;
+  transition: background-color 0.2s ease, color 0.2s ease !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tkg-nav-item svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke-width: 2 !important;
+}
+
+.tkg-nav-item.active {
+  color: #000000 !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-tkg-theme="dark"] .tkg-nav-item,
+.theme-dark .tkg-nav-item,
+body.dark-mode .tkg-nav-item {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+[data-tkg-theme="dark"] .tkg-nav-item.active,
+.theme-dark .tkg-nav-item.active,
+body.dark-mode .tkg-nav-item.active {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+/* ===== PINNED ACTION BUBBLES — Journey + Register/Message.
+   index.html's old bottom-nav was the ONLY entry point to both of these
+   (a separate Registration CTA card was deliberately removed from the
+   menu page previously specifically because the bottom-nav's "Message
+   Us" button already covered it — see the removed-card comment near
+   #menuJourneySection). Replacing that bar with the 4-slot ecosystem
+   dock without a substitute would make registration entirely
+   unreachable on this page, not just less convenient — so both get a
+   small pinned floating bubble, stacked above the global nav so they
+   never overlap it. ===== */
+.tkg-pinned-actions{
+  position:fixed;
+  right:16px;
+  bottom:calc(16px + 46px + 14px + env(safe-area-inset-bottom, 0px));
   display:flex;
   flex-direction:column;
+  gap:10px;
+  z-index:99998;
+}
+.tkg-pinned-actions.hidden{ display:none !important; }
+.tkg-pinned-bubble{
+  width:48px; height:48px;
+  border-radius:50%;
+  display:flex;
   align-items:center;
   justify-content:center;
-  gap:2px;
-  background:none;
-  border:none;
-  padding:6px 2px;
-  transition:opacity 0.12s ease;
+  background:rgba(255,255,255,0.65);
+  backdrop-filter:blur(16px) saturate(180%);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.4);
+  box-shadow:0 8px 24px rgba(0,0,0,0.14);
+  cursor:pointer;
+  transition:transform 0.15s ease;
 }
-.bottom-nav-item:active{ opacity:0.6; }
-.bottom-nav-item .bn-icon{ width:var(--icon-standalone); height:var(--icon-standalone); display:block; margin:0 auto; }
-.bottom-nav-item .bn-label{
-  font-size:0.625rem;
-  font-weight:600;
-  color:var(--ink);
-  white-space:nowrap;
+.tkg-pinned-bubble:active{ transform:scale(0.9); }
+.tkg-pinned-bubble svg{ width:22px; height:22px; }
+[data-tkg-theme="dark"] .tkg-pinned-bubble,
+.theme-dark .tkg-pinned-bubble,
+body.dark-mode .tkg-pinned-bubble{
+  background:rgba(18,18,18,0.72);
+  border:1px solid rgba(255,255,255,0.12);
+  box-shadow:0 8px 24px rgba(0,0,0,0.35);
 }
 
 /* Room for the fixed Quick Actions Bar so it never covers the last card on
@@ -2049,6 +2147,129 @@ textarea.field-input{
   font-size:1.125rem;
   color:var(--grey-warm);
   flex-shrink:0;
+}
+
+/* ==========================================================================
+   TKG ECOSYSTEM HIGHLIGHTS SHOWCASE — 4-slide horizontal snap carousel.
+   Replaces the standalone TKG Moments entry card. Same Premium Marble
+   surface family as .fun-activity-card (dark marble on the light theme,
+   inverts to white marble on the dark theme via the shared
+   --tkg-marble-* tokens) so it sits visually consistent with the rest of
+   the page rather than introducing a new material.
+   ========================================================================== */
+.eco-showcase{
+  margin-top:22px;
+  position:relative;
+  border-radius:16px;
+  overflow:hidden;
+  background-color:var(--tkg-marble-bg-color);
+  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size:auto, cover;
+  background-position:center, center;
+  border:1px solid var(--tkg-marble-border);
+}
+.eco-indicators{
+  position:absolute;
+  top:12px;
+  left:14px;
+  right:14px;
+  z-index:3;
+  display:flex;
+  gap:5px;
+  pointer-events:none;
+}
+.eco-dot{
+  flex:1;
+  height:3px;
+  border-radius:999px;
+  background:rgba(242,239,234,0.28);
+}
+html[data-tkg-theme="dark"] .eco-dot{ background:rgba(26,24,21,0.22); }
+.eco-dot.active{ background:rgba(242,239,234,0.92); }
+html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
+.eco-track{
+  display:flex;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.eco-track::-webkit-scrollbar{ display:none; }
+.eco-slide{
+  flex:0 0 100%;
+  scroll-snap-align:start;
+  padding:36px 20px 20px;
+  min-height:168px;
+  display:flex;
+  flex-direction:column;
+  --ink:var(--tkg-marble-ink);
+  --ink-soft:var(--tkg-marble-ink-soft);
+}
+.eco-slide-icon{ font-size:1.75rem; margin-bottom:8px; line-height:1; }
+.eco-slide-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.0625rem;
+  color:var(--tkg-marble-ink);
+  margin-bottom:4px;
+}
+.eco-slide-desc{
+  font-size:0.8125rem;
+  color:var(--tkg-marble-ink-soft);
+  line-height:1.45;
+  margin-bottom:16px;
+  max-width:92%;
+}
+.eco-slide-cta{
+  align-self:flex-start;
+  margin-top:auto;
+  border:none;
+  border-radius:999px;
+  padding:10px 16px;
+  font-size:0.8125rem;
+  font-weight:700;
+  color:var(--marble);
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
+  transition:transform 0.12s ease, opacity 0.12s ease;
+}
+.eco-slide-cta:active{ transform:scale(0.97); opacity:0.9; }
+
+/* Slide 3 — Khichiya Runner lightweight CSS/emoji teaser. Communicates
+   "a game exists" via a small hopping character over coal marks; no
+   canvas, no second game engine, no faked gameplay screenshot. */
+.eco-runner-teaser{
+  position:relative;
+  height:34px;
+  width:100%;
+  margin-bottom:6px;
+}
+.eco-runner-coal{
+  position:absolute;
+  bottom:0;
+  width:9px;
+  height:9px;
+  border-radius:2px;
+  background:var(--ember-deep);
+  box-shadow:0 0 6px rgba(255,122,69,0.5);
+}
+.eco-runner-coal:nth-child(1){ left:16%; }
+.eco-runner-coal:nth-child(2){ left:50%; }
+.eco-runner-coal:nth-child(3){ left:84%; }
+.eco-runner-char{
+  position:absolute;
+  bottom:0;
+  left:0;
+  font-size:1.375rem;
+  animation:eco-runner-hop 1.8s ease-in-out infinite;
+}
+@keyframes eco-runner-hop{
+  0%, 100%{ left:0%; transform:translateY(0); }
+  20%{ transform:translateY(-16px); }
+  38%{ left:34%; transform:translateY(0); }
+  45%{ transform:translateY(-16px); }
+  63%{ left:66%; transform:translateY(0); }
+  70%{ transform:translateY(-16px); }
+  88%{ left:96%; transform:translateY(0); }
 }
 
 .register-cta{
@@ -3153,24 +3374,54 @@ textarea.field-input{
          about registration itself changed; this only removes the extra
          visual entry point on the Menu page. -->
 
-    <!-- ============ TKG MOMENTS — customer photo/Instagram-moment gallery.
-         Standalone entry card, same visual language as Fun Activity, sitting
-         just above it. Links out to the standalone moments.html page
-         (2026-08-03) — card/copy unchanged, only the destination changed
-         from an in-app screen to a real separate, shareable page. ==== -->
-    <div class="fun-activity-card">
-      <div class="fun-activity-header">
-        <div class="fun-activity-title">📸 TKG Moments</div>
-        <div class="fun-activity-sub">Snapped something good? Share it — or see what others clicked.</div>
+    <!-- ============ TKG ECOSYSTEM HIGHLIGHTS SHOWCASE — 4-slide horizontal
+         snap carousel (Moments / Review / Runner / Leaderboard). Replaces
+         the standalone TKG Moments entry card above as the single
+         discovery layer for the wider TKG ecosystem, sitting just above
+         Fun Activity. Gentle 4s auto-rotate, pauses on touch/manual
+         swipe, micro-indicators synced to scroll position. ==== -->
+    <div class="eco-showcase" id="ecoShowcase">
+      <div class="eco-indicators" id="ecoIndicators">
+        <span class="eco-dot active"></span>
+        <span class="eco-dot"></span>
+        <span class="eco-dot"></span>
+        <span class="eco-dot"></span>
       </div>
-      <div class="fun-activity-row">
-        <button type="button" class="fun-activity-row-btn" id="openMomentsBtn">
-          <span class="far-text">
-            <span class="far-title">View the gallery</span>
-            <span class="far-sub">Upload a photo, or share your Instagram moment.</span>
-          </span>
-          <span class="far-chevron">›</span>
-        </button>
+      <div class="eco-track" id="ecoTrack">
+
+        <div class="eco-slide">
+          <div class="eco-slide-icon">📸</div>
+          <div class="eco-slide-title">Watch &amp; Share Stories</div>
+          <div class="eco-slide-desc">Watch community videos or share your own TKG memories.</div>
+          <button type="button" class="eco-slide-cta" id="ecoMomentsCta">Watch &amp; Share Stories →</button>
+        </div>
+
+        <div class="eco-slide">
+          <div class="eco-slide-icon">⭐</div>
+          <div class="eco-slide-title">Loved TKG?</div>
+          <div class="eco-slide-desc">Support our small kitchen by sharing your rating and review on Google.</div>
+          <button type="button" class="eco-slide-cta" id="ecoReviewCta">Rate &amp; Review →</button>
+        </div>
+
+        <div class="eco-slide">
+          <div class="eco-runner-teaser">
+            <span class="eco-runner-coal"></span>
+            <span class="eco-runner-coal"></span>
+            <span class="eco-runner-coal"></span>
+            <span class="eco-runner-char">🏃</span>
+          </div>
+          <div class="eco-slide-title">Play Khichiya Runner 🎮</div>
+          <div class="eco-slide-desc">Test your speed! How high can you score?</div>
+          <button type="button" class="eco-slide-cta" id="ecoRunnerCta">Play Now →</button>
+        </div>
+
+        <div class="eco-slide">
+          <div class="eco-slide-icon">🏆</div>
+          <div class="eco-slide-title">See Who's Leading 🏆</div>
+          <div class="eco-slide-desc">Check top scores and claim your spot on the TKG wall of fame.</div>
+          <button type="button" class="eco-slide-cta" id="ecoLeaderboardCta">View Leaderboard →</button>
+        </div>
+
       </div>
     </div>
 
@@ -3294,33 +3545,34 @@ textarea.field-input{
      "What is TKG Signature Gravy?" FAQ card, now told in one place only),
      Journey (showScreen('screen-journey'), same destination as Change
      Journey). ============ -->
-<nav class="bottom-nav hidden" id="bottomNav">
-  <button type="button" class="bottom-nav-item" id="navRateUsBtn">
-    <svg class="bn-icon" viewBox="0 0 24 24" style="filter:drop-shadow(0 0 2.5px rgba(245,166,35,0.45));">
-      <defs>
-        <linearGradient id="navStarGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#FFD873"/>
-          <stop offset="55%" stop-color="#F5A623"/>
-          <stop offset="100%" stop-color="#C97B0E"/>
-        </linearGradient>
-      </defs>
-      <path fill="url(#navStarGrad)" d="M12 2.5l2.9 6.3 6.9.7-5.2 4.6 1.6 6.8L12 17.3 5.8 20.9l1.6-6.8-5.2-4.6 6.9-.7z"/>
-    </svg>
-    <span class="bn-label">Rate Us</span>
-  </button>
-  <button type="button" class="bottom-nav-item" id="navMessageBtn">
-    <svg class="bn-icon" viewBox="0 0 24 24"><path fill="var(--ink)" d="M12 3C6.48 3 2 6.58 2 11c0 2.21 1.19 4.2 3.09 5.61-.16.9-.58 2.16-1.5 3.29a.5.5 0 00.54.8c1.68-.4 3.03-1.1 3.96-1.67A12.6 12.6 0 0012 19c5.52 0 10-3.58 10-8s-4.48-8-10-8z"/></svg>
-    <span class="bn-label">Message Us</span>
-  </button>
-  <button type="button" class="bottom-nav-item" id="navAboutBtn">
-    <img class="bn-icon" src="./icon-192.png" alt="TKG">
-    <span class="bn-label">About TKG</span>
-  </button>
-  <button type="button" class="bottom-nav-item" id="navJourneyBtn">
-    <svg class="bn-icon" viewBox="0 0 24 24"><path fill="var(--nav-journey)" d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12zm0-9a3 3 0 110-6 3 3 0 010 6z"/></svg>
-    <span class="bn-label">Journey</span>
-  </button>
+<!-- TKG GLOBAL NAV — persistent across every screen on this page (Menu is
+     the active slot here). Rate Us and About TKG were relocated into
+     moments_hub.html in Sprint 1 Round 1 and are not repeated here. -->
+<nav class="tkg-global-nav" id="globalNav" aria-label="Main Navigation">
+  <a href="./index.html" class="tkg-nav-item active" aria-label="Menu" title="Menu" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </a>
+  <a href="./moments.html" class="tkg-nav-item" aria-label="Moments" title="Moments">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+  </a>
+  <a href="./moments_hub.html" class="tkg-nav-item" aria-label="Moments Hub" title="Hub">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+  </a>
+  <a href="./leaderboard.html" class="tkg-nav-item" aria-label="Leaderboard" title="Leaderboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+  </a>
 </nav>
+
+<!-- PINNED ACTION BUBBLES — Journey + Register/Message. See CSS comment
+     above .tkg-pinned-actions for why Register can't just be dropped. -->
+<div class="tkg-pinned-actions" id="tkgPinnedActions">
+  <button type="button" class="tkg-pinned-bubble" id="pinnedRegisterBtn" aria-label="Register / Message TKG" title="Register / Message TKG">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+  <button type="button" class="tkg-pinned-bubble" id="pinnedJourneyBtn" aria-label="Journey" title="Journey">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--nav-journey)" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 10-14 0c0 4.5 7 12 7 12zm0-9a3 3 0 110-6 3 3 0 010 6z"/></svg>
+  </button>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -3599,12 +3851,58 @@ function loadTaglineFromSheet(){
 }
 loadTaglineFromSheet();
 
-// TKG Moments gallery/upload code moved to its own standalone moments.html
-// (2026-08-03) — this button now just navigates there instead of switching
-// to an in-app screen. See moments.html for the full feature.
-document.getElementById('openMomentsBtn').addEventListener('click', () => {
-  window.location.href = 'moments.html';
-});
+// ============ TKG ECOSYSTEM HIGHLIGHTS SHOWCASE — replaces the old
+// standalone TKG Moments card/button above. 4-slide horizontal snap
+// carousel: gentle 4s auto-rotate, pauses on touch/manual swipe,
+// micro-indicators synced to scroll position. GOOGLE_REVIEW_URL is
+// already defined earlier in this same script.
+(function(){
+  const ecoTrack = document.getElementById('ecoTrack');
+  const ecoDots = document.querySelectorAll('#ecoIndicators .eco-dot');
+  if(!ecoTrack || !ecoDots.length) return;
+
+  let ecoIndex = 0;
+  let ecoPaused = false;
+  let ecoResumeTimer = null;
+
+  function goToEcoSlide(i){
+    ecoIndex = (i + ecoDots.length) % ecoDots.length;
+    ecoTrack.scrollTo({ left: ecoIndex * ecoTrack.clientWidth, behavior: 'smooth' });
+  }
+
+  function updateEcoDots(){
+    const i = Math.round(ecoTrack.scrollLeft / ecoTrack.clientWidth);
+    ecoDots.forEach((d, idx) => d.classList.toggle('active', idx === i));
+    ecoIndex = i;
+  }
+  ecoTrack.addEventListener('scroll', updateEcoDots, { passive: true });
+
+  function pauseEcoAutoplay(){
+    ecoPaused = true;
+    clearTimeout(ecoResumeTimer);
+    ecoResumeTimer = setTimeout(() => { ecoPaused = false; }, 6000);
+  }
+  ecoTrack.addEventListener('touchstart', pauseEcoAutoplay, { passive: true });
+  ecoTrack.addEventListener('pointerdown', pauseEcoAutoplay);
+
+  setInterval(() => {
+    if(ecoPaused) return;
+    goToEcoSlide(ecoIndex + 1);
+  }, 4000);
+
+  document.getElementById('ecoMomentsCta').addEventListener('click', () => {
+    window.location.href = './moments_hub.html';
+  });
+  document.getElementById('ecoReviewCta').addEventListener('click', () => {
+    window.open(GOOGLE_REVIEW_URL, '_blank');
+  });
+  document.getElementById('ecoRunnerCta').addEventListener('click', () => {
+    window.location.href = './khichiya-runner.html';
+  });
+  document.getElementById('ecoLeaderboardCta').addEventListener('click', () => {
+    window.location.href = './leaderboard.html';
+  });
+})();
 const LS_KEY = 'tkg_customers';
 const LS_SESSION_KEY = 'tkg_current_session';
 
@@ -4543,11 +4841,10 @@ function showScreen(id){
   // landing back on this screen by accident) so they can back out instead
   // of being forced to re-select. See updateJourneyBackButtonVisibility().
   if(id === 'screen-journey'){ updateJourneyBackButtonVisibility(); }
-  // Sprint: Production UI Patch — fixed bottom nav only belongs on the
-  // primary Menu screen (Objective 4); hidden on the Journey picker, Owner
-  // Dashboard, and every overlay-backed screen.
-  const bottomNavEl = document.getElementById('bottomNav');
-  if(bottomNavEl) bottomNavEl.classList.toggle('hidden', id !== 'screen-menu');
+  // Sprint 1.1 — tkg-global-nav is a persistent ecosystem-wide dock, not
+  // menu-only like the old bottom-nav was. It no longer hides based on
+  // which screen is active; only the install-banner overlap guard
+  // (setBottomNavHiddenForInstallBanner_) still toggles visibility.
 }
 
 // ---------------------------------------------------------------------------
@@ -4920,10 +5217,12 @@ function isMonsoonWindow_(){
   return false;
 }
 function getWeatherKey_(){
-  // Monsoon disabled for now — calendar-guess triggering paused until this
-  // is wired to a live weather API; only morning/afternoon/evening/night
-  // show until then. isMonsoonWindow_() is left intact, not deleted, so
-  // re-enabling later is a one-line change back to the line below:
+  // Day Cycle Animation & Opacity Cleanup brief: strictly returns
+  // getGreetingTimeKey_() — morning/afternoon/evening/night only. Monsoon
+  // is fully disabled here (never returned, so initHeroWeatherBackdrop()'s
+  // rain-drop block below never runs). isMonsoonWindow_() is left intact,
+  // not deleted, so re-enabling later is a one-line change back to the
+  // line below:
   // if(isMonsoonWindow_()) return 'monsoon';
   return getGreetingTimeKey_();
 }
@@ -5016,7 +5315,8 @@ document.getElementById('changeJourneyBtn').addEventListener('click', () => {
 // ---------------------------------------------------------------------------
 // INFO SHEET — education content. Previously reachable via a dedicated ⓘ
 // button in the Hero (replaced by the TKG logo, Sprint: UI Simplification);
-// still fully reachable via the "About TKG" bottom-nav item (navAboutBtn).
+// now duplicated as-is inside moments_hub.html's "About TKG" card
+// (Sprint 1 Round 1) since the old bottom-nav's About TKG entry is gone.
 // ---------------------------------------------------------------------------
 const infoBackdrop = document.getElementById('infoBackdrop');
 const infoSheet = document.getElementById('infoSheet');
@@ -5213,9 +5513,10 @@ function buildCtaFooter({ heading, buttonText, href, showStars = false }){
 }
 
 // ---------------------------------------------------------------------------
-// CUSTOMER STORIES SHEET — all reviews + Google Review CTA. Reached from the
-// Quick Actions Bar's "Rate Us" button (see navRateUsBtn below) now that the
-// single-review teaser card no longer lives in the primary content flow.
+// CUSTOMER STORIES SHEET — all reviews + Google Review CTA. Previously
+// reached from the Quick Actions Bar's "Rate Us" button; that entry point
+// is gone (Sprint 1.1), replaced by the "Leave a Review →" CTA inside
+// moments_hub.html's Featured Reviews section (Sprint 1 Round 1).
 // Review quote text is shown exactly as written — never run through the
 // translation system; only surrounding UI chrome (sheet title, CTA) is
 // translated.
@@ -5324,18 +5625,42 @@ function openCustomerStoriesSheet(){
 // already existed elsewhere on the page; nothing new is being built here,
 // only new entry points into it (see the comment above the <nav> markup).
 // ---------------------------------------------------------------------------
-document.getElementById('navRateUsBtn').addEventListener('click', () => {
-  openCustomerStoriesSheet();
-});
-document.getElementById('navMessageBtn').addEventListener('click', () => {
+document.getElementById('pinnedRegisterBtn').addEventListener('click', () => {
   openRegisterOverlay(); // same registration/contact overlay as Register & Get Updates
 });
-document.getElementById('navAboutBtn').addEventListener('click', () => {
-  openInfoSheet(); // same About/FAQ sheet as the ⓘ button in the Hero
-});
-document.getElementById('navJourneyBtn').addEventListener('click', () => {
+document.getElementById('pinnedJourneyBtn').addEventListener('click', () => {
   showScreen('screen-journey'); // same destination as #changeJourneyBtn
 });
+
+// tkg-global-nav keeps its capsule geometry invariant at all times — this
+// listener only toggles opacity/scale via .scrolled, never width/height/
+// border-radius. index.html has no internal scroll container (plain
+// document flow, same as leaderboard.html), so window is the correct
+// scroll target here.
+(function initDirectionalPillScroll() {
+  const nav = document.getElementById('globalNav');
+  if (!nav) return;
+
+  let lastScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+  const DELTA_THRESHOLD = 6;
+  const TOP_ZONE = 4;
+
+  function compact() { nav.classList.add('scrolled'); }
+  function normal() { nav.classList.remove('scrolled'); }
+
+  window.addEventListener('scroll', () => {
+    const current = window.scrollY || document.documentElement.scrollTop || 0;
+    const delta = current - lastScrollTop;
+
+    if (current <= TOP_ZONE) {
+      normal();
+    } else if (Math.abs(delta) > DELTA_THRESHOLD) {
+      if (delta > 0) compact();
+      else normal();
+    }
+    lastScrollTop = current;
+  }, { passive: true });
+})();
 
 // ---------------------------------------------------------------------------
 // REGISTRATION OVERLAY — optional, opened from the menu, never blocks it
@@ -5359,8 +5684,9 @@ function closeRegisterOverlay(){
 }
 
 // openRegisterBtn/registerCtaCard removed (Sprint: Customer OS UI Polish,
-// item 1) — openRegisterOverlay is still reached via the Quick Actions
-// footer's "Message Us" button (see navMessageBtn handler further down).
+// item 1) — openRegisterOverlay is now reached via the pinned Register
+// bubble (#pinnedRegisterBtn, Sprint 1.1) instead of the old bottom-nav's
+// "Message Us" button.
 document.getElementById('closeRegisterBtn').addEventListener('click', closeRegisterOverlay);
 overlayBackdrop.addEventListener('click', closeRegisterOverlay);
 
@@ -5918,22 +6244,23 @@ function isIos(){
     || (/macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 }
 
-// The install banner and the Quick Actions bar are both fixed to the
-// bottom of the screen and were built independently, with no awareness of
-// each other — when the banner showed, it stacked visually on top of the
-// bar (rounded corners + a heavy shadow over a flat bar), which is what
-// read as a messy "layered" bottom. Fix: whichever one is up, only one is
-// ever visible — the bar hides for as long as the banner is shown, and
-// showScreen()'s own bottomNav-visibility logic (screen-menu only) takes
-// back over the moment the banner is dismissed.
+// The install banner and the floating nav/pinned bubbles are both fixed to
+// the bottom of the screen and were built independently, with no awareness
+// of each other — when the banner showed, it stacked visually on top of
+// them. Fix: whichever one is up, only one is ever visible — the dock and
+// bubbles hide for as long as the banner is shown, and reappear the moment
+// it's dismissed. (Sprint 1.1: tkg-global-nav is persistent across screens
+// now, so the restore is unconditional — no more screen-menu check.)
 function setBottomNavHiddenForInstallBanner_(hidden){
-  const bottomNavEl = document.getElementById('bottomNav');
-  if(bottomNavEl) bottomNavEl.classList.toggle('hidden', hidden);
+  const globalNavEl = document.getElementById('globalNav');
+  const pinnedActionsEl = document.getElementById('tkgPinnedActions');
+  if(globalNavEl) globalNavEl.classList.toggle('hidden', hidden);
+  if(pinnedActionsEl) pinnedActionsEl.classList.toggle('hidden', hidden);
 }
 
 function dismissInstallBanner(persist){
   installBanner.classList.remove('show');
-  setBottomNavHiddenForInstallBanner_(document.getElementById('screen-menu').classList.contains('active') ? false : true);
+  setBottomNavHiddenForInstallBanner_(false);
   if(persist){
     try{ localStorage.setItem(INSTALL_DISMISSED_KEY, 'true'); }catch(e){}
   }
