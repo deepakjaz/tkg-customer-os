@@ -317,6 +317,21 @@ input{font-family:inherit;}
   min-height:100dvh;
   background:var(--tkg-page-bg);
   position:relative;
+  /* z-index:0 (new) — establishes .shell itself as a stacking-context
+     ROOT. This is the actual fix for the backdrop-invisible bug: .shell
+     was position:relative but had no z-index, so it never formed its own
+     stacking context — a negative z-index descendant then escapes
+     upward to the nearest ancestor that DOES form one (the page root),
+     and paints behind THAT level's background, i.e. behind .shell's own
+     solid background fill, which is exactly why the sky gradient was
+     invisible. With .shell as its own stacking-context root, paint order
+     inside it becomes: (1) .shell's own background, (2) its negative
+     z-index children — #heroWeatherBackdrop sits correctly on TOP of
+     the page background, (3) normal in-flow content — .topbar/
+     .app-hero-compact's own text/controls, which paint after and
+     therefore stack above the backdrop. See #heroWeatherBackdrop below
+     for why it stays at z-index:-1 rather than 0. */
+  z-index:0;
   display:flex;
   flex-direction:column;
 }
@@ -663,13 +678,38 @@ input{font-family:inherit;}
   object-fit:cover;
 }
 .hero-weather-backdrop{
+  /* Lives as an early child of .shell (see markup) instead of inside
+     .app-hero-compact, so it can visually span from the very top of the
+     page — behind the topbar's Aa/Theme/EN controls — down through the
+     bottom of the hero greeting, instead of being clipped to the hero
+     box alone. top/left/right anchor it to .shell (the nearest
+     positioned ancestor); height is set inline by
+     updateWxBackdropSpan() (JS) to exactly topbar-height + hero-height,
+     since neither is a fixed size (font-scale, language, and greeting
+     text length all vary it) — the 260px below is only the pre-JS
+     fallback for first paint.
+     z-index:-1 is correct here, NOT 0 or a positive value — .shell now
+     explicitly establishes its own stacking context (see .shell above),
+     so within that context: -1 paints right after .shell's own
+     background but BEFORE any of .shell's normal in-flow content
+     (topbar text, hero greeting) — i.e. behind the visible text/buttons
+     but above the page background. A value of 0 (or higher) would paint
+     it in the SAME step as normal in-flow content, and CSS's default
+     tie-break for that step favors non-positioned in-flow boxes
+     appearing first regardless of DOM order — in practice this can
+     still read correctly in some browsers, but -1 is the only value
+     that's unambiguously behind, so it's the one to keep. */
   position:absolute;
-  inset:0;
-  z-index:0;
+  top:0;
+  left:0;
+  right:0;
+  height:260px;
+  z-index:-1;
   opacity:0;
   pointer-events:none;
   transition:opacity 1.4s ease;
   overflow:hidden;
+  border-radius:0 0 16px 16px;
   backdrop-filter:blur(var(--glass-blur));
   -webkit-backdrop-filter:blur(var(--glass-blur));
   border:none !important;
@@ -688,7 +728,7 @@ input{font-family:inherit;}
   top:18%;
   width:120px;
   height:34px;
-  background:radial-gradient(ellipse at center, rgba(255,255,255,0.85), rgba(255,255,255,0) 70%);
+  background:radial-gradient(ellipse at center, rgba(255,255,255,1), rgba(255,255,255,0) 70%);
   border-radius:50%;
   animation:wxCloudDrift 26s linear infinite;
 }
@@ -710,23 +750,29 @@ input{font-family:inherit;}
   width:130px;
   height:130px;
   border-radius:50%;
-  background:radial-gradient(circle, rgba(255,223,150,0.9), rgba(255,223,150,0) 70%);
+  background:radial-gradient(circle, rgba(255,223,150,1), rgba(255,223,150,0) 70%);
   animation:wxSunPulse 4s ease-in-out infinite;
 }
+/* Haze layer — now safe to run at full intensity again: header text in
+   Day states is solid black (see DAY CYCLE HEADER block above), which
+   stays legible against a bright white/yellow haze regardless of its
+   opacity, unlike the previous round's near-white text that the haze
+   was actively washing out. Restored to full per "Vibrant Visibility:
+   ...render at full 100% opacity". */
 .hero-weather-backdrop.wx-afternoon::after{
   content:'';
   position:absolute;
   inset:0;
-  background:radial-gradient(ellipse 90% 60% at 50% 40%, rgba(255,255,255,0.55), rgba(255,255,255,0) 70%);
+  background:radial-gradient(ellipse 90% 60% at 50% 40%, rgba(255,255,255,0.75), rgba(255,255,255,0) 70%);
   animation:wxHaze 3.5s ease-in-out infinite;
 }
 @keyframes wxSunPulse{
-  0%,100%{opacity:0.75; transform:scale(1);}
+  0%,100%{opacity:0.85; transform:scale(1);}
   50%{opacity:1; transform:scale(1.08);}
 }
 @keyframes wxHaze{
-  0%,100%{opacity:0.3;}
-  50%{opacity:0.6;}
+  0%,100%{opacity:0.55;}
+  50%{opacity:1;}
 }
 
 .hero-weather-backdrop.wx-evening{
@@ -750,12 +796,12 @@ input{font-family:inherit;}
   width:200px;
   height:200px;
   background:
-    radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.9), transparent),
-    radial-gradient(2px 2px at 70px 10px, rgba(255,255,255,0.85), transparent),
-    radial-gradient(1.5px 1.5px at 120px 50px, rgba(255,255,255,0.8), transparent),
-    radial-gradient(2px 2px at 160px 20px, rgba(255,255,255,0.9), transparent),
-    radial-gradient(1.5px 1.5px at 40px 70px, rgba(255,255,255,0.8), transparent),
-    radial-gradient(2px 2px at 100px 90px, rgba(255,255,255,0.85), transparent);
+    radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,1), transparent),
+    radial-gradient(2px 2px at 70px 10px, rgba(255,255,255,1), transparent),
+    radial-gradient(1.5px 1.5px at 120px 50px, rgba(255,255,255,1), transparent),
+    radial-gradient(2px 2px at 160px 20px, rgba(255,255,255,1), transparent),
+    radial-gradient(1.5px 1.5px at 40px 70px, rgba(255,255,255,1), transparent),
+    radial-gradient(2px 2px at 100px 90px, rgba(255,255,255,1), transparent);
   animation:wxTwinkle 3.2s ease-in-out infinite;
 }
 .hero-weather-backdrop.wx-night::after{
@@ -775,7 +821,7 @@ input{font-family:inherit;}
   box-shadow:0 0 8px rgba(255,255,255,0.3), inset -2px -2px 4px rgba(0,0,0,0.1);
 }
 @keyframes wxTwinkle{
-  0%,100%{opacity:0.6;}
+  0%,100%{opacity:0.85;}
   50%{opacity:1;}
 }
 
@@ -846,9 +892,67 @@ input{font-family:inherit;}
   0%{transform:translate(0, -60px);}
   100%{transform:translate(var(--drift, 6px), 190px);}
 }
+
+/* ==========================================================================
+   DAY CYCLE HEADER — TEXT LEGIBILITY & CONTRAST (v2 — strokes removed).
+   Scoped strictly to .day-cycle-header (applied to .topbar and
+   .app-hero-compact — the exact two elements #heroWeatherBackdrop's box
+   spans, see updateWxBackdropSpan()) so none of this touches the global
+   nav or the main menu body.
+
+   REVERSAL FLAGGED: the previous round here used -webkit-text-stroke
+   (dark stroke on light sky states, white stroke on dark sky states) to
+   keep #dgGreetingText's own per-weather amber color (WX_TEXT_COLORS_)
+   and its soft text-shadow glow untouched, per an earlier locked
+   decision ("outline stroke... explicitly rejected as cheap/artificial/
+   glitchy" — but that same decision DID keep the soft glow). This brief
+   explicitly names #dgGreetingText for BOTH stroke removal AND
+   text-shadow removal, and groups it under "all text and icons inside
+   the card" for solid black/white — so both the stroke attempt AND the
+   per-weather amber glow are retired here in favor of one flat rule.
+   #dgGreetingText no longer gets special-cased.
+
+   Color now follows the SKY CYCLE state (morning/afternoon = light
+   background → solid black; evening/night = dark background → solid
+   white), not the app's separate light/dark theme toggle — the brief's
+   "Day/Light Mode" and "Night/Dark Mode" pairing is read as shorthand
+   for the sky's own light/dark character, since that's what's actually
+   rendered behind this text and is what the contrast is against. Scoped
+   via :has() off the backdrop's own wx-* class, since the backdrop and
+   the header text are siblings, not nested. Flagging this reading in
+   case "Dark Mode" was meant literally as the app's theme toggle
+   instead — happy to switch the trigger if so. */
+.shell:has(#heroWeatherBackdrop.wx-morning) .day-cycle-header,
+.shell:has(#heroWeatherBackdrop.wx-morning) .day-cycle-header *,
+.shell:has(#heroWeatherBackdrop.wx-afternoon) .day-cycle-header,
+.shell:has(#heroWeatherBackdrop.wx-afternoon) .day-cycle-header *{
+  color:#111111 !important;
+  text-shadow:none !important;
+  -webkit-text-stroke:0 !important;
+}
+.shell:has(#heroWeatherBackdrop.wx-evening) .day-cycle-header,
+.shell:has(#heroWeatherBackdrop.wx-evening) .day-cycle-header *,
+.shell:has(#heroWeatherBackdrop.wx-night) .day-cycle-header,
+.shell:has(#heroWeatherBackdrop.wx-night) .day-cycle-header *{
+  color:#FFFFFF !important;
+  text-shadow:none !important;
+  -webkit-text-stroke:0 !important;
+}
+/* "...and icons" — the greeting icon's SVG paths use hardcoded per-weather
+   fill colors (golden sun, orange dusk, blue-grey moon) rather than
+   inheriting from CSS `color`, so the rules above alone wouldn't reach
+   them. Forcing fill:currentColor makes them follow the same solid
+   black/white as the text — flagging that this trades away the
+   icon's weather-colored personality for flat monochrome, since the
+   brief's "solid black... solid white... all text and icons" reads as
+   wanting that uniformity; easy to revert if the color was meant to stay. */
+.day-cycle-header .greeting-icon path,
+.day-cycle-header .greeting-icon circle{
+  fill:currentColor !important;
+}
+
 .hero-greeting-line{
   font-size:0.75rem;
-  color:var(--ink-soft);
   text-align:left;
 }
 .greeting-headline-row{
@@ -876,13 +980,10 @@ input{font-family:inherit;}
   font-size:1.75rem;
   font-weight:800;
   line-height:1.1;
-  color:var(--wx-text-color, var(--ember));
-  text-shadow:0 0 14px var(--wx-text-glow, rgba(232,93,44,0.35));
 }
 .hero-sub-below{
   display:block;
   font-size:0.8125rem;
-  color:var(--ink-soft);
   text-align:center;
   margin:8px 0 4px;
 }
@@ -1149,6 +1250,32 @@ body.dark-mode .tkg-pinned-bubble{
   background:rgba(18,18,18,0.72);
   border:1px solid rgba(255,255,255,0.12);
   box-shadow:0 8px 24px rgba(0,0,0,0.35);
+}
+
+/* ==========================================================================
+   NAV/SHEET OVERLAP FIX — .tkg-global-nav (z-index:99999) and
+   .tkg-pinned-actions (z-index:99998) sit well above every .reg-overlay
+   sheet (z-index:160), so an open sheet's bottom controls (e.g. Product
+   Preview's Close button) could end up hidden underneath the floating
+   pill/bubbles. Auto-hides both, generically, whenever ANY .reg-overlay or
+   .overlay-backdrop is showing — one rule covers every current sheet
+   (Product Preview, Registration, Rate Us, Language, Info, Content,
+   Thanks, Khichiya Runner, Geo Consent) and any future one, without
+   needing to touch each open/close function individually. :has() is
+   supported by all current mainstream mobile browsers (iOS Safari 16.4+,
+   Chrome/Android 105+); on the rare older browser without it, this rule
+   is simply ignored and the nav stays visible — the sheets' own z-index
+   is still lower, so nothing else breaks, it's just not auto-hidden. */
+body:has(.reg-overlay.show) .tkg-global-nav,
+body:has(.overlay-backdrop.show) .tkg-global-nav{
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+body:has(.reg-overlay.show) .tkg-pinned-actions,
+body:has(.overlay-backdrop.show) .tkg-pinned-actions{
+  opacity:0 !important;
+  pointer-events:none !important;
+  transition:opacity 0.15s ease;
 }
 
 /* Room for the fixed Quick Actions Bar so it never covers the last card on
@@ -1465,6 +1592,35 @@ textarea.field-input{
    component already used by Registration/Language/Content sheets) — no new
    sheet mechanics, just this preview's own content inside it.
    ========================================================================== */
+/* Prominent top-right × close target — additional to the existing bottom
+   Close button and the swipe-down gesture below, specifically so the
+   close action is always reachable near the thumb/eye even on a long
+   sheet, independent of whatever else (like the nav) is or isn't
+   currently covering the bottom of the screen. Fixed dark-translucent
+   styling regardless of theme since it always sits over the preview
+   photo, not the marble background. */
+.sheet-close-x{
+  position:absolute;
+  top:14px;
+  right:14px;
+  z-index:2;
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:none;
+  background:rgba(20,18,16,0.45);
+  color:#FFFFFF;
+  font-size:1.375rem;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+.sheet-close-x:active{ background:rgba(20,18,16,0.65); }
+
 .product-preview-media{
   width:100%;
   aspect-ratio:4/3;
@@ -2170,9 +2326,9 @@ textarea.field-input{
 }
 .eco-indicators{
   position:absolute;
-  top:12px;
-  left:14px;
-  right:14px;
+  top:16px;
+  left:18px;
+  right:18px;
   z-index:3;
   display:flex;
   gap:5px;
@@ -2198,35 +2354,35 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
 .eco-slide{
   flex:0 0 100%;
   scroll-snap-align:start;
-  padding:36px 20px 20px;
-  min-height:168px;
+  padding:52px 24px 28px;
+  min-height:252px;
   display:flex;
   flex-direction:column;
   --ink:var(--tkg-marble-ink);
   --ink-soft:var(--tkg-marble-ink-soft);
 }
-.eco-slide-icon{ font-size:1.75rem; margin-bottom:8px; line-height:1; }
+.eco-slide-icon{ font-size:2.5rem; margin-bottom:14px; line-height:1; }
 .eco-slide-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:1.0625rem;
+  font-size:1.3125rem;
   color:var(--tkg-marble-ink);
-  margin-bottom:4px;
+  margin-bottom:10px;
 }
 .eco-slide-desc{
-  font-size:0.8125rem;
+  font-size:0.9375rem;
   color:var(--tkg-marble-ink-soft);
-  line-height:1.45;
-  margin-bottom:16px;
-  max-width:92%;
+  line-height:1.55;
+  margin-bottom:24px;
+  max-width:94%;
 }
 .eco-slide-cta{
   align-self:flex-start;
   margin-top:auto;
   border:none;
   border-radius:999px;
-  padding:10px 16px;
-  font-size:0.8125rem;
+  padding:13px 22px;
+  font-size:0.9375rem;
   font-weight:700;
   color:var(--marble);
   background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
@@ -2239,18 +2395,18 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
    canvas, no second game engine, no faked gameplay screenshot. */
 .eco-runner-teaser{
   position:relative;
-  height:34px;
+  height:46px;
   width:100%;
-  margin-bottom:6px;
+  margin-bottom:12px;
 }
 .eco-runner-coal{
   position:absolute;
   bottom:0;
-  width:9px;
-  height:9px;
+  width:11px;
+  height:11px;
   border-radius:2px;
   background:var(--ember-deep);
-  box-shadow:0 0 6px rgba(255,122,69,0.5);
+  box-shadow:0 0 7px rgba(255,122,69,0.5);
 }
 .eco-runner-coal:nth-child(1){ left:16%; }
 .eco-runner-coal:nth-child(2){ left:50%; }
@@ -2259,7 +2415,7 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
   position:absolute;
   bottom:0;
   left:0;
-  font-size:1.375rem;
+  font-size:1.75rem;
   animation:eco-runner-hop 1.8s ease-in-out infinite;
 }
 @keyframes eco-runner-hop{
@@ -2744,9 +2900,22 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
 <body>
 
 <div class="shell" id="shell">
+  <!-- Day Cycle backdrop moved here (from inside .app-hero-compact) so its
+       absolute box can span from the very top of the page — behind the
+       topbar's Aa/Theme/EN controls — down through the bottom of the hero
+       greeting. See .hero-weather-backdrop CSS + updateWxBackdropSpan(). -->
+  <div class="hero-weather-backdrop" id="heroWeatherBackdrop" aria-hidden="true"></div>
 
-  <!-- ============ TOP BAR ============ -->
-  <div class="topbar">
+
+  <!-- ============ TOP BAR — carries .day-cycle-header alongside
+       .app-hero-compact below (two elements, not one wrapper — kept
+       separate in the DOM since .topbar is shell-level/persistent across
+       every screen while .app-hero-compact only exists inside
+       #screen-menu; merging them into one wrapper would make the hero
+       greeting show on other screens too). The shared class just scopes
+       the Day Cycle contrast CSS (stroke/color) to exactly the region
+       the sky backdrop visually covers. ============ -->
+  <div class="topbar day-cycle-header">
     <div class="wordmark">
       <div class="topbar-tagline" id="topbarTagline"></div>
     </div>
@@ -3033,6 +3202,7 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
        the <img> for a looping <video> without touching this markup. ======= -->
   <div class="overlay-backdrop" id="productPreviewBackdrop"></div>
   <div class="reg-overlay" id="productPreviewSheet">
+    <button type="button" class="sheet-close-x" id="productPreviewCloseX" aria-label="Close">×</button>
     <div class="reg-overlay-handle"></div>
     <div class="product-preview-media" id="productPreviewMedia">
       <img id="productPreviewImg" src="" alt="" loading="lazy" decoding="async">
@@ -3166,9 +3336,15 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
     <!-- ============ COMPACT HERO — one centered block replaces the old
          3-line headline + separate tagline + separate icon-trail row.
          hero.line*/hero.statement i18n keys reused as-is (EN/GU/HI all
-         still work), just recombined into a shorter read. ============ -->
-    <div class="app-hero app-hero-compact">
-      <div class="hero-weather-backdrop" id="heroWeatherBackdrop" aria-hidden="true"></div>
+         still work), just recombined into a shorter read.
+         #dgSubText ("Welcome! Let's explore...") moved inside this card
+         (was a sibling just below it) so it's part of the same unified
+         rounded card as the greeting — this also means its height is now
+         automatically included in updateWxBackdropSpan()'s
+         heroEl.offsetHeight measurement, so the Day Cycle backdrop's own
+         box grows to cover it too, without any separate wrapper element
+         or extra JS. ============ -->
+    <div class="app-hero app-hero-compact day-cycle-header">
       <div class="hero-greeting-row">
         <img class="hero-logo-large" src="./icon-192.png" alt="TKG">
         <div class="hero-greeting-line">
@@ -3177,8 +3353,8 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
           </div>
         </div>
       </div>
+      <span id="dgSubText" class="hero-sub-below"></span>
     </div>
-    <span id="dgSubText" class="hero-sub-below"></span>
 
     <!-- ============ STORY STRIP + REVIEW TEASER — restored (previously
          removed during the header redesign; CSS/i18n strings had been left
@@ -3365,8 +3541,8 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
     </div>
     </div><!-- /#menuJourneySection -->
 
-    <!-- Phone/WhatsApp/Instagram/Get-Directions block moved below Moments +
-         Fun Activity — see new position after the second .fun-activity-card. -->
+    <!-- Phone/WhatsApp/Instagram/Get-Directions block sits below the
+         Highlights Showcase — see its position after .eco-showcase. -->
 
     <!-- Registration CTA card removed (Sprint: Customer OS UI Polish, item 1)
          — duplicated the Quick Actions footer's "Message Us" button, which
@@ -3380,6 +3556,13 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
          discovery layer for the wider TKG ecosystem, sitting just above
          Fun Activity. Gentle 4s auto-rotate, pauses on touch/manual
          swipe, micro-indicators synced to scroll position. ==== -->
+    <!-- ============ TKG ECOSYSTEM HIGHLIGHTS SHOWCASE — 4-slide horizontal
+         snap carousel (Moments / Review / Runner / Leaderboard). Expanded
+         (Fun Activity Removal & Highlights Expansion sprint) to fill the
+         space freed by removing the Fun Activity card below — taller
+         slides, larger type, richer copy. Gentle 4s auto-rotate, pauses
+         on touch/manual swipe, micro-indicators synced to scroll
+         position. ==== -->
     <div class="eco-showcase" id="ecoShowcase">
       <div class="eco-indicators" id="ecoIndicators">
         <span class="eco-dot active"></span>
@@ -3392,14 +3575,14 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
         <div class="eco-slide">
           <div class="eco-slide-icon">📸</div>
           <div class="eco-slide-title">Watch &amp; Share Stories</div>
-          <div class="eco-slide-desc">Watch community videos or share your own TKG memories.</div>
+          <div class="eco-slide-desc">Watch real community photos and videos, or share your own favorite TKG memories with us.</div>
           <button type="button" class="eco-slide-cta" id="ecoMomentsCta">Watch &amp; Share Stories →</button>
         </div>
 
         <div class="eco-slide">
           <div class="eco-slide-icon">⭐</div>
           <div class="eco-slide-title">Loved TKG?</div>
-          <div class="eco-slide-desc">Support our small kitchen by sharing your rating and review on Google.</div>
+          <div class="eco-slide-desc">Support our small kitchen stall! Share your rating and review on Google.</div>
           <button type="button" class="eco-slide-cta" id="ecoReviewCta">Rate &amp; Review →</button>
         </div>
 
@@ -3410,63 +3593,18 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
             <span class="eco-runner-coal"></span>
             <span class="eco-runner-char">🏃</span>
           </div>
-          <div class="eco-slide-title">Play Khichiya Runner 🎮</div>
-          <div class="eco-slide-desc">Test your speed! How high can you score?</div>
+          <div class="eco-slide-title">🏃 Play Khichiya Runner 🎮</div>
+          <div class="eco-slide-desc">Test your speed and jump over the coal! Can you claim the top score?</div>
           <button type="button" class="eco-slide-cta" id="ecoRunnerCta">Play Now →</button>
         </div>
 
         <div class="eco-slide">
           <div class="eco-slide-icon">🏆</div>
-          <div class="eco-slide-title">See Who's Leading 🏆</div>
-          <div class="eco-slide-desc">Check top scores and claim your spot on the TKG wall of fame.</div>
+          <div class="eco-slide-title">See Who's Leading</div>
+          <div class="eco-slide-desc">Check the live high scores and see who currently holds the crown on the TKG wall of fame.</div>
           <button type="button" class="eco-slide-cta" id="ecoLeaderboardCta">View Leaderboard →</button>
         </div>
 
-      </div>
-    </div>
-
-    <!-- ============ FUN ACTIVITY — Sprint: Fun Activity Card Consolidation.
-         One card, three rows, instead of three separate floating cards
-         (Taste Discovery / Khichiya Runner / Leaderboard) that were taking
-         up too much scroll. Each row keeps its exact original id,
-         data-journey gate, and click-handler target — only the visual
-         container changed. Text/i18n keys are untouched (taste.reminder*,
-         khichiyaRunnerCardTitle/Sub still updated the same way by
-         updateKhichiyaRunnerCardText()); only funActivity.title/sub are new. -->
-    <div class="fun-activity-card">
-      <div class="fun-activity-header">
-        <div class="fun-activity-title" data-i18n="funActivity.title">Fun Activity</div>
-        <div class="fun-activity-sub" data-i18n="funActivity.sub">Something to do while you're here</div>
-      </div>
-
-      <div class="fun-activity-row" id="tasteDiscoveryReminderCard" data-journey="planning,exploring">
-        <button type="button" class="fun-activity-row-btn" id="openTasteDiscoveryBtn">
-          <span class="far-text">
-            <span class="far-title" data-i18n="taste.reminderTitle">🍽️ Not sure what to order?</span>
-            <span class="far-sub" data-i18n="taste.reminderSub">2 quick taps and we'll pick for you.</span>
-          </span>
-          <span class="far-chevron">›</span>
-        </button>
-      </div>
-
-      <div class="fun-activity-row" id="khichiyaRunnerReminderCard" data-journey="atTKG,planning,exploring">
-        <button type="button" class="fun-activity-row-btn" id="openKhichiyaRunnerBtn">
-          <span class="far-text">
-            <span class="far-title" id="khichiyaRunnerCardTitle">🔥 Bored? Play Khichiya Runner</span>
-            <span class="far-sub" id="khichiyaRunnerCardSub">Jump the Khichiya over the coal.</span>
-          </span>
-          <span class="far-chevron">›</span>
-        </button>
-      </div>
-
-      <div class="fun-activity-row fun-activity-row--accent" id="runnerLeaderboardCard" data-journey="atTKG,planning,exploring">
-        <button type="button" class="fun-activity-row-btn" id="openRunnerLeaderboardBtn">
-          <span class="far-text">
-            <span class="far-title">🏆 Khichiya Runner Leaderboard</span>
-            <span class="far-sub">See who's on top right now.</span>
-          </span>
-          <span class="far-chevron">›</span>
-        </button>
       </div>
     </div>
 
@@ -4833,7 +4971,7 @@ function showScreen(id){
   // becomes the active screen and cancels the moment it isn't. This does
   // not change screen routing, journey visibility, or any frozen logic —
   // showScreen()'s own behavior above this line is untouched.
-  if(id === 'screen-menu'){ startTasteDiscoveryTimer(); }
+  if(id === 'screen-menu'){ startTasteDiscoveryTimer(); updateWxBackdropSpan(); }
   else{ cancelTasteDiscoveryTimer(); }
   // Journey screen back button — hidden for a genuine first-time visitor
   // (no saved journey to go back to), shown if a customer who already has
@@ -5196,6 +5334,7 @@ function updateDynamicGreeting(journey){
   greetEl.style.setProperty('--wx-text-color', wxColors.color);
   greetEl.style.setProperty('--wx-text-glow', wxColors.glow);
   initHeroWeatherBackdrop();
+  updateWxBackdropSpan();
 }
 
 // Hero weather backdrop — simulated (not live weather yet; a real API swap
@@ -5242,36 +5381,75 @@ function getLunarPhase_(){
   if(phasePosition < 0.875) return 'waning-gibbous';
   return 'waning-crescent';
 }
+// ---------------------------------------------------------------------------
+// DAY CYCLE BACKDROP SPAN — #heroWeatherBackdrop now lives at the top of
+// .shell (see markup), sized via inline height to exactly match
+// topbar-height + hero-height so it visually covers both without spilling
+// into the ticket-strip content below. Skips the calc entirely while
+// #screen-menu isn't the active screen (its content is display:none, so
+// offsetHeight would read 0 and wrongly collapse the backdrop).
+// ---------------------------------------------------------------------------
+function updateWxBackdropSpan(){
+  const backdrop = document.getElementById('heroWeatherBackdrop');
+  const topbarEl = document.querySelector('.topbar');
+  const heroEl = document.querySelector('.app-hero-compact');
+  const menuScreen = document.getElementById('screen-menu');
+  if(!backdrop || !topbarEl || !heroEl || !menuScreen) return;
+  if(!menuScreen.classList.contains('active')) return;
+  const span = topbarEl.offsetHeight + heroEl.offsetHeight;
+  if(span > 0) backdrop.style.height = span + 'px';
+}
+window.addEventListener('resize', updateWxBackdropSpan);
+
 function initHeroWeatherBackdrop(){
-  if(window.__tkgWxInitDone) return;
   const el = document.getElementById('heroWeatherBackdrop');
   if(!el) return;
-  window.__tkgWxInitDone = true;
+  // The previous window.__tkgWxInitDone one-time flag is removed — it made
+  // this function a run-once setup, so the backdrop got stuck on whichever
+  // time-of-day key was current at first page load and never actually
+  // transitioned through the day, and never re-applied correctly when
+  // returning to the Menu screen. This now runs every time
+  // updateDynamicGreeting() does (initial load, journey change, language
+  // change, every 60s tick) and always reconciles the classes to the
+  // CURRENT key, swapping out whichever wx-*/moon-* state was applied
+  // before so old and new never both linger on the element at once.
   const key = getWeatherKey_();
+  el.classList.remove(
+    'wx-morning', 'wx-afternoon', 'wx-evening', 'wx-night', 'wx-monsoon',
+    'moon-waxing-crescent', 'moon-waxing-gibbous', 'moon-full',
+    'moon-waning-gibbous', 'moon-waning-crescent'
+  );
   el.classList.add('show', 'wx-' + key);
   if(key === 'night'){
     const moonPhase = getLunarPhase_();
     el.classList.add('moon-' + moonPhase);
   }
   if(key === 'monsoon'){
-    const DROP_COUNT = 14;
-    for(let i = 0; i < DROP_COUNT; i++){
-      const drop = document.createElement('span');
-      drop.className = 'rain-drop';
-      const left = Math.round(Math.random() * 100);
-      const duration = (0.55 + Math.random() * 0.5).toFixed(2);
-      const delay = (Math.random() * -1.2).toFixed(2);
-      const drift = Math.round(4 + Math.random() * 6);
-      const height = Math.round(30 + Math.random() * 26);
-      const opacity = (0.5 + Math.random() * 0.4).toFixed(2);
-      drop.style.left = left + '%';
-      drop.style.height = height + 'px';
-      drop.style.opacity = opacity;
-      drop.style.setProperty('--drift', drift + 'px');
-      drop.style.animationDuration = duration + 's';
-      drop.style.animationDelay = delay + 's';
-      el.appendChild(drop);
+    // Guarded so repeated calls (this now runs on every 60s tick) don't
+    // keep appending another 14 drops on top of the existing ones —
+    // inject once per monsoon transition, not once per call.
+    if(!el.querySelector('.rain-drop')){
+      const DROP_COUNT = 14;
+      for(let i = 0; i < DROP_COUNT; i++){
+        const drop = document.createElement('span');
+        drop.className = 'rain-drop';
+        const left = Math.round(Math.random() * 100);
+        const duration = (0.55 + Math.random() * 0.5).toFixed(2);
+        const delay = (Math.random() * -1.2).toFixed(2);
+        const drift = Math.round(4 + Math.random() * 6);
+        const height = Math.round(30 + Math.random() * 26);
+        const opacity = (0.5 + Math.random() * 0.4).toFixed(2);
+        drop.style.left = left + '%';
+        drop.style.height = height + 'px';
+        drop.style.opacity = opacity;
+        drop.style.setProperty('--drift', drift + 'px');
+        drop.style.animationDuration = duration + 's';
+        drop.style.animationDelay = delay + 's';
+        el.appendChild(drop);
+      }
     }
+  }else{
+    el.querySelectorAll('.rain-drop').forEach(drop => drop.remove());
   }
 }
 document.getElementById('greetingHeadlineRow')?.addEventListener('click', () => {
@@ -5455,6 +5633,59 @@ document.querySelectorAll('.menu-item').forEach(card => {
 
 productPreviewBackdrop.addEventListener('click', closeProductPreview);
 document.getElementById('productPreviewCloseBtn').addEventListener('click', closeProductPreview);
+document.getElementById('productPreviewCloseX').addEventListener('click', closeProductPreview);
+
+// ---------------------------------------------------------------------------
+// SWIPE-DOWN TO DISMISS — Product Preview sheet only. No swipe-to-dismiss
+// gesture existed on any .reg-overlay sheet before this (checked — only a
+// static, non-interactive drag-handle bar). Bound to the drag handle and
+// the preview photo specifically (both non-scrolling zones) rather than
+// the whole sheet, so it never fights with the sheet's own vertical
+// content scroll (the description/recipe text below can be long enough
+// to scroll on a small screen).
+// ---------------------------------------------------------------------------
+(function(){
+  const sheet = productPreviewSheet;
+  const handle = sheet.querySelector('.reg-overlay-handle');
+  const media = document.getElementById('productPreviewMedia');
+  const dragZones = [handle, media].filter(Boolean);
+  if(!dragZones.length) return;
+
+  let startY = 0;
+  let currentY = 0;
+  let dragging = false;
+  const DISMISS_THRESHOLD = 80; // px of downward drag before it counts as a dismiss
+
+  function onDragStart(e){
+    dragging = true;
+    startY = e.touches[0].clientY;
+    currentY = startY;
+    sheet.style.transition = 'none';
+  }
+  function onDragMove(e){
+    if(!dragging) return;
+    currentY = e.touches[0].clientY;
+    const delta = Math.max(0, currentY - startY);
+    sheet.style.transform = 'translate(-50%, ' + delta + 'px)';
+  }
+  function onDragEnd(){
+    if(!dragging) return;
+    dragging = false;
+    const delta = Math.max(0, currentY - startY);
+    sheet.style.transition = '';
+    sheet.style.transform = '';
+    if(delta > DISMISS_THRESHOLD){
+      closeProductPreview();
+    }
+  }
+
+  dragZones.forEach(zone => {
+    zone.addEventListener('touchstart', onDragStart, { passive:true });
+    zone.addEventListener('touchmove', onDragMove, { passive:true });
+    zone.addEventListener('touchend', onDragEnd);
+    zone.addEventListener('touchcancel', onDragEnd);
+  });
+})();
 
 // ---------------------------------------------------------------------------
 // MENU ITEM HEART/SAVE — Sprint: Menu Header & Item Cards Redesign. Quiet,
@@ -5980,7 +6211,7 @@ function closeTasteDiscoveryOverlay(){
 }
 
 tasteDiscoveryBackdrop.addEventListener('click', closeTasteDiscoveryOverlay);
-document.getElementById('openTasteDiscoveryBtn').addEventListener('click', openTasteDiscoveryOverlay);
+document.getElementById('openTasteDiscoveryBtn')?.addEventListener('click', openTasteDiscoveryOverlay);
 
 // ---------------------------------------------------------------------
 // Khichiya Runner reminder — mirrors the Taste Discovery open/close
@@ -6115,14 +6346,14 @@ function closeKhichiyaRunnerOverlay(){
 }
 
 khichiyaRunnerBackdrop.addEventListener('click', closeKhichiyaRunnerOverlay);
-document.getElementById('openKhichiyaRunnerBtn').addEventListener('click', openKhichiyaRunnerOverlay);
+document.getElementById('openKhichiyaRunnerBtn')?.addEventListener('click', openKhichiyaRunnerOverlay);
 document.getElementById('khichiyaRunnerCloseBtn').addEventListener('click', closeKhichiyaRunnerOverlay);
 
 // Khichiya Runner Leaderboard — leaves the app for the separate,
 // customer-facing leaderboard.html page (same tab, so browser/PWA back
 // returns here). No teaser overlay needed — the page itself is the
 // destination, same pattern as Dashboard's direct navigation.
-document.getElementById('openRunnerLeaderboardBtn').addEventListener('click', function(){
+document.getElementById('openRunnerLeaderboardBtn')?.addEventListener('click', function(){
   window.location.href = 'leaderboard.html';
 });
 
