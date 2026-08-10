@@ -59,6 +59,24 @@
   --radius-sm: 8px;
   --max-w: 430px;
 
+  /* Premium Marble tokens — ported from index.html for the "Visual
+     Alignment" sprint (Task 6). Static/light-only values only: unlike
+     index.html, leaderboard.html has no [data-tkg-theme="dark"] support
+     for its own content today (only .tkg-global-nav's copy-pasted rules
+     respond to dark theme) — adding the marble system's dark-theme pair
+     without the rest of the page also supporting dark theme would make
+     these specific cards flip color while everything around them stays
+     permanently light, which is a worse inconsistency than not
+     supporting dark theme at all. Flagging: full dark-theme support for
+     leaderboard.html would be a separate, larger task. */
+  --tkg-marble-bg-color: #0F0E0C;
+  --tkg-marble-image: url('tkg-marble-black.jpg');
+  --tkg-marble-overlay: rgba(0,0,0,0.42);
+  --tkg-marble-border: rgba(0,0,0,0.06);
+  --tkg-marble-ink: #F2EFEA;
+  --tkg-marble-ink-soft: rgba(242,239,234,0.72);
+  --tkg-marble-ink-faint: rgba(242,239,234,0.55);
+
   --font-display: 'Charcoal-Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
@@ -74,7 +92,7 @@ body{
   min-height:100vh;
   display:flex;
   justify-content:center;
-  padding:20px 16px 40px;
+  padding:20px 16px calc(90px + env(safe-area-inset-bottom, 0px));
 }
 .wrap{ width:100%; max-width:var(--max-w); }
 
@@ -107,6 +125,13 @@ body{
 .champion-card{
   background:linear-gradient(180deg, var(--ember-glow), var(--gold-bright));
   border-radius:var(--radius-lg);
+  /* Border only (kept its own gold/ember gradient background rather than
+     switching to marble) — a flat marble panel would erase the
+     "champion" gold-trophy visual entirely, which reads as a regression
+     rather than an alignment. Border/radius still brought in line with
+     the marble card family below for a consistent edge treatment across
+     the page. */
+  border:1px solid var(--tkg-marble-border);
   padding:22px 20px;
   text-align:center;
   box-shadow:0 8px 24px -10px rgba(200,140,20,0.45);
@@ -148,8 +173,19 @@ body{
 }
 
 .rank-list{
-  background:var(--stone-card);
-  border:1px solid var(--stone-line);
+  /* Marble surface (was flat --stone-card/--stone-line) — local --ink*
+     overrides here follow the exact same scoping pattern index.html's
+     own marble cards use, so every descendant rule below that already
+     reads var(--ink)/var(--ink-faint) automatically picks up the
+     correct light-on-dark-marble tone without rewriting each rule. */
+  --ink: var(--tkg-marble-ink);
+  --ink-soft: var(--tkg-marble-ink-soft);
+  --ink-faint: var(--tkg-marble-ink-faint);
+  background-color: var(--tkg-marble-bg-color);
+  background-image: linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
+  background-size: auto, cover;
+  background-position: center, center;
+  border:1px solid var(--tkg-marble-border);
   border-radius:var(--radius-lg);
   overflow:hidden;
   box-shadow:0 1px 2px rgba(28,24,21,0.05);
@@ -159,7 +195,7 @@ body{
   align-items:center;
   gap:12px;
   padding:13px 16px;
-  border-bottom:1px solid var(--stone-line);
+  border-bottom:1px solid rgba(242,239,234,0.12);
 }
 .rank-row:last-child{ border-bottom:none; }
 .rank-num{
@@ -171,7 +207,7 @@ body{
   flex-shrink:0;
   text-align:center;
 }
-.rank-row.top1 .rank-num{ color:var(--gold-deep); }
+.rank-row.top1 .rank-num{ color:var(--gold-bright); }
 .rank-name{
   flex:1;
   min-width:0;
@@ -209,7 +245,7 @@ body{
   padding:40px 20px;
 }
 
-.bottom-nav-link{
+.play-runner-cta{
   display:block;
   text-align:center;
   margin-top:24px;
@@ -221,8 +257,9 @@ body{
   font-size:0.875rem;
   font-weight:700;
   width:100%;
+  text-decoration:none;
 }
-.bottom-nav-link:active{ opacity:0.85; }
+.play-runner-cta:active{ opacity:0.85; }
 
 .live-section-label{ margin-top:20px; }
 .live-feed-list .rank-row{ gap:10px; }
@@ -234,12 +271,98 @@ body{
   color:var(--ink-faint);
   font-style:italic;
 }
+
+/* ============================================================
+   TKG FLOATING GLASS PILL NAVIGATION (DIRECTIONAL TRANSITION)
+   Standardized component — identical to moments_hub.html's verified
+   version. Geometry is INVARIANT; .scrolled only ever changes
+   opacity/scale, never width/height/border-radius.
+   ============================================================ */
+.tkg-global-nav {
+  position: fixed !important;
+  bottom: 16px !important;
+  left: 50% !important;
+  transform: translateX(-50%) scale(1) !important;
+  width: min(320px, calc(100vw - 32px)) !important;
+  height: 46px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-evenly !important;
+  padding: 0 4px !important;
+  box-sizing: border-box !important;
+  z-index: 99999 !important;
+  opacity: 1 !important;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease,
+              background-color 0.3s ease !important;
+}
+
+.tkg-global-nav.scrolled {
+  transform: translateX(-50%) scale(0.96) !important;
+  opacity: 0.88 !important;
+  background: rgba(255, 255, 255, 0.55) !important;
+}
+
+[data-tkg-theme="dark"] .tkg-global-nav,
+.theme-dark .tkg-global-nav,
+body.dark-mode .tkg-global-nav {
+  background: rgba(18, 18, 18, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-tkg-theme="dark"] .tkg-global-nav.scrolled,
+.theme-dark .tkg-global-nav.scrolled,
+body.dark-mode .tkg-global-nav.scrolled {
+  background: rgba(18, 18, 18, 0.62) !important;
+}
+
+.tkg-nav-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 32px !important;
+  border-radius: 9999px !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  text-decoration: none !important;
+  transition: background-color 0.2s ease, color 0.2s ease !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tkg-nav-item svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke-width: 2 !important;
+}
+
+.tkg-nav-item.active {
+  color: #000000 !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-tkg-theme="dark"] .tkg-nav-item,
+.theme-dark .tkg-nav-item,
+body.dark-mode .tkg-nav-item {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+[data-tkg-theme="dark"] .tkg-nav-item.active,
+.theme-dark .tkg-nav-item.active,
+body.dark-mode .tkg-nav-item.active {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-
-  <button type="button" class="back-link" id="backToMenuTop">← Back to Menu</button>
 
   <div class="lb-header">
     <div class="lb-title">🏆 Khichiya Runner Leaderboard</div>
@@ -265,9 +388,28 @@ body{
     <div class="rank-list live-feed-list" id="liveFeedList" style="display:none;"></div>
   </div>
 
-  <button type="button" class="bottom-nav-link" id="backToMenuBottom">Back to Menu</button>
+  <!-- Play CTA — the global nav's 4 slots don't include the game itself
+       (khichiya-runner.html), so this stays the direct, prominent route in —
+       the game is never orphaned even though it's not a nav slot. -->
+  <a href="khichiya-runner.html" class="play-runner-cta">Play Khichiya Runner →</a>
 
 </div>
+
+<!-- TKG GLOBAL NAV — Leaderboard is the active slot on this page. -->
+<nav class="tkg-global-nav" id="globalNav" aria-label="Main Navigation">
+  <a href="./index.html" class="tkg-nav-item" aria-label="Menu" title="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </a>
+  <a href="./moments.html" class="tkg-nav-item" aria-label="Moments" title="Moments">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+  </a>
+  <a href="./moments_hub.html" class="tkg-nav-item" aria-label="Moments Hub" title="Hub">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+  </a>
+  <a href="./leaderboard.html" class="tkg-nav-item active" aria-label="Leaderboard" title="Leaderboard" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+  </a>
+</nav>
 
 <script>
 // ---------------------------------------------------------------------------
@@ -401,32 +543,34 @@ async function loadLeaderboard(){
   }
 }
 
-// ---------------------------------------------------------------------------
-// Back-link context — previously both the top and bottom buttons on this
-// page went to index.html, which looked like a duplicate/confusing pair.
-// Now: the top button reflects where the player actually came from (the
-// game, via ?from=game on the URL, or the menu otherwise), and the bottom
-// button always stays "Back to Menu" as the constant second option — so a
-// player who arrived from the game can get back to the game specifically,
-// while still having a plain way back to the menu too.
-// ---------------------------------------------------------------------------
-const cameFromGame = new URLSearchParams(window.location.search).get('from') === 'game';
-const backToMenuTopEl = document.getElementById('backToMenuTop');
+// tkg-global-nav keeps its capsule geometry invariant at all times — this
+// listener only toggles opacity/scale via .scrolled, never width/height/
+// border-radius. leaderboard.html has no internal scroll container (plain
+// document flow), so window is the correct scroll target here.
+(function initDirectionalPillScroll() {
+  const nav = document.getElementById('globalNav');
+  if (!nav) return;
 
-if(cameFromGame){
-  backToMenuTopEl.textContent = '← Back to Game';
-  backToMenuTopEl.addEventListener('click', function(){
-    window.location.href = 'khichiya-runner.html';
-  });
-}else{
-  backToMenuTopEl.addEventListener('click', function(){
-    window.location.href = 'index.html';
-  });
-}
+  let lastScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+  const DELTA_THRESHOLD = 6;
+  const TOP_ZONE = 4;
 
-document.getElementById('backToMenuBottom').addEventListener('click', function(){
-  window.location.href = 'index.html';
-});
+  function compact() { nav.classList.add('scrolled'); }
+  function normal() { nav.classList.remove('scrolled'); }
+
+  window.addEventListener('scroll', () => {
+    const current = window.scrollY || document.documentElement.scrollTop || 0;
+    const delta = current - lastScrollTop;
+
+    if (current <= TOP_ZONE) {
+      normal();
+    } else if (Math.abs(delta) > DELTA_THRESHOLD) {
+      if (delta > 0) compact();
+      else normal();
+    }
+    lastScrollTop = current;
+  }, { passive: true });
+})();
 
 loadLeaderboard();
 </script>

@@ -39,6 +39,15 @@
     --ember-deep:#B8431D;
     --gold:#D9A441;
     --charcoal:#2A211C;
+    /* TKG brand tokens ported from index.html for the Ecosystem
+       Refinement sprint (Task 5/6 branding pass) — same values, so this
+       game's menu screens read as part of the same family as the rest
+       of the app rather than a separate light-card prototype look. */
+    --font-display: 'Charcoal-Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --tkg-marble-bg-color: #0F0E0C;
+    --tkg-marble-border: rgba(255,255,255,0.08);
+    --tkg-marble-ink: #F2EFEA;
+    --tkg-marble-ink-soft: rgba(242,239,234,0.72);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0; height:100%; overflow:hidden; overscroll-behavior:none;}
@@ -137,7 +146,17 @@
     align-items:center;
     justify-content:center;
     gap:10px;
-    background:rgba(246,246,245,0.88);
+    /* Dark charcoal marble, replacing the light stone-toned scrim — this
+       overlay only ever shows while state is 'idle'/'over' (the game
+       loop hasn't started or has stopped), so the canvas obstacle/player
+       colors tuned for the light canvas gameplay background (untouched,
+       see canvas{} above) are never visible at the same time as this. */
+    --ink: var(--tkg-marble-ink);
+    --ink-soft: var(--tkg-marble-ink-soft);
+    background-color: var(--tkg-marble-bg-color);
+    background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('tkg-marble-black.jpg');
+    background-size: cover;
+    background-position: center;
     text-align:center;
     padding:20px;
     overflow-y:auto;
@@ -182,13 +201,13 @@
     flex:1;
     padding:10px 8px;
     border-radius:10px;
-    border:1px solid var(--stone-line);
-    background:var(--stone-card);
-    color:var(--ink);
+    border:1px solid var(--tkg-marble-border);
+    background:rgba(255,255,255,0.06);
+    color:var(--tkg-marble-ink);
     font-size:12.5px;
     font-weight:700;
   }
-  .btn-ghost:active{background:var(--stone-base);}
+  .btn-ghost:active{background:rgba(255,255,255,0.12);}
   .btn-ghost-standalone{
     flex:none;
     width:100%;
@@ -200,11 +219,21 @@
     max-width:240px;
     padding:11px 12px;
     border-radius:10px;
-    border:1px solid var(--stone-line);
+    /* Kept a light fill (was --stone-card/--stone-line) rather than a
+       dark one — an actively-typed field benefits from strong text
+       contrast regardless of the surrounding dark overlay, a common
+       pattern in dark-themed forms. Border switched to the amber/marble
+       accent so it still reads as part of the branded overlay.
+       color is an explicit dark hex, NOT var(--ink) — .overlay scopes
+       --ink to the light marble tone for its dark background, which
+       would make this light-background field's text invisible if it
+       inherited that same variable. */
+    border:1px solid var(--tkg-marble-border);
     background:var(--stone-card);
     font-size:14px;
-    color:var(--ink);
+    color:#1C1815;
   }
+  .text-input::placeholder{ color:#6B6256; }
   .text-input:focus{outline:none; border-color:var(--ember);}
   .live-opt-in-row{
     display:flex;
@@ -226,6 +255,144 @@
     line-height:1.5;
   }
   .foot-note b{color:var(--ink);}
+
+  /* =========================================================================
+     CONTROLLED CINEMATIC INTRO — a 5-second atmospheric wrapper layered
+     over the EXISTING #startOverlay (its "Ready to roast?"/Tap-to-play
+     content is untouched underneath, already fully rendered — this is
+     purely a visual layer, never a blocking one). Auto-dismisses via a
+     pure CSS animation (animation-fill-mode:forwards ends at opacity:0 +
+     pointer-events:none), so it disappears even if the JS enhancement
+     below never runs; tapping it also skips early. Does not touch
+     startGame()/jump()/resetGame() — dismissing this wrap only reveals
+     the already-functional #startOverlay beneath, the actual "start"
+     gesture is still exactly #startBtn's own click handler, unchanged.
+     ========================================================================= */
+  .runner-cinematic-wrap{
+    position:absolute;
+    inset:0;
+    z-index:20;
+    overflow:hidden;
+    background:#0F0E0C;
+    animation:runnerIntroFade 5s ease forwards;
+  }
+  @keyframes runnerIntroFade{
+    0%, 82%{ opacity:1; }
+    100%{ opacity:0; pointer-events:none; }
+  }
+  .runner-cinematic-wrap.skip-out{
+    animation:none;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.35s ease;
+  }
+  .runner-intro-video{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    /* Hidden by default — only shown once the browser confirms the MP4
+       actually exists and can play (see JS: 'loadeddata' listener adds
+       .video-ready). If assets/runner-intro.mp4 is absent, this stays
+       hidden and .runner-intro-fallback (always rendered, z-index below
+       the video) is the only thing visible — the page never depends on
+       the asset existing. */
+    opacity:0;
+    transition:opacity 0.3s ease;
+  }
+  .runner-intro-video.video-ready{ opacity:1; }
+  .runner-intro-fallback{
+    position:absolute;
+    inset:0;
+    background:
+      radial-gradient(circle at 50% 62%, rgba(255,140,60,0.55) 0%, rgba(255,90,30,0.28) 30%, transparent 62%),
+      linear-gradient(180deg, #1a1210 0%, #0F0E0C 65%, #0a0908 100%);
+  }
+  .runner-intro-fallback::before{
+    /* Glowing coal bed — soft pulsing ember glow, pure CSS */
+    content:'';
+    position:absolute;
+    left:50%;
+    bottom:18%;
+    width:140px;
+    height:36px;
+    transform:translateX(-50%);
+    border-radius:50%;
+    background:radial-gradient(ellipse at center, rgba(255,150,70,0.85), rgba(255,90,30,0.35) 55%, transparent 75%);
+    filter:blur(2px);
+    animation:runnerEmberPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes runnerEmberPulse{
+    0%,100%{ opacity:0.7; transform:translateX(-50%) scale(1); }
+    50%{ opacity:1; transform:translateX(-50%) scale(1.08); }
+  }
+  .runner-spark{
+    position:absolute;
+    bottom:20%;
+    width:3px;
+    height:3px;
+    border-radius:50%;
+    background:#FFB870;
+    box-shadow:0 0 6px 2px rgba(255,150,70,0.7);
+    animation:runnerSparkFloat 2.6s ease-in infinite;
+  }
+  .runner-spark:nth-child(1){ left:38%; animation-delay:0s; }
+  .runner-spark:nth-child(2){ left:48%; animation-delay:0.5s; }
+  .runner-spark:nth-child(3){ left:56%; animation-delay:1s; }
+  .runner-spark:nth-child(4){ left:44%; animation-delay:1.5s; }
+  .runner-spark:nth-child(5){ left:60%; animation-delay:0.8s; }
+  @keyframes runnerSparkFloat{
+    0%{ transform:translateY(0) translateX(0); opacity:0; }
+    15%{ opacity:1; }
+    100%{ transform:translateY(-120px) translateX(var(--spark-drift, 12px)); opacity:0; }
+  }
+  .runner-cinematic-content{
+    position:relative;
+    z-index:2;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    /* Slow camera push-in — subtle, one-shot over the 5s window rather
+       than a continuous loop, matching "subtle camera push-in motion"
+       without ever settling into a distracting permanent zoom. */
+    animation:runnerCinematicPushIn 5s ease-out forwards;
+  }
+  @keyframes runnerCinematicPushIn{
+    0%{ transform:scale(1.06); }
+    100%{ transform:scale(1); }
+  }
+  .runner-cinematic-logo{
+    width:56px;
+    height:56px;
+    border-radius:16px;
+    filter:drop-shadow(0 4px 14px rgba(0,0,0,0.5));
+  }
+  .runner-cinematic-title{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:24px;
+    letter-spacing:0.04em;
+    color:#FFFFFF;
+    text-transform:uppercase;
+  }
+  .runner-cinematic-title span{ color:var(--ember-bright); }
+  .runner-cinematic-tap-hint{
+    position:absolute;
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 18px);
+    left:0;
+    right:0;
+    z-index:2;
+    text-align:center;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    color:rgba(255,255,255,0.55);
+    text-transform:uppercase;
+  }
 </style>
 </head>
 <body>
@@ -243,6 +410,21 @@
       <canvas id="game" width="720" height="480"></canvas>
 
       <div class="overlay" id="startOverlay">
+        <div class="runner-cinematic-wrap" id="runnerCinematicWrap">
+          <video class="runner-intro-video" id="runnerIntroVideo" muted playsinline preload="auto" src="assets/runner-intro.mp4"></video>
+          <div class="runner-intro-fallback">
+            <span class="runner-spark" style="--spark-drift:10px"></span>
+            <span class="runner-spark" style="--spark-drift:-8px"></span>
+            <span class="runner-spark" style="--spark-drift:14px"></span>
+            <span class="runner-spark" style="--spark-drift:-4px"></span>
+            <span class="runner-spark" style="--spark-drift:6px"></span>
+          </div>
+          <div class="runner-cinematic-content">
+            <img class="runner-cinematic-logo" src="./icon-192.png" alt="TKG">
+            <div class="runner-cinematic-title">Khichiya <span>Runner</span></div>
+          </div>
+          <div class="runner-cinematic-tap-hint">Tap to skip</div>
+        </div>
         <div class="big">Ready to roast?</div>
         <div class="sub">Jump the Khichiya over the coal. Miss one, and it burns.</div>
         <button class="btn" id="startBtn">Tap to play</button>
@@ -290,6 +472,64 @@
     Submitted scores are saved to the Sheet now — leaderboard and reward-claim logic is still the next step.
   </div>
 </div>
+
+<script>
+// ---------------------------------------------------------------------------
+// CONTROLLED CINEMATIC INTRO — fully self-contained, deliberately kept
+// separate from the main game IIFE below so it can never touch
+// GRAVITY/JUMP_V/canvas rendering/collision/score submission. Only ever
+// hides itself; never calls startGame()/jump() — the actual "start"
+// gesture stays exactly #startBtn's own existing click listener.
+// ---------------------------------------------------------------------------
+(function(){
+  var wrap = document.getElementById('runnerCinematicWrap');
+  var video = document.getElementById('runnerIntroVideo');
+  if(!wrap) return;
+
+  var dismissed = false;
+  function dismiss(immediate){
+    if(dismissed) return;
+    dismissed = true;
+    if(immediate){
+      wrap.classList.add('skip-out');
+    }
+    // Fully remove from layout/paint once faded — also stops the video
+    // decoding in the background for no reason once it's invisible.
+    window.setTimeout(function(){
+      wrap.style.display = 'none';
+      if(video){ video.pause(); }
+    }, immediate ? 380 : 60);
+  }
+
+  // Asset Safety: video starts at opacity:0 (CSS) and only reveals itself
+  // once the browser confirms assets/runner-intro.mp4 actually loaded and
+  // can play — if the file is missing/404s/errors, it silently stays
+  // hidden forever and .runner-intro-fallback (always rendered underneath)
+  // is the only thing visible. No assumption the MP4 exists anywhere here.
+  if(video){
+    video.addEventListener('loadeddata', function(){
+      video.classList.add('video-ready');
+      video.play().catch(function(){ /* autoplay blocked — fallback stays visible instead, no-op */ });
+    });
+    video.addEventListener('error', function(){ /* stays hidden — fallback is already showing */ });
+  }
+
+  // Guaranteed dismissal even if this whole script block somehow failed
+  // to run: the CSS animation on .runner-cinematic-wrap itself fades to
+  // opacity:0 + pointer-events:none at 5s via animation-fill-mode:forwards
+  // regardless of JS. This listener just also fully removes it from the
+  // layout once that animation completes, and covers the tap-to-skip case.
+  wrap.addEventListener('animationend', function(e){
+    if(e.target === wrap) dismiss(false);
+  });
+  wrap.addEventListener('click', function(){ dismiss(true); });
+
+  // Hard backstop in case 'animationend' never fires for any reason
+  // (e.g. prefers-reduced-motion suppressing the animation in some
+  // browsers) — never leaves the player stuck looking at the intro.
+  window.setTimeout(function(){ dismiss(false); }, 5200);
+})();
+</script>
 
 <script>
 (function(){
