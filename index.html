@@ -807,7 +807,12 @@ input{font-family:inherit;}
 .hero-weather-backdrop.wx-night::after{
   content:'';
   position:absolute;
-  top:16px;
+  /* was a fixed top:16px, which sat inside the topbar's own row and
+     collided with the 🌐 EN LANGUAGE pill. Now pinned just below the
+     topbar's actual rendered height (--tkg-topbar-h, set by
+     updateWxBackdropSpan()) instead of a guessed constant, so it tracks
+     correctly across font-scale/language changes that resize the topbar. */
+  top:calc(var(--tkg-topbar-h, 64px) + 14px);
   right:26px;
   width:28px;
   height:28px;
@@ -825,7 +830,24 @@ input{font-family:inherit;}
   50%{opacity:1;}
 }
 
-/* Moon phases — shadow direction changes based on illumination */
+/* Moon phases — shadow direction/coverage changes based on illumination.
+   Full 8-phase cycle: new → waxing-crescent → first-quarter →
+   waxing-gibbous → full → waning-gibbous → last-quarter →
+   waning-crescent. Base rule above (radial-gradient circle, #FFFFFF →
+   #F8F7F6) is the fully-lit disc; each phase rule below layers a dark
+   "shadow" radial-gradient on top at increasing/decreasing coverage to
+   fake the terminator line — same technique as the original 5, just
+   completed to all 8 real phases. */
+.hero-weather-backdrop.moon-new::after{
+  background:
+    radial-gradient(2px 2px at 8px 6px, rgba(100,80,60,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 18px 12px, rgba(100,80,60,0.35), transparent),
+    radial-gradient(1px 1px at 14px 20px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(1.2px 1.2px at 22px 18px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(circle, rgba(13,14,24,0.92) 0%, rgba(13,14,24,0.92) 100%),
+    radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
+  box-shadow:0 0 3px rgba(255,255,255,0.12), inset 0 0 4px rgba(0,0,0,0.3);
+}
 .hero-weather-backdrop.moon-waxing-crescent::after{
   background:
     radial-gradient(2px 2px at 8px 6px, rgba(100,80,60,0.4), transparent),
@@ -835,6 +857,16 @@ input{font-family:inherit;}
     radial-gradient(circle at 75% 50%, rgba(13,14,24,0.95) 0%, transparent 65%),
     radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
   box-shadow:0 0 8px rgba(255,255,255,0.3), inset 2px 2px 4px rgba(0,0,0,0.2);
+}
+.hero-weather-backdrop.moon-first-quarter::after{
+  background:
+    radial-gradient(2px 2px at 8px 6px, rgba(100,80,60,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 18px 12px, rgba(100,80,60,0.35), transparent),
+    radial-gradient(1px 1px at 14px 20px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(1.2px 1.2px at 22px 18px, rgba(100,80,60,0.3), transparent),
+    linear-gradient(90deg, rgba(13,14,24,0.92) 0%, rgba(13,14,24,0.92) 50%, transparent 50%, transparent 100%),
+    radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
+  box-shadow:0 0 9px rgba(255,255,255,0.35), inset 1px 1px 3px rgba(0,0,0,0.15);
 }
 .hero-weather-backdrop.moon-waxing-gibbous::after{
   background:
@@ -864,6 +896,16 @@ input{font-family:inherit;}
     radial-gradient(circle at 20% 50%, rgba(13,14,24,0.4) 0%, transparent 40%),
     radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
   box-shadow:0 0 10px rgba(255,255,255,0.4), inset -1px -1px 3px rgba(0,0,0,0.1);
+}
+.hero-weather-backdrop.moon-last-quarter::after{
+  background:
+    radial-gradient(2px 2px at 8px 6px, rgba(100,80,60,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 18px 12px, rgba(100,80,60,0.35), transparent),
+    radial-gradient(1px 1px at 14px 20px, rgba(100,80,60,0.3), transparent),
+    radial-gradient(1.2px 1.2px at 22px 18px, rgba(100,80,60,0.3), transparent),
+    linear-gradient(270deg, rgba(13,14,24,0.92) 0%, rgba(13,14,24,0.92) 50%, transparent 50%, transparent 100%),
+    radial-gradient(circle, #FFFFFF 0%, #F8F7F6 100%);
+  box-shadow:0 0 9px rgba(255,255,255,0.35), inset -1px -1px 3px rgba(0,0,0,0.15);
 }
 .hero-weather-backdrop.moon-waning-crescent::after{
   background:
@@ -2313,15 +2355,21 @@ textarea.field-input{
    --tkg-marble-* tokens) so it sits visually consistent with the rest of
    the page rather than introducing a new material.
    ========================================================================== */
+/* ==========================================================================
+   TKG ECOSYSTEM HIGHLIGHTS SHOWCASE — restyled to match moments_hub.html's
+   .hero-card visual system (full-bleed image/gradient surface, dark
+   bottom-up scrim, white bottom-pinned title/desc, pill CTA) instead of
+   the flat marble-panel look used previously. Carousel mechanics
+   (#ecoTrack scroll-snap, auto-rotate, pause-on-touch, dot sync) are
+   UNCHANGED — only the per-slide visual treatment changed, so no
+   duplicate carousel logic was introduced.
+   ========================================================================== */
 .eco-showcase{
   margin-top:22px;
   position:relative;
-  border-radius:16px;
+  border-radius:18px;
   overflow:hidden;
-  background-color:var(--tkg-marble-bg-color);
-  background-image:linear-gradient(var(--tkg-marble-overlay), var(--tkg-marble-overlay)), var(--tkg-marble-image);
-  background-size:auto, cover;
-  background-position:center, center;
+  background:#000000; /* same base fallback moments_hub.html's .hero-card uses, under whichever slide's own image/gradient is showing */
   border:1px solid var(--tkg-marble-border);
 }
 .eco-indicators{
@@ -2335,14 +2383,17 @@ textarea.field-input{
   pointer-events:none;
 }
 .eco-dot{
+  /* No longer theme-conditional (light/dark eco-dot overrides removed) —
+     every slide is now a dark-scrimmed cinematic surface regardless of
+     the app's light/dark theme, same as moments_hub.html's own
+     always-dark .hero-card, so a single white-based tone reads correctly
+     in both app themes. */
   flex:1;
   height:3px;
   border-radius:999px;
-  background:rgba(242,239,234,0.28);
+  background:rgba(255,255,255,0.32);
 }
-html[data-tkg-theme="dark"] .eco-dot{ background:rgba(26,24,21,0.22); }
-.eco-dot.active{ background:rgba(242,239,234,0.92); }
-html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
+.eco-dot.active{ background:rgba(255,255,255,0.95); }
 .eco-track{
   display:flex;
   overflow-x:auto;
@@ -2352,33 +2403,55 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
 }
 .eco-track::-webkit-scrollbar{ display:none; }
 .eco-slide{
+  position:relative;
   flex:0 0 100%;
   scroll-snap-align:start;
-  padding:52px 24px 28px;
-  min-height:252px;
+  min-height:300px;
   display:flex;
   flex-direction:column;
-  --ink:var(--tkg-marble-ink);
-  --ink-soft:var(--tkg-marble-ink-soft);
+  justify-content:flex-end;
+  background-size:cover;
+  background-position:center;
+  background-color:#1A1A1A;
 }
-.eco-slide-icon{ font-size:2.5rem; margin-bottom:14px; line-height:1; }
+/* Per-slide fallback backgrounds — Slide 1 (Moments) overrides this
+   inline via JS once real data loads (see loadEcoMomentsPreview()); the
+   other three don't have a "photo" concept, so they keep a static
+   branded gradient instead of a fabricated/stock image. */
+.eco-slide--moments{ background-image:linear-gradient(160deg, #3a2a1a 0%, #1a1210 100%); }
+.eco-slide--review{ background-image:radial-gradient(circle at 30% 20%, #3d2a10 0%, #1a1008 70%); }
+.eco-slide--runner{ background-image:linear-gradient(160deg, #2A211C 0%, #14100D 100%); }
+.eco-slide--leaderboard{ background-image:radial-gradient(circle at 70% 15%, #3a2f0f 0%, #16140a 70%); }
+.eco-slide-scrim{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(to top, rgba(0,0,0,0.86) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.05) 100%);
+  pointer-events:none;
+}
+.eco-slide-content{
+  position:relative;
+  z-index:1;
+  padding:24px 24px 26px;
+  display:flex;
+  flex-direction:column;
+}
+.eco-slide-icon{ font-size:2rem; margin-bottom:10px; line-height:1; }
 .eco-slide-title{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:1.3125rem;
-  color:var(--tkg-marble-ink);
-  margin-bottom:10px;
+  font-size:1.25rem;
+  color:#FFFFFF;
+  margin-bottom:8px;
 }
 .eco-slide-desc{
-  font-size:0.9375rem;
-  color:var(--tkg-marble-ink-soft);
-  line-height:1.55;
-  margin-bottom:24px;
-  max-width:94%;
+  font-size:0.875rem;
+  color:rgba(255,255,255,0.8);
+  line-height:1.5;
+  margin-bottom:18px;
+  max-width:92%;
 }
 .eco-slide-cta{
   align-self:flex-start;
-  margin-top:auto;
   border:none;
   border-radius:999px;
   padding:13px 22px;
@@ -3551,18 +3624,19 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
          visual entry point on the Menu page. -->
 
     <!-- ============ TKG ECOSYSTEM HIGHLIGHTS SHOWCASE — 4-slide horizontal
-         snap carousel (Moments / Review / Runner / Leaderboard). Replaces
-         the standalone TKG Moments entry card above as the single
-         discovery layer for the wider TKG ecosystem, sitting just above
-         Fun Activity. Gentle 4s auto-rotate, pauses on touch/manual
-         swipe, micro-indicators synced to scroll position. ==== -->
-    <!-- ============ TKG ECOSYSTEM HIGHLIGHTS SHOWCASE — 4-slide horizontal
-         snap carousel (Moments / Review / Runner / Leaderboard). Expanded
-         (Fun Activity Removal & Highlights Expansion sprint) to fill the
-         space freed by removing the Fun Activity card below — taller
-         slides, larger type, richer copy. Gentle 4s auto-rotate, pauses
-         on touch/manual swipe, micro-indicators synced to scroll
-         position. ==== -->
+         snap carousel (Moments / Review / Runner / Leaderboard). Restyled
+         (Ecosystem Refinement sprint) to match moments_hub.html's
+         .hero-card cinematic-surface language: dark bottom-up scrim over
+         a full-bleed image/gradient, white bottom-pinned title/desc/CTA.
+         Carousel mechanics (#ecoTrack scroll-snap, auto-rotate 4s,
+         pause-on-touch, dot sync) are unchanged from before — only the
+         per-slide visual treatment changed. Slide 1's background and
+         Slide 4's champion line are set dynamically by
+         loadEcoMomentsPreview()/loadEcoLeaderboardChampion() (see JS)
+         reusing this file's own existing APP_SCRIPT_URL fetch pattern
+         (same one loadFeaturedReviewsFromSheet()/loadTaglineFromSheet()
+         already use) — both fall back to the static copy below if the
+         fetch is empty/offline, never fabricated content. ==== -->
     <div class="eco-showcase" id="ecoShowcase">
       <div class="eco-indicators" id="ecoIndicators">
         <span class="eco-dot active"></span>
@@ -3572,37 +3646,49 @@ html[data-tkg-theme="dark"] .eco-dot.active{ background:rgba(26,24,21,0.82); }
       </div>
       <div class="eco-track" id="ecoTrack">
 
-        <div class="eco-slide">
-          <div class="eco-slide-icon">📸</div>
-          <div class="eco-slide-title">Watch &amp; Share Stories</div>
-          <div class="eco-slide-desc">Watch real community photos and videos, or share your own favorite TKG memories with us.</div>
-          <button type="button" class="eco-slide-cta" id="ecoMomentsCta">Watch &amp; Share Stories →</button>
-        </div>
-
-        <div class="eco-slide">
-          <div class="eco-slide-icon">⭐</div>
-          <div class="eco-slide-title">Loved TKG?</div>
-          <div class="eco-slide-desc">Support our small kitchen stall! Share your rating and review on Google.</div>
-          <button type="button" class="eco-slide-cta" id="ecoReviewCta">Rate &amp; Review →</button>
-        </div>
-
-        <div class="eco-slide">
-          <div class="eco-runner-teaser">
-            <span class="eco-runner-coal"></span>
-            <span class="eco-runner-coal"></span>
-            <span class="eco-runner-coal"></span>
-            <span class="eco-runner-char">🏃</span>
+        <div class="eco-slide eco-slide--moments" id="ecoSlideMoments">
+          <div class="eco-slide-scrim"></div>
+          <div class="eco-slide-content">
+            <div class="eco-slide-icon">📸</div>
+            <div class="eco-slide-title">Watch &amp; Share Stories</div>
+            <div class="eco-slide-desc">Watch real community photos and videos, or share your own favorite TKG memories with us.</div>
+            <button type="button" class="eco-slide-cta" id="ecoMomentsCta">Watch &amp; Share Stories →</button>
           </div>
-          <div class="eco-slide-title">🏃 Play Khichiya Runner 🎮</div>
-          <div class="eco-slide-desc">Test your speed and jump over the coal! Can you claim the top score?</div>
-          <button type="button" class="eco-slide-cta" id="ecoRunnerCta">Play Now →</button>
         </div>
 
-        <div class="eco-slide">
-          <div class="eco-slide-icon">🏆</div>
-          <div class="eco-slide-title">See Who's Leading</div>
-          <div class="eco-slide-desc">Check the live high scores and see who currently holds the crown on the TKG wall of fame.</div>
-          <button type="button" class="eco-slide-cta" id="ecoLeaderboardCta">View Leaderboard →</button>
+        <div class="eco-slide eco-slide--review">
+          <div class="eco-slide-scrim"></div>
+          <div class="eco-slide-content">
+            <div class="eco-slide-icon">⭐</div>
+            <div class="eco-slide-title">Loved TKG?</div>
+            <div class="eco-slide-desc">Support our small kitchen stall! Share your rating and review on Google.</div>
+            <button type="button" class="eco-slide-cta" id="ecoReviewCta">Rate &amp; Review →</button>
+          </div>
+        </div>
+
+        <div class="eco-slide eco-slide--runner">
+          <div class="eco-slide-scrim"></div>
+          <div class="eco-slide-content">
+            <div class="eco-runner-teaser">
+              <span class="eco-runner-coal"></span>
+              <span class="eco-runner-coal"></span>
+              <span class="eco-runner-coal"></span>
+              <span class="eco-runner-char">🏃</span>
+            </div>
+            <div class="eco-slide-title">🏃 Play Khichiya Runner 🎮</div>
+            <div class="eco-slide-desc">Test your speed and jump over the coal! Can you claim the top score?</div>
+            <button type="button" class="eco-slide-cta" id="ecoRunnerCta">Play Now →</button>
+          </div>
+        </div>
+
+        <div class="eco-slide eco-slide--leaderboard" id="ecoSlideLeaderboard">
+          <div class="eco-slide-scrim"></div>
+          <div class="eco-slide-content">
+            <div class="eco-slide-icon">🏆</div>
+            <div class="eco-slide-title">See Who's Leading</div>
+            <div class="eco-slide-desc" id="ecoLeaderboardDesc">Check the live high scores and see who currently holds the crown on the TKG wall of fame.</div>
+            <button type="button" class="eco-slide-cta" id="ecoLeaderboardCta">View Leaderboard →</button>
+          </div>
         </div>
 
       </div>
@@ -3988,6 +4074,76 @@ function loadTaglineFromSheet(){
     });
 }
 loadTaglineFromSheet();
+
+// ---------------------------------------------------------------------------
+// ECOSYSTEM SHOWCASE — SLIDE 1 LIVE MOMENTS PREVIEW. Same fetch pattern as
+// loadFeaturedReviewsFromSheet()/loadTaglineFromSheet() above (this file's
+// own APP_SCRIPT_URL, not a new client library) hitting the same
+// '?action=moments' endpoint moments_hub.html's fetchHeroPreview() already
+// uses — same response shape, same Drive-thumbnail transform, just called
+// from this file instead of duplicating a second data pipeline. Sets
+// Slide 1's background to the latest real story thumbnail; on any failure
+// or empty result, the CSS gradient fallback in .eco-slide--moments stays
+// exactly as-is (never a fabricated/stock photo).
+// ---------------------------------------------------------------------------
+function transformEcoDriveThumbUrl_(rawUrl){
+  if(!rawUrl) return null;
+  const match = rawUrl.match(/\/file\/d\/([^\/]+)/) || rawUrl.match(/id=([^&]+)/) || rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const fileId = match ? match[1] : null;
+  if(!fileId) return rawUrl;
+  return `https://lh3.googleusercontent.com/d/${fileId}`;
+}
+function loadEcoMomentsPreview(){
+  if(APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
+  const slideEl = document.getElementById('ecoSlideMoments');
+  if(!slideEl) return;
+  fetch(APP_SCRIPT_URL + '?action=moments')
+    .then(res => { if(!res.ok) throw new Error('moments fetch failed: ' + res.status); return res.json(); })
+    .then(data => {
+      if(!data || data.status !== 'ok' || !Array.isArray(data.moments)) return;
+      let thumbSrc = null;
+      for(const moment of data.moments){
+        if(!Array.isArray(moment.media) || moment.media.length === 0) continue;
+        const first = moment.media[0];
+        const mimeType = first.mimeType || '';
+        if(mimeType.indexOf('video/') === 0 && !first.thumbnailUrl) continue; // skip video without a thumbnail — same rule fetchHeroPreview() uses
+        thumbSrc = transformEcoDriveThumbUrl_(first.thumbnailUrl || first.url);
+        if(thumbSrc) break;
+      }
+      if(!thumbSrc) return; // stays on the CSS gradient fallback
+      slideEl.style.backgroundImage = `url('${thumbSrc}')`;
+    })
+    .catch(err => {
+      console.warn('loadEcoMomentsPreview failed, keeping gradient placeholder:', err);
+    });
+}
+loadEcoMomentsPreview();
+
+// ---------------------------------------------------------------------------
+// ECOSYSTEM SHOWCASE — SLIDE 4 LIVE CHAMPION. Same '?action=runnerScores'
+// endpoint khichiya-runner.html's refreshLeaderboardState() and
+// leaderboard.html already read (one continuous leaderboard, no reset —
+// current top score is champion until beaten), sorted client-side the
+// same way. On failure/empty, #ecoLeaderboardDesc simply keeps its
+// static fallback copy already in the HTML.
+// ---------------------------------------------------------------------------
+function loadEcoLeaderboardChampion(){
+  if(APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
+  const descEl = document.getElementById('ecoLeaderboardDesc');
+  if(!descEl) return;
+  fetch(APP_SCRIPT_URL + '?action=runnerScores')
+    .then(res => { if(!res.ok) throw new Error('runnerScores fetch failed: ' + res.status); return res.json(); })
+    .then(data => {
+      if(!data || data.status !== 'ok' || !Array.isArray(data.scores) || data.scores.length === 0) return;
+      const champion = data.scores.reduce((top, s) => (!top || s.score > top.score) ? s : top, null);
+      if(!champion || !champion.name) return;
+      descEl.textContent = `🏆 Current Champion: ${champion.name} — ${champion.score}`;
+    })
+    .catch(err => {
+      console.warn('loadEcoLeaderboardChampion failed, keeping static copy:', err);
+    });
+}
+loadEcoLeaderboardChampion();
 
 // ============ TKG ECOSYSTEM HIGHLIGHTS SHOWCASE — replaces the old
 // standalone TKG Moments card/button above. 4-slide horizontal snap
@@ -5374,12 +5530,19 @@ function getLunarPhase_(){
   const daysSinceNewMoon = (now - knownNewMoon) / (1000 * 60 * 60 * 24);
   const lunarCycle = 29.53;
   const phasePosition = (daysSinceNewMoon % lunarCycle) / lunarCycle;
-  
-  if(phasePosition < 0.125) return 'waxing-crescent';
-  if(phasePosition < 0.375) return 'waxing-gibbous';
-  if(phasePosition < 0.625) return 'full';
-  if(phasePosition < 0.875) return 'waning-gibbous';
-  return 'waning-crescent';
+
+  // Full 8-phase cycle (was 5 — missing new/first-quarter/last-quarter,
+  // so those days silently fell into the nearest gibbous/crescent bucket).
+  // Each of the 8 real phases gets an even ~1/8th slice of the cycle.
+  if(phasePosition < 0.0625) return 'new';
+  if(phasePosition < 0.1875) return 'waxing-crescent';
+  if(phasePosition < 0.3125) return 'first-quarter';
+  if(phasePosition < 0.4375) return 'waxing-gibbous';
+  if(phasePosition < 0.5625) return 'full';
+  if(phasePosition < 0.6875) return 'waning-gibbous';
+  if(phasePosition < 0.8125) return 'last-quarter';
+  if(phasePosition < 0.9375) return 'waning-crescent';
+  return 'new';
 }
 // ---------------------------------------------------------------------------
 // DAY CYCLE BACKDROP SPAN — #heroWeatherBackdrop now lives at the top of
@@ -5396,8 +5559,14 @@ function updateWxBackdropSpan(){
   const menuScreen = document.getElementById('screen-menu');
   if(!backdrop || !topbarEl || !heroEl || !menuScreen) return;
   if(!menuScreen.classList.contains('active')) return;
-  const span = topbarEl.offsetHeight + heroEl.offsetHeight;
+  const topbarH = topbarEl.offsetHeight;
+  const span = topbarH + heroEl.offsetHeight;
   if(span > 0) backdrop.style.height = span + 'px';
+  // --tkg-topbar-h exposed for the moon (.wx-night::after) so its position
+  // can stay pinned just below the topbar's actual rendered height —
+  // which changes with font-scale (Aa button) and language — instead of
+  // a fixed pixel guess that only happens to work at one text size.
+  if(topbarH > 0) document.documentElement.style.setProperty('--tkg-topbar-h', topbarH + 'px');
 }
 window.addEventListener('resize', updateWxBackdropSpan);
 
@@ -5416,8 +5585,9 @@ function initHeroWeatherBackdrop(){
   const key = getWeatherKey_();
   el.classList.remove(
     'wx-morning', 'wx-afternoon', 'wx-evening', 'wx-night', 'wx-monsoon',
-    'moon-waxing-crescent', 'moon-waxing-gibbous', 'moon-full',
-    'moon-waning-gibbous', 'moon-waning-crescent'
+    'moon-new', 'moon-waxing-crescent', 'moon-first-quarter',
+    'moon-waxing-gibbous', 'moon-full', 'moon-waning-gibbous',
+    'moon-last-quarter', 'moon-waning-crescent'
   );
   el.classList.add('show', 'wx-' + key);
   if(key === 'night'){
