@@ -128,6 +128,52 @@
   }
 
   // ========================================================
+  // SESSION MOVEMENT TRAIL — Phase 1 (locked 2026-08-13)
+  // Anonymous, per-tab movement log. Completely separate from customer
+  // identity: never reads/writes tkg_customer, tkg_my_identity, or
+  // tkg_customers, and nothing in the identity/visit functions above
+  // reads this. sessionStorage (not localStorage) is used deliberately —
+  // it clears itself when the tab closes, which is the natural boundary
+  // for "one visit" without inventing a custom expiry rule.
+  //
+  // logEvent(surface, event, extra) — appends one entry and returns the
+  // updated trail array. Capped at 50 entries (oldest dropped first) so
+  // a long browsing session can't grow this unbounded.
+  //
+  // getSessionTrail() — read-only accessor, returns the current array
+  // (empty array if nothing logged yet or storage is unavailable).
+  // ========================================================
+  const SESSION_TRAIL_KEY = 'tkg_session_trail';
+  const SESSION_TRAIL_MAX = 50;
+
+  function getSessionTrail() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_TRAIL_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function logEvent(surface, event, extra) {
+    const entry = Object.assign(
+      { ts: new Date().toISOString(), surface: surface, event: event },
+      extra || {}
+    );
+    const trail = getSessionTrail();
+    trail.push(entry);
+    while (trail.length > SESSION_TRAIL_MAX) trail.shift();
+    try {
+      sessionStorage.setItem(SESSION_TRAIL_KEY, JSON.stringify(trail));
+    } catch (e) {
+      console.warn('[tkg-shared] Failed to write session trail.', e);
+    }
+    return trail;
+  }
+
+  // ========================================================
   // APPS SCRIPT DISPATCH
   //
   // submitToAppsScript(action, moduleData, options)
@@ -238,6 +284,9 @@
     // validation
     normalizeMobile,
     isPlausibleMobile,
+    // session movement trail (Phase 1, 2026-08-13 — isolated from identity)
+    logEvent,
+    getSessionTrail,
     // network
     submitToAppsScript,
     fetchFromAppsScript,

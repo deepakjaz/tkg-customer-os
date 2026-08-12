@@ -2422,6 +2422,7 @@ textarea.field-input{
 .eco-slide--review{ background-image:radial-gradient(circle at 30% 20%, #3d2a10 0%, #1a1008 70%); }
 .eco-slide--runner{ background-image:linear-gradient(160deg, #2A211C 0%, #14100D 100%); }
 .eco-slide--leaderboard{ background-image:radial-gradient(circle at 70% 15%, #3a2f0f 0%, #16140a 70%); }
+
 .eco-slide-scrim{
   position:absolute;
   inset:0;
@@ -2463,9 +2464,43 @@ textarea.field-input{
 }
 .eco-slide-cta:active{ transform:scale(0.97); opacity:0.9; }
 
-/* Slide 3 — Khichiya Runner lightweight CSS/emoji teaser. Communicates
-   "a game exists" via a small hopping character over coal marks; no
-   canvas, no second game engine, no faked gameplay screenshot. */
+/* Slide 2 — real review quote. Avatar/name is the prominent lead-in,
+   quote is the primary body copy (Delta Correction: no star-rating/
+   review-count stat display). */
+.eco-review-author-row{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-bottom:10px;
+}
+.eco-review-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember-deep));
+  color:#FFFFFF;
+  font-size:0.8125rem;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.eco-review-author-name{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.0625rem;
+  color:var(--ember-bright);
+}
+.eco-review-quote{
+  font-style:italic;
+}
+
+/* Slide 3 — authentic Khichiya Runner teaser: the actual game's own
+   golden-disc protagonist (same radial-gradient tones as drawPlayer()
+   in khichiya-runner.html — #F0C878 → #C98B3D) hopping over glowing
+   coal marks. Delta Correction: previously used a 🏃 human-runner
+   emoji, which doesn't represent the actual game and has been removed. */
 .eco-runner-teaser{
   position:relative;
   height:46px;
@@ -2479,7 +2514,7 @@ textarea.field-input{
   height:11px;
   border-radius:2px;
   background:var(--ember-deep);
-  box-shadow:0 0 7px rgba(255,122,69,0.5);
+  box-shadow:0 0 8px rgba(255,122,69,0.6);
 }
 .eco-runner-coal:nth-child(1){ left:16%; }
 .eco-runner-coal:nth-child(2){ left:50%; }
@@ -2488,7 +2523,11 @@ textarea.field-input{
   position:absolute;
   bottom:0;
   left:0;
-  font-size:1.75rem;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #F0C878 0%, #C98B3D 75%);
+  box-shadow:0 2px 5px rgba(0,0,0,0.35), inset -2px -2px 3px rgba(154,98,36,0.5);
   animation:eco-runner-hop 1.8s ease-in-out infinite;
 }
 @keyframes eco-runner-hop{
@@ -2499,6 +2538,51 @@ textarea.field-input{
   63%{ left:66%; transform:translateY(0); }
   70%{ transform:translateY(-16px); }
   88%{ left:96%; transform:translateY(0); }
+}
+
+/* Slide 4 — single Champion Card (not a scores list/table). Crown +
+   name + score + a small celebratory sparkle burst; falls back to the
+   plain "See Who's Leading" copy already in the HTML until
+   loadEcoLeaderboardChampion() (JS) has real data to show. */
+.eco-champion-crown{
+  font-size:2.25rem;
+  line-height:1;
+  margin-bottom:6px;
+}
+.eco-champion-name{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1.25rem;
+  color:#FFFFFF;
+  margin-bottom:2px;
+}
+.eco-champion-score-wrap{
+  position:relative;
+  display:inline-flex;
+  align-self:flex-start;
+  margin-bottom:10px;
+}
+.eco-champion-score{
+  font-family:var(--font-mono, monospace);
+  font-weight:800;
+  font-size:1.75rem;
+  color:var(--ember-bright);
+}
+.eco-champion-spark{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:#FFD27A;
+  box-shadow:0 0 5px 1px rgba(255,190,90,0.8);
+  animation:eco-champion-spark-burst 1.6s ease-out infinite;
+}
+@keyframes eco-champion-spark-burst{
+  0%{ transform:translate(-50%,-50%) translate(0,0) scale(1); opacity:0; }
+  15%{ opacity:1; }
+  100%{ transform:translate(-50%,-50%) translate(var(--sp-x, 16px), var(--sp-y, -16px)) scale(0.4); opacity:0; }
 }
 
 .register-cta{
@@ -3634,8 +3718,7 @@ textarea.field-input{
          Slide 4's champion line are set dynamically by
          loadEcoMomentsPreview()/loadEcoLeaderboardChampion() (see JS)
          reusing this file's own existing APP_SCRIPT_URL fetch pattern
-         (same one loadFeaturedReviewsFromSheet()/loadTaglineFromSheet()
-         already use) — both fall back to the static copy below if the
+         (same one loadFeaturedReviewsFromSheet() already uses) — both fall back to the static copy below if the
          fetch is empty/offline, never fabricated content. ==== -->
     <div class="eco-showcase" id="ecoShowcase">
       <div class="eco-indicators" id="ecoIndicators">
@@ -3659,9 +3742,11 @@ textarea.field-input{
         <div class="eco-slide eco-slide--review">
           <div class="eco-slide-scrim"></div>
           <div class="eco-slide-content">
-            <div class="eco-slide-icon">⭐</div>
-            <div class="eco-slide-title">Loved TKG?</div>
-            <div class="eco-slide-desc">Support our small kitchen stall! Share your rating and review on Google.</div>
+            <div class="eco-review-author-row" id="ecoReviewAuthorRow">
+              <span class="eco-review-avatar" id="ecoReviewAvatar">?</span>
+              <span class="eco-review-author-name" id="ecoReviewAuthorName">A TKG customer</span>
+            </div>
+            <div class="eco-slide-desc eco-review-quote" id="ecoReviewQuote">Loved TKG? Support our small kitchen stall — share your rating and review on Google.</div>
             <button type="button" class="eco-slide-cta" id="ecoReviewCta">Rate &amp; Review →</button>
           </div>
         </div>
@@ -3673,9 +3758,9 @@ textarea.field-input{
               <span class="eco-runner-coal"></span>
               <span class="eco-runner-coal"></span>
               <span class="eco-runner-coal"></span>
-              <span class="eco-runner-char">🏃</span>
+              <span class="eco-runner-char"></span>
             </div>
-            <div class="eco-slide-title">🏃 Play Khichiya Runner 🎮</div>
+            <div class="eco-slide-title">🎮 Play Khichiya Runner</div>
             <div class="eco-slide-desc">Test your speed and jump over the coal! Can you claim the top score?</div>
             <button type="button" class="eco-slide-cta" id="ecoRunnerCta">Play Now →</button>
           </div>
@@ -3684,8 +3769,19 @@ textarea.field-input{
         <div class="eco-slide eco-slide--leaderboard" id="ecoSlideLeaderboard">
           <div class="eco-slide-scrim"></div>
           <div class="eco-slide-content">
-            <div class="eco-slide-icon">🏆</div>
-            <div class="eco-slide-title">See Who's Leading</div>
+            <div class="eco-slide-icon" id="ecoLeaderboardFallbackIcon">🏆</div>
+            <div class="eco-slide-title" id="ecoLeaderboardFallbackTitle">See Who's Leading</div>
+            <div class="eco-champion-display" id="ecoChampionDisplay" style="display:none;">
+              <div class="eco-champion-crown">👑</div>
+              <div class="eco-champion-name" id="ecoChampionName"></div>
+              <div class="eco-champion-score-wrap">
+                <span class="eco-champion-score" id="ecoChampionScore"></span>
+                <span class="eco-champion-spark" style="--sp-x:-16px; --sp-y:-12px; animation-delay:0s;"></span>
+                <span class="eco-champion-spark" style="--sp-x:18px; --sp-y:-16px; animation-delay:0.3s;"></span>
+                <span class="eco-champion-spark" style="--sp-x:-14px; --sp-y:14px; animation-delay:0.6s;"></span>
+                <span class="eco-champion-spark" style="--sp-x:20px; --sp-y:12px; animation-delay:0.9s;"></span>
+              </div>
+            </div>
             <div class="eco-slide-desc" id="ecoLeaderboardDesc">Check the live high scores and see who currently holds the crown on the TKG wall of fame.</div>
             <button type="button" class="eco-slide-cta" id="ecoLeaderboardCta">View Leaderboard →</button>
           </div>
@@ -3800,6 +3896,12 @@ textarea.field-input{
 
 <div class="toast" id="toast"></div>
 
+<!-- tkg-shared.js — Phase 1: session movement trail only (logEvent/
+     getSessionTrail). index.html does not use the identity or Apps
+     Script dispatch functions in this module; nothing else here
+     changes. See tkg-shared.js SESSION MOVEMENT TRAIL section. -->
+<script src="./tkg-shared.js"></script>
+
 <script>
 /* ============================================================================
    TKG APP LOGIC
@@ -3861,6 +3963,10 @@ textarea.field-input{
    read back purely through the existing `serverCustomers` fetch (see
    fetchServerCustomers) — no change to the local tkg_customers shape was
    needed to support them. */
+
+// Phase 1 — Session Movement Trail: anonymous page-open ping. Isolated
+// from tkg_customers/tkg_my_identity — see tkg-shared.js.
+if (window.TKGShared) TKGShared.logEvent('menu', 'opened');
 
 // ---------------------------------------------------------------------------
 // CONFIG — paste your deployed Apps Script Web App URL here.
@@ -4046,6 +4152,7 @@ function loadFeaturedReviewsFromSheet(){
       if(!data || data.status !== 'ok' || !Array.isArray(data.reviews) || data.reviews.length === 0) return;
       contentRegistry.featuredReviews = data.reviews;
       renderReviewTeaser();
+      renderEcoReviewSlide();
     })
     .catch(err => {
       console.warn('loadFeaturedReviewsFromSheet failed, keeping sample reviews:', err);
@@ -4054,30 +4161,8 @@ function loadFeaturedReviewsFromSheet(){
 loadFeaturedReviewsFromSheet();
 
 // ---------------------------------------------------------------------------
-// Tagline sprint — same Sheet-driven, no-live-API pattern as
-// loadFeaturedReviewsFromSheet above. One short trending/current-affairs
-// one-liner, updated by hand in the Sheet whenever Deepak wants a new line.
-// Falls back to contentRegistry.tagline's sample line if the fetch fails or
-// the Sheet tab is empty.
-// ---------------------------------------------------------------------------
-function loadTaglineFromSheet(){
-  if(APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
-  fetch(APP_SCRIPT_URL + '?action=tagline')
-    .then(res => { if(!res.ok) throw new Error('tagline fetch failed: ' + res.status); return res.json(); })
-    .then(data => {
-      if(!data || data.status !== 'ok' || !Array.isArray(data.tagline) || data.tagline.length === 0) return;
-      contentRegistry.tagline = data.tagline;
-      renderTagline();
-    })
-    .catch(err => {
-      console.warn('loadTaglineFromSheet failed, keeping sample tagline:', err);
-    });
-}
-loadTaglineFromSheet();
-
-// ---------------------------------------------------------------------------
 // ECOSYSTEM SHOWCASE — SLIDE 1 LIVE MOMENTS PREVIEW. Same fetch pattern as
-// loadFeaturedReviewsFromSheet()/loadTaglineFromSheet() above (this file's
+// loadFeaturedReviewsFromSheet() above (this file's
 // own APP_SCRIPT_URL, not a new client library) hitting the same
 // '?action=moments' endpoint moments_hub.html's fetchHeroPreview() already
 // uses — same response shape, same Drive-thumbnail transform, just called
@@ -4124,23 +4209,34 @@ loadEcoMomentsPreview();
 // endpoint khichiya-runner.html's refreshLeaderboardState() and
 // leaderboard.html already read (one continuous leaderboard, no reset —
 // current top score is champion until beaten), sorted client-side the
-// same way. On failure/empty, #ecoLeaderboardDesc simply keeps its
-// static fallback copy already in the HTML.
+// same way. Delta Correction: single champion card, not a scores list —
+// on failure/empty, the fallback icon/title/desc already in the HTML
+// simply stay visible and #ecoChampionDisplay stays hidden.
 // ---------------------------------------------------------------------------
 function loadEcoLeaderboardChampion(){
   if(APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
+  const fallbackIcon = document.getElementById('ecoLeaderboardFallbackIcon');
+  const fallbackTitle = document.getElementById('ecoLeaderboardFallbackTitle');
+  const championDisplay = document.getElementById('ecoChampionDisplay');
+  const nameEl = document.getElementById('ecoChampionName');
+  const scoreEl = document.getElementById('ecoChampionScore');
   const descEl = document.getElementById('ecoLeaderboardDesc');
-  if(!descEl) return;
+  if(!championDisplay || !nameEl || !scoreEl || !descEl) return;
   fetch(APP_SCRIPT_URL + '?action=runnerScores')
     .then(res => { if(!res.ok) throw new Error('runnerScores fetch failed: ' + res.status); return res.json(); })
     .then(data => {
       if(!data || data.status !== 'ok' || !Array.isArray(data.scores) || data.scores.length === 0) return;
       const champion = data.scores.reduce((top, s) => (!top || s.score > top.score) ? s : top, null);
       if(!champion || !champion.name) return;
-      descEl.textContent = `🏆 Current Champion: ${champion.name} — ${champion.score}`;
+      if(fallbackIcon) fallbackIcon.style.display = 'none';
+      if(fallbackTitle) fallbackTitle.style.display = 'none';
+      championDisplay.style.display = '';
+      nameEl.textContent = champion.name;
+      scoreEl.textContent = champion.score;
+      descEl.textContent = 'Current Champion — Can you beat them?';
     })
     .catch(err => {
-      console.warn('loadEcoLeaderboardChampion failed, keeping static copy:', err);
+      console.warn('loadEcoLeaderboardChampion failed, keeping static fallback:', err);
     });
 }
 loadEcoLeaderboardChampion();
@@ -4497,6 +4593,7 @@ function showGeoConsent(callback){
   pendingLocationCallback = callback;
   geoConsentBackdrop.classList.add('show');
   geoConsentOverlay.classList.add('show');
+  if(window.TKGShared) TKGShared.logEvent('menu', 'location_prompt_shown');
 }
 
 function closeGeoConsent(){
@@ -4823,6 +4920,7 @@ function recordJourneyEvent(journey){
     return;
   }
   ensureLocationConsent(async (loc, reason) => {
+    if(window.TKGShared) TKGShared.logEvent('menu', 'location_response', { shared: !!loc });
     const events = loadJourneyEvents();
     const event = { journey: journey, ts: new Date().toISOString(), pendingSync: true };
     if(loc){
@@ -5481,7 +5579,16 @@ function updateDynamicGreeting(journey){
   const dict = translations[currentLang] || translations.en;
   const g = dict.greeting || translations.en.greeting;
   const timeKey = getGreetingTimeKey_();
-  greetEl.textContent = g[timeKey];
+  // Customer Identity Continuity (Turn 2) — naturally includes the
+  // customer's first name when already known on this device, using
+  // index.html's own existing per-device identity pointer (getMyIdentity()
+  // / tkg_my_identity — the same one goToGoogleReview()'s "known device,
+  // never asked again" flow above already relies on). Not redesigning the
+  // greeting: still the exact same translated phrase per language, just
+  // with ", {firstName}" inserted before the trailing "!" when known.
+  const myIdentity = getMyIdentity();
+  const firstName = (myIdentity && myIdentity.name) ? myIdentity.name.trim().split(' ')[0] : '';
+  greetEl.textContent = firstName ? g[timeKey].replace(/!$/, `, ${firstName}!`) : g[timeKey];
   if(iconEl) iconEl.innerHTML = GREETING_ICONS_[timeKey] || GREETING_ICONS_.morning;
   const journeyKey = JOURNEY_VALUES.includes(journey) ? journey : 'exploring';
   subEl.innerHTML = g[journeyKey] || '';
@@ -5976,10 +6083,37 @@ document.getElementById('reviewTeaserCard')?.addEventListener('keydown', (e) => 
   if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openCustomerStoriesSheet(); }
 });
 
+// ---------------------------------------------------------------------------
+// ECOSYSTEM SHOWCASE — SLIDE 2 REAL REVIEW QUOTE. Reuses the exact same
+// contentRegistry.featuredReviews data, renderContent()/getInitials()/
+// escapeHtml() helpers already used by renderReviewTeaser() above — this
+// isn't a second data source, just a second, simpler render of the same
+// content (always shows reviews[0], no cycling — the review-teaser card
+// elsewhere on the page already owns that job). Delta Correction: no
+// star-rating/review-count stat shown, avatar+name is the lead-in, the
+// quote itself is the primary body content.
+// ---------------------------------------------------------------------------
+function renderEcoReviewSlide(){
+  const avatarEl = document.getElementById('ecoReviewAvatar');
+  const nameEl = document.getElementById('ecoReviewAuthorName');
+  const quoteEl = document.getElementById('ecoReviewQuote');
+  if(!avatarEl || !nameEl || !quoteEl) return;
+  const reviews = renderContent('featuredReviews');
+  if(!reviews.length) return; // keeps the static HTML fallback copy
+  const r = reviews[0];
+  avatarEl.textContent = getInitials(r.authorName);
+  nameEl.textContent = r.authorName;
+  quoteEl.textContent = r.quoteText;
+}
+renderEcoReviewSlide();
+
 // Top-bar tagline — one short line in the slot that used to hold the small
 // logo + "TKG / The Khichiya Gravy" text. Glows briefly whenever it (re)renders
 // with a different line than last shown, to draw the eye without being a
-// permanent distraction. Sample fallback until loadTaglineFromSheet() succeeds.
+// permanent distraction. Sample/static line — the ?action=tagline sheet
+// fetch that used to update this was removed (Sprint 2.2/Phase 2, orphaned
+// backend call — no such action exists server-side; see loadTaglineFromSheet
+// history for context if a future session wants to revisit).
 let lastTaglineText = null;
 function renderTagline(){
   const el = document.getElementById('topbarTagline');

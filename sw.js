@@ -9,7 +9,7 @@
    
    ========================================================================== */
 
-const CACHE_NAME = 'tkg-os-v-1.0.22';
+const CACHE_NAME = 'tkg-os-v-1.0.23';
 
 const APP_SHELL = [
   '/',
@@ -19,6 +19,7 @@ const APP_SHELL = [
   '/dashboard.html',
   '/khichiya-runner.html',
   '/leaderboard.html',
+  '/tkg-shared.js',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'

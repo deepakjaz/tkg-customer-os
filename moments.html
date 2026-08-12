@@ -42,6 +42,9 @@
 </script>
 
 <script src="./tkg-shared.js"></script>
+<script>
+if (window.TKGShared) TKGShared.logEvent('moments', 'opened');
+</script>
 
 <style>
 :root{
@@ -1110,8 +1113,30 @@ function getInstagramShortcode(url) {
   return (match && match[1]) ? match[1] : null;
 }
 
-// ========== FETCH MOMENTS ==========
+// ========== FETCH MOMENTS (Stale-While-Revalidate) ==========
+// tkg_moments_feed_cache holds the last successfully fetched feed.
+// loadMomentsFromCache() renders it instantly on page load, if present;
+// fetchMoments() always still runs afterward to silently refresh against
+// the live server and update the cache. This key is feed content only —
+// entirely separate from tkg_customer/tkg_my_identity/tkg_session_trail.
+const MOMENTS_CACHE_KEY = 'tkg_moments_feed_cache';
+
+function loadMomentsFromCache() {
+  try {
+    const raw = localStorage.getItem(MOMENTS_CACHE_KEY);
+    if (!raw) return false;
+    const cached = JSON.parse(raw);
+    if (!cached || !Array.isArray(cached.moments)) return false;
+    moments = cached.moments;
+    renderTimeline();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 async function fetchMoments() {
+  const hadCachedRender = moments.length > 0;
   try {
     const response = await fetch(APP_SCRIPT_URL + '?action=moments');
     if (!response.ok) throw new Error('Network error');
@@ -1121,9 +1146,19 @@ async function fetchMoments() {
     
     moments = data.moments || [];
     renderTimeline();
+    try {
+      localStorage.setItem(MOMENTS_CACHE_KEY, JSON.stringify({ moments: moments, cachedAt: Date.now() }));
+    } catch (e) {
+      console.warn('Failed to write moments feed cache:', e);
+    }
   } catch (err) {
     console.error('Failed to fetch moments:', err);
-    FEED.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-tertiary);">Failed to load moments. Please try again later.</div>';
+    // Only show the error state if we have nothing already on screen —
+    // a cached render that's merely a bit stale is better than replacing
+    // it with an error message just because this background refresh failed.
+    if (!hadCachedRender) {
+      FEED.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-tertiary);">Failed to load moments. Please try again later.</div>';
+    }
   }
 }
 
@@ -1296,11 +1331,11 @@ function createTimelineCard(item, cardId) {
     const mediaContainer = document.createElement('div');
     mediaContainer.className = 'timeline-item-media timeline-item-photo-container';
 
-    const transformedUrl = transformDriveImageUrl(media.url);
+    const transformedUrl = transformDriveImageUrl(media.url, 800);
 
     const bgBlur = document.createElement('div');
     bgBlur.className = 'media-bg-blur';
-    bgBlur.style.backgroundImage = `url("${transformedUrl}")`;
+    bgBlur.style.backgroundImage = `url("${transformDriveImageUrl(media.url, 40)}")`;
 
     const img = document.createElement('img');
     img.className = 'timeline-item-image';
@@ -1415,11 +1450,11 @@ function createTimelineCard(item, cardId) {
         setupVideoObserver(video, mediaContainer);
         setupVideoTapHandler(video);
       } else {
-        const transformedUrl = transformDriveImageUrl(mediaItem.url);
+        const transformedUrl = transformDriveImageUrl(mediaItem.url, 800);
 
         const bgBlur = document.createElement('div');
         bgBlur.className = 'media-bg-blur';
-        bgBlur.style.backgroundImage = `url("${transformedUrl}")`;
+        bgBlur.style.backgroundImage = `url("${transformDriveImageUrl(mediaItem.url, 40)}")`;
 
         const img = document.createElement('img');
         img.className = 'timeline-item-image';
@@ -1564,11 +1599,16 @@ function extractGoogleDriveId(rawUrl) {
 }
 
 // ========== TRANSFORM DRIVE URL FOR <img> TAGS ==========
-function transformDriveImageUrl(rawUrl) {
+// width param appended as Google's own '=w{n}' size suffix — lh3.googleusercontent.com
+// serves a resized/compressed variant server-side instead of the original
+// upload. Defaults to 800 (feed display size); callers needing a smaller
+// variant (e.g. the blurred background layer) pass a lower value.
+function transformDriveImageUrl(rawUrl, width){
   if (!rawUrl) return rawUrl;
   const fileId = extractGoogleDriveId(rawUrl);
   if (!fileId) return rawUrl;
-  return `https://lh3.googleusercontent.com/d/${fileId}`;
+  const w = width || 800;
+  return `https://lh3.googleusercontent.com/d/${fileId}=w${w}`;
 }
 
 // ========== MULTI-FILE UPLOAD + SOCIAL LINK SUBMISSION ==========
@@ -1865,6 +1905,7 @@ function escapeHtml(text) {
   }, { passive: true });
 })();
 
+loadMomentsFromCache();
 fetchMoments();
 </script>
 </body>

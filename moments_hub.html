@@ -45,6 +45,9 @@
 </script>
 
 <script src="./tkg-shared.js"></script>
+<script>
+if (window.TKGShared) TKGShared.logEvent('hub', 'opened');
+</script>
 
 <style>
 :root {
@@ -1197,38 +1200,6 @@ async function fetchLeaderboard() {
   });
 }
 
-// ========== LIVE RIGHT NOW ==========
-// NOTE: the documented `runnerScores` contract only returns static top
-// scores — it has no field marking a score as an active/in-progress
-// session. This attempts an optional `liveRunnerFeed` action; if that
-// action doesn't exist on the backend yet, the section stays hidden
-// rather than showing fabricated "Anonymous player" activity.
-async function fetchLiveRightNow() {
-  const result = await window.TKGShared.fetchFromAppsScript('liveRunnerFeed');
-  const label = document.getElementById('liveNowLabel');
-  const list = document.getElementById('liveNowList');
-
-  if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.live) || result.data.live.length === 0) {
-    label.style.display = 'none';
-    list.innerHTML = '';
-    return;
-  }
-
-  label.style.display = 'flex';
-  list.innerHTML = '';
-  result.data.live.slice(0, 3).forEach((entry) => {
-    const item = document.createElement('div');
-    item.className = 'leaderboard-item';
-    item.innerHTML = `
-      <div class="leaderboard-info">
-        <div class="leaderboard-name">🎮 ${escapeHtml(entry.name || 'Anonymous player')}</div>
-      </div>
-      <div class="leaderboard-score">${Math.round(entry.score || 0)}</div>
-    `;
-    list.appendChild(item);
-  });
-}
-
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
@@ -1406,7 +1377,6 @@ function startHeroAutoSlide() {
 // ========== INIT ==========
 fetchFeaturedReviews();
 fetchLeaderboard();
-fetchLiveRightNow();
 fetchHeroPreview();
 </script>
 
