@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>TKG Moments Hub — The Khichiya Gravy</title>
 <meta name="theme-color" content="#000000">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <script>
@@ -158,6 +161,19 @@ body {
   font-weight: 800;
   letter-spacing: -0.3px;
   color: var(--text-primary);
+}
+
+.hub-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hub-header-badge {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  object-fit: contain;
 }
 
 .hub-tagline {
@@ -993,9 +1009,12 @@ body.dark-mode .tkg-nav-item.active {
 <div class="hub-container">
   <!-- HEADER -->
   <header class="hub-header">
-    <div>
-      <div class="hub-logo">The Khichiya Gravy</div>
-      <div class="hub-tagline" id="hubTagline">Gallery from the community</div>
+    <div class="hub-header-brand">
+      <img src="./tkg-hub-header.png" alt="" class="hub-header-badge" aria-hidden="true">
+      <div>
+        <div class="hub-logo">The Khichiya Gravy</div>
+        <div class="hub-tagline" id="hubTagline">Gallery from the community</div>
+      </div>
     </div>
     <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle theme">
       <svg id="themeToggleIconSun" viewBox="0 0 24 24" style="display:none;">

@@ -5,19 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>TKG — Khichiya Runner Leaderboard</title>
 <meta name="theme-color" content="#F6F6F5">
-<meta name="description" content="Khichiya Runner — see who's on top right now">
-
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <!-- Theme sync — same anti-FOUC pattern moments_hub.html already uses:
      reads the shared tkg_theme localStorage key before first paint and
      sets data-tkg-theme on <html> immediately, so navigating here from
      another page keeps whichever theme the customer already chose
-     instead of flashing back to light. This page's own content styling
-     doesn't yet respond to dark mode (see :root comment above — no
-     [data-tkg-theme="dark"] override exists for it today, a deliberate,
-     previously-flagged scope decision), but the floating nav pill's
-     existing [data-tkg-theme="dark"] .tkg-global-nav rules were dead
-     code until now since nothing ever set the attribute — this makes
-     those already-written rules actually take effect. -->
+     instead of flashing back to light. The page background (marble)
+     and global ink colors now respond to this attribute too — see the
+     [data-tkg-theme="dark"] block in the styles below. -->
+<meta name="description" content="Khichiya Runner — see who's on top right now">
 <script>
 (function(){
   try{
@@ -87,15 +85,12 @@
   --max-w: 430px;
 
   /* Premium Marble tokens — ported from index.html for the "Visual
-     Alignment" sprint (Task 6). Static/light-only values only: unlike
-     index.html, leaderboard.html has no [data-tkg-theme="dark"] support
-     for its own content today (only .tkg-global-nav's copy-pasted rules
-     respond to dark theme) — adding the marble system's dark-theme pair
-     without the rest of the page also supporting dark theme would make
-     these specific cards flip color while everything around them stays
-     permanently light, which is a worse inconsistency than not
-     supporting dark theme at all. Flagging: full dark-theme support for
-     leaderboard.html would be a separate, larger task. */
+     Alignment" sprint (Task 6), used by card-level marble elements.
+     As of the page-marble-background update, leaderboard.html now DOES
+     have [data-tkg-theme="dark"] support (see the block below) — the
+     card-level marble stays in the deliberate "opposite of page"
+     direction from index.html, while the new page-level marble tokens
+     further down go the same direction as the theme. */
   --tkg-marble-bg-color: #0F0E0C;
   --tkg-marble-image: url('tkg-marble-black.jpg');
   --tkg-marble-overlay: rgba(0,0,0,0.42);
@@ -104,16 +99,42 @@
   --tkg-marble-ink-soft: rgba(242,239,234,0.72);
   --tkg-marble-ink-faint: rgba(242,239,234,0.55);
 
+  /* Page-level marble background — SAME direction as theme (light theme
+     = light marble page, dark theme = dark marble page), unlike the
+     card system above which deliberately goes the opposite direction.
+     Default here is the light-theme pair; the [data-tkg-theme="dark"]
+     block below swaps both the marble image AND the page-level ink
+     colors together so text stays readable against whichever marble
+     is showing. */
+  --tkg-page-marble-bg-color: #F5F3EE;
+  --tkg-page-marble-image: url('tkg-marble-white.jpg');
+  --tkg-page-marble-overlay: rgba(255,255,255,0.4);
+
   --font-display: 'Charcoal-Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
 }
+
+[data-tkg-theme="dark"]{
+  --tkg-page-marble-bg-color: #0F0E0C;
+  --tkg-page-marble-image: url('tkg-marble-black.jpg');
+  --tkg-page-marble-overlay: rgba(0,0,0,0.5);
+  --ink: #F2EFEA;
+  --ink-soft: rgba(242,239,234,0.72);
+  --ink-faint: rgba(242,239,234,0.55);
+}
+
 *{box-sizing:border-box; margin:0; padding:0;}
 html,body{
-  background:var(--stone-base);
+  background-color: var(--tkg-page-marble-bg-color);
+  background-image: linear-gradient(var(--tkg-page-marble-overlay), var(--tkg-page-marble-overlay)), var(--tkg-page-marble-image);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   color:var(--ink);
   font-family:var(--font-body);
   -webkit-tap-highlight-color:transparent;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 body{
   min-height:100vh;
