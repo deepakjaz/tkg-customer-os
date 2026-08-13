@@ -4573,10 +4573,25 @@ function checkInCustomer(name, mobile, favoriteItem, source){
   let isReturning = false;
 
   if(idx === -1){
+    // Journey_Origin — captured ONCE, at the moment a visitor first becomes
+    // a known Customer. Read directly from the shared cross-surface context
+    // (TKGShared.getJourneyContext()) rather than the local `journey`
+    // variable above, since the shared context reflects where the visitor's
+    // Journey actually began (Hub/Moments/Runner/Menu), not just whatever
+    // is locally active on index.html at this moment. If no Journey exists
+    // anywhere, this stays '' — never defaulted/invented (per governance).
+    let journeyOrigin = '';
+    if(window.TKGShared){
+      const sharedOrigin = TKGShared.getJourneyContext();
+      if(sharedOrigin && sharedOrigin.state) journeyOrigin = sharedOrigin.state;
+    }
+    if(!journeyOrigin && journey) journeyOrigin = journey; // fallback: local-only Journey, no shared context available
+
     record = {
       mobile: normalizeMobile(mobile),
       name: name,
       journey: journey,
+      journeyOrigin: journeyOrigin,
       firstVisit: nowIso,
       lastVisit: nowIso,
       visitCount: 1,
@@ -4596,6 +4611,10 @@ function checkInCustomer(name, mobile, favoriteItem, source){
     record.name = name; // keep name fresh in case of correction
     if(journey) record.journey = journey; // refresh to the latest known intent
     else if(record.journey === undefined) record.journey = '';
+    // Journey_Origin is write-once — never touched on returning visits.
+    // Only backfills '' for pre-existing records created before this field
+    // existed, so older local records don't carry `undefined`.
+    if(record.journeyOrigin === undefined) record.journeyOrigin = '';
     if(favoriteItem) record.favoriteItem = favoriteItem; // only overwrite if provided
     if(source) record.source = source;
     if(record.reviewStatus === undefined) record.reviewStatus = '';
@@ -4638,16 +4657,21 @@ async function attemptSync(){
   setStatusState('syncing');
 
   try{
-    // The `journey` field below is now understood by AppsScript.gs (Journey
-    // column, position H) — but that only takes effect once the updated
-    // .gs is pasted into Apps Script and re-deployed as a new version on
-    // Deepak's side. Until that redeploy happens, the currently-live Apps
-    // Script (pre-Journey-column version) will simply ignore this field —
-    // sync of every other field keeps working exactly as before either way.
+    // The `journey` field below is understood by AppsScript.gs (Journey
+    // column, position H, always overwritten with the latest value).
+    // `journeyOrigin` is the new write-once field (Journey Origin column,
+    // position P) — AppsScript only writes it when that cell is still
+    // empty, so a returning customer's original Journey is never
+    // overwritten even though this field is sent on every sync. Both only
+    // take effect once the corresponding .gs update is pasted into Apps
+    // Script and re-deployed as a new version on Deepak's side; until
+    // then the live script simply ignores whichever fields it doesn't
+    // recognize yet — sync of every other field keeps working as before.
     const records = pending.map(c => ({
       name: c.name,
       mobile: c.mobile,
       journey: c.journey || '',
+      journeyOrigin: c.journeyOrigin || '',
       visitDate: c.lastVisit,
       favoriteItem: c.favoriteItem || '',
       source: c.source || '',
@@ -5475,28 +5499,50 @@ const JOURNEY_RESET_MS = {
 function getStoredJourney(){
   try{
     const v = localStorage.getItem(JOURNEY_KEY);
-    if(!JOURNEY_VALUES.includes(v)) return null;
-
-    const windowMs = JOURNEY_RESET_MS[v];
-    if(windowMs != null){
-      const tsRaw = localStorage.getItem(JOURNEY_TS_KEY);
-      const ts = tsRaw ? parseInt(tsRaw, 10) : NaN;
-      if(!ts || (Date.now() - ts) > windowMs){
-        // Expired — clear it so this device is treated as fresh, exactly
-        // like a first-time visitor (same path the "no journey stored yet"
-        // branch at the bottom of this script already handles).
-        try{
-          localStorage.removeItem(JOURNEY_KEY);
-          localStorage.removeItem(JOURNEY_TS_KEY);
-        }catch(e){}
-        // Step 1: keep the shared cross-surface context in sync when this
-        // device's own journey expires, so other pages don't keep reading
-        // a stale state index.html itself has already discarded.
-        if(window.TKGShared) TKGShared.setJourneyContext(null);
-        return null;
+    if(JOURNEY_VALUES.includes(v)){
+      const windowMs = JOURNEY_RESET_MS[v];
+      if(windowMs != null){
+        const tsRaw = localStorage.getItem(JOURNEY_TS_KEY);
+        const ts = tsRaw ? parseInt(tsRaw, 10) : NaN;
+        if(!ts || (Date.now() - ts) > windowMs){
+          // Expired — clear it so this device is treated as fresh, exactly
+          // like a first-time visitor (same path the "no journey stored yet"
+          // branch at the bottom of this script already handles).
+          try{
+            localStorage.removeItem(JOURNEY_KEY);
+            localStorage.removeItem(JOURNEY_TS_KEY);
+          }catch(e){}
+          // Step 1: keep the shared cross-surface context in sync when this
+          // device's own journey expires, so other pages don't keep reading
+          // a stale state index.html itself has already discarded.
+          if(window.TKGShared) TKGShared.setJourneyContext(null);
+        }else{
+          return v;
+        }
+      }else{
+        return v;
       }
     }
-    return v;
+
+    // No valid local Journey — adopt the shared cross-surface context
+    // (set on Hub/Moments/Runner) if one exists, so Menu recognizes a
+    // Journey already chosen elsewhere instead of asking again. This
+    // seeds index.html's own local key from the shared one, once; from
+    // here on the local key governs exactly as before (same freshness
+    // rules, same storage). Does not create a second Journey system —
+    // purely a one-time read-and-adopt from the existing shared engine.
+    if(window.TKGShared){
+      const shared = TKGShared.getJourneyContext();
+      if(shared && JOURNEY_VALUES.includes(shared.state)){
+        try{
+          localStorage.setItem(JOURNEY_KEY, shared.state);
+          localStorage.setItem(JOURNEY_TS_KEY, String(shared.ts || Date.now()));
+        }catch(e){}
+        return shared.state;
+      }
+    }
+
+    return null;
   }catch(e){
     return null;
   }
