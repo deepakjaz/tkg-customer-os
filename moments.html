@@ -700,6 +700,27 @@ body.dark-mode .tkg-nav-item.active {
 
 .upload-modal.open { display: flex; }
 
+/* JOURNEY PROMPT choice buttons — cross-surface Journey correction
+   (2026-08-13). Same page-local vars as the rest of the Share modal —
+   no new visual system. */
+.journey-prompt-choice {
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--page-border);
+  background: rgba(255,255,255,0.05);
+  color: var(--page-text, inherit);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.journey-prompt-choice:active {
+  transform: scale(0.98);
+  background: rgba(255,255,255,0.1);
+}
+
 .upload-modal-content {
   background: var(--page-bg);
   border-radius: var(--radius-lg);
@@ -987,6 +1008,24 @@ body.dark-mode .tkg-nav-item.active {
       <div class="upload-modal-actions">
         <button class="upload-modal-btn cancel" id="uploadCancelBtn">Cancel</button>
         <button class="upload-modal-btn submit" id="uploadSubmitBtn">Share</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOURNEY PROMPT — cross-surface Journey correction (2026-08-13). Shown
+       only when a visitor lands here with no valid Journey context yet (see
+       init script near the bottom of this file). Reuses the exact same
+       .upload-modal/.upload-modal-content mechanics as the Share modal
+       directly above — no new sheet system. Choosing a Journey closes this
+       immediately, no second confirm button. -->
+  <div class="upload-modal" id="journeyPromptModal">
+    <div class="upload-modal-content" style="max-width:320px;">
+      <h2 class="upload-modal-title">👋 Welcome to TKG</h2>
+      <p class="upload-modal-subtitle">How can we help you today?</p>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+        <button type="button" class="journey-prompt-choice" data-journey-choice="atTKG">🟢 I'm at TKG</button>
+        <button type="button" class="journey-prompt-choice" data-journey-choice="planning">🟡 Planning my visit</button>
+        <button type="button" class="journey-prompt-choice" data-journey-choice="exploring">⚪ Just exploring</button>
       </div>
     </div>
   </div>
@@ -2035,6 +2074,36 @@ function escapeHtml(text) {
     if(toggles >= MAX_TOGGLES) clearInterval(iv);
   }, 2500);
 })();
+
+// ========== JOURNEY PROMPT — cross-surface Journey correction (2026-08-13) ==========
+// Shown only when this surface has no valid Journey context yet. Uses the
+// existing TKGShared.setJourneyContext()/getJourneyContext() — no new
+// storage key. Global Nav is hidden only for this first-run case and
+// restored the instant a choice is made; never blocks normal navigation
+// once a Journey exists.
+const journeyPromptModal = document.getElementById('journeyPromptModal');
+const momentsGlobalNav = document.getElementById('globalNav');
+
+function openJourneyPrompt(){
+  if(momentsGlobalNav) momentsGlobalNav.style.display = 'none';
+  journeyPromptModal.classList.add('open');
+}
+
+function closeJourneyPrompt(){
+  journeyPromptModal.classList.remove('open');
+  if(momentsGlobalNav) momentsGlobalNav.style.display = '';
+}
+
+document.querySelectorAll('.journey-prompt-choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const choice = btn.dataset.journeyChoice;
+    if(window.TKGShared) TKGShared.setJourneyContext(choice);
+    tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
+    closeJourneyPrompt();
+  });
+});
+
+if(!tkgActiveJourney) openJourneyPrompt();
 
 loadMomentsFromCache();
 fetchMoments();

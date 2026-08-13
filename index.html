@@ -1708,6 +1708,41 @@ textarea.field-input{
   margin:8px auto 16px;
 }
 
+/* ==========================================================================
+   GEO HINT TOAST — Step: Location Flow Lightweight Correction (2026-08-13).
+   Replaces the old full #geoConsentOverlay sheet+Continue-button flow.
+   Deliberately NOT .reg-overlay/.overlay-backdrop — no backdrop, no click
+   target, no button, and must never trigger the body:has(.reg-overlay.show)
+   nav-hide rule above (this is a passive one-line notice, not a sheet).
+   Fixed near the top, safe-area aware, auto-fades via JS-toggled class.
+   ========================================================================== */
+.geo-hint-toast{
+  position:fixed;
+  left:50%;
+  top:calc(env(safe-area-inset-top, 0px) + 14px);
+  transform:translate(-50%, -12px);
+  max-width:min(88vw, 360px);
+  padding:10px 16px;
+  border-radius:999px;
+  background:rgba(28,24,21,0.82);
+  color:#FFFFFF;
+  font-size:0.8125rem;
+  font-weight:500;
+  text-align:center;
+  line-height:1.3;
+  box-shadow:0 8px 24px rgba(28,24,21,0.28);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+  opacity:0;
+  pointer-events:none;
+  z-index:170;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+}
+.geo-hint-toast.show{
+  opacity:1;
+  transform:translate(-50%, 0);
+}
+
 .optional-tag{
   font-weight:500;
   text-transform:none;
@@ -3513,6 +3548,14 @@ textarea.field-input{
     <button type="button" class="btn-primary" id="geoConsentContinueBtn" style="width:100%; margin-top:14px;" data-i18n="geo.continueBtn">Continue</button>
   </div>
 
+  <!-- ============ GEO HINT TOAST — Location Flow Lightweight Correction
+       (2026-08-13). Small, no-button, auto-dismissing notice shown right
+       before the native browser location prompt when permission isn't
+       already granted. Replaces the #geoConsentOverlay sheet above as the
+       active flow (that markup is left in place, unused, not deleted).
+       No backdrop, no click target — see showGeoHint()/hideGeoHint(). ==== -->
+  <div class="geo-hint-toast" id="geoHintToast" aria-live="polite" data-i18n="geo.hintToast">Not stalking you 😄 — just helping TKG know where you're visiting from.</div>
+
   <!-- ============ SCREEN 1: CUSTOMER JOURNEY — permanent core feature,
        independent of any campaign. Always the first interaction on a
        fresh device. Choice is stored locally (tkg_journey — separate key
@@ -4682,9 +4725,10 @@ function saveJourneyEvents(list){
 // permission is denied, unavailable, or times out, the journey event is
 // still recorded without location — this never blocks the customer flow.
 function requestJourneyLocation(callback){
-  if(!navigator.geolocation){ callback(null, 'unavailable'); return; }
+  if(!navigator.geolocation){ hideGeoHint(); callback(null, 'unavailable'); return; }
   navigator.geolocation.getCurrentPosition(
     (pos) => {
+      hideGeoHint(); // native dialog resolved — let the toast disappear right now, not on its own timer
       markGeoPermissionGranted(); // only ever set on a real successful fix
       callback({
         latitude: pos.coords.latitude,
@@ -4693,6 +4737,7 @@ function requestJourneyLocation(callback){
       }, 'granted');
     },
     (err) => {
+      hideGeoHint(); // same — resolved (denied/timeout/unavailable), no reason for the toast to linger
       const reason = err && err.code === 1 ? 'denied' : (err && err.code === 3 ? 'timeout' : 'unavailable');
       callback(null, reason); // denied / unavailable / timed out — degrade gracefully
     },
@@ -4701,24 +4746,38 @@ function requestJourneyLocation(callback){
 }
 
 // ---------------------------------------------------------------------------
-// LOCATION PERMISSION EXPLANATION — a small, one-time, brand-voice screen
-// shown before the *first* native browser location prompt only. Uses the
-// Permissions API (where available) to detect whether the browser has
-// already resolved this permission (granted or denied) — in that case the
-// native dialog either won't appear at all (granted) or won't appear again
-// anyway (denied), so we skip straight to requestJourneyLocation exactly as
-// before, unchanged. Only when the state is still 'prompt' (or the
-// Permissions API isn't supported, e.g. older Safari — falls back to a
-// one-time localStorage flag instead) do we show the explanation first.
-// Reuses .overlay-backdrop/.reg-overlay — no new sheet mechanics.
+// LOCATION PERMISSION EXPLANATION — Step: Location Flow Lightweight
+// Correction (2026-08-13). Was a full #geoConsentOverlay sheet requiring a
+// Continue tap; now a small, no-button, auto-fading toast shown immediately
+// before the native browser location prompt (only when permission isn't
+// already granted — the Permissions-API-first check below is unchanged
+// from before). requestJourneyLocation() is called right away, not gated
+// behind any user interaction with the toast — the toast is purely
+// informational and never blocks or delays the real permission flow.
 // ---------------------------------------------------------------------------
 const GEO_PERMISSION_GRANTED_KEY = 'tkg_geo_permission_granted';
-const geoConsentBackdrop = document.getElementById('geoConsentBackdrop');
-const geoConsentOverlay = document.getElementById('geoConsentOverlay');
-let pendingLocationCallback = null;
+const geoHintToast = document.getElementById('geoHintToast');
+let geoHintTimer = null;
 
 function markGeoPermissionGranted(){
   try{ localStorage.setItem(GEO_PERMISSION_GRANTED_KEY, '1'); }catch(e){}
+}
+
+function showGeoHint(){
+  clearTimeout(geoHintTimer);
+  geoHintToast.classList.add('show');
+  // Own independent ~2.8s timer — this is a maximum display time, not a
+  // dependency the browser's permission dialog waits on. If the dialog
+  // resolves first, requestJourneyLocation()'s callbacks above already
+  // call hideGeoHint() directly, so this timer simply finds nothing left
+  // to hide when it fires.
+  geoHintTimer = setTimeout(hideGeoHint, 2800);
+}
+
+function hideGeoHint(){
+  clearTimeout(geoHintTimer);
+  geoHintTimer = null;
+  geoHintToast.classList.remove('show');
 }
 
 // Business rule: once permission is confirmed granted, never show the
@@ -4748,25 +4807,15 @@ function ensureLocationConsent(callback){
   }
 }
 
+// Renamed in spirit but kept as showGeoConsent() so ensureLocationConsent()
+// and offerLocationExplanationIfNeeded() below don't need to change their
+// call sites: shows the lightweight toast, then goes straight into the real
+// permission request — no button, no backdrop, no wait.
 function showGeoConsent(callback){
-  if(geoConsentOverlay.classList.contains('show')) return; // already open — never stack a second one
-  pendingLocationCallback = callback;
-  geoConsentBackdrop.classList.add('show');
-  geoConsentOverlay.classList.add('show');
+  showGeoHint();
   if(window.TKGShared) TKGShared.logEvent('menu', 'location_prompt_shown');
+  requestJourneyLocation(callback);
 }
-
-function closeGeoConsent(){
-  geoConsentBackdrop.classList.remove('show');
-  geoConsentOverlay.classList.remove('show');
-}
-
-document.getElementById('geoConsentContinueBtn').addEventListener('click', () => {
-  closeGeoConsent();
-  const cb = pendingLocationCallback;
-  pendingLocationCallback = null;
-  requestJourneyLocation(cb || (() => {}));
-});
 
 // Registration never requires location — this only offers the same
 // explanation again (fire-and-forget, non-blocking) if permission hasn't

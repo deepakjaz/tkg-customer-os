@@ -592,6 +592,82 @@ body.dark-mode .tkg-nav-item.active {
 .tkg-icon-recorder { opacity: 0; }
 .tkg-nav-moments.tkg-swap .tkg-icon-camera { opacity: 0; }
 .tkg-nav-moments.tkg-swap .tkg-icon-recorder { opacity: 1; }
+
+/* ==========================================================================
+   JOURNEY PROMPT — cross-surface Journey correction (2026-08-13). A new,
+   page-level backdrop+card, deliberately SEPARATE from .overlay/#startOverlay/
+   #overOverlay above (those are canvas-scoped game screens — this must never
+   look like or interfere with them). Same simple construction already used
+   ecosystem-wide for small confirmations (index.html's .overlay-backdrop/
+   .reg-overlay), just introduced fresh in this file for the first time —
+   not a new design system, the same one applied consistently here.
+   ========================================================================== */
+.journey-prompt-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(28,24,21,0.55);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease;
+  z-index:400;
+}
+.journey-prompt-backdrop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+.journey-prompt-card{
+  position:fixed;
+  left:50%;
+  top:50%;
+  transform:translate(-50%, calc(-50% + 12px));
+  width:calc(100% - 48px);
+  max-width:320px;
+  background:var(--stone-card);
+  color:var(--ink);
+  border-radius:20px;
+  padding:22px 20px;
+  box-shadow:0 20px 50px rgba(28,24,21,0.3);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+  z-index:401;
+}
+.journey-prompt-backdrop.show + .journey-prompt-card{
+  opacity:1;
+  pointer-events:auto;
+  transform:translate(-50%, -50%);
+}
+.journey-prompt-card h2{
+  font-size:1.0625rem;
+  font-weight:700;
+  margin:0 0 4px;
+}
+.journey-prompt-card p{
+  font-size:0.8125rem;
+  color:var(--ink);
+  opacity:0.7;
+  margin:0 0 16px;
+}
+.journey-prompt-choice{
+  display:block;
+  width:100%;
+  text-align:left;
+  padding:13px 15px;
+  border-radius:14px;
+  border:1px solid var(--stone-line);
+  background:var(--stone-base);
+  color:var(--ink);
+  font-size:0.875rem;
+  font-weight:600;
+  cursor:pointer;
+  margin-bottom:9px;
+  transition:background 0.15s ease, transform 0.1s ease;
+}
+.journey-prompt-choice:last-child{ margin-bottom:0; }
+.journey-prompt-choice:active{
+  transform:scale(0.98);
+  background:var(--stone-line);
+}
 </style>
 </head>
 <body>
@@ -1300,6 +1376,21 @@ if (window.TKGShared) TKGShared.logEvent('runner', 'opened');
 })();
 </script>
 
+<!-- JOURNEY PROMPT — cross-surface Journey correction (2026-08-13). Shown
+     only when this surface has no valid Journey context yet (see init
+     script below). Deliberately separate markup/CSS from the game's own
+     #startOverlay/#overOverlay — must never look like or interfere with
+     those. Choosing a Journey closes this immediately, no second confirm
+     button. -->
+<div class="journey-prompt-backdrop" id="journeyPromptBackdrop"></div>
+<div class="journey-prompt-card" id="journeyPromptCard">
+  <h2>👋 Welcome to TKG</h2>
+  <p>How can we help you today?</p>
+  <button type="button" class="journey-prompt-choice" data-journey-choice="atTKG">🟢 I'm at TKG</button>
+  <button type="button" class="journey-prompt-choice" data-journey-choice="planning">🟡 Planning my visit</button>
+  <button type="button" class="journey-prompt-choice" data-journey-choice="exploring">⚪ Just exploring</button>
+</div>
+
 <!-- TKG GLOBAL NAV — added here for the first time, Sprint: Global Nav
      icon language, 2026-08-13. Runner is the active slot on this page. -->
 <nav class="tkg-global-nav" id="globalNav" aria-label="Main Navigation">
@@ -1367,6 +1458,39 @@ if (window.TKGShared) TKGShared.logEvent('runner', 'opened');
     if(toggles >= MAX_TOGGLES) clearInterval(iv);
   }, 2500);
 })();
+</script>
+<script>
+// ========== JOURNEY PROMPT — cross-surface Journey correction (2026-08-13) ==========
+// Shown only when this surface has no valid Journey context yet. Uses the
+// existing TKGShared.setJourneyContext()/getJourneyContext() — no new
+// storage key. Global Nav is hidden only for this first-run case and
+// restored the instant a choice is made; never blocks normal navigation
+// once a Journey exists. tkgActiveJourney is the global var already set
+// near the top of this file.
+var journeyPromptBackdrop = document.getElementById('journeyPromptBackdrop');
+var journeyPromptCard = document.getElementById('journeyPromptCard');
+var runnerGlobalNav = document.getElementById('globalNav');
+
+function openJourneyPrompt(){
+  if(runnerGlobalNav) runnerGlobalNav.style.display = 'none';
+  journeyPromptBackdrop.classList.add('show');
+}
+
+function closeJourneyPrompt(){
+  journeyPromptBackdrop.classList.remove('show');
+  if(runnerGlobalNav) runnerGlobalNav.style.display = '';
+}
+
+document.querySelectorAll('.journey-prompt-choice').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var choice = btn.dataset.journeyChoice;
+    if(window.TKGShared) TKGShared.setJourneyContext(choice);
+    tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
+    closeJourneyPrompt();
+  });
+});
+
+if(!tkgActiveJourney) openJourneyPrompt();
 </script>
 
 </body>

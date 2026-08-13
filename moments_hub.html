@@ -190,6 +190,13 @@ body {
   margin-top: 3px;
 }
 
+/* Journey correction (2026-08-13): subtle suffix appended to the existing
+   #hubTagline slot — slightly dimmer than the tagline itself so it reads
+   as a small indicator, not part of the main sentence. */
+.hub-tagline-journey {
+  opacity: 0.72;
+}
+
 /* ===== CONTENT SCROLL ===== */
 .hub-content {
   flex: 1;
@@ -488,6 +495,27 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 }
 
 .lightbox-close:active { transform: scale(0.9); }
+
+/* JOURNEY PROMPT choice buttons — cross-surface Journey correction
+   (2026-08-13). Same marble/glass card language as the rest of the Hub,
+   just a plain stacked button list — no new visual system. */
+.journey-prompt-choice {
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: var(--radius-md, 14px);
+  border: 1px solid var(--border-crisp);
+  background: var(--card-bg-soft, rgba(255,255,255,0.06));
+  color: var(--card-text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.journey-prompt-choice:active {
+  transform: scale(0.98);
+  background: var(--card-bg-hover, rgba(255,255,255,0.12));
+}
 
 .lightbox-header {
   flex-shrink: 0;
@@ -1142,6 +1170,26 @@ body.dark-mode .tkg-nav-item.active {
         </div>
       </div>
 
+      <!-- JOURNEY PROMPT — cross-surface Journey correction (2026-08-13).
+           Shown only when a visitor lands here with no valid Journey context
+           yet (see the init script near the bottom of this file). Reuses the
+           exact same .lightbox-overlay/.lightbox-modal mechanics as the
+           About sheet directly above — no new sheet system. Choosing a
+           Journey closes this immediately, no second confirm button. -->
+      <div class="lightbox-overlay" id="journeyPromptSheet">
+        <div class="lightbox-modal" id="journeyPromptModal" style="max-width:340px;">
+          <div style="padding:24px 22px;">
+            <h3 style="font-size:17px; font-weight:700; margin-bottom:6px; color:var(--card-text);">👋 Welcome to TKG</h3>
+            <p style="font-size:13px; line-height:1.5; color:var(--card-text-soft); margin-bottom:18px;">How can we help you today?</p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <button type="button" class="journey-prompt-choice" data-journey-choice="atTKG">🟢 I'm at TKG</button>
+              <button type="button" class="journey-prompt-choice" data-journey-choice="planning">🟡 Planning my visit</button>
+              <button type="button" class="journey-prompt-choice" data-journey-choice="exploring">⚪ Just exploring</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- FOOTER: SOCIAL SECTION -->
       <footer class="hub-footer">
         <h4 class="social-section-title">Connect With Us</h4>
@@ -1209,6 +1257,31 @@ body.dark-mode .tkg-nav-item.active {
 // ========== PERSONALIZATION VIA SHARED IDENTITY ==========
 // Auto-fills a returning-customer greeting instead of asking again —
 // reads the same tkg_customer identity set by moments.html's upload flow.
+function journeyLabel_(state){
+  if(state === 'atTKG') return 'At TKG';
+  if(state === 'planning') return 'Planning';
+  if(state === 'exploring') return 'Exploring';
+  return null;
+}
+// Journey correction (2026-08-13): appended as its own small node, not
+// concatenated into the greeting sentence — keeps the existing
+// personalization readable and the Journey indicator subtle. Same
+// #hubTagline slot, no new header structure, no padding/position change.
+// Called once at load and again right after a first-run Journey
+// selection (see closeJourneyPrompt() below) so the label doesn't wait
+// for a page reload to appear.
+function updateHubTaglineJourney(){
+  const tagline = document.getElementById('hubTagline');
+  const existing = tagline.querySelector('.hub-tagline-journey');
+  if (existing) existing.remove();
+  const label = journeyLabel_(tkgActiveJourney && tkgActiveJourney.state);
+  if (label) {
+    const journeySpan = document.createElement('span');
+    journeySpan.className = 'hub-tagline-journey';
+    journeySpan.textContent = ' · ' + label;
+    tagline.appendChild(journeySpan);
+  }
+}
 (function personalizeGreeting() {
   if (!window.TKGShared) return;
   const identity = window.TKGShared.getCustomerIdentity();
@@ -1216,6 +1289,7 @@ body.dark-mode .tkg-nav-item.active {
   if (identity && identity.name) {
     tagline.textContent = `Welcome back, ${identity.name} 👋`;
   }
+  updateHubTaglineJourney();
 })();
 
 // ========== NAVIGATION ==========
@@ -1586,7 +1660,37 @@ function startHeroAutoSlide() {
   }, 2500);
 })();
 
-// ========== INIT ==========
+// ========== JOURNEY PROMPT — cross-surface Journey correction (2026-08-13) ==========
+// Shown only when this surface has no valid Journey context yet. Uses the
+// existing TKGShared.setJourneyContext()/getJourneyContext() — no new
+// storage key. Global Nav is hidden only for this first-run case and
+// restored the instant a choice is made; never blocks normal navigation
+// once a Journey exists.
+const journeyPromptSheet = document.getElementById('journeyPromptSheet');
+const hubNavEl = document.getElementById('hubNav');
+
+function openJourneyPrompt(){
+  if(hubNavEl) hubNavEl.style.display = 'none';
+  journeyPromptSheet.classList.add('open');
+}
+
+function closeJourneyPrompt(){
+  journeyPromptSheet.classList.remove('open');
+  if(hubNavEl) hubNavEl.style.display = '';
+  if (typeof updateHubTaglineJourney === 'function') updateHubTaglineJourney();
+}
+
+document.querySelectorAll('.journey-prompt-choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const choice = btn.dataset.journeyChoice;
+    if(window.TKGShared) TKGShared.setJourneyContext(choice);
+    tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
+    closeJourneyPrompt();
+  });
+});
+
+if(!tkgActiveJourney) openJourneyPrompt();
+
 // ========== INIT ==========
 // SWR: render whatever's cached instantly (near-0.1s, no network wait),
 // then always still run the live fetches below to silently refresh each
