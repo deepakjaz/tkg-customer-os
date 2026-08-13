@@ -9,6 +9,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <script>
 (function(){
@@ -127,6 +128,16 @@ body {
 
 .brand-header-text {
   pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-header-badge {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  object-fit: contain;
 }
 
 .brand-header-title {
@@ -906,8 +917,11 @@ body.dark-mode .tkg-nav-item.active {
   <!-- TOP BRAND HEADER BAR -->
   <header class="brand-header">
     <div class="brand-header-text">
-      <div class="brand-header-title">The Khichiya Gravy</div>
-      <div class="brand-header-subtitle">Gallery from the community</div>
+      <img src="./tkg-hub-header.png" alt="" class="brand-header-badge" aria-hidden="true">
+      <div>
+        <div class="brand-header-title">Moments</div>
+        <div class="brand-header-subtitle">Gallery from the community</div>
+      </div>
     </div>
     <button id="shareBtn" class="fab-share" title="Share a moment">
       <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -1237,6 +1251,10 @@ async function fetchMoments() {
     if (data.status !== 'ok') throw new Error(data.message || 'API error');
     
     moments = data.moments || [];
+    // Newest first — the Sheet appends new rows to the bottom, so the raw
+    // API order is oldest-first. Reverse so the most recent post shows at
+    // the top of the feed instead of requiring a scroll to find it.
+    moments.reverse();
     renderTimeline();
     try {
       localStorage.setItem(MOMENTS_CACHE_KEY, JSON.stringify({ moments: moments, cachedAt: Date.now() }));

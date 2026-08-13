@@ -2510,6 +2510,8 @@ textarea.field-input{
 .eco-slide--review{ background-image:radial-gradient(circle at 30% 20%, #3d2a10 0%, #1a1008 70%); }
 .eco-slide--runner{ background-image:linear-gradient(160deg, #2A211C 0%, #14100D 100%); }
 .eco-slide--leaderboard{ background-image:radial-gradient(circle at 70% 15%, #3a2f0f 0%, #16140a 70%); }
+.eco-slide--offer{ background-image:linear-gradient(160deg, #3a1f1a 0%, #1a1210 100%); }
+.eco-slide--about{ background-image:radial-gradient(circle at 70% 20%, #2f2a1a 0%, #14120d 70%); }
 
 .eco-slide-scrim{
   position:absolute;
@@ -3566,8 +3568,8 @@ textarea.field-input{
         <div class="field-error" id="rateUsNameError" data-i18n="reg.nameError">Please enter your name</div>
       </div>
       <div class="field-group">
-        <label class="field-label" for="rateUsMobileInput" data-i18n="reg.mobileLabel">Mobile Number</label>
-        <input class="field-input" id="rateUsMobileInput" type="tel" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" maxlength="10" data-i18n-placeholder="reg.mobilePlaceholder">
+        <label class="field-label" for="rateUsMobileInput">Mobile Number <span style="font-weight:400; opacity:0.65;">(optional)</span></label>
+        <input class="field-input" id="rateUsMobileInput" type="tel" placeholder="10-digit mobile number (optional)" autocomplete="tel" inputmode="numeric" maxlength="10">
         <div class="field-error" id="rateUsMobileError" data-i18n="reg.mobileError">Please enter a valid 10-digit number</div>
       </div>
       <button type="submit" class="btn-primary" id="rateUsCaptureSubmitBtn" data-i18n="rateUsCapture.submitBtn">Continue to Google Review</button>
@@ -3814,6 +3816,8 @@ textarea.field-input{
         <span class="eco-dot"></span>
         <span class="eco-dot"></span>
         <span class="eco-dot"></span>
+        <span class="eco-dot"></span>
+        <span class="eco-dot"></span>
       </div>
       <div class="eco-track" id="ecoTrack">
 
@@ -3872,6 +3876,35 @@ textarea.field-input{
             </div>
             <div class="eco-slide-desc" id="ecoLeaderboardDesc">Check the live high scores and see who currently holds the crown on the TKG wall of fame.</div>
             <button type="button" class="eco-slide-cta" id="ecoLeaderboardCta">View Leaderboard →</button>
+          </div>
+        </div>
+
+        <!-- OFFER slide — was "Weekend Special" on moments_hub.html, ported
+             here too. Deliberately simple for now: copy + T&C line only, no
+             claim-tracking UI. The Leaderboard claim/winner logic already
+             exists and could surface here later once a real offers system
+             + Dashboard control panel exist — explicitly deferred, see
+             project notes. -->
+        <div class="eco-slide eco-slide--offer" id="ecoSlideOffer">
+          <div class="eco-slide-scrim"></div>
+          <div class="eco-slide-content">
+            <div class="eco-slide-icon">🎁</div>
+            <div class="eco-slide-title">Offer Running</div>
+            <div class="eco-slide-desc">Play, score high &amp; secure your gifts. T&amp;C Apply.</div>
+            <button type="button" class="eco-slide-cta" id="ecoOfferCta">Play Now →</button>
+          </div>
+        </div>
+
+        <!-- WHAT MAKES TKG DIFFERENT slide — same content as moments_hub.html's
+             announcement card, opens the same #infoSheet index.html already has
+             (openInfoSheet()), not a new sheet. -->
+        <div class="eco-slide eco-slide--about" id="ecoSlideAbout">
+          <div class="eco-slide-scrim"></div>
+          <div class="eco-slide-content">
+            <div class="eco-slide-icon">🔥</div>
+            <div class="eco-slide-title">What Makes TKG Different?</div>
+            <div class="eco-slide-desc">Coal-roasted, freshly prepared, served your way. Tap to learn more →</div>
+            <button type="button" class="eco-slide-cta" id="ecoAboutCta">Learn More →</button>
           </div>
         </div>
 
@@ -4261,7 +4294,9 @@ loadFeaturedReviewsFromSheet();
 // '?action=moments' endpoint moments_hub.html's fetchHeroPreview() already
 // uses — same response shape, same Drive-thumbnail transform, just called
 // from this file instead of duplicating a second data pipeline. Sets
-// Slide 1's background to the latest real story thumbnail; on any failure
+// Slide 1's background to a randomly-picked real story thumbnail (shuffled
+// each page load, 2026-08-13 — was always the single latest one before);
+// on any failure
 // or empty result, the CSS gradient fallback in .eco-slide--moments stays
 // exactly as-is (never a fabricated/stock photo).
 // ---------------------------------------------------------------------------
@@ -4280,16 +4315,21 @@ function loadEcoMomentsPreview(){
     .then(res => { if(!res.ok) throw new Error('moments fetch failed: ' + res.status); return res.json(); })
     .then(data => {
       if(!data || data.status !== 'ok' || !Array.isArray(data.moments)) return;
-      let thumbSrc = null;
+      // Shuffle: collect every moment with usable media, then pick one at
+      // random each time this runs (page load), instead of always the
+      // single latest one — same fallback rule as before (skip videos with
+      // no thumbnail), stays on the CSS gradient if nothing usable exists.
+      const usable = [];
       for(const moment of data.moments){
         if(!Array.isArray(moment.media) || moment.media.length === 0) continue;
         const first = moment.media[0];
         const mimeType = first.mimeType || '';
-        if(mimeType.indexOf('video/') === 0 && !first.thumbnailUrl) continue; // skip video without a thumbnail — same rule fetchHeroPreview() uses
-        thumbSrc = transformEcoDriveThumbUrl_(first.thumbnailUrl || first.url);
-        if(thumbSrc) break;
+        if(mimeType.indexOf('video/') === 0 && !first.thumbnailUrl) continue;
+        const thumbSrc = transformEcoDriveThumbUrl_(first.thumbnailUrl || first.url);
+        if(thumbSrc) usable.push(thumbSrc);
       }
-      if(!thumbSrc) return; // stays on the CSS gradient fallback
+      if(!usable.length) return; // stays on the CSS gradient fallback
+      const thumbSrc = usable[Math.floor(Math.random() * usable.length)];
       slideEl.style.backgroundImage = `url('${thumbSrc}')`;
     })
     .catch(err => {
@@ -4378,13 +4418,19 @@ loadEcoLeaderboardChampion();
     window.location.href = './moments_hub.html';
   });
   document.getElementById('ecoReviewCta').addEventListener('click', () => {
-    window.open(GOOGLE_REVIEW_URL, '_blank');
+    openCustomerStoriesSheet();
   });
   document.getElementById('ecoRunnerCta').addEventListener('click', () => {
     window.location.href = './khichiya-runner.html';
   });
   document.getElementById('ecoLeaderboardCta').addEventListener('click', () => {
     window.location.href = './leaderboard.html';
+  });
+  document.getElementById('ecoOfferCta').addEventListener('click', () => {
+    window.location.href = './khichiya-runner.html';
+  });
+  document.getElementById('ecoAboutCta').addEventListener('click', () => {
+    openInfoSheet();
   });
 })();
 const LS_KEY = 'tkg_customers';
@@ -5493,7 +5539,7 @@ function markReviewRequested(mobile){
 }
 
 function goToGoogleReview(mobile){
-  markReviewRequested(mobile);
+  if(mobile) markReviewRequested(mobile);
   window.open(GOOGLE_REVIEW_URL, '_blank');
 }
 
@@ -5525,7 +5571,7 @@ rateUsCaptureForm.addEventListener('submit', (e) => {
     rateUsNameError.classList.remove('show');
   }
 
-  if(!isPlausibleMobile_(mobile)){
+  if(!isPlausibleMobile_(mobile) && mobile.length > 0){
     rateUsMobileInput.classList.add('invalid');
     rateUsMobileError.classList.add('show');
     valid = false;
@@ -5536,7 +5582,13 @@ rateUsCaptureForm.addEventListener('submit', (e) => {
 
   if(!valid) return;
 
-  checkInCustomer(name, mobile, '', 'atTKG-rateus');
+  // Mobile is optional here — only run the customer check-in/record lookup
+  // when we actually have one, since findCustomerIndex() keys off mobile
+  // and every blank-mobile submission would otherwise collide onto the
+  // same record. No mobile = skip check-in, still goes to Google review.
+  if(mobile){
+    checkInCustomer(name, mobile, '', 'atTKG-rateus');
+  }
   closeRateUsCapture();
   rateUsCaptureForm.reset();
   goToGoogleReview(mobile);
@@ -6182,10 +6234,10 @@ document.getElementById('reviewTeaserCard')?.addEventListener('keydown', (e) => 
 // contentRegistry.featuredReviews data, renderContent()/getInitials()/
 // escapeHtml() helpers already used by renderReviewTeaser() above — this
 // isn't a second data source, just a second, simpler render of the same
-// content (always shows reviews[0], no cycling — the review-teaser card
-// elsewhere on the page already owns that job). Delta Correction: no
-// star-rating/review-count stat shown, avatar+name is the lead-in, the
-// quote itself is the primary body content.
+// content, now picking a random review each load instead of always
+// reviews[0] (2026-08-13). Delta Correction: no star-rating/review-count
+// stat shown, avatar+name is the lead-in, the quote itself is the primary
+// body content.
 // ---------------------------------------------------------------------------
 function renderEcoReviewSlide(){
   const avatarEl = document.getElementById('ecoReviewAvatar');
@@ -6194,7 +6246,7 @@ function renderEcoReviewSlide(){
   if(!avatarEl || !nameEl || !quoteEl) return;
   const reviews = renderContent('featuredReviews');
   if(!reviews.length) return; // keeps the static HTML fallback copy
-  const r = reviews[0];
+  const r = reviews[Math.floor(Math.random() * reviews.length)];
   avatarEl.textContent = getInitials(r.authorName);
   nameEl.textContent = r.authorName;
   quoteEl.textContent = r.quoteText;

@@ -8,6 +8,8 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!-- Theme sync — same anti-FOUC pattern moments_hub.html already uses:
      reads the shared tkg_theme localStorage key before first paint and
      sets data-tkg-theme on <html> immediately, so navigating here from
@@ -140,7 +142,7 @@ body{
   min-height:100vh;
   display:flex;
   justify-content:center;
-  padding:20px 16px calc(90px + env(safe-area-inset-bottom, 0px));
+  padding:calc(20px + env(safe-area-inset-top, 0px)) 16px calc(90px + env(safe-area-inset-bottom, 0px));
 }
 .wrap{ width:100%; max-width:var(--max-w); }
 
@@ -157,7 +159,8 @@ body{
 }
 .back-link:active{ opacity:0.6; }
 
-.lb-header{ text-align:center; margin-bottom:20px; }
+.lb-header{ display:flex; align-items:center; gap:12px; text-align:left; margin-bottom:20px; }
+.lb-header-badge{ width:44px; height:44px; flex-shrink:0; object-fit:contain; }
 .lb-title{
   font-family:var(--font-display);
   font-weight:800;
@@ -496,8 +499,11 @@ body.dark-mode .tkg-nav-item.active {
 <div class="wrap">
 
   <div class="lb-header">
-    <div class="lb-title">🏆 Khichiya Runner Leaderboard</div>
-    <div class="lb-sub">One continuous leaderboard — the top score holds the crown until someone beats it.</div>
+    <img src="./tkr-runner-icon.png" alt="" class="lb-header-badge" aria-hidden="true">
+    <div>
+      <div class="lb-title">Khichiya Runner Leaderboard</div>
+      <div class="lb-sub">One continuous leaderboard — the top score holds the crown until someone beats it.</div>
+    </div>
   </div>
 
   <div id="loadingState" class="loading-state">Loading scores…</div>
