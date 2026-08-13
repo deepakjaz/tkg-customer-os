@@ -128,6 +128,75 @@
   }
 
   // ========================================================
+  // SHARED JOURNEY CONTEXT — Step 1 (2026-08-13)
+  // Unified, cross-surface read/write for the visitor's Journey state
+  // (atTKG / planning / exploring), stored under its own key,
+  // tkg_journey_context — separate from index.html's tkg_journey /
+  // tkg_journey_ts, which are left completely untouched and keep
+  // governing index.html's own screens exactly as before.
+  //
+  // Mirrors, without altering, the freshness windows already locked in
+  // index.html (Journey Friction Fixes, item A): atTKG expires after 4h,
+  // planning after 24h, exploring never expires. This does not change
+  // how atTKG/planning/exploring function — it's an additive shared
+  // copy so moments.html, moments_hub.html, khichiya-runner.html, and
+  // leaderboard.html can learn the same state index.html already knows,
+  // without reading index.html's own storage keys directly.
+  //
+  // getJourneyContext() — returns { state, locality, ts } or null if
+  // nothing stored, invalid, or expired per the same windows above.
+  //
+  // setJourneyContext(state, locality) — validates state, writes
+  // { state, locality, ts: Date.now() }. Passing a falsy/invalid state
+  // clears the stored context (covers both "select" and "clear").
+  // Anonymous by design: no identity, no registration involved.
+  // ========================================================
+  const JOURNEY_CONTEXT_KEY = 'tkg_journey_context';
+  const JOURNEY_VALUES = ['atTKG', 'planning', 'exploring'];
+  const JOURNEY_RESET_MS = {
+    atTKG: 4 * 60 * 60 * 1000,      // 4 hours
+    planning: 24 * 60 * 60 * 1000,  // 24 hours
+    exploring: null                  // never resets
+  };
+
+  function getJourneyContext() {
+    try {
+      const raw = localStorage.getItem(JOURNEY_CONTEXT_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || !JOURNEY_VALUES.includes(parsed.state)) return null;
+
+      const windowMs = JOURNEY_RESET_MS[parsed.state];
+      if (windowMs != null) {
+        const ts = parsed.ts;
+        if (!ts || (Date.now() - ts) > windowMs) {
+          try { localStorage.removeItem(JOURNEY_CONTEXT_KEY); } catch (_) {}
+          return null;
+        }
+      }
+      return { state: parsed.state, locality: parsed.locality || null, ts: parsed.ts };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setJourneyContext(state, locality) {
+    if (!JOURNEY_VALUES.includes(state)) {
+      // Falsy or invalid state = clear, so callers can use the same
+      // function for both "select" and "clear" as required.
+      try { localStorage.removeItem(JOURNEY_CONTEXT_KEY); } catch (_) {}
+      return null;
+    }
+    const context = { state: state, locality: locality || null, ts: Date.now() };
+    try {
+      localStorage.setItem(JOURNEY_CONTEXT_KEY, JSON.stringify(context));
+    } catch (e) {
+      console.warn('[tkg-shared] Failed to write journey context.', e);
+    }
+    return context;
+  }
+
+  // ========================================================
   // SESSION MOVEMENT TRAIL — Phase 1 (locked 2026-08-13)
   // Anonymous, per-tab movement log. Completely separate from customer
   // identity: never reads/writes tkg_customer, tkg_my_identity, or
@@ -162,6 +231,14 @@
       { ts: new Date().toISOString(), surface: surface, event: event },
       extra || {}
     );
+    // Step 1 (2026-08-13): attach the active Journey state, when one
+    // exists, so the movement trail understands Journey context without
+    // becoming a second Journey system — this only reads
+    // tkg_journey_context via getJourneyContext(), never writes it.
+    const journey = getJourneyContext();
+    if (journey && journey.state) {
+      entry.journey = journey.state;
+    }
     const trail = getSessionTrail();
     trail.push(entry);
     while (trail.length > SESSION_TRAIL_MAX) trail.shift();
@@ -287,6 +364,10 @@
     // session movement trail (Phase 1, 2026-08-13 — isolated from identity)
     logEvent,
     getSessionTrail,
+    // shared journey context (Step 1, 2026-08-13 — mirrors index.html's
+    // own tkg_journey/tkg_journey_ts, does not replace or alter them)
+    getJourneyContext,
+    setJourneyContext,
     // network
     submitToAppsScript,
     fetchFromAppsScript,

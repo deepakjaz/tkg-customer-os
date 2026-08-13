@@ -558,6 +558,12 @@ body.dark-mode .tkg-nav-item.active {
      tkg-shared.js SESSION MOVEMENT TRAIL section. -->
 <script src="./tkg-shared.js"></script>
 <script>
+// Step 1 cross-surface connection (2026-08-13): read the shared Journey
+// context set on Menu (tkg_journey_context, via TKGShared.setJourneyContext)
+// so this surface understands the visitor's active Journey. Read-only —
+// this page never writes tkg_journey_context. logEvent() below already
+// attaches this same state to the 'opened' entry automatically.
+var tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
 if (window.TKGShared) TKGShared.logEvent('leaderboard', 'opened');
 </script>
 
@@ -597,16 +603,124 @@ function escapeHtml_(str){
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// ========== LEADERBOARD CACHE (Stale-While-Revalidate) ==========
+// tkg_leaderboard_cache holds the raw last-known scores array, same
+// blueprint as moments.html's tkg_moments_feed_cache: render instantly
+// from cache if present, then the live fetch below always still runs
+// immediately after and overwrites the DOM (including the champion/
+// claimed badge) the moment it resolves — so a cached render is never
+// left uncorrected. Entirely separate from tkg_customer/tkg_my_identity.
+const LEADERBOARD_CACHE_KEY = 'tkg_leaderboard_cache';
+
+function loadLeaderboardCache() {
+  try {
+    const raw = localStorage.getItem(LEADERBOARD_CACHE_KEY);
+    if (!raw) return null;
+    const cached = JSON.parse(raw);
+    if (!cached || !Array.isArray(cached.scores)) return null;
+    return cached;
+  } catch (e) {
+    return null;
+  }
+}
+
+function renderLeaderboard(scores) {
+  const emptyEl = document.getElementById('emptyState');
+  const contentEl = document.getElementById('lbContent');
+
+  if (scores.length === 0) {
+    emptyEl.style.display = '';
+    contentEl.style.display = 'none';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  // Best score per player (deduped by normalized mobile).
+  const bestByMobile = new Map();
+  scores.forEach((row) => {
+    const key = normalizeMobileClient_(row.mobile);
+    const existing = bestByMobile.get(key);
+    if(!existing || row.score > existing.score){
+      bestByMobile.set(key, row);
+    }
+  });
+
+  const ranked = Array.from(bestByMobile.values()).sort((a, b) => b.score - a.score);
+  const top10 = ranked.slice(0, 10);
+  const champion = ranked[0];
+
+  document.getElementById('championName').textContent = champion.name || 'Unknown';
+  document.getElementById('championScore').textContent = champion.score;
+  const claimedBadge = document.getElementById('championClaimedBadge');
+  claimedBadge.style.display = champion.claimed ? '' : 'none';
+
+  const rankListEl = document.getElementById('rankList');
+  rankListEl.innerHTML = top10.map((row, i) => {
+    const rank = i + 1;
+    return '<div class="rank-row' + (rank === 1 ? ' top1' : '') + '">' +
+      '<span class="rank-num">' + rank + '</span>' +
+      '<span class="rank-name">' + escapeHtml_(row.name || 'Unknown') + (rank === 1 ? ' 👑' : '') + '</span>' +
+      '<span class="rank-score">' + row.score + '</span>' +
+    '</div>';
+  }).join('');
+
+  // -------------------------------------------------------------------
+  // Live Feed — anonymous, opt-in only (row.liveOptIn === true, set by
+  // the player at submit time). Same best-score-per-player dedupe as
+  // the Top 10 above, but computed over the opt-in subset only, and the
+  // name is never rendered — this list exists to show activity, not
+  // identity. Beating your own opted-in score simply replaces your one
+  // entry (the dedupe keeps only the max), it never adds a second row.
+  // -------------------------------------------------------------------
+  const liveRows = scores.filter((row) => row.liveOptIn);
+  const bestLiveByMobile = new Map();
+  liveRows.forEach((row) => {
+    const key = normalizeMobileClient_(row.mobile);
+    const existing = bestLiveByMobile.get(key);
+    if(!existing || row.score > existing.score){
+      bestLiveByMobile.set(key, row);
+    }
+  });
+  const liveRanked = Array.from(bestLiveByMobile.values()).sort((a, b) => b.score - a.score).slice(0, 10);
+
+  const liveFeedLabelEl = document.getElementById('liveFeedLabel');
+  const liveFeedListEl = document.getElementById('liveFeedList');
+  if(liveRanked.length > 0){
+    liveFeedListEl.innerHTML = liveRanked.map((row) => {
+      return '<div class="rank-row">' +
+        '<span class="live-anon-tag">🎮 Anonymous player</span>' +
+        '<span class="rank-score">' + row.score + '</span>' +
+      '</div>';
+    }).join('');
+    liveFeedLabelEl.style.display = '';
+    liveFeedListEl.style.display = '';
+  }else{
+    liveFeedLabelEl.style.display = 'none';
+    liveFeedListEl.style.display = 'none';
+  }
+
+  contentEl.style.display = '';
+}
+
 async function loadLeaderboard(){
   const loadingEl = document.getElementById('loadingState');
   const errorEl = document.getElementById('errorState');
   const emptyEl = document.getElementById('emptyState');
   const contentEl = document.getElementById('lbContent');
 
-  loadingEl.style.display = '';
-  errorEl.style.display = 'none';
-  emptyEl.style.display = 'none';
-  contentEl.style.display = 'none';
+  // SWR: render the cached scores instantly (no spinner) if we have any,
+  // then the live fetch below always still runs and overwrites this —
+  // including the claimed badge — the moment it resolves.
+  const cached = loadLeaderboardCache();
+  const hadCachedRender = !!cached;
+  if (hadCachedRender) {
+    renderLeaderboard(cached.scores);
+  } else {
+    loadingEl.style.display = '';
+    errorEl.style.display = 'none';
+    emptyEl.style.display = 'none';
+    contentEl.style.display = 'none';
+  }
 
   try{
     const res = await fetch(APP_SCRIPT_URL + '?action=runnerScores');
@@ -615,81 +729,19 @@ async function loadLeaderboard(){
     if(!data || data.status !== 'ok' || !Array.isArray(data.scores)) throw new Error('Unexpected response');
 
     loadingEl.style.display = 'none';
-
-    if(data.scores.length === 0){
-      emptyEl.style.display = '';
-      return;
+    renderLeaderboard(data.scores);
+    try {
+      localStorage.setItem(LEADERBOARD_CACHE_KEY, JSON.stringify({ scores: data.scores, cachedAt: Date.now() }));
+    } catch (e) {
+      console.warn('Failed to write leaderboard cache:', e);
     }
-
-    // Best score per player (deduped by normalized mobile).
-    const bestByMobile = new Map();
-    data.scores.forEach((row) => {
-      const key = normalizeMobileClient_(row.mobile);
-      const existing = bestByMobile.get(key);
-      if(!existing || row.score > existing.score){
-        bestByMobile.set(key, row);
-      }
-    });
-
-    const ranked = Array.from(bestByMobile.values()).sort((a, b) => b.score - a.score);
-    const top10 = ranked.slice(0, 10);
-    const champion = ranked[0];
-
-    document.getElementById('championName').textContent = champion.name || 'Unknown';
-    document.getElementById('championScore').textContent = champion.score;
-    const claimedBadge = document.getElementById('championClaimedBadge');
-    claimedBadge.style.display = champion.claimed ? '' : 'none';
-
-    const rankListEl = document.getElementById('rankList');
-    rankListEl.innerHTML = top10.map((row, i) => {
-      const rank = i + 1;
-      return '<div class="rank-row' + (rank === 1 ? ' top1' : '') + '">' +
-        '<span class="rank-num">' + rank + '</span>' +
-        '<span class="rank-name">' + escapeHtml_(row.name || 'Unknown') + (rank === 1 ? ' 👑' : '') + '</span>' +
-        '<span class="rank-score">' + row.score + '</span>' +
-      '</div>';
-    }).join('');
-
-    // -------------------------------------------------------------------
-    // Live Feed — anonymous, opt-in only (row.liveOptIn === true, set by
-    // the player at submit time). Same best-score-per-player dedupe as
-    // the Top 10 above, but computed over the opt-in subset only, and the
-    // name is never rendered — this list exists to show activity, not
-    // identity. Beating your own opted-in score simply replaces your one
-    // entry (the dedupe keeps only the max), it never adds a second row.
-    // -------------------------------------------------------------------
-    const liveRows = data.scores.filter((row) => row.liveOptIn);
-    const bestLiveByMobile = new Map();
-    liveRows.forEach((row) => {
-      const key = normalizeMobileClient_(row.mobile);
-      const existing = bestLiveByMobile.get(key);
-      if(!existing || row.score > existing.score){
-        bestLiveByMobile.set(key, row);
-      }
-    });
-    const liveRanked = Array.from(bestLiveByMobile.values()).sort((a, b) => b.score - a.score).slice(0, 10);
-
-    const liveFeedLabelEl = document.getElementById('liveFeedLabel');
-    const liveFeedListEl = document.getElementById('liveFeedList');
-    if(liveRanked.length > 0){
-      liveFeedListEl.innerHTML = liveRanked.map((row) => {
-        return '<div class="rank-row">' +
-          '<span class="live-anon-tag">🎮 Anonymous player</span>' +
-          '<span class="rank-score">' + row.score + '</span>' +
-        '</div>';
-      }).join('');
-      liveFeedLabelEl.style.display = '';
-      liveFeedListEl.style.display = '';
-    }else{
-      liveFeedLabelEl.style.display = 'none';
-      liveFeedListEl.style.display = 'none';
-    }
-
-    contentEl.style.display = '';
   }catch(err){
     console.warn('loadLeaderboard failed:', err);
     loadingEl.style.display = 'none';
-    errorEl.style.display = '';
+    // Only show the error state if we had nothing already on screen from
+    // cache — a slightly stale leaderboard beats an error message just
+    // because this one background refresh failed.
+    if (!hadCachedRender) errorEl.style.display = '';
   }
 }
 

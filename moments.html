@@ -47,6 +47,12 @@
 
 <script src="./tkg-shared.js"></script>
 <script>
+// Step 1 cross-surface connection (2026-08-13): read the shared Journey
+// context set on Menu (tkg_journey_context, via TKGShared.setJourneyContext)
+// so this surface understands the visitor's active Journey. Read-only —
+// this page never writes tkg_journey_context. logEvent() below already
+// attaches this same state to the 'opened' entry automatically.
+var tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
 if (window.TKGShared) TKGShared.logEvent('moments', 'opened');
 </script>
 

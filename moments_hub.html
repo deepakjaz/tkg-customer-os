@@ -50,6 +50,12 @@
 
 <script src="./tkg-shared.js"></script>
 <script>
+// Step 1 cross-surface connection (2026-08-13): read the shared Journey
+// context set on Menu (tkg_journey_context, via TKGShared.setJourneyContext)
+// so this surface understands the visitor's active Journey. Read-only —
+// this page never writes tkg_journey_context. logEvent() below already
+// attaches this same state to the 'opened' entry automatically.
+var tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
 if (window.TKGShared) TKGShared.logEvent('hub', 'opened');
 </script>
 
@@ -1221,19 +1227,47 @@ document.getElementById('leaderboardCta').addEventListener('click', () => {
   window.location.href = './khichiya-runner.html';
 });
 
+// ========== HUB CACHE (Stale-While-Revalidate) ==========
+// tkg_hub_cache mirrors moments.html's tkg_moments_feed_cache blueprint
+// exactly: render the last-known-good content instantly on load, then
+// always still run the live fetch afterward to silently refresh it. One
+// key holds all three Hub data sets (reviews/scores/heroMoments) since
+// they're read together on every Hub load — entirely separate from
+// tkg_customer/tkg_my_identity/tkg_session_trail/tkg_journey_context.
+const HUB_CACHE_KEY = 'tkg_hub_cache';
+
+function loadHubCache() {
+  try {
+    const raw = localStorage.getItem(HUB_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveHubCache(partial) {
+  try {
+    const existing = loadHubCache() || {};
+    const merged = Object.assign({}, existing, partial, { cachedAt: Date.now() });
+    localStorage.setItem(HUB_CACHE_KEY, JSON.stringify(merged));
+  } catch (e) {
+    console.warn('[hub] Failed to write hub cache:', e);
+  }
+}
+
 // ========== FETCH FEATURED REVIEWS (via tkg-shared.js) ==========
 const REVIEWS_CONTAINER = document.getElementById('reviewsContainer');
 let ALL_REVIEWS_DATA = [];
 
-async function fetchFeaturedReviews() {
-  const result = await window.TKGShared.fetchFromAppsScript('featuredReviews');
-
-  if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.reviews) || result.data.reviews.length === 0) {
+function renderReviews(reviews) {
+  if (!Array.isArray(reviews) || reviews.length === 0) {
     REVIEWS_CONTAINER.innerHTML = '<div class="reviews-loading">No reviews yet. Be the first to share!</div>';
     return;
   }
 
-  ALL_REVIEWS_DATA = result.data.reviews;
+  ALL_REVIEWS_DATA = reviews;
   const previewReviews = ALL_REVIEWS_DATA.slice(0, 5);
   REVIEWS_CONTAINER.innerHTML = '';
 
@@ -1266,25 +1300,46 @@ async function fetchFeaturedReviews() {
   });
 }
 
+function loadReviewsFromCache() {
+  const cached = loadHubCache();
+  if (!cached || !Array.isArray(cached.reviews) || cached.reviews.length === 0) return false;
+  renderReviews(cached.reviews);
+  return true;
+}
+
+async function fetchFeaturedReviews() {
+  const result = await window.TKGShared.fetchFromAppsScript('featuredReviews');
+
+  if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.reviews) || result.data.reviews.length === 0) {
+    // Only fall back to the empty-state copy if we have nothing already
+    // on screen from cache — a slightly stale set of reviews is better
+    // than replacing a good render with "no reviews yet" on a hiccup.
+    if (ALL_REVIEWS_DATA.length === 0) renderReviews([]);
+    return;
+  }
+
+  renderReviews(result.data.reviews);
+  saveHubCache({ reviews: result.data.reviews });
+}
+
 // ========== FETCH LEADERBOARD (via tkg-shared.js) ==========
 const LEADERBOARD_LIST = document.getElementById('leaderboardList');
 const CHAMPION_HERO = document.getElementById('championHero');
 
-async function fetchLeaderboard() {
-  const result = await window.TKGShared.fetchFromAppsScript('runnerScores');
-
-  if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.scores) || result.data.scores.length === 0) {
+function renderHubLeaderboard(scores) {
+  if (!Array.isArray(scores) || scores.length === 0) {
     LEADERBOARD_LIST.innerHTML = '<div class="reviews-loading">Leaderboard loading...</div>';
     CHAMPION_HERO.style.display = 'none';
     return;
   }
 
-  const topScores = [...result.data.scores]
+  const topScores = [...scores]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
     .slice(0, 6);
 
   // Crown Champion hero — rank #1
   const champion = topScores[0];
+  CHAMPION_HERO.style.display = '';
   document.getElementById('championName').textContent = champion.name || 'Anonymous';
   document.getElementById('championScore').textContent = Math.round(champion.score || 0);
 
@@ -1306,6 +1361,28 @@ async function fetchLeaderboard() {
     `;
     LEADERBOARD_LIST.appendChild(item);
   });
+}
+
+function loadLeaderboardFromCache() {
+  const cached = loadHubCache();
+  if (!cached || !Array.isArray(cached.scores) || cached.scores.length === 0) return false;
+  renderHubLeaderboard(cached.scores);
+  return true;
+}
+
+async function fetchLeaderboard() {
+  const result = await window.TKGShared.fetchFromAppsScript('runnerScores');
+
+  if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.scores) || result.data.scores.length === 0) {
+    // Same rule as reviews: don't stomp a cached render just because this
+    // particular refresh came back empty/failed.
+    const cached = loadHubCache();
+    if (!cached || !Array.isArray(cached.scores) || cached.scores.length === 0) renderHubLeaderboard([]);
+    return;
+  }
+
+  renderHubLeaderboard(result.data.scores);
+  saveHubCache({ scores: result.data.scores });
 }
 
 function escapeHtml(text) {
@@ -1433,11 +1510,16 @@ function transformDriveThumbUrl(rawUrl) {
 async function fetchHeroPreview() {
   const result = await window.TKGShared.fetchFromAppsScript('moments');
   if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.moments)) {
-    return; // empty-gradient placeholder stays visible
+    return; // empty-gradient placeholder stays visible, or cached render (if any) stays as-is
   }
 
+  renderHeroPreview(result.data.moments);
+  saveHubCache({ heroMoments: result.data.moments });
+}
+
+function renderHeroPreview(momentsData) {
   const thumbs = [];
-  result.data.moments.forEach(moment => {
+  (momentsData || []).forEach(moment => {
     if (Array.isArray(moment.media) && moment.media.length > 0) {
       const first = moment.media[0];
       const mimeType = first.mimeType || '';
@@ -1458,6 +1540,13 @@ async function fetchHeroPreview() {
   HERO_CAROUSEL_EMPTY.style.display = 'none';
   heroSlideCount = slides.length;
   startHeroAutoSlide();
+}
+
+function loadHeroPreviewFromCache() {
+  const cached = loadHubCache();
+  if (!cached || !Array.isArray(cached.heroMoments) || cached.heroMoments.length === 0) return false;
+  renderHeroPreview(cached.heroMoments);
+  return true;
 }
 
 function startHeroAutoSlide() {
@@ -1498,6 +1587,16 @@ function startHeroAutoSlide() {
 })();
 
 // ========== INIT ==========
+// ========== INIT ==========
+// SWR: render whatever's cached instantly (near-0.1s, no network wait),
+// then always still run the live fetches below to silently refresh each
+// section underneath — same instant-then-revalidate pattern as
+// moments.html. Nothing here skips the live fetch; it only removes the
+// blank/spinner wait when a Hub cache already exists from a prior visit.
+loadReviewsFromCache();
+loadLeaderboardFromCache();
+loadHeroPreviewFromCache();
+
 fetchFeaturedReviews();
 fetchLeaderboard();
 fetchHeroPreview();

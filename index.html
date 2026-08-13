@@ -4299,6 +4299,13 @@ loadFeaturedReviewsFromSheet();
 // on any failure
 // or empty result, the CSS gradient fallback in .eco-slide--moments stays
 // exactly as-is (never a fabricated/stock photo).
+//
+// Step 3 (2026-08-13): the fetched pool is now kept in
+// ecoMomentsUsableThumbs so pickEcoMomentsThumb() can re-select from it
+// every 5s (see the setInterval below) without a second network request —
+// this is the same single fetch as before, just re-shuffled client-side
+// while the Menu stays open, on a timer separate from the existing 4s
+// slide-position carousel further down this file.
 // ---------------------------------------------------------------------------
 function transformEcoDriveThumbUrl_(rawUrl){
   if(!rawUrl) return null;
@@ -4306,6 +4313,13 @@ function transformEcoDriveThumbUrl_(rawUrl){
   const fileId = match ? match[1] : null;
   if(!fileId) return rawUrl;
   return `https://lh3.googleusercontent.com/d/${fileId}`;
+}
+let ecoMomentsUsableThumbs = [];
+function pickEcoMomentsThumb(){
+  const slideEl = document.getElementById('ecoSlideMoments');
+  if(!slideEl || !ecoMomentsUsableThumbs.length) return;
+  const thumbSrc = ecoMomentsUsableThumbs[Math.floor(Math.random() * ecoMomentsUsableThumbs.length)];
+  slideEl.style.backgroundImage = `url('${thumbSrc}')`;
 }
 function loadEcoMomentsPreview(){
   if(APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
@@ -4315,10 +4329,9 @@ function loadEcoMomentsPreview(){
     .then(res => { if(!res.ok) throw new Error('moments fetch failed: ' + res.status); return res.json(); })
     .then(data => {
       if(!data || data.status !== 'ok' || !Array.isArray(data.moments)) return;
-      // Shuffle: collect every moment with usable media, then pick one at
-      // random each time this runs (page load), instead of always the
-      // single latest one — same fallback rule as before (skip videos with
-      // no thumbnail), stays on the CSS gradient if nothing usable exists.
+      // Collect every moment with usable media into the shared pool —
+      // same fallback rule as before (skip videos with no thumbnail),
+      // stays on the CSS gradient if nothing usable exists.
       const usable = [];
       for(const moment of data.moments){
         if(!Array.isArray(moment.media) || moment.media.length === 0) continue;
@@ -4328,15 +4341,22 @@ function loadEcoMomentsPreview(){
         const thumbSrc = transformEcoDriveThumbUrl_(first.thumbnailUrl || first.url);
         if(thumbSrc) usable.push(thumbSrc);
       }
+      ecoMomentsUsableThumbs = usable;
       if(!usable.length) return; // stays on the CSS gradient fallback
-      const thumbSrc = usable[Math.floor(Math.random() * usable.length)];
-      slideEl.style.backgroundImage = `url('${thumbSrc}')`;
+      pickEcoMomentsThumb();
     })
     .catch(err => {
       console.warn('loadEcoMomentsPreview failed, keeping gradient placeholder:', err);
     });
 }
 loadEcoMomentsPreview();
+// Content shuffle only — re-picks from the pool already fetched above,
+// no new network request. Separate from the 4s slide-position carousel
+// (#ecoTrack setInterval further down this file), which is untouched.
+setInterval(() => {
+  if(ecoMomentsUsableThumbs.length > 1) pickEcoMomentsThumb();
+}, 5000);
+
 
 // ---------------------------------------------------------------------------
 // ECOSYSTEM SHOWCASE — SLIDE 4 LIVE CHAMPION. Same '?action=runnerScores'
@@ -5420,6 +5440,10 @@ function getStoredJourney(){
           localStorage.removeItem(JOURNEY_KEY);
           localStorage.removeItem(JOURNEY_TS_KEY);
         }catch(e){}
+        // Step 1: keep the shared cross-surface context in sync when this
+        // device's own journey expires, so other pages don't keep reading
+        // a stale state index.html itself has already discarded.
+        if(window.TKGShared) TKGShared.setJourneyContext(null);
         return null;
       }
     }
@@ -5464,6 +5488,11 @@ function selectJourney(journey){
     localStorage.setItem(JOURNEY_KEY, journey);
     localStorage.setItem(JOURNEY_TS_KEY, String(Date.now()));
   }catch(e){}
+  // Step 1: mirror the same choice into the shared cross-surface context
+  // so moments.html/moments_hub.html/khichiya-runner.html/leaderboard.html
+  // can read it — index.html's own tkg_journey/tkg_journey_ts above stay
+  // exactly as they were, this is purely additive.
+  if(window.TKGShared) TKGShared.setJourneyContext(journey);
   recordJourneyEvent(journey); // anonymous analytics — independent of tkg_journey/tkg_customers
   applyJourneyVisibility(journey);
   updateTasteDiscoveryReminderVisibility(); // re-apply completed-hide on top of the fresh journey gate
@@ -6252,6 +6281,14 @@ function renderEcoReviewSlide(){
   quoteEl.textContent = r.quoteText;
 }
 renderEcoReviewSlide();
+// Step 3 (2026-08-13): content shuffle only — re-derives from the same
+// contentRegistry.featuredReviews pool already fetched, no new network
+// request. Separate from the 4s slide-position carousel (#ecoTrack
+// setInterval further down this file), which is untouched. Also
+// independent of the Review teaser card above the Signature Menu section
+// (renderReviewTeaser()/REVIEW_TEASER_DURATION above) — that component
+// already rotates on its own timer and is not touched by this.
+setInterval(renderEcoReviewSlide, 5000);
 
 // Top-bar tagline — one short line in the slot that used to hold the small
 // logo + "TKG / The Khichiya Gravy" text. Glows briefly whenever it (re)renders
