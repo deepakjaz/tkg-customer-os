@@ -495,7 +495,7 @@
 
     try {
       const result = await submitToAppsScript('journeyEvent', {
-        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, locality: e.locality, city: e.city, landmark: e.landmark }))
+        events: pending.map(e => ({ journey: e.journey, origin: e.origin || '', ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, locality: e.locality, city: e.city, landmark: e.landmark }))
       }, { requireIdentity: false });
 
       // Same guard as Menu: only trust a response that actually carries a
@@ -530,6 +530,7 @@
       const events = loadJourneyEvents();
       events.push({
         journey: journey,
+        origin: surface || '',
         ts: new Date().toISOString(),
         pendingSync: true,
         locality: 'Not Applicable — At TKG',
@@ -542,7 +543,7 @@
     ensureLocationConsent(async (loc) => {
       logEvent(surface, 'location_response', { shared: !!loc });
       const events = loadJourneyEvents();
-      const event = { journey: journey, ts: new Date().toISOString(), pendingSync: true };
+      const event = { journey: journey, origin: surface || '', ts: new Date().toISOString(), pendingSync: true };
       if (loc) {
         event.latitude = loc.latitude;
         event.longitude = loc.longitude;

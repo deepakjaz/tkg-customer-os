@@ -5279,6 +5279,7 @@ function recordJourneyEvent(journey){
     const events = loadJourneyEvents();
     events.push({
       journey: journey,
+      origin: 'Menu',
       ts: new Date().toISOString(),
       pendingSync: true,
       locality: 'Not Applicable — At TKG',
@@ -5291,7 +5292,7 @@ function recordJourneyEvent(journey){
   ensureLocationConsent(async (loc, reason) => {
     if(window.TKGShared) TKGShared.logEvent('menu', 'location_response', { shared: !!loc });
     const events = loadJourneyEvents();
-    const event = { journey: journey, ts: new Date().toISOString(), pendingSync: true };
+    const event = { journey: journey, origin: 'Menu', ts: new Date().toISOString(), pendingSync: true };
     if(loc){
       event.latitude = loc.latitude;
       event.longitude = loc.longitude;
@@ -5363,7 +5364,7 @@ async function attemptJourneyEventSync(){
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'journeyEvent',
-        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, locality: e.locality, city: e.city, landmark: e.landmark }))
+        events: pending.map(e => ({ journey: e.journey, origin: e.origin || '', ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, locality: e.locality, city: e.city, landmark: e.landmark }))
       })
     });
 
