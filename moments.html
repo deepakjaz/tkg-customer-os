@@ -968,9 +968,65 @@ body.dark-mode .tkg-nav-item.active {
   transform:translate(-50%, 0);
 }
 
+/* ==========================================================================
+   INDEPENDENCE DAY SKIN (15 August) — quieter tier. Purely decorative
+   overlay on top of the existing theme; background untouched. Manually
+   removable: delete this block + the .ide-hairline div and .ide-flag-badge
+   span. Both animations run 5 cycles of 2s (10s) then rest still.
+   ========================================================================== */
+.ide-hairline{
+  position:fixed;
+  top:0; left:0; right:0;
+  height:2px;
+  background:linear-gradient(90deg,#FF9933 0 33%,#FFFFFF 33% 66%,#138808 66% 100%);
+  opacity:0.25;
+  z-index:400;
+  pointer-events:none;
+  animation:ideHairlinePulseQuiet 2s ease-in-out 5;
+}
+@keyframes ideHairlinePulseQuiet{
+  0%,100%{ opacity:0.25; }
+  50%{ opacity:0.42; }
+}
+.brand-header-badge-wrap{
+  position:relative;
+  flex-shrink:0;
+  display:inline-block;
+}
+.ide-flag-badge{
+  position:absolute;
+  right:-3px;
+  bottom:-2px;
+  width:18px;
+  height:13px;
+  background:#FFFFFF;
+  border-radius:3px;
+  padding:1px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.28);
+  transform-origin:50% 0%;
+  animation:ideFlagWave 2s ease-in-out 5;
+  pointer-events:none;
+}
+.ide-flag-badge svg{ display:block; width:100%; height:100%; }
+@keyframes ideFlagWave{
+  0%,100%{ transform:skewY(0deg); }
+  50%{ transform:skewY(-7deg); }
+}
+.ide-bg-wash{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:0.05;
+  background:linear-gradient(135deg,#FF9933 0 33%,#FFFFFF 33% 66%,#138808 66% 100%);
+}
+
 </style>
 </head>
 <body>
+
+<div class="ide-bg-wash" aria-hidden="true"></div>
+<div class="ide-hairline" aria-hidden="true"></div>
 
 <div class="geo-hint-toast" id="geoHintToast" aria-live="polite">Not stalking you 😄 — just helping TKG know where you're visiting from.</div>
 
@@ -980,7 +1036,16 @@ body.dark-mode .tkg-nav-item.active {
   <!-- TOP BRAND HEADER BAR -->
   <header class="brand-header">
     <div class="brand-header-text">
-      <img src="./tkg-hub-header.png" alt="" class="brand-header-badge" aria-hidden="true">
+      <div class="brand-header-badge-wrap">
+        <img src="./tkg-hub-header.png" alt="" class="brand-header-badge" aria-hidden="true">
+        <span class="ide-flag-badge" aria-hidden="true"><svg viewBox="0 0 30 21">
+          <rect x="0" y="0" width="30" height="7" fill="#FF9933"></rect>
+          <rect x="0" y="7" width="30" height="7" fill="#FFFFFF"></rect>
+          <rect x="0" y="14" width="30" height="7" fill="#138808"></rect>
+          <circle cx="15" cy="10.5" r="2.6" fill="none" stroke="#000080" stroke-width="0.5"></circle>
+          <circle cx="15" cy="10.5" r="0.4" fill="#000080"></circle>
+        </svg></span>
+      </div>
       <div>
         <div class="brand-header-title">Moments</div>
         <div class="brand-header-subtitle">Gallery from the community</div>
