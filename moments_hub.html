@@ -1037,9 +1037,44 @@ body.dark-mode .tkg-nav-item.active {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   GEO HINT TOAST — ported from index.html so Journey Analytics location
+   consent shows the same lightweight one-line explanation here too. No
+   backdrop, no button target, fixed near the top, safe-area aware,
+   auto-fades via JS-toggled class.
+   ========================================================================== */
+.geo-hint-toast{
+  position:fixed;
+  left:50%;
+  top:calc(env(safe-area-inset-top, 0px) + 14px);
+  transform:translate(-50%, -12px);
+  max-width:min(88vw, 360px);
+  padding:10px 16px;
+  border-radius:999px;
+  background:rgba(28,24,21,0.82);
+  color:#FFFFFF;
+  font-size:0.8125rem;
+  font-weight:500;
+  text-align:center;
+  line-height:1.3;
+  box-shadow:0 8px 24px rgba(28,24,21,0.28);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  opacity:0;
+  pointer-events:none;
+  z-index:170;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+}
+.geo-hint-toast.show{
+  opacity:1;
+  transform:translate(-50%, 0);
+}
 </style>
 </head>
 <body>
+
+<div class="geo-hint-toast" id="geoHintToast" aria-live="polite">Not stalking you 😄 — just helping TKG know where you're visiting from.</div>
 
 <div class="hub-container">
   <!-- HEADER -->
@@ -1684,6 +1719,8 @@ document.querySelectorAll('.journey-prompt-choice').forEach(btn => {
   btn.addEventListener('click', () => {
     const choice = btn.dataset.journeyChoice;
     if(window.TKGShared) TKGShared.setJourneyContext(choice);
+    if(window.TKGShared) TKGShared.setJourneyOriginIfUnset('Hub'); // write-once — first surface a Journey was picked on
+    if(window.TKGShared) TKGShared.recordJourneyEvent(choice, 'Hub'); // same Journey Analytics + location flow Menu uses
     tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
     closeJourneyPrompt();
   });

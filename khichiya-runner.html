@@ -668,9 +668,45 @@ body.dark-mode .tkg-nav-item.active {
   transform:scale(0.98);
   background:var(--stone-line);
 }
+
+/* ==========================================================================
+   GEO HINT TOAST — ported from index.html so Journey Analytics location
+   consent shows the same lightweight one-line explanation here too. No
+   backdrop, no button target, fixed near the top, safe-area aware,
+   auto-fades via JS-toggled class.
+   ========================================================================== */
+.geo-hint-toast{
+  position:fixed;
+  left:50%;
+  top:calc(env(safe-area-inset-top, 0px) + 14px);
+  transform:translate(-50%, -12px);
+  max-width:min(88vw, 360px);
+  padding:10px 16px;
+  border-radius:999px;
+  background:rgba(28,24,21,0.82);
+  color:#FFFFFF;
+  font-size:0.8125rem;
+  font-weight:500;
+  text-align:center;
+  line-height:1.3;
+  box-shadow:0 8px 24px rgba(28,24,21,0.28);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  opacity:0;
+  pointer-events:none;
+  z-index:170;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+}
+.geo-hint-toast.show{
+  opacity:1;
+  transform:translate(-50%, 0);
+}
 </style>
 </head>
 <body>
+
+<div class="geo-hint-toast" id="geoHintToast" aria-live="polite">Not stalking you 😄 — just helping TKG know where you're visiting from.</div>
+
 
 <!-- tkg-shared.js — same canonical identity module moments.html/
      moments_hub.html already use (getCustomerIdentity/setCustomerIdentity).
@@ -741,6 +777,7 @@ if (window.TKGShared) TKGShared.logEvent('runner', 'opened');
       <div class="overlay hidden" id="submitOverlay">
         <div class="big">Submit your score</div>
         <div class="sub">Only needed if you want to claim a reward — sharing to friends never asks for this.</div>
+        <div class="sub" id="submitKnownIdentityLine" style="display:none;"></div>
         <input class="text-input" id="submitName" type="text" placeholder="Your name" maxlength="40">
         <input class="text-input" id="submitMobile" type="tel" inputmode="numeric" placeholder="Mobile number" maxlength="10">
         <label class="live-opt-in-row" for="submitLiveOptIn">
@@ -955,6 +992,7 @@ if (window.TKGShared) TKGShared.logEvent('runner', 'opened');
   var submitOverlay = document.getElementById('submitOverlay');
   var submitName = document.getElementById('submitName');
   var submitMobile = document.getElementById('submitMobile');
+  var submitKnownIdentityLine = document.getElementById('submitKnownIdentityLine');
   var submitLiveOptIn = document.getElementById('submitLiveOptIn');
   var submitConfirmBtn = document.getElementById('submitConfirmBtn');
   var submitCancelBtn = document.getElementById('submitCancelBtn');
@@ -1286,15 +1324,28 @@ if (window.TKGShared) TKGShared.logEvent('runner', 'opened');
   // ---------------------------------------------------------------------
   submitBtn.addEventListener('click', function(){
     overOverlay.classList.add('hidden');
-    // Customer Identity Continuity (Turn 2) — pre-fill from the existing
-    // shared identity (TKGShared.getCustomerIdentity(), same tkg_customer
-    // key moments.html/moments_hub.html already read) instead of always
-    // starting blank. Still a normal editable text input either way —
-    // this only saves a known customer from retyping, it doesn't lock
-    // the fields or skip the form.
+    // Customer Identity Continuity — silently recognize the device's
+    // known identity (TKGShared.getCustomerIdentity(), same tkg_customer
+    // key moments.html/moments_hub.html already read) instead of asking
+    // again. Known: fields are hidden and pre-filled in the background,
+    // a "Ready, Name? 🔥" line shown instead. Unknown: normal empty,
+    // editable fields, exactly as before — asked once, only now.
     var savedIdentity = (window.TKGShared && window.TKGShared.getCustomerIdentity) ? window.TKGShared.getCustomerIdentity() : null;
-    submitName.value = (savedIdentity && savedIdentity.name) ? savedIdentity.name : '';
-    submitMobile.value = (savedIdentity && savedIdentity.mobile) ? savedIdentity.mobile : '';
+    var knownIdentity = !!(savedIdentity && savedIdentity.name && savedIdentity.mobile);
+    if(knownIdentity){
+      submitName.value = savedIdentity.name;
+      submitMobile.value = savedIdentity.mobile;
+      submitName.style.display = 'none';
+      submitMobile.style.display = 'none';
+      submitKnownIdentityLine.textContent = 'Ready, ' + savedIdentity.name.split(' ')[0] + '? 🔥';
+      submitKnownIdentityLine.style.display = '';
+    }else{
+      submitName.value = '';
+      submitMobile.value = '';
+      submitName.style.display = '';
+      submitMobile.style.display = '';
+      submitKnownIdentityLine.style.display = 'none';
+    }
     submitLiveOptIn.checked = false;
     submitOverlay.classList.remove('hidden');
   });
@@ -1485,6 +1536,8 @@ document.querySelectorAll('.journey-prompt-choice').forEach(function(btn){
   btn.addEventListener('click', function(){
     var choice = btn.dataset.journeyChoice;
     if(window.TKGShared) TKGShared.setJourneyContext(choice);
+    if(window.TKGShared) TKGShared.setJourneyOriginIfUnset('Runner'); // write-once — first surface a Journey was picked on
+    if(window.TKGShared) TKGShared.recordJourneyEvent(choice, 'Runner'); // same Journey Analytics + location flow Menu uses
     tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
     closeJourneyPrompt();
   });

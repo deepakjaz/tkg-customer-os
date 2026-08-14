@@ -4573,19 +4573,14 @@ function checkInCustomer(name, mobile, favoriteItem, source){
   let isReturning = false;
 
   if(idx === -1){
-    // Journey_Origin — captured ONCE, at the moment a visitor first becomes
-    // a known Customer. Read directly from the shared cross-surface context
-    // (TKGShared.getJourneyContext()) rather than the local `journey`
-    // variable above, since the shared context reflects where the visitor's
-    // Journey actually began (Hub/Moments/Runner/Menu), not just whatever
-    // is locally active on index.html at this moment. If no Journey exists
-    // anywhere, this stays '' — never defaulted/invented (per governance).
+    // Journey_Origin — the FIRST surface (Menu/Hub/Moments/Runner) where
+    // this visitor ever selected a Journey, write-once at the shared
+    // TKGShared level (tkg_journey_origin). Read directly here rather
+    // than derived from `journey` above, since Origin is "where it began"
+    // — not the current/latest Journey state. Stays '' if no Journey has
+    // ever been selected anywhere — never defaulted/invented.
     let journeyOrigin = '';
-    if(window.TKGShared){
-      const sharedOrigin = TKGShared.getJourneyContext();
-      if(sharedOrigin && sharedOrigin.state) journeyOrigin = sharedOrigin.state;
-    }
-    if(!journeyOrigin && journey) journeyOrigin = journey; // fallback: local-only Journey, no shared context available
+    if(window.TKGShared) journeyOrigin = TKGShared.getJourneyOrigin() || '';
 
     record = {
       mobile: normalizeMobile(mobile),
@@ -4659,14 +4654,16 @@ async function attemptSync(){
   try{
     // The `journey` field below is understood by AppsScript.gs (Journey
     // column, position H, always overwritten with the latest value).
-    // `journeyOrigin` is the new write-once field (Journey Origin column,
-    // position P) — AppsScript only writes it when that cell is still
-    // empty, so a returning customer's original Journey is never
-    // overwritten even though this field is sent on every sync. Both only
-    // take effect once the corresponding .gs update is pasted into Apps
-    // Script and re-deployed as a new version on Deepak's side; until
-    // then the live script simply ignores whichever fields it doesn't
-    // recognize yet — sync of every other field keeps working as before.
+    // `journeyOrigin` is the write-once field (Journey Origin column,
+    // position P) — holds the SURFACE (Menu/Hub/Moments/Runner) a
+    // visitor's Journey first began on, not a Journey state. AppsScript
+    // only writes it when that cell is still empty, so a returning
+    // customer's original surface is never overwritten even though this
+    // field is sent on every sync. Both only take effect once the
+    // corresponding .gs update is pasted into Apps Script and
+    // re-deployed as a new version on Deepak's side; until then the live
+    // script simply ignores whichever fields it doesn't recognize yet —
+    // sync of every other field keeps working as before.
     const records = pending.map(c => ({
       name: c.name,
       mobile: c.mobile,
@@ -5588,6 +5585,7 @@ function selectJourney(journey){
   // can read it — index.html's own tkg_journey/tkg_journey_ts above stay
   // exactly as they were, this is purely additive.
   if(window.TKGShared) TKGShared.setJourneyContext(journey);
+  if(window.TKGShared) TKGShared.setJourneyOriginIfUnset('Menu'); // write-once — first surface a Journey was picked on
   recordJourneyEvent(journey); // anonymous analytics — independent of tkg_journey/tkg_customers
   applyJourneyVisibility(journey);
   updateTasteDiscoveryReminderVisibility(); // re-apply completed-hide on top of the fresh journey gate

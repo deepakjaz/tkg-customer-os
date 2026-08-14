@@ -935,9 +935,45 @@ body.dark-mode .tkg-nav-item.active {
   transition: width 0.3s ease;
 }
 
+/* ==========================================================================
+   GEO HINT TOAST — ported from index.html so Journey Analytics location
+   consent shows the same lightweight one-line explanation here too. No
+   backdrop, no button target, fixed near the top, safe-area aware,
+   auto-fades via JS-toggled class.
+   ========================================================================== */
+.geo-hint-toast{
+  position:fixed;
+  left:50%;
+  top:calc(env(safe-area-inset-top, 0px) + 14px);
+  transform:translate(-50%, -12px);
+  max-width:min(88vw, 360px);
+  padding:10px 16px;
+  border-radius:999px;
+  background:rgba(28,24,21,0.82);
+  color:#FFFFFF;
+  font-size:0.8125rem;
+  font-weight:500;
+  text-align:center;
+  line-height:1.3;
+  box-shadow:0 8px 24px rgba(28,24,21,0.28);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  opacity:0;
+  pointer-events:none;
+  z-index:170;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+}
+.geo-hint-toast.show{
+  opacity:1;
+  transform:translate(-50%, 0);
+}
+
 </style>
 </head>
 <body>
+
+<div class="geo-hint-toast" id="geoHintToast" aria-live="polite">Not stalking you 😄 — just helping TKG know where you're visiting from.</div>
+
 
 <div class="moments-app">
 
@@ -970,15 +1006,17 @@ body.dark-mode .tkg-nav-item.active {
         <button type="button" class="upload-modal-tab" data-tab="link">Share Link</button>
       </div>
 
-      <div class="upload-modal-field">
+      <div class="upload-modal-field" id="uploadNameField">
         <label class="upload-modal-label">Your Name</label>
         <input type="text" id="uploadName" class="upload-modal-input" placeholder="First name">
       </div>
 
-      <div class="upload-modal-field">
+      <div class="upload-modal-field" id="uploadMobileField">
         <label class="upload-modal-label">Mobile Number</label>
         <input type="tel" id="uploadMobile" class="upload-modal-input" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10">
       </div>
+
+      <p class="upload-modal-label" id="uploadKnownIdentityLine" style="display:none;"></p>
 
       <div class="upload-modal-field" id="uploadMediaPanel">
         <label class="upload-modal-label">Photos or Videos (Max 10)</label>
@@ -1066,6 +1104,9 @@ const SHARE_BTN = document.getElementById('shareBtn');
 const UPLOAD_MODAL = document.getElementById('uploadModal');
 const UPLOAD_NAME = document.getElementById('uploadName');
 const UPLOAD_MOBILE = document.getElementById('uploadMobile');
+const UPLOAD_NAME_FIELD = document.getElementById('uploadNameField');
+const UPLOAD_MOBILE_FIELD = document.getElementById('uploadMobileField');
+const UPLOAD_KNOWN_IDENTITY_LINE = document.getElementById('uploadKnownIdentityLine');
 const UPLOAD_FILE = document.getElementById('uploadFile');
 const UPLOAD_CAPTION = document.getElementById('uploadCaption');
 const UPLOAD_PREVIEW = document.getElementById('uploadPreview');
@@ -1769,12 +1810,23 @@ function transformDriveImageUrl(rawUrl, width){
 // ========== MULTI-FILE UPLOAD + SOCIAL LINK SUBMISSION ==========
 SHARE_BTN.addEventListener('click', () => {
   const savedIdentity = window.TKGShared ? window.TKGShared.getCustomerIdentity() : null;
-  if (savedIdentity) {
-    UPLOAD_NAME.value = savedIdentity.name || '';
-    UPLOAD_MOBILE.value = savedIdentity.mobile || '';
+  const knownIdentity = !!(savedIdentity && savedIdentity.name && savedIdentity.mobile);
+  if (knownIdentity) {
+    UPLOAD_NAME.value = savedIdentity.name;
+    UPLOAD_MOBILE.value = savedIdentity.mobile;
+    UPLOAD_NAME_FIELD.style.display = 'none';
+    UPLOAD_MOBILE_FIELD.style.display = 'none';
+    UPLOAD_KNOWN_IDENTITY_LINE.textContent = 'Posting as ' + savedIdentity.name.split(' ')[0];
+    UPLOAD_KNOWN_IDENTITY_LINE.style.display = '';
+  } else {
+    UPLOAD_NAME.value = '';
+    UPLOAD_MOBILE.value = '';
+    UPLOAD_NAME_FIELD.style.display = '';
+    UPLOAD_MOBILE_FIELD.style.display = '';
+    UPLOAD_KNOWN_IDENTITY_LINE.style.display = 'none';
   }
   UPLOAD_MODAL.classList.add('open');
-  if (savedIdentity) {
+  if (knownIdentity) {
     UPLOAD_CAPTION.focus();
   } else {
     UPLOAD_NAME.focus();
@@ -2098,6 +2150,8 @@ document.querySelectorAll('.journey-prompt-choice').forEach(btn => {
   btn.addEventListener('click', () => {
     const choice = btn.dataset.journeyChoice;
     if(window.TKGShared) TKGShared.setJourneyContext(choice);
+    if(window.TKGShared) TKGShared.setJourneyOriginIfUnset('Moments'); // write-once — first surface a Journey was picked on
+    if(window.TKGShared) TKGShared.recordJourneyEvent(choice, 'Moments'); // same Journey Analytics + location flow Menu uses
     tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
     closeJourneyPrompt();
   });

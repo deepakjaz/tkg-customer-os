@@ -197,6 +197,383 @@
   }
 
   // ========================================================
+  // JOURNEY ORIGIN — write-once, per-device (2026-08-14)
+  // Captures which SURFACE a visitor FIRST selected a Journey from —
+  // 'Menu' | 'Hub' | 'Moments' | 'Runner'. Separate from the Journey
+  // Context above (which is the CURRENT/latest Journey state, not where
+  // it began) and separate from the Customers-sheet Journey_Origin field
+  // (which is populated from this value only once, at registration).
+  // Stored as a plain string under its own key. Once set, never
+  // overwritten by any later selection on any surface — moving between
+  // Hub → Moments → Runner → Menu after the first pick never changes it.
+  // ========================================================
+  const JOURNEY_ORIGIN_KEY = 'tkg_journey_origin';
+  const JOURNEY_ORIGIN_SURFACES = ['Menu', 'Hub', 'Moments', 'Runner'];
+
+  function getJourneyOrigin() {
+    try {
+      const v = localStorage.getItem(JOURNEY_ORIGIN_KEY);
+      return JOURNEY_ORIGIN_SURFACES.includes(v) ? v : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setJourneyOriginIfUnset(surface) {
+    if (!JOURNEY_ORIGIN_SURFACES.includes(surface)) return;
+    try {
+      if (!localStorage.getItem(JOURNEY_ORIGIN_KEY)) {
+        localStorage.setItem(JOURNEY_ORIGIN_KEY, surface);
+      }
+    } catch (e) {
+      console.warn('[tkg-shared] Failed to write journey origin.', e);
+    }
+  }
+
+  // ========================================================
+  // SHARED JOURNEY ANALYTICS + LOCATION ENGINE (2026-08-14)
+  // Ported from index.html's Journey Analytics system so Hub, Moments,
+  // and Runner trigger the EXACT SAME thing Menu already does: the same
+  // local event log (tkg_journey_events — the SAME key index.html
+  // already writes to, not a second log), the same 'journeyEvent' Apps
+  // Script action (via submitToAppsScript() below), the same geocoding/
+  // landmark resolution, and the same permission-toast flow. index.html's
+  // own implementation is left completely untouched and keeps writing to
+  // the same array — this is additive, not a parallel/second system.
+  // Requires a `#geoHintToast` element and its CSS to exist on the page
+  // (same markup index.html already has) for the permission toast to
+  // render; degrades silently (no toast, location still requested) if
+  // the element isn't present.
+  // ========================================================
+  const JOURNEY_EVENTS_KEY = 'tkg_journey_events';
+
+  function loadJourneyEvents() {
+    try {
+      const raw = localStorage.getItem(JOURNEY_EVENTS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveJourneyEvents(list) {
+    try {
+      localStorage.setItem(JOURNEY_EVENTS_KEY, JSON.stringify(list));
+    } catch (e) {
+      console.warn('[tkg-shared] Failed to save journey events.', e);
+    }
+  }
+
+  const GEO_PERMISSION_GRANTED_KEY = 'tkg_geo_permission_granted';
+  let geoHintTimer = null;
+
+  function markGeoPermissionGranted() {
+    try { localStorage.setItem(GEO_PERMISSION_GRANTED_KEY, '1'); } catch (e) {}
+  }
+
+  function showGeoHint() {
+    const toast = document.getElementById('geoHintToast');
+    if (!toast) return;
+    clearTimeout(geoHintTimer);
+    toast.classList.add('show');
+    geoHintTimer = setTimeout(hideGeoHint, 2800);
+  }
+
+  function hideGeoHint() {
+    const toast = document.getElementById('geoHintToast');
+    clearTimeout(geoHintTimer);
+    geoHintTimer = null;
+    if (toast) toast.classList.remove('show');
+  }
+
+  function requestJourneyLocation(callback) {
+    if (!navigator.geolocation) { hideGeoHint(); callback(null, 'unavailable'); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        hideGeoHint();
+        markGeoPermissionGranted();
+        callback({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy
+        }, 'granted');
+      },
+      (err) => {
+        hideGeoHint();
+        const reason = err && err.code === 1 ? 'denied' : (err && err.code === 3 ? 'timeout' : 'unavailable');
+        callback(null, reason);
+      },
+      { timeout: 12000, maximumAge: 60000 }
+    );
+  }
+
+  function showGeoConsent(callback, surface) {
+    showGeoHint();
+    logEvent(surface, 'location_prompt_shown');
+    requestJourneyLocation(callback);
+  }
+
+  // Same rule as Menu: once permission is confirmed granted (on this
+  // device, any surface — the flag is shared), never show the
+  // explanation toast again anywhere.
+  function ensureLocationConsent(callback, surface) {
+    if ('permissions' in navigator && navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' }).then(status => {
+        if (status.state === 'granted') {
+          requestJourneyLocation(callback);
+        } else {
+          showGeoConsent(callback, surface);
+        }
+      }).catch(() => {
+        let confirmedGranted = false;
+        try { confirmedGranted = localStorage.getItem(GEO_PERMISSION_GRANTED_KEY) === '1'; } catch (e) {}
+        confirmedGranted ? requestJourneyLocation(callback) : showGeoConsent(callback, surface);
+      });
+    } else {
+      let confirmedGranted = false;
+      try { confirmedGranted = localStorage.getItem(GEO_PERMISSION_GRANTED_KEY) === '1'; } catch (e) {}
+      confirmedGranted ? requestJourneyLocation(callback) : showGeoConsent(callback, surface);
+    }
+  }
+
+  const SURAT_COHORTS = [
+    { name: 'Vesu',   lat: 21.1447, lon: 72.7718, radiusMeters: 1800 },
+    { name: 'Piplod', lat: 21.1575, lon: 72.7755, radiusMeters: 1500 },
+    { name: 'Adajan', lat: 21.1940, lon: 72.7980, radiusMeters: 2000 },
+    { name: 'Pal',    lat: 21.1850, lon: 72.7761, radiusMeters: 1500 }
+  ];
+  const SURAT_COHORT_MAX_MATCH_METERS = 4500;
+
+  function haversineMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = (d) => d * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function resolveSuratCohortLocality(lat, lon) {
+    let best = null, bestDist = Infinity;
+    for (const cohort of SURAT_COHORTS) {
+      const dist = haversineMeters(lat, lon, cohort.lat, cohort.lon);
+      if (dist < bestDist) { bestDist = dist; best = cohort; }
+    }
+    if (best && bestDist <= SURAT_COHORT_MAX_MATCH_METERS) return best.name;
+    return '';
+  }
+
+  function resolveBusinessLocality(address) {
+    const addr = address || {};
+    return addr.suburb || addr.neighbourhood || addr.city_district || addr.residential
+      || addr.borough || addr.quarter || addr.hamlet || addr.village || addr.town || '';
+  }
+
+  function reverseGeocode(lat, lon) {
+    return new Promise((resolve) => {
+      if (!('fetch' in window)) { resolve(null); return; }
+      const controller = ('AbortController' in window) ? new AbortController() : null;
+      const timeoutId = setTimeout(() => { if (controller) controller.abort(); resolve(null); }, 4000);
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`,
+        { signal: controller ? controller.signal : undefined, headers: { 'Accept-Language': 'en' } })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          clearTimeout(timeoutId);
+          const addr = (data && data.address) || {};
+          const locality = resolveBusinessLocality(addr);
+          const city = addr.city || addr.town || addr.village || addr.state_district || '';
+          resolve((locality || city) ? { locality: locality, city: city } : null);
+        })
+        .catch(() => { clearTimeout(timeoutId); resolve(null); });
+    });
+  }
+
+  function resolveNearbyLandmarkFallback(lat, lon) {
+    return new Promise((resolve) => {
+      if (!('fetch' in window)) { resolve(''); return; }
+      const controller = ('AbortController' in window) ? new AbortController() : null;
+      const timeoutId = setTimeout(() => { if (controller) controller.abort(); resolve(''); }, 4000);
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+        { signal: controller ? controller.signal : undefined, headers: { 'Accept-Language': 'en' } })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          clearTimeout(timeoutId);
+          const addr = (data && data.address) || {};
+          const landmark = addr.attraction || addr.tourism || addr.leisure || addr.amenity
+            || addr.shop || addr.office || addr.historic || addr.building || (data && data.name) || '';
+          resolve(landmark);
+        })
+        .catch(() => { clearTimeout(timeoutId); resolve(''); });
+    });
+  }
+
+  function resolveOverpassLandmark(lat, lon) {
+    return new Promise((resolve) => {
+      if (!('fetch' in window)) { resolve(''); return; }
+      const controller = ('AbortController' in window) ? new AbortController() : null;
+      const timeoutId = setTimeout(() => { if (controller) controller.abort(); resolve(''); }, 4000);
+      const query = '[out:json][timeout:4];(' +
+        `node(around:750,${lat},${lon})["shop"="mall"];` +
+        `way(around:750,${lat},${lon})["shop"="mall"];` +
+        `node(around:750,${lat},${lon})["amenity"="university"];` +
+        `way(around:750,${lat},${lon})["amenity"="university"];` +
+        `node(around:750,${lat},${lon})["amenity"="college"];` +
+        `way(around:750,${lat},${lon})["amenity"="college"];` +
+        `node(around:750,${lat},${lon})["amenity"="school"];` +
+        `way(around:750,${lat},${lon})["amenity"="school"];` +
+        `node(around:750,${lat},${lon})["tourism"="attraction"];` +
+        `node(around:750,${lat},${lon})["tourism"="aquarium"];` +
+        `node(around:750,${lat},${lon})["amenity"="hospital"];` +
+        `way(around:750,${lat},${lon})["amenity"="hospital"];` +
+        `node(around:750,${lat},${lon})["amenity"="place_of_worship"];` +
+        `way(around:750,${lat},${lon})["amenity"="place_of_worship"];` +
+        `node(around:750,${lat},${lon})["tourism"="hotel"];` +
+        `way(around:750,${lat},${lon})["tourism"="hotel"];` +
+        `node(around:750,${lat},${lon})["amenity"="cinema"];` +
+        `node(around:750,${lat},${lon})["railway"="station"];` +
+        `node(around:750,${lat},${lon})["amenity"="bus_station"];` +
+        `node(around:750,${lat},${lon})["amenity"="marketplace"];` +
+        `node(around:750,${lat},${lon})["shop"]["name"];` +
+        `way(around:750,${lat},${lon})["shop"]["name"];` +
+        `node(around:750,${lat},${lon})["office"]["name"];` +
+        `way(around:750,${lat},${lon})["office"]["name"];` +
+        `way(around:750,${lat},${lon})["building"]["name"];` +
+        `node(around:750,${lat},${lon})["building"]["name"];` +
+      ');out tags center 30;';
+      fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: 'data=' + encodeURIComponent(query),
+        signal: controller ? controller.signal : undefined
+      })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          clearTimeout(timeoutId);
+          const elements = (data && Array.isArray(data.elements)) ? data.elements : [];
+          const isCuratedTag = (tags) => !!(
+            tags.shop || tags.office ||
+            ['university', 'college', 'school', 'hospital', 'place_of_worship', 'cinema', 'bus_station', 'marketplace']
+              .includes(tags.amenity) ||
+            ['attraction', 'aquarium', 'hotel'].includes(tags.tourism) ||
+            tags.railway === 'station'
+          );
+          const curated = elements.find(el => el && el.tags && el.tags.name && isCuratedTag(el.tags));
+          if (curated) { resolve(curated.tags.name); return; }
+          const namedBuildings = elements.filter(el => el && el.tags && el.tags.name && el.tags.building);
+          if (namedBuildings.length === 0) { resolve(''); return; }
+          let nearest = null, nearestDist = Infinity;
+          for (const el of namedBuildings) {
+            const elLat = el.lat != null ? el.lat : (el.center && el.center.lat);
+            const elLon = el.lon != null ? el.lon : (el.center && el.center.lon);
+            if (elLat == null || elLon == null) continue;
+            const dist = haversineMeters(lat, lon, elLat, elLon);
+            if (dist < nearestDist) { nearestDist = dist; nearest = el; }
+          }
+          resolve(nearest ? nearest.tags.name : '');
+        })
+        .catch(() => { clearTimeout(timeoutId); resolve(''); });
+    });
+  }
+
+  async function resolveLandmark(lat, lon) {
+    const overpassResult = await resolveOverpassLandmark(lat, lon);
+    if (overpassResult) return overpassResult;
+    return resolveNearbyLandmarkFallback(lat, lon);
+  }
+
+  let journeyEventSyncInFlight = false;
+
+  async function attemptJourneyEventSync() {
+    if (journeyEventSyncInFlight) return;
+    if (!navigator.onLine) return;
+
+    const events = loadJourneyEvents();
+    const pending = events.filter(e => e.pendingSync);
+    if (pending.length === 0) return;
+
+    journeyEventSyncInFlight = true;
+
+    try {
+      const result = await submitToAppsScript('journeyEvent', {
+        events: pending.map(e => ({ journey: e.journey, ts: e.ts, latitude: e.latitude, longitude: e.longitude, accuracy: e.accuracy, locality: e.locality, city: e.city, landmark: e.landmark }))
+      }, { requireIdentity: false });
+
+      // Same guard as Menu: only trust a response that actually carries a
+      // numeric `recorded` count — a stale/not-yet-redeployed Apps Script
+      // still returns status 'ok' via its generic fallback without this.
+      if (!result.success || typeof result.data.recorded !== 'number') {
+        throw new Error('Journey event sync: unexpected response');
+      }
+
+      const freshEvents = loadJourneyEvents();
+      const sentTimestamps = new Set(pending.map(e => e.ts));
+      freshEvents.forEach(e => {
+        if (e.pendingSync && sentTimestamps.has(e.ts)) e.pendingSync = false;
+      });
+      saveJourneyEvents(freshEvents);
+
+    } catch (err) {
+      console.warn('[tkg-shared] Journey event sync failed, will retry later:', err);
+    } finally {
+      journeyEventSyncInFlight = false;
+    }
+  }
+
+  // recordJourneyEvent(journey, surface) — the single entry point Hub,
+  // Moments, and Runner call on Journey selection. Mirrors index.html's
+  // recordJourneyEvent exactly: atTKG skips location entirely; planning/
+  // exploring go through the same consent → GPS → geocode → cohort-match
+  // → save → sync chain, writing into the SAME tkg_journey_events array
+  // index.html already uses and syncs via the SAME 'journeyEvent' action.
+  function recordJourneyEvent(journey, surface) {
+    if (journey === 'atTKG') {
+      const events = loadJourneyEvents();
+      events.push({
+        journey: journey,
+        ts: new Date().toISOString(),
+        pendingSync: true,
+        locality: 'Not Applicable — At TKG',
+        landmark: 'Not Applicable — At TKG'
+      });
+      saveJourneyEvents(events);
+      attemptJourneyEventSync();
+      return;
+    }
+    ensureLocationConsent(async (loc) => {
+      logEvent(surface, 'location_response', { shared: !!loc });
+      const events = loadJourneyEvents();
+      const event = { journey: journey, ts: new Date().toISOString(), pendingSync: true };
+      if (loc) {
+        event.latitude = loc.latitude;
+        event.longitude = loc.longitude;
+        event.accuracy = loc.accuracy;
+        if (loc.accuracy != null && loc.accuracy > 150) {
+          event.locality = 'Low GPS Confidence';
+          event.landmark = 'Low GPS Confidence';
+        } else {
+          const [place, landmark, cohortLocality] = await Promise.all([
+            reverseGeocode(loc.latitude, loc.longitude),
+            resolveLandmark(loc.latitude, loc.longitude),
+            Promise.resolve(resolveSuratCohortLocality(loc.latitude, loc.longitude))
+          ]);
+          if (place) {
+            event.locality = place.locality;
+            event.city = place.city;
+          }
+          if (cohortLocality) event.locality = cohortLocality;
+          event.landmark = landmark || '';
+        }
+      } else {
+        event.locality = 'Location Not Shared';
+        event.landmark = 'Location Not Shared';
+      }
+      events.push(event);
+      saveJourneyEvents(events);
+      attemptJourneyEventSync();
+    }, surface);
+  }
+
+  // ========================================================
   // SESSION MOVEMENT TRAIL — Phase 1 (locked 2026-08-13)
   // Anonymous, per-tab movement log. Completely separate from customer
   // identity: never reads/writes tkg_customer, tkg_my_identity, or
@@ -368,6 +745,12 @@
     // own tkg_journey/tkg_journey_ts, does not replace or alter them)
     getJourneyContext,
     setJourneyContext,
+    // journey origin — write-once first-surface capture (2026-08-14)
+    getJourneyOrigin,
+    setJourneyOriginIfUnset,
+    // journey analytics + location engine — same mechanism Menu uses,
+    // shared so Hub/Moments/Runner don't duplicate it (2026-08-14)
+    recordJourneyEvent,
     // network
     submitToAppsScript,
     fetchFromAppsScript,
