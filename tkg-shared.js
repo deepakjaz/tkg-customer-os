@@ -208,7 +208,10 @@
   // Hub → Moments → Runner → Menu after the first pick never changes it.
   // ========================================================
   const JOURNEY_ORIGIN_KEY = 'tkg_journey_origin';
-  const JOURNEY_ORIGIN_SURFACES = ['Menu', 'Hub', 'Moments', 'Runner'];
+  // 'Leaderboard' added Sprint B (2026-08-15) — Leaderboard gains its own
+  // Journey selection UI for the first time this sprint (see below), so
+  // it must be a valid origin surface like the other 4.
+  const JOURNEY_ORIGIN_SURFACES = ['Menu', 'Hub', 'Moments', 'Runner', 'Leaderboard'];
 
   function getJourneyOrigin() {
     try {
@@ -575,6 +578,168 @@
   }
 
   // ========================================================
+  // PROXIMITY NUDGE — 200m Radius / "I'm at TKG" (Sprint B, 2026-08-15)
+  // Purely a soft, non-blocking notification-style nudge inviting a
+  // visitor to (re)pick their Journey when they're actually near TKG —
+  // NEVER auto-selects a Journey on their behalf. Two independent gates
+  // must both pass before anything shows:
+  //   1. Day gate — only Friday/Saturday/Sunday (TKG's operating days),
+  //      so this can never pop up on a day TKG isn't even open.
+  //   2. Proximity gate — device geolocation, ONLY read if location
+  //      permission is already granted from an earlier flow (Journey
+  //      selection, etc.). This feature NEVER triggers its own
+  //      permission prompt, by design — so it can't feel like tracking.
+  // Fires at most once per calendar day per device (shared across all
+  // 5 surfaces via one localStorage key), and is skipped entirely if the
+  // visitor already has a fresh 'atTKG' Journey (no need to nudge
+  // someone already checked in).
+  // TKG's own location is fixed, decoded once from the Plus Code
+  // 4QV8+XJ, Surat, Gujarat (standard Open Location Code algorithm) —
+  // this is TKG's location, never a visitor's, and never changes.
+  // ========================================================
+  const TKG_LOCATION = { lat: 21.144937499999997, lon: 72.76656249999999 }; // Plus Code 4QV8+XJ, Surat, Gujarat
+  const PROXIMITY_RADIUS_METERS = 200;
+  const PROXIMITY_NUDGE_DAYS = [0, 5, 6]; // Date.getDay(): 0=Sun, 5=Fri, 6=Sat
+  const PROXIMITY_NUDGE_LAST_SHOWN_KEY = 'tkg_proximity_nudge_last_shown';
+  const PROXIMITY_ACCURACY_MAX_METERS = 150; // same "Low GPS Confidence" cutoff Journey Analytics already uses
+
+  function todayLocalDateStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function isProximityNudgeDay() {
+    return PROXIMITY_NUDGE_DAYS.includes(new Date().getDay());
+  }
+
+  function hasShownProximityNudgeToday() {
+    try {
+      return localStorage.getItem(PROXIMITY_NUDGE_LAST_SHOWN_KEY) === todayLocalDateStr();
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function markProximityNudgeShown() {
+    try { localStorage.setItem(PROXIMITY_NUDGE_LAST_SHOWN_KEY, todayLocalDateStr()); } catch (e) {}
+  }
+
+  // Never prompts. Only reports whether permission is already granted
+  // from an earlier flow (e.g. a prior Journey location request).
+  function geoPermissionAlreadyGranted() {
+    return new Promise((resolve) => {
+      if ('permissions' in navigator && navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'geolocation' }).then((status) => {
+          resolve(status.state === 'granted');
+        }).catch(() => {
+          let flag = false;
+          try { flag = localStorage.getItem(GEO_PERMISSION_GRANTED_KEY) === '1'; } catch (e) {}
+          resolve(flag);
+        });
+      } else {
+        let flag = false;
+        try { flag = localStorage.getItem(GEO_PERMISSION_GRANTED_KEY) === '1'; } catch (e) {}
+        resolve(flag);
+      }
+    });
+  }
+
+  // Self-contained styling, injected once — deliberately uses fixed
+  // hex values rather than each page's own CSS variables, since the 5
+  // surfaces use two completely different theming systems (stone/ink/
+  // ember vs page-bg/text-primary). Keeps this component identical and
+  // isolated everywhere instead of requiring 5 separate variable maps.
+  let proximityStylesInjected = false;
+  function injectProximityNudgeStyles() {
+    if (proximityStylesInjected || document.getElementById('tkgProximityNudgeStyles')) return;
+    proximityStylesInjected = true;
+    const style = document.createElement('style');
+    style.id = 'tkgProximityNudgeStyles';
+    style.textContent =
+      '.tkg-proximity-nudge{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(120%);' +
+      'width:calc(100% - 32px);max-width:380px;background:#1C1815;color:#F2EFEA;border-radius:16px;' +
+      'padding:14px 16px;box-shadow:0 12px 30px rgba(0,0,0,0.35);z-index:9999;display:flex;align-items:center;' +
+      'gap:12px;transition:transform 0.3s ease;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;}' +
+      '.tkg-proximity-nudge.show{transform:translateX(-50%) translateY(0);}' +
+      '.tkg-proximity-nudge .tkg-pn-text{flex:1;min-width:0;}' +
+      '.tkg-proximity-nudge .tkg-pn-title{font-size:0.875rem;font-weight:700;margin:0 0 2px;}' +
+      '.tkg-proximity-nudge .tkg-pn-sub{font-size:0.75rem;opacity:0.72;margin:0;}' +
+      '.tkg-proximity-nudge .tkg-pn-cta{flex-shrink:0;background:#E85D2C;color:#fff;border:none;border-radius:10px;' +
+      'padding:9px 13px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;}' +
+      '.tkg-proximity-nudge .tkg-pn-close{flex-shrink:0;background:transparent;border:none;color:#F2EFEA;' +
+      'opacity:0.5;font-size:1.1rem;cursor:pointer;padding:0 2px;line-height:1;}';
+    document.head.appendChild(style);
+  }
+
+  function showProximityNudgeBanner(surface, onOpenJourney) {
+    injectProximityNudgeStyles();
+    const el = document.createElement('div');
+    el.className = 'tkg-proximity-nudge';
+    el.innerHTML =
+      '<div class="tkg-pn-text">' +
+        '<p class="tkg-pn-title">Seems like you\'re planning to visit today \uD83D\uDC4B</p>' +
+        '<p class="tkg-pn-sub">Let us know how we can help</p>' +
+      '</div>' +
+      '<button type="button" class="tkg-pn-cta">Choose Journey</button>' +
+      '<button type="button" class="tkg-pn-close" aria-label="Dismiss">\u00D7</button>';
+    document.body.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+
+    function remove() {
+      el.classList.remove('show');
+      setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 320);
+    }
+
+    el.querySelector('.tkg-pn-close').addEventListener('click', () => {
+      logEvent(surface, 'proximity_nudge_dismissed');
+      remove();
+    });
+    el.querySelector('.tkg-pn-cta').addEventListener('click', () => {
+      logEvent(surface, 'proximity_nudge_tapped');
+      remove();
+      if (typeof onOpenJourney === 'function') onOpenJourney();
+    });
+
+    // Auto-dismiss if left untouched — never lingers like a sticky
+    // tracking indicator, matches the "normal notification" feel.
+    setTimeout(() => { if (el.parentNode) remove(); }, 10000);
+  }
+
+  // checkProximityNudge(surface, onOpenJourney) — call once per page load
+  // from each of the 5 surfaces. onOpenJourney is that page's OWN
+  // function for opening its Journey selection UI (e.g. showScreen(
+  // 'screen-journey') on Menu, openJourneyPrompt() elsewhere) — this
+  // module never assumes a specific UI, it only decides WHETHER to nudge.
+  function checkProximityNudge(surface, onOpenJourney) {
+    if (!isProximityNudgeDay()) return;
+    if (hasShownProximityNudgeToday()) return;
+
+    const activeJourney = getJourneyContext();
+    if (activeJourney && activeJourney.state === 'atTKG') return; // already checked in, no need to nudge
+
+    geoPermissionAlreadyGranted().then((granted) => {
+      if (!granted) return; // never prompt just for this — silent no-op
+      if (!navigator.geolocation) return;
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const accuracy = pos.coords.accuracy;
+          if (accuracy != null && accuracy > PROXIMITY_ACCURACY_MAX_METERS) return; // unreliable fix, skip silently
+
+          const distance = haversineMeters(pos.coords.latitude, pos.coords.longitude, TKG_LOCATION.lat, TKG_LOCATION.lon);
+          if (distance <= PROXIMITY_RADIUS_METERS) {
+            markProximityNudgeShown();
+            logEvent(surface, 'proximity_nudge_shown', { distance: Math.round(distance) });
+            showProximityNudgeBanner(surface, onOpenJourney);
+          }
+        },
+        () => { /* denied/unavailable/timeout — silent no-op, no error UI */ },
+        { timeout: 8000, maximumAge: 600000 }
+      );
+    });
+  }
+
+  // ========================================================
   // SESSION MOVEMENT TRAIL — Phase 1 (locked 2026-08-13)
   // Anonymous, per-tab movement log. Completely separate from customer
   // identity: never reads/writes tkg_customer, tkg_my_identity, or
@@ -752,6 +917,8 @@
     // journey analytics + location engine — same mechanism Menu uses,
     // shared so Hub/Moments/Runner don't duplicate it (2026-08-14)
     recordJourneyEvent,
+    // 200m proximity nudge — Sprint B (2026-08-15)
+    checkProximityNudge,
     // network
     submitToAppsScript,
     fetchFromAppsScript,
