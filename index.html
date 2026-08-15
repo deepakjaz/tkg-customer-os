@@ -212,13 +212,9 @@
   inset:0;
   border-radius:inherit;
   padding:1px;
-  /* INDEPENDENCE DAY (15 Aug): tricolour sweep replacing the year-round
-     amber highlight below. To revert, restore this single line to:
-     rgba(250,198,110,0.95) 350deg, rgba(217,164,65,0.6) 358deg, transparent 360deg); */
   background:conic-gradient(from var(--tkg-ember-angle,0deg),
     transparent 0deg, transparent 330deg,
-    rgba(255,153,51,0.95) 340deg, rgba(255,255,255,0.95) 350deg,
-    rgba(19,136,8,0.85) 358deg, transparent 360deg);
+    rgba(250,198,110,0.95) 350deg, rgba(217,164,65,0.6) 358deg, transparent 360deg);
   -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;
   mask-composite:exclude;
@@ -238,44 +234,6 @@ body.tkg-ember-run #infoSheet::before{
    container read as hierarchy support, always half the frame's opacity. */
 .ticket-divider{ border-left-color:rgba(217,164,65, calc(var(--tkg-amber-op) * 0.5)) !important; }
 .fun-activity-row{ border-top-color:rgba(217,164,65, calc(var(--tkg-amber-op) * 0.5)) !important; }
-
-/* INDEPENDENCE DAY (15 Aug): small flag badge on every card in the same
-   family as the ember-glow above — waves once for 1s, synced to the same
-   body.tkg-ember-run trigger, then rests visible (still) in the corner.
-   Pure CSS ::after, no per-card markup needed. Remove this rule pair +
-   its keyframes to revert. */
-.menu-item::after, .fun-activity-card::after, .journey-option::after,
-.cs-review-card::after, .review-teaser-card::after, .reg-card::after,
-.ticket-strip::after, .extra-chip::after, .hero-story-strip::after{
-  content:"";
-  position:absolute;
-  top:-4px;
-  right:-4px;
-  width:13px;
-  height:9px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 21'%3E%3Crect width='30' height='7' fill='%23FF9933'/%3E%3Crect y='7' width='30' height='7' fill='%23FFFFFF'/%3E%3Crect y='14' width='30' height='7' fill='%23138808'/%3E%3Ccircle cx='15' cy='10.5' r='2.6' fill='none' stroke='%23000080' stroke-width='0.6'/%3E%3Ccircle cx='15' cy='10.5' r='0.4' fill='%23000080'/%3E%3C/svg%3E");
-  background-size:100% 100%;
-  background-repeat:no-repeat;
-  border-radius:2px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.28);
-  transform-origin:50% 0%;
-  opacity:0;
-  pointer-events:none;
-  z-index:2;
-}
-body.tkg-ember-run .menu-item::after, body.tkg-ember-run .fun-activity-card::after,
-body.tkg-ember-run .journey-option::after, body.tkg-ember-run .cs-review-card::after,
-body.tkg-ember-run .review-teaser-card::after, body.tkg-ember-run .reg-card::after,
-body.tkg-ember-run .ticket-strip::after, body.tkg-ember-run .hero-story-strip::after,
-body.tkg-ember-run .extra-chip::after{
-  animation:ideCardFlagWave 1s ease-in-out 1 forwards;
-}
-@keyframes ideCardFlagWave{
-  0%{ opacity:0; transform:skewY(0deg); }
-  15%{ opacity:1; }
-  50%{ transform:skewY(-9deg); }
-  100%{ opacity:1; transform:skewY(0deg); }
-}
 
 /* ==========================================================================
    THEME ENGINE — Theme A overrides. One customer-chosen theme applies
@@ -1786,80 +1744,11 @@ textarea.field-input{
 }
 
 /* ==========================================================================
-   INDEPENDENCE DAY SKIN (15 August) — Menu gets the richer treatment.
-   Purely decorative overlay on top of the existing marble/Light-Dark
-   theme; the theme background itself is completely untouched underneath
-   the very light wash below. Manually removable: delete this whole block
-   + the markup elements it styles (.ide-bg-wash div, .ide-hairline div,
-   .ide-hoisted-flag block) and the .ide-card-flag / recolored ember rule
-   further down, and nothing else changes.
+   Header logo wrapper — base positioning for the greeting-row logo.
    ========================================================================== */
-.ide-bg-wash{
-  position:fixed;
-  inset:0;
-  z-index:0;
-  pointer-events:none;
-  opacity:0.05;
-  background:linear-gradient(135deg,#FF9933 0 33%,#FFFFFF 33% 66%,#138808 66% 100%);
-}
-.ide-hairline{
-  position:fixed;
-  top:0; left:0; right:0;
-  height:3px;
-  background:linear-gradient(90deg,#FF9933 0 33%,#FFFFFF 33% 66%,#138808 66% 100%);
-  opacity:0.45;
-  z-index:400;
-  pointer-events:none;
-  animation:ideHairlinePulseRich 2s ease-in-out 5;
-}
-@keyframes ideHairlinePulseRich{
-  0%,100%{ opacity:0.45; }
-  50%{ opacity:0.75; }
-}
 .hero-logo-wrap{
   position:relative;
   flex-shrink:0;
-}
-/* Hosted flag — a small flagpole/stand mounted in a round badge, sitting
-   just past the logo in the greeting row. Flag waves for 10s (5x2s, same
-   trigger as the existing tkgPlayEmber() pattern below) then rests still
-   on the pole. Independence Day year label sits directly under it. */
-.ide-hoisted-flag-wrap{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:3px;
-  margin-left:2px;
-  flex-shrink:0;
-}
-.ide-hoisted-flag-badge{
-  width:38px;
-  height:38px;
-  border-radius:50%;
-  background:#FFFFFF;
-  box-shadow:0 1px 5px rgba(0,0,0,0.25);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-}
-.ide-hoisted-flag-badge svg{ width:26px; height:26px; }
-.ide-hoisted-flag-badge .ide-flag-cloth{
-  transform-origin:1px 2px;
-  animation:ideFlagWave 2s ease-in-out 5;
-}
-@keyframes ideFlagWave{
-  0%,100%{ transform:skewY(0deg); }
-  50%{ transform:skewY(-9deg); }
-}
-.ide-year-label{
-  font-size:9px;
-  font-weight:600;
-  color:#8A7A63;
-  text-align:center;
-  line-height:1.15;
-  max-width:46px;
-  letter-spacing:0.01em;
 }
 
 .optional-tag{
@@ -3300,9 +3189,6 @@ textarea.field-input{
 </head>
 <body>
 
-<div class="ide-bg-wash" aria-hidden="true"></div>
-<div class="ide-hairline" aria-hidden="true"></div>
-
 <div class="shell" id="shell">
   <!-- Day Cycle backdrop moved here (from inside .app-hero-compact) so its
        absolute box can span from the very top of the page — behind the
@@ -3760,21 +3646,6 @@ textarea.field-input{
       <div class="hero-greeting-row">
         <div class="hero-logo-wrap">
           <img class="hero-logo-large" src="./icon-192.png" alt="TKG">
-        </div>
-        <div class="ide-hoisted-flag-wrap" aria-hidden="true">
-          <div class="ide-hoisted-flag-badge">
-            <svg viewBox="0 0 24 24">
-              <rect x="10.5" y="2" width="1.1" height="20" fill="#8A7A63"></rect>
-              <g class="ide-flag-cloth">
-                <rect x="11.6" y="2.2" width="10" height="3.3" fill="#FF9933"></rect>
-                <rect x="11.6" y="5.5" width="10" height="3.4" fill="#FFFFFF"></rect>
-                <rect x="11.6" y="8.9" width="10" height="3.3" fill="#138808"></rect>
-                <circle cx="16.6" cy="7.2" r="1.15" fill="none" stroke="#000080" stroke-width="0.22"></circle>
-                <circle cx="16.6" cy="7.2" r="0.2" fill="#000080"></circle>
-              </g>
-            </svg>
-          </div>
-          <span class="ide-year-label">79th Independence Day</span>
         </div>
         <div class="hero-greeting-line">
           <div class="greeting-headline-row" id="greetingHeadlineRow">
@@ -4276,6 +4147,12 @@ textarea.field-input{
 // Phase 1 — Session Movement Trail: anonymous page-open ping. Isolated
 // from tkg_customers/tkg_my_identity — see tkg-shared.js.
 if (window.TKGShared) TKGShared.logEvent('menu', 'opened');
+
+// Sprint B — 200m Proximity Nudge (2026-08-15). Silent no-op unless
+// it's Fri/Sat/Sun, location permission is already granted, and the
+// device is within 200m of TKG. Never auto-selects a Journey — only
+// opens the same Journey screen the Change Journey button already uses.
+if (window.TKGShared) TKGShared.checkProximityNudge('Menu', function(){ showScreen('screen-journey'); });
 
 // ---------------------------------------------------------------------------
 // CONFIG — paste your deployed Apps Script Web App URL here.

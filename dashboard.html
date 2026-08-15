@@ -1617,16 +1617,106 @@ textarea.field-input{
 }
 .cust-row{
   display:flex;
-  justify-content:space-between;
-  align-items:center;
+  flex-direction:column;
   background:var(--ember-card);
   border:1px solid var(--grey-line);
   border-radius:var(--radius-sm);
+  overflow:hidden;
+}
+/* Sprint C UI Refinement (2026-08-15): collapsible accordion rows —
+   collapsed shows just the toggle + name, expanded reveals the full
+   existing metadata block below (markup/content unchanged, just hidden
+   by default). */
+.cust-toggle-btn{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  background:none;
+  border:none;
   padding:12px 13px;
+  cursor:pointer;
+  text-align:left;
+  font:inherit;
+}
+.cust-toggle-icon{
+  flex-shrink:0;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:var(--ember);
+  color:#fff;
+  font-size:0.875rem;
+  font-weight:700;
+  line-height:20px;
+  text-align:center;
+}
+.cust-toggle-name{
+  font-size:0.8438rem;
+  font-weight:700;
+  color:var(--marble);
+}
+.cust-row-details{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 13px 12px;
+  gap:10px;
 }
 .cust-info .cust-name{font-size:0.8438rem; font-weight:700; color:var(--marble);}
 .cust-info .cust-mobile{font-size:0.7188rem; color:var(--grey-warm); font-family:var(--font-mono); margin-top:2px;}
 .cust-info .cust-tags{font-size:0.6562rem; color:var(--gold); margin-top:3px;}
+
+/* Sprint C UI Refinement (2026-08-15): collapsible section card ("Where
+   Customers Come From") — compact horizontal summary by default, full
+   existing per-locality breakdown on expand. Generic enough to reuse for
+   any future collapsible stat-card section. */
+.collapsible-toggle{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  width:100%;
+  background:none;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  color:var(--marble);
+  font:inherit;
+}
+.collapsible-chevron{
+  font-size:0.75rem;
+  color:var(--grey-warm);
+  transition:transform 0.2s ease;
+  flex-shrink:0;
+  margin-left:10px;
+}
+.collapsible-toggle[aria-expanded="true"] .collapsible-chevron{ transform:rotate(180deg); }
+.locality-compact-summary{
+  display:flex;
+  justify-content:space-around;
+  align-items:flex-start;
+  flex:1;
+  gap:10px;
+}
+.locality-compact-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+}
+.locality-compact-label{
+  font-size:0.6875rem;
+  color:var(--marble);
+  opacity:0.85;
+  white-space:nowrap;
+}
+.locality-compact-num{
+  font-size:1rem;
+  font-weight:700;
+  color:var(--gold-bright);
+  font-family:var(--font-mono);
+}
+.collapsible-body{ margin-top:12px; }
 
 .locality-breakdown{
   padding:10px 0;
@@ -1823,9 +1913,15 @@ textarea.field-input{
       <button class="btn-secondary" id="settingsCancelBtn">Cancel</button>
     </div>
 
-    <!-- Dashboard content -->
+    <!-- Dashboard content — Sprint C UI Refinement (2026-08-15): reordered
+         so section order strictly follows: Lifetime Statistics → Today's
+         Summary → Journey Analytics (Lifetime) → Where Customers Come From
+         → Khichiya Runner Leaderboard → Where Journeys Begin (Entry
+         Surface) → Customer Directory (last). Section content/IDs
+         unchanged from Sprint C baseline — reorder only. -->
     <div id="dashContent" class="hidden" style="display:none; flex-direction:column; flex:1; min-height:0;">
 
+      <!-- 1. Lifetime Statistics -->
       <div class="dash-section-label">📊 Lifetime Statistics</div>
       <div class="stat-grid">
         <div class="stat-card">
@@ -1846,28 +1942,7 @@ textarea.field-input{
         </div>
       </div>
 
-      <div class="dash-section-label">🚶 Journey Analytics (Lifetime)</div>
-      <div class="stat-grid">
-        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
-          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
-            <span>🟢 At TKG</span><span id="statJourneyAnalyticsAtTKG">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
-            <span>🟡 Planning</span><span id="statJourneyAnalyticsPlanning">0</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
-            <span>⚪ Exploring</span><span id="statJourneyAnalyticsExploring">0</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="dash-section-label">📍 Where Customers Come From</div>
-      <div class="stat-grid">
-        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
-          <div id="topAreasList"></div>
-        </div>
-      </div>
-
+      <!-- 2. Today's Summary -->
       <div class="dash-section-label">📅 Today's Summary</div>
       <div class="stat-grid">
         <div class="stat-card">
@@ -1906,6 +1981,39 @@ textarea.field-input{
         </div>
       </div>
 
+      <!-- 3. Journey Analytics (Lifetime) -->
+      <div class="dash-section-label">🚶 Journey Analytics (Lifetime)</div>
+      <div class="stat-grid">
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
+            <span>🟢 At TKG</span><span id="statJourneyAnalyticsAtTKG">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
+            <span>🟡 Planning</span><span id="statJourneyAnalyticsPlanning">0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble);">
+            <span>⚪ Exploring</span><span id="statJourneyAnalyticsExploring">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Where Customers Come From — collapsible. Collapsed shows a
+           compact aggregate (3 Journey states + colored dots + totals across
+           all localities); expanded shows the full existing per-locality
+           breakdown (#topAreasList, unchanged). Both render from the same
+           journeyEvents already fetched — no new network call. -->
+      <div class="dash-section-label">📍 Where Customers Come From</div>
+      <div class="stat-grid">
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <button type="button" class="collapsible-toggle" id="topAreasToggle" aria-expanded="false">
+            <div class="locality-compact-summary" id="topAreasCompact"></div>
+            <span class="collapsible-chevron">▾</span>
+          </button>
+          <div class="collapsible-body" id="topAreasList" style="display:none;"></div>
+        </div>
+      </div>
+
+      <!-- 5. Khichiya Runner Leaderboard -->
       <div class="dash-section-label">🏆 Khichiya Runner Leaderboard</div>
       <div class="stat-grid">
         <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;" id="runnerLeaderboardCard">
@@ -1924,13 +2032,43 @@ textarea.field-input{
         </div>
       </div>
 
-      <div class="dash-actions">
+      <!-- 6. Where Journeys Begin (Entry Surface) — entry SURFACE (Menu/Hub/
+           Moments/Runner/Leaderboard), separate from the locality breakdown
+           above. Two counts, deliberately not merged (see tkg-customer-os
+           memory): customer-level (write-once, column P) vs event-level
+           (per-event, column J). -->
+      <div class="dash-section-label">🧭 Where Journeys Begin (Entry Surface)</div>
+      <div class="stat-grid">
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div style="font-size:0.6875rem; color:var(--grey-warm); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Customers — first surface (lifetime)</div>
+          <div id="originBreakdownCustomers"></div>
+        </div>
+        <div class="stat-card full" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div style="font-size:0.6875rem; color:var(--grey-warm); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Journey events — per-event surface (lifetime)</div>
+          <div id="originBreakdownEvents"></div>
+        </div>
+      </div>
+
+      <!-- 7. Customer Directory — now LAST. Search bar, Origin dropdown,
+           Export CSV/Refresh, collapsible Customer List — all unchanged. -->
+      <div class="dash-section-label">👥 Customer Directory</div>
+      <input class="search-box" id="searchInput" type="text" placeholder="Search by customer name...">
+      <!-- Journey Origin filter, sits alongside the text search — both
+           apply together via applyCustomerFilters(). -->
+      <select class="search-box" id="originFilterSelect" style="margin-top:8px;">
+        <option value="">All Origins</option>
+        <option value="menu">Menu</option>
+        <option value="hub">Hub</option>
+        <option value="moments">Moments</option>
+        <option value="runner">Runner</option>
+        <option value="leaderboard">Leaderboard</option>
+        <option value="__unknown">Unknown / Not Set</option>
+      </select>
+
+      <div class="dash-actions" style="margin-top:10px;">
         <button class="btn-secondary" id="exportCsvBtn">Export CSV</button>
         <button class="btn-secondary" id="refreshDashBtn">Refresh</button>
       </div>
-
-      <div class="dash-section-label">👥 Recent Customers</div>
-      <input class="search-box" id="searchInput" type="text" placeholder="Search by name or mobile number...">
 
       <div class="cust-list" id="custList">
         <div class="empty-state">No customers yet.</div>
@@ -2293,6 +2431,10 @@ function renderDashboard(){
 
   renderTopAreas(journeyEvents);
 
+  // Sprint C (2026-08-15): Journey Origin — entry surface breakdown.
+  renderOriginBreakdown_('originBreakdownCustomers', list, (c) => c.journeyOrigin);
+  renderOriginBreakdown_('originBreakdownEvents', journeyEvents, (e) => e.origin);
+
   const newToday = list.filter(c => new Date(c.firstVisit).toDateString() === todayDateStr).length;
   const returningToday = list.filter(c =>
     new Date(c.lastVisit).toDateString() === todayDateStr &&
@@ -2417,7 +2559,15 @@ const COORDINATE_LOOKING_LOCALITY_RE_ = /^-?\d+(\.\d+)?$/;
 
 function renderTopAreas(journeyEvents){
   const counts = {};
+  // Sprint C UI Refinement (2026-08-15): aggregate totals across ALL
+  // localities, for the collapsed compact summary. Same source data as
+  // the per-locality breakdown below — no new network call.
+  const aggregate = { atTKG: 0, planning: 0, exploring: 0 };
   journeyEvents.forEach(e => {
+    if(e.journey === 'atTKG') aggregate.atTKG++;
+    else if(e.journey === 'planning') aggregate.planning++;
+    else if(e.journey === 'exploring') aggregate.exploring++;
+
     const locality = (e.locality || '').trim();
     if(!locality) return;
     if(COORDINATE_LOOKING_LOCALITY_RE_.test(locality)) return;
@@ -2426,6 +2576,15 @@ function renderTopAreas(journeyEvents){
     else if(e.journey === 'planning') counts[locality].planning++;
     else if(e.journey === 'exploring') counts[locality].exploring++;
   });
+
+  const compactContainer = document.getElementById('topAreasCompact');
+  if(compactContainer){
+    compactContainer.innerHTML = `
+      <div class="locality-compact-item"><span class="locality-compact-label">🟢 At TKG</span><span class="locality-compact-num">${aggregate.atTKG}</span></div>
+      <div class="locality-compact-item"><span class="locality-compact-label">🟡 Planning</span><span class="locality-compact-num">${aggregate.planning}</span></div>
+      <div class="locality-compact-item"><span class="locality-compact-label">⚪ Exploring</span><span class="locality-compact-num">${aggregate.exploring}</span></div>
+    `;
+  }
 
   const sorted = Object.entries(counts)
     .map(([locality, c]) => [locality, c, c.atTKG + c.planning + c.exploring])
@@ -2449,6 +2608,63 @@ function renderTopAreas(journeyEvents){
   `).join('');
 }
 
+// Sprint C UI Refinement (2026-08-15): "Where Customers Come From" collapse
+// toggle. Purely a display toggle — no data refetch, same #topAreasList
+// content already rendered by renderTopAreas() above.
+document.getElementById('topAreasToggle').addEventListener('click', () => {
+  const btn = document.getElementById('topAreasToggle');
+  const body = document.getElementById('topAreasList');
+  const expanded = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', String(!expanded));
+  body.style.display = expanded ? 'none' : '';
+});
+
+// ---------------------------------------------------------------------------
+// ORIGIN BREAKDOWN — Sprint C (2026-08-15). Entry SURFACE (Menu/Hub/Moments/
+// Runner/Leaderboard), separate from renderTopAreas() above (which groups
+// by locality, not surface). Two independent counts per the locked
+// distinction: customer-level origin (write-once, column P) vs per-event
+// origin (column J) — never merged into one number.
+// ---------------------------------------------------------------------------
+const ORIGIN_SURFACES_ = ['Menu', 'Hub', 'Moments', 'Runner', 'Leaderboard'];
+
+function renderOriginBreakdown_(containerId, items, getOrigin){
+  const counts = {};
+  ORIGIN_SURFACES_.forEach(s => { counts[s] = 0; });
+  let unknown = 0;
+  items.forEach(item => {
+    const origin = (getOrigin(item) || '').trim();
+    const matched = ORIGIN_SURFACES_.find(s => s.toLowerCase() === origin.toLowerCase());
+    if(matched) counts[matched]++;
+    else unknown++;
+  });
+
+  const total = items.length;
+  const container = document.getElementById(containerId);
+  if(!container) return;
+
+  if(total === 0){
+    container.innerHTML = '<div class="empty-state">No data yet.</div>';
+    return;
+  }
+
+  const rows = ORIGIN_SURFACES_.map(s => {
+    const n = counts[s];
+    const pct = total > 0 ? Math.round((n / total) * 100) : 0;
+    return `<div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--marble); padding:3px 0;">
+      <span>${escapeHtml(s)}</span><span>${n} <span style="color:var(--grey-warm); font-size:0.6875rem;">(${pct}%)</span></span>
+    </div>`;
+  }).join('');
+
+  const unknownRow = unknown > 0
+    ? `<div style="display:flex; justify-content:space-between; font-size:0.8125rem; color:var(--grey-warm); padding:3px 0; border-top:1px solid var(--stone-line-dark, rgba(255,255,255,0.08)); margin-top:4px; padding-top:6px;">
+        <span>Unknown / Not Set</span><span>${unknown}</span>
+      </div>`
+    : '';
+
+  container.innerHTML = rows + unknownRow;
+}
+
 let lastRenderedCustomersByMobile = {};
 
 function renderCustomerList(list){
@@ -2464,23 +2680,46 @@ function renderCustomerList(list){
   }
 
   container.innerHTML = sorted.map(c => `
-    <div class="cust-row" data-name="${escapeHtml(c.name.toLowerCase())}" data-mobile="${c.mobile}">
-      <div class="cust-info">
-        <div class="cust-name">${escapeHtml(c.name)}</div>
-        <div class="cust-mobile">${c.mobile}</div>
-        ${c.favoriteItem || c.source ? `<div class="cust-tags">${c.favoriteItem ? escapeHtml(c.favoriteItem) : ''}${c.favoriteItem && c.source ? ' · ' : ''}${c.source ? escapeHtml(c.source) : ''}</div>` : ''}
-        ${c.outcome || c.reviewStatus || c.operatorSummary ? `<div class="cust-tags">${c.outcome ? escapeHtml(c.outcome) : ''}${c.outcome && c.reviewStatus ? ' · ' : ''}${c.reviewStatus ? escapeHtml(c.reviewStatus) : ''}${c.operatorSummary ? ' · 📝' : ''}</div>` : ''}
-        ${c.currentKnownLocality || c.currentKnownSociety || c.currentKnownLandmark ? `<div class="cust-tags">📍 ${[c.currentKnownLocality, c.currentKnownSociety, c.currentKnownLandmark].filter(Boolean).map(escapeHtml).join(' · ')}</div>` : ''}
-      </div>
-      <div class="cust-meta">
-        <div class="cust-visits">${c.visitCount || 1}x</div>
-        <div class="cust-last">${new Date(c.lastVisit).toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}</div>
-        ${c.pendingSync ? '<div class="pending-tag">Pending</div>' : ''}
-        <button type="button" class="owner-fields-btn" data-mobile="${c.mobile}">Notes ›</button>
+    <div class="cust-row" data-name="${escapeHtml(c.name.toLowerCase())}" data-mobile="${c.mobile}" data-origin="${c.journeyOrigin ? escapeHtml(c.journeyOrigin.toLowerCase()) : '__unknown'}">
+      <button type="button" class="cust-toggle-btn" aria-expanded="false">
+        <span class="cust-toggle-icon">+</span>
+        <span class="cust-toggle-name">${escapeHtml(c.name)}</span>
+      </button>
+      <div class="cust-row-details" style="display:none;">
+        <div class="cust-info">
+          <div class="cust-mobile">${c.mobile}</div>
+          ${c.favoriteItem || c.source ? `<div class="cust-tags">${c.favoriteItem ? escapeHtml(c.favoriteItem) : ''}${c.favoriteItem && c.source ? ' · ' : ''}${c.source ? escapeHtml(c.source) : ''}</div>` : ''}
+          ${c.outcome || c.reviewStatus || c.operatorSummary ? `<div class="cust-tags">${c.outcome ? escapeHtml(c.outcome) : ''}${c.outcome && c.reviewStatus ? ' · ' : ''}${c.reviewStatus ? escapeHtml(c.reviewStatus) : ''}${c.operatorSummary ? ' · 📝' : ''}</div>` : ''}
+          ${c.currentKnownLocality || c.currentKnownSociety || c.currentKnownLandmark ? `<div class="cust-tags">📍 ${[c.currentKnownLocality, c.currentKnownSociety, c.currentKnownLandmark].filter(Boolean).map(escapeHtml).join(' · ')}</div>` : ''}
+          ${c.journeyOrigin ? `<div class="cust-tags">🧭 First from: ${escapeHtml(c.journeyOrigin)}</div>` : ''}
+        </div>
+        <div class="cust-meta">
+          <div class="cust-visits">${c.visitCount || 1}x</div>
+          <div class="cust-last">${new Date(c.lastVisit).toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}</div>
+          ${c.pendingSync ? '<div class="pending-tag">Pending</div>' : ''}
+          <button type="button" class="owner-fields-btn" data-mobile="${c.mobile}">Notes ›</button>
+        </div>
       </div>
     </div>
   `).join('');
 }
+
+// Sprint C UI Refinement (2026-08-15): accordion toggle for each customer
+// row — collapsed shows just the name, expanded reveals the existing
+// .cust-row-details block (markup/content unchanged, only visibility
+// toggles). Delegated on #custList since rows are re-rendered on every
+// refresh. Always starts collapsed on re-render, per spec.
+document.getElementById('custList').addEventListener('click', (e) => {
+  const toggleBtn = e.target.closest('.cust-toggle-btn');
+  if(!toggleBtn) return;
+  const row = toggleBtn.closest('.cust-row');
+  const details = row.querySelector('.cust-row-details');
+  const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+  toggleBtn.setAttribute('aria-expanded', String(!expanded));
+  toggleBtn.querySelector('.cust-toggle-icon').textContent = expanded ? '+' : '−';
+  details.style.display = expanded ? 'none' : 'flex';
+});
+
 
 // ---------------------------------------------------------------------------
 // OWNER FIELDS EDITOR
@@ -2752,13 +2991,22 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-document.getElementById('searchInput').addEventListener('input', (e) => {
-  const q = e.target.value.trim().toLowerCase();
+// Sprint C UI Refinement (2026-08-15): search now matches Customer Name
+// ONLY (mobile/journey/origin excluded from the text search) — the Origin
+// dropdown remains the separate, dedicated way to filter by surface. Both
+// still apply together — a row must pass both to stay visible.
+function applyCustomerFilters(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const origin = document.getElementById('originFilterSelect').value;
   document.querySelectorAll('.cust-row').forEach(row => {
-    const matches = row.dataset.name.includes(q) || row.dataset.mobile.includes(q);
-    row.style.display = matches ? 'flex' : 'none';
+    const matchesText = row.dataset.name.includes(q);
+    const matchesOrigin = !origin || row.dataset.origin === origin;
+    row.style.display = (matchesText && matchesOrigin) ? 'flex' : 'none';
   });
-});
+}
+
+document.getElementById('searchInput').addEventListener('input', applyCustomerFilters);
+document.getElementById('originFilterSelect').addEventListener('change', applyCustomerFilters);
 
 document.getElementById('refreshDashBtn').addEventListener('click', async () => {
   await refreshDashboardData();
@@ -2832,11 +3080,12 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
     return;
   }
 
-  const header = ['Name', 'Mobile', 'Journey', 'First Visit', 'Last Visit', 'Visit Count', 'Favorite Item', 'Source', 'Last Outcome', 'Operator Summary', 'Review Status', 'Current Known Locality', 'Current Known Society', 'Current Known Landmark'];
+  const header = ['Name', 'Mobile', 'Journey', 'Journey Origin', 'First Visit', 'Last Visit', 'Visit Count', 'Favorite Item', 'Source', 'Last Outcome', 'Operator Summary', 'Review Status', 'Current Known Locality', 'Current Known Society', 'Current Known Landmark'];
   const rows = list.map(c => [
     c.name,
     c.mobile,
     c.journey || '',
+    c.journeyOrigin || '',
     new Date(c.firstVisit).toISOString(),
     new Date(c.lastVisit).toISOString(),
     c.visitCount || 1,
