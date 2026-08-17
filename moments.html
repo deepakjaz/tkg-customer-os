@@ -191,6 +191,10 @@ body {
   position: relative;
   overflow: hidden;
   background: #000;
+  /* iOS WebKit hardening: keep vertical swipe-to-scroll available to the
+     browser even where a tap/double-tap gesture handler also lives on
+     this element — horizontal gestures remain free for any future use. */
+  touch-action: pan-y;
 }
 
 /* ===== COMPACT CARD (google review / instagram embed) ===== */
@@ -215,6 +219,7 @@ body {
   position: relative;
   overflow: hidden;
   background: #000;
+  touch-action: pan-y;
 }
 
 .timeline-item-video {
@@ -224,6 +229,7 @@ body {
   background: #000;
   cursor: pointer;
   display: block;
+  touch-action: pan-y;
 }
 
 .media-bg-blur {
@@ -432,6 +438,7 @@ body {
   flex-direction: column;
   gap: 18px;
   z-index: 20;
+  touch-action: pan-y;
 }
 
 .engagement-btn, .control-btn {
@@ -1109,7 +1116,14 @@ body.dark-mode .tkg-nav-item.active {
 <script>
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 const MAX_FILES = 10;
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+// Raw video ceiling (2026-08-16): Apps Script doPost doesn't publish an
+// official hard payload limit — the widely-cited practical ceiling for
+// the whole request body is ~50MB. Base64 encoding adds ~33% overhead,
+// so 20MB raw becomes ~26.6MB encoded — solid headroom under that,
+// while comfortably covering short smartphone video clips. Enforced
+// again server-side in AppsScript.gs — this is a UX pre-check, not the
+// only guard.
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const COMPRESSION_QUALITY = 0.75;
 
 const FEED = document.getElementById('momentsFeed');
@@ -1185,9 +1199,19 @@ function setupVideoObserver(videoElement, container) {
           activeVideo.pause();
         }
         activeVideo = videoElement;
-        videoElement.play().catch(err => {
-          console.warn("Autoplay blocked:", err);
-        });
+        const playPromise = videoElement.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            console.warn("Autoplay blocked, retrying muted:", err);
+            // iOS WebKit sometimes rejects autoplay even when the video is
+            // already muted (e.g. after a permission-state change). Retry
+            // once, forcing mute on THIS element only — never touches
+            // MUTE_STATE, so the user's session mute/unmute choice is
+            // untouched once they interact again.
+            videoElement.muted = true;
+            videoElement.play().catch(() => {});
+          });
+        }
         
         const overlay = container.querySelector('.video-controls-overlay');
         if (overlay) overlay.style.display = 'flex';
@@ -1212,7 +1236,14 @@ function setupVideoTapHandler(videoElement) {
   videoElement.addEventListener('click', (e) => {
     e.stopPropagation();
     if (videoElement.paused) {
-      videoElement.play();
+      const playPromise = videoElement.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.warn("Tap-to-play blocked, retrying muted:", err);
+          videoElement.muted = true;
+          videoElement.play().catch(() => {});
+        });
+      }
     } else {
       videoElement.pause();
     }
@@ -1475,8 +1506,15 @@ function createTimelineCard(item, cardId) {
     const video = document.createElement('video');
     video.className = 'timeline-item-video';
     video.src = streamUrl;
-    video.playsinline = true;
+    // iOS WebKit hardening: "playsinline" (lowercase) is not a real DOM
+    // property — it silently no-ops. The attribute + the correctly-cased
+    // property are both required for iOS Safari to play inline instead
+    // of forcing fullscreen. muted must be set before any play() attempt.
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.playsInline = true;
     video.muted = MUTE_STATE.muted;
+    if (MUTE_STATE.muted) video.setAttribute('muted', '');
 
     const controlsOverlay = document.createElement('div');
     controlsOverlay.className = 'video-controls-overlay';
@@ -1652,8 +1690,12 @@ function createTimelineCard(item, cardId) {
         const video = document.createElement('video');
         video.className = 'timeline-item-video';
         video.src = streamUrl;
-        video.playsinline = true;
+        // iOS WebKit hardening — see matching comment above.
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.playsInline = true;
         video.muted = MUTE_STATE.muted;
+        if (MUTE_STATE.muted) video.setAttribute('muted', '');
         slide.appendChild(video);
 
         setupVideoObserver(video, mediaContainer);
