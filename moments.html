@@ -176,6 +176,35 @@ body {
   display: none;
 }
 
+/* One-time scroll cue (2026-08-17) — text-free bouncing chevron shown
+   only on first-ever visit, fixed to the viewport so it works regardless
+   of which card type happens to render first. */
+.moments-scroll-cue {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.moments-scroll-cue.show {
+  opacity: 1;
+}
+.moments-scroll-cue svg {
+  display: block;
+  width: 28px;
+  height: 28px;
+  color: rgba(255,255,255,0.85);
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4));
+  animation: momentsScrollCueBounce 1.4s ease-in-out infinite;
+}
+@keyframes momentsScrollCueBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
 #momentsFeed {
   display: flex;
   flex-direction: column;
@@ -1127,6 +1156,12 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const COMPRESSION_QUALITY = 0.75;
 
 const FEED = document.getElementById('momentsFeed');
+const MOMENTS_CONTENT = document.getElementById('momentsContent');
+// Deep-link target (2026-08-17): captured once at page load, applied at
+// the end of every renderTimeline() pass — harmless if it re-applies
+// across the cache-render + network-render that both happen on initial
+// load, since scrolling to an element already in place is a no-op.
+const DEEP_LINK_MOMENT_ID = new URLSearchParams(window.location.search).get('id');
 const SHARE_BTN = document.getElementById('shareBtn');
 const UPLOAD_MODAL = document.getElementById('uploadModal');
 const UPLOAD_NAME = document.getElementById('uploadName');
@@ -1231,6 +1266,35 @@ function setupVideoObserver(videoElement, container) {
   videoObservers.set(videoElement, observer);
 }
 
+// ========== EXTERNAL EMBED LIFECYCLE (Instagram iframe) ==========
+// 2026-08-17: instagram_embed cards previously had no lifecycle management
+// at all — an off-screen embed kept its iframe.src live indefinitely,
+// which can keep embedded audio/video playing in the background as the
+// user scrolls past. Blanking the src when the card leaves view and
+// restoring it on return stops that, without touching the embed markup
+// itself. Generic to any future iframe-based embed type, not just
+// Instagram — keyed off the iframe element, not the card type.
+function setupEmbedObserver(iframeElement, container) {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.intersectionRatio >= 0.65) {
+        if (iframeElement.dataset.src) {
+          iframeElement.src = iframeElement.dataset.src;
+          delete iframeElement.dataset.src;
+        }
+      } else if (entry.intersectionRatio < 0.2) {
+        if (iframeElement.src && iframeElement.src !== 'about:blank') {
+          iframeElement.dataset.src = iframeElement.src;
+          iframeElement.src = 'about:blank';
+        }
+      }
+    });
+  }, { threshold: [0.2, 0.65] });
+
+  observer.observe(iframeElement);
+  videoObservers.set(iframeElement, observer);
+}
+
 // ========== TAP TO PAUSE/PLAY ==========
 function setupVideoTapHandler(videoElement) {
   videoElement.addEventListener('click', (e) => {
@@ -1278,6 +1342,41 @@ function toggleLike(videoId, container) {
   }
   
   localStorage.setItem('tkg_liked_videos', JSON.stringify([...likedVideos]));
+}
+
+// ========== DEEP-LINK SHARE ==========
+// 2026-08-17: replaces the "Share feature coming soon" stub on all three
+// card types. moment.id is always present (see appendMomentPhoto_/
+// appendMomentLink_ in AppsScript.gs — a stable 'mom-XXXXXXXX' id written
+// at upload time), so no fallback chain is needed. Native share sheet
+// first; clipboard + brief inline confirmation as the fallback for
+// browsers without the Web Share API (mainly desktop Chrome).
+async function shareTimelineMoment(item, btn) {
+  const id = item.data && item.data.id;
+  if (!id) return;
+
+  const shareUrl = `${window.location.origin}${window.location.pathname}?id=${encodeURIComponent(id)}`;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'TKG Moments', url: shareUrl });
+      return;
+    } catch (err) {
+      if (err && err.name === 'AbortError') return; // user cancelled the share sheet
+      // fall through to clipboard fallback below
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    if (btn) {
+      const original = btn.innerHTML;
+      btn.innerHTML = ICON_SHARE_COPIED;
+      setTimeout(() => { btn.innerHTML = original; }, 1500);
+    }
+  } catch (err) {
+    console.warn('Clipboard share fallback failed:', err);
+  }
 }
 
 // ========== CANVAS COMPRESSION ==========
@@ -1464,12 +1563,62 @@ function renderTimeline() {
   });
 
   MUTE_STATE.updateAllVideos();
+
+  // Deep-link scroll-to-target (2026-08-17). Falls back to normal
+  // top-of-feed behavior silently if the id is missing or no longer
+  // matches any loaded moment — never throws, never blocks rendering.
+  if (DEEP_LINK_MOMENT_ID) {
+    const target = FEED.querySelector(`[data-moment-id="${CSS.escape(DEEP_LINK_MOMENT_ID)}"]`);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  injectMomentsScrollCue();
+}
+
+// ========== ONE-TIME SCROLL CUE ==========
+// 2026-08-17: text-free, shown only on a visitor's very first-ever visit
+// to Moments. Module-level flag (not just the localStorage check) so it
+// never re-injects across the cache-render + network-render that both
+// happen during initial load, or after a later renderTimeline() call
+// following an upload.
+let scrollCueInjected = false;
+function injectMomentsScrollCue() {
+  if (scrollCueInjected) return;
+  if (localStorage.getItem('tkg_moments_scroll_cue_seen') === 'true') return;
+  const firstCard = FEED.querySelector('.timeline-item');
+  if (!firstCard) return;
+
+  scrollCueInjected = true;
+
+  const cue = document.createElement('div');
+  cue.className = 'moments-scroll-cue';
+  cue.setAttribute('aria-hidden', 'true');
+  cue.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  document.body.appendChild(cue);
+  requestAnimationFrame(() => cue.classList.add('show'));
+
+  let dismissed = false;
+  function dismiss() {
+    if (dismissed) return;
+    dismissed = true;
+    try { localStorage.setItem('tkg_moments_scroll_cue_seen', 'true'); } catch (e) {}
+    cue.classList.remove('show');
+    setTimeout(() => { if (cue.parentNode) cue.parentNode.removeChild(cue); }, 400);
+    MOMENTS_CONTENT.removeEventListener('scroll', dismiss);
+  }
+
+  MOMENTS_CONTENT.addEventListener('scroll', dismiss, { passive: true });
+  setTimeout(dismiss, 5000);
 }
 
 // ========== ICONS ==========
 const ICON_HEART_OUTLINE = '<svg class="icon-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
 const ICON_HEART_FILLED = '<svg class="icon-fill" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
 const ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>';
+// Brief "copied" confirmation shown on the share button itself when
+// falling back to clipboard (2026-08-17) — no toast system exists in
+// this file, so this reuses the button rather than adding one.
+const ICON_SHARE_COPIED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 const ICON_MUTED = '<svg viewBox="0 0 24 24"><path d="M6.3 7c0-1 .8-1.8 1.8-1.8h.5l6-5.5c.6-.5 1.5-.2 1.5.7v16c0 .9-.9 1.2-1.5.7l-6-5.5h-.5c-1 0-1.8-.8-1.8-1.8V7zm12 0c0 3.5-1.8 6.5-4.5 8.3m0-16.6c2.7 1.8 4.5 4.8 4.5 8.3M18 2l3 3m0 6l3-3"/></svg>';
 const ICON_UNMUTED = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
 
@@ -1492,6 +1641,10 @@ function buildCaptionScrimHtml(caption, uploaderName, dateDisplay) {
 function createTimelineCard(item, cardId) {
   const container = document.createElement('div');
   container.className = 'timeline-item';
+  // Deep-link target (2026-08-17): stable id from the Sheet (always
+  // present — see appendMomentPhoto_/appendMomentLink_ in AppsScript.gs),
+  // used to scroll a shared link straight to this card on page load.
+  if (item.data && item.data.id) container.dataset.momentId = item.data.id;
 
   if (item.type === 'video') {
     const { caption, uploaderName, date, time, media } = item.data;
@@ -1505,16 +1658,17 @@ function createTimelineCard(item, cardId) {
 
     const video = document.createElement('video');
     video.className = 'timeline-item-video';
-    video.src = streamUrl;
-    // iOS WebKit hardening: "playsinline" (lowercase) is not a real DOM
-    // property — it silently no-ops. The attribute + the correctly-cased
-    // property are both required for iOS Safari to play inline instead
-    // of forcing fullscreen. muted must be set before any play() attempt.
+    // iOS WebKit ordering fix (2026-08-17): attributes/properties must be
+    // set BEFORE src is assigned — iOS WebKit can start evaluating the
+    // media element for inline-vs-fullscreen playback as soon as src is
+    // present, so setting playsinline/muted afterward can be too late.
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
+    video.setAttribute('muted', '');
     video.playsInline = true;
     video.muted = MUTE_STATE.muted;
-    if (MUTE_STATE.muted) video.setAttribute('muted', '');
+    video.preload = 'metadata';
+    video.src = streamUrl; // assigned last, after all hardening above
 
     const controlsOverlay = document.createElement('div');
     controlsOverlay.className = 'video-controls-overlay';
@@ -1563,7 +1717,7 @@ function createTimelineCard(item, cardId) {
     const shareBtn = engagementOverlay.querySelector('.share-btn');
     shareBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      alert('Share feature coming soon');
+      shareTimelineMoment(item, e.currentTarget);
     });
 
     container.classList.add('media-item');
@@ -1629,7 +1783,7 @@ function createTimelineCard(item, cardId) {
     const shareBtn = engagementOverlay.querySelector('.share-btn');
     shareBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      alert('Share feature coming soon');
+      shareTimelineMoment(item, e.currentTarget);
     });
 
     container.classList.add('media-item');
@@ -1660,6 +1814,12 @@ function createTimelineCard(item, cardId) {
 
     container.classList.add('compact-item');
     container.appendChild(embedCard);
+
+    if (shortcode) {
+      const iframeEl = embedCard.querySelector('.instagram-iframe');
+      setupEmbedObserver(iframeEl, container);
+    }
+
     return container;
   }
 
@@ -1689,13 +1849,14 @@ function createTimelineCard(item, cardId) {
 
         const video = document.createElement('video');
         video.className = 'timeline-item-video';
-        video.src = streamUrl;
-        // iOS WebKit hardening — see matching comment above.
+        // iOS WebKit ordering fix — see matching comment above.
         video.setAttribute('playsinline', '');
         video.setAttribute('webkit-playsinline', '');
+        video.setAttribute('muted', '');
         video.playsInline = true;
         video.muted = MUTE_STATE.muted;
-        if (MUTE_STATE.muted) video.setAttribute('muted', '');
+        video.preload = 'metadata';
+        video.src = streamUrl; // assigned last
         slide.appendChild(video);
 
         setupVideoObserver(video, mediaContainer);
@@ -1768,7 +1929,7 @@ function createTimelineCard(item, cardId) {
     const shareBtn = engagementOverlay.querySelector('.share-btn');
     shareBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      alert('Share feature coming soon');
+      shareTimelineMoment(item, e.currentTarget);
     });
 
     if (hasVideo) {
