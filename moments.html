@@ -176,15 +176,16 @@ body {
   display: none;
 }
 
-/* One-time scroll cue (2026-08-17) — text-free bouncing chevron shown
-   only on first-ever visit, fixed to the viewport so it works regardless
-   of which card type happens to render first. */
+/* One-time scroll cue (2026-08-17, repositioned 2026-08-17) — text-free
+   upward swipe cue shown only on first-ever visit. bottom:80px clears
+   the Global Nav pill (bottom:16px, 46px tall, z-index:99999 — the old
+   bottom:28px position sat directly inside that zone). */
 .moments-scroll-cue {
   position: fixed;
   left: 50%;
-  bottom: 28px;
+  bottom: 80px;
   transform: translateX(-50%);
-  z-index: 50;
+  z-index: 60;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.4s ease;
@@ -194,15 +195,17 @@ body {
 }
 .moments-scroll-cue svg {
   display: block;
-  width: 28px;
-  height: 28px;
-  color: rgba(255,255,255,0.85);
-  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4));
-  animation: momentsScrollCueBounce 1.4s ease-in-out infinite;
+  width: 26px;
+  height: 26px;
+  color: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+  animation: momentsSwipeUp 2.2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
 }
-@keyframes momentsScrollCueBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(8px); }
+@keyframes momentsSwipeUp {
+  0% { transform: translateY(12px); opacity: 0; }
+  30% { opacity: 1; }
+  70% { transform: translateY(-12px); opacity: 1; }
+  100% { transform: translateY(-20px); opacity: 0; }
 }
 
 #momentsFeed {
@@ -1585,6 +1588,13 @@ let scrollCueInjected = false;
 function injectMomentsScrollCue() {
   if (scrollCueInjected) return;
   if (localStorage.getItem('tkg_moments_scroll_cue_seen') === 'true') return;
+  // Modal awareness (2026-08-17): on a genuinely first-time visit,
+  // openJourneyPrompt() fires before renderTimeline() ever runs (see
+  // boot sequence near the bottom of this file), so the cue would
+  // otherwise inject underneath the still-open Journey modal. Skip for
+  // now WITHOUT setting scrollCueInjected — closeJourneyPrompt() retries
+  // this same call once the modal is dismissed.
+  if (journeyPromptModal && journeyPromptModal.classList.contains('open')) return;
   const firstCard = FEED.querySelector('.timeline-item');
   if (!firstCard) return;
 
@@ -1593,7 +1603,7 @@ function injectMomentsScrollCue() {
   const cue = document.createElement('div');
   cue.className = 'moments-scroll-cue';
   cue.setAttribute('aria-hidden', 'true');
-  cue.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  cue.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
   document.body.appendChild(cue);
   requestAnimationFrame(() => cue.classList.add('show'));
 
@@ -1604,11 +1614,18 @@ function injectMomentsScrollCue() {
     try { localStorage.setItem('tkg_moments_scroll_cue_seen', 'true'); } catch (e) {}
     cue.classList.remove('show');
     setTimeout(() => { if (cue.parentNode) cue.parentNode.removeChild(cue); }, 400);
-    MOMENTS_CONTENT.removeEventListener('scroll', dismiss);
+    MOMENTS_CONTENT.removeEventListener('touchstart', dismiss);
+    MOMENTS_CONTENT.removeEventListener('wheel', dismiss);
   }
 
-  MOMENTS_CONTENT.addEventListener('scroll', dismiss, { passive: true });
-  setTimeout(dismiss, 5000);
+  // Deep-link safe dismissal (2026-08-17): a shared-link boot fires a
+  // programmatic scrollIntoView(), which emits a native 'scroll' event
+  // with no preceding touchstart/wheel — listening on 'scroll' would
+  // have auto-dismissed the cue before the visitor ever saw it. Genuine
+  // swiping always starts with one of these two instead.
+  MOMENTS_CONTENT.addEventListener('touchstart', dismiss, { passive: true });
+  MOMENTS_CONTENT.addEventListener('wheel', dismiss, { passive: true });
+  setTimeout(dismiss, 9000); // ~4 full 2.2s swipe cycles
 }
 
 // ========== ICONS ==========
@@ -2360,6 +2377,11 @@ function openJourneyPrompt(){
 function closeJourneyPrompt(){
   journeyPromptModal.classList.remove('open');
   if(momentsGlobalNav) momentsGlobalNav.style.display = '';
+  // Scroll cue was deferred if it tried to inject while this modal was
+  // still open (2026-08-17) — retry now; injectMomentsScrollCue() is
+  // fully idempotent/guarded, so this is a harmless no-op if the cue
+  // already showed, was already dismissed, or isn't eligible.
+  injectMomentsScrollCue();
 }
 
 document.querySelectorAll('.journey-prompt-choice').forEach(btn => {
