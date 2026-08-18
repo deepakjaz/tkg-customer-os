@@ -656,10 +656,11 @@
     const style = document.createElement('style');
     style.id = 'tkgProximityNudgeStyles';
     style.textContent =
-      '.tkg-proximity-nudge{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(120%);' +
+      '.tkg-proximity-nudge{position:fixed;left:50%;top:calc(env(safe-area-inset-top, 0px) + 14px);bottom:auto;' +
+      'transform:translateX(-50%) translateY(-140%);' +
       'width:calc(100% - 32px);max-width:380px;background:#1C1815;color:#F2EFEA;border-radius:16px;' +
-      'padding:14px 16px;box-shadow:0 12px 30px rgba(0,0,0,0.35);z-index:9999;display:flex;align-items:center;' +
-      'gap:12px;transition:transform 0.3s ease;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;}' +
+      'padding:12px 16px;box-shadow:0 12px 30px rgba(0,0,0,0.45);z-index:100000;display:flex;align-items:center;' +
+      'gap:12px;transition:transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;}' +
       '.tkg-proximity-nudge.show{transform:translateX(-50%) translateY(0);}' +
       '.tkg-proximity-nudge .tkg-pn-text{flex:1;min-width:0;}' +
       '.tkg-proximity-nudge .tkg-pn-title{font-size:0.875rem;font-weight:700;margin:0 0 2px;}' +

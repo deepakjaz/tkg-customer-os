@@ -2259,6 +2259,12 @@ async function handleSocialLinkSubmit() {
     if (!proceed) return;
   }
 
+  if (link.includes('/stories/')) {
+    alert('Instagram Stories expire after 24 hours and cannot be embedded. Please upload your video/photo directly under \'Upload Media\', or share a permanent Reel/Post link.');
+    UPLOAD_SUBMIT.disabled = false;
+    return;
+  }
+
   UPLOAD_SUBMIT.disabled = true;
 
   try {
