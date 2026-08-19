@@ -719,6 +719,97 @@ input{font-family:inherit;}
 
 .hero-weather-backdrop.show{opacity:1 !important;}
 
+/* ==========================================================================
+   DAY CYCLE TV — Sprint (2026-08-19). Sits in the EXACT same box as
+   #heroWeatherBackdrop (same top/left/right, same JS-measured height via
+   updateWxBackdropSpan(), same bottom-rounded corners) but as a POSITIVE
+   z-index sibling, so when active it visually covers the topbar tagline
+   and hero greeting in place, without touching or hiding their DOM.
+   Normal state: display:none, zero footprint, zero risk to the Day Cycle
+   backdrop or greeting beneath it. Content source: contentRegistry.dayCycleTv
+   (see loadDayCycleTvFromSheet()) — same Sheet->AppsScript->registry
+   pattern as featuredReviews, not a new architecture.
+   ========================================================================== */
+.day-cycle-tv{
+  position:absolute;
+  top:0; left:0; right:0;
+  height:260px; /* JS-set by updateWxBackdropSpan(), matches the backdrop */
+  z-index:5;
+  border-radius:0 0 16px 16px;
+  overflow:hidden;
+  background:#0A0A0A;
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+.day-cycle-tv.active{display:flex;}
+.day-cycle-tv.tv-crt-on{animation:tv-crt-on 0.42s ease-out both;}
+.day-cycle-tv.tv-crt-off{animation:tv-crt-off 0.26s ease-in both;}
+@keyframes tv-crt-on{
+  0%{ transform:scaleY(0.01); filter:brightness(4) contrast(2); }
+  40%{ transform:scaleY(1); filter:brightness(2.2) contrast(1.5); }
+  100%{ transform:scaleY(1); filter:brightness(1) contrast(1); }
+}
+@keyframes tv-crt-off{
+  0%{ transform:scaleY(1); filter:brightness(1); opacity:1; }
+  60%{ transform:scaleY(1); filter:brightness(2.6); opacity:1; }
+  100%{ transform:scaleY(0.01); filter:brightness(4); opacity:0; }
+}
+#dayCycleTvVideo{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  background:#0A0A0A;
+}
+.tv-static{
+  position:absolute;
+  inset:0;
+  opacity:0.9;
+  pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
+  animation:tv-static-flicker 0.09s steps(2) infinite;
+  transition:opacity 0.35s ease;
+}
+.tv-static.fade-out{opacity:0;}
+@keyframes tv-static-flicker{
+  0%{ transform:translate(0,0); }
+  100%{ transform:translate(-4%,3%); }
+}
+.tv-mute-hint{
+  position:absolute;
+  bottom:10px; right:10px;
+  width:30px; height:30px;
+  border-radius:50%;
+  border:none;
+  background:rgba(0,0,0,0.45);
+  color:#fff;
+  font-size:0.875rem;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0;
+  transition:opacity 0.3s ease;
+  pointer-events:none;
+  z-index:2;
+}
+.tv-mute-hint.show{opacity:1;}
+.tv-more-link{
+  position:absolute;
+  bottom:10px; left:12px;
+  font-size:0.75rem;
+  font-weight:700;
+  color:#fff;
+  text-decoration:none;
+  background:rgba(0,0,0,0.45);
+  padding:6px 10px;
+  border-radius:20px;
+  z-index:2;
+}
+@media (prefers-reduced-motion: reduce){
+  .day-cycle-tv.tv-crt-on,
+  .day-cycle-tv.tv-crt-off{animation:none;}
+  .tv-static{animation:none;}
+}
+
 .hero-weather-backdrop.wx-morning{
   background:linear-gradient(180deg, #FDECC9 0%, #FBD1A2 55%, #F5B87E 100%);
 }
@@ -3196,6 +3287,16 @@ textarea.field-input{
        greeting. See .hero-weather-backdrop CSS + updateWxBackdropSpan(). -->
   <div class="hero-weather-backdrop" id="heroWeatherBackdrop" aria-hidden="true"></div>
 
+  <!-- ============ DAY CYCLE TV — Sprint (2026-08-19). Same box as the
+       backdrop above, hidden until an active contentRegistry.dayCycleTv
+       item exists. See maybePlayDayCycleTv() / loadDayCycleTvFromSheet(). ============ -->
+  <div class="day-cycle-tv" id="dayCycleTvLayer" aria-hidden="true">
+    <video id="dayCycleTvVideo" muted playsinline webkit-playsinline="true"></video>
+    <div class="tv-static" id="dayCycleTvStatic"></div>
+    <button type="button" class="tv-mute-hint" id="dayCycleTvMuteHint" aria-label="Toggle sound">🔇</button>
+    <a href="#" class="tv-more-link" id="dayCycleTvMoreLink" style="display:none;" target="_blank" rel="noopener">More Info →</a>
+  </div>
+
 
   <!-- ============ TOP BAR — carries .day-cycle-header alongside
        .app-hero-compact below (two elements, not one wrapper — kept
@@ -4287,7 +4388,12 @@ const contentRegistry = {
   ],
   polls: [],               // reserved — Phase D
   educationalPosts: [],    // reserved — future
-  announcements: []        // reserved — future
+  announcements: [],       // reserved — future
+  // Day Cycle TV — Sprint (2026-08-19). Sheet-only, no hardcoded fallback:
+  // this only ever plays when the Sheet actually supplies a real active
+  // item (see loadDayCycleTvFromSheet() below). Same shape as tagline/
+  // featuredReviews (status/order/startDate/endDate) plus videoUrl/link.
+  dayCycleTv: []
 };
 
 // ---------------------------------------------------------------------------
@@ -4345,6 +4451,109 @@ function loadFeaturedReviewsFromSheet(){
     });
 }
 loadFeaturedReviewsFromSheet();
+
+// ---------------------------------------------------------------------------
+// DAY CYCLE TV — Sprint (2026-08-19). Same fetch pattern as
+// loadFeaturedReviewsFromSheet() directly above — this file's own
+// APP_SCRIPT_URL, a new '?action=dayCycleTv' branch mirroring the
+// featuredReviews one server-side. On any failure or empty Sheet, the
+// layer simply never activates and the normal Day Cycle backdrop is all
+// that's ever shown — same offline-safe fallback shape used everywhere
+// else in this file. Plays at most once per page load (see
+// __tkgDayCycleTvPlayed guard in maybePlayDayCycleTv) — this is a first
+// proof of one active item, not a rotation/loop system yet.
+// ---------------------------------------------------------------------------
+function loadDayCycleTvFromSheet(){
+  if(APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
+  fetch(APP_SCRIPT_URL + '?action=dayCycleTv')
+    .then(res => { if(!res.ok) throw new Error('dayCycleTv fetch failed: ' + res.status); return res.json(); })
+    .then(data => {
+      if(!data || data.status !== 'ok' || !Array.isArray(data.items) || data.items.length === 0) return;
+      contentRegistry.dayCycleTv = data.items;
+      maybePlayDayCycleTv();
+    })
+    .catch(err => {
+      console.warn('loadDayCycleTvFromSheet failed, Day Cycle TV stays off:', err);
+    });
+}
+loadDayCycleTvFromSheet();
+
+let __tkgDayCycleTvPlayed = false;
+function maybePlayDayCycleTv(){
+  if(__tkgDayCycleTvPlayed) return;
+  const menuScreen = document.getElementById('screen-menu');
+  if(!menuScreen || !menuScreen.classList.contains('active')) return;
+  const active = renderContent('dayCycleTv');
+  if(!active.length || !active[0].videoUrl) return;
+  __tkgDayCycleTvPlayed = true;
+  // Brief pause so the normal Day Cycle greeting is visibly there first,
+  // per spec: "Normal Day Cycle -> brief transition -> content plays."
+  setTimeout(() => startDayCycleTv(active[0]), 900);
+}
+
+function startDayCycleTv(item){
+  const layer = document.getElementById('dayCycleTvLayer');
+  const video = document.getElementById('dayCycleTvVideo');
+  const staticEl = document.getElementById('dayCycleTvStatic');
+  const muteHint = document.getElementById('dayCycleTvMuteHint');
+  const moreLink = document.getElementById('dayCycleTvMoreLink');
+  if(!layer || !video) return;
+
+  video.src = item.videoUrl;
+  video.muted = true;
+  staticEl.classList.remove('fade-out');
+  muteHint.classList.remove('show');
+  muteHint.textContent = '🔇';
+
+  if(item.link){
+    moreLink.href = item.link;
+    moreLink.style.display = '';
+  }else{
+    moreLink.style.display = 'none';
+  }
+
+  layer.setAttribute('aria-hidden', 'false');
+  layer.classList.add('active', 'tv-crt-on');
+  video.play().catch(() => { /* autoplay blocked — layer stays visible, muted, tap to play */ });
+
+  video.addEventListener('playing', () => {
+    staticEl.classList.add('fade-out');
+    muteHint.classList.add('show');
+  }, { once: true });
+
+  video.addEventListener('ended', () => stopDayCycleTv(), { once: true });
+
+  layer.addEventListener('animationend', function onCrtOn(e){
+    if(e.animationName === 'tv-crt-on'){
+      layer.classList.remove('tv-crt-on');
+      layer.removeEventListener('animationend', onCrtOn);
+    }
+  });
+}
+
+function stopDayCycleTv(){
+  const layer = document.getElementById('dayCycleTvLayer');
+  const video = document.getElementById('dayCycleTvVideo');
+  if(!layer || !video) return;
+  layer.classList.add('tv-crt-off');
+  layer.addEventListener('animationend', function onCrtOff(e){
+    if(e.animationName === 'tv-crt-off'){
+      layer.classList.remove('active', 'tv-crt-off');
+      layer.setAttribute('aria-hidden', 'true');
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      layer.removeEventListener('animationend', onCrtOff);
+    }
+  });
+}
+
+document.getElementById('dayCycleTvVideo').addEventListener('click', () => {
+  const video = document.getElementById('dayCycleTvVideo');
+  const muteHint = document.getElementById('dayCycleTvMuteHint');
+  video.muted = !video.muted;
+  muteHint.textContent = video.muted ? '🔇' : '🔊';
+});
 
 // ---------------------------------------------------------------------------
 // ECOSYSTEM SHOWCASE — SLIDE 1 LIVE MOMENTS PREVIEW. Same fetch pattern as
@@ -5946,6 +6155,7 @@ function getLunarPhase_(){
 // ---------------------------------------------------------------------------
 function updateWxBackdropSpan(){
   const backdrop = document.getElementById('heroWeatherBackdrop');
+  const tvLayer = document.getElementById('dayCycleTvLayer');
   const topbarEl = document.querySelector('.topbar');
   const heroEl = document.querySelector('.app-hero-compact');
   const menuScreen = document.getElementById('screen-menu');
@@ -5953,7 +6163,10 @@ function updateWxBackdropSpan(){
   if(!menuScreen.classList.contains('active')) return;
   const topbarH = topbarEl.offsetHeight;
   const span = topbarH + heroEl.offsetHeight;
-  if(span > 0) backdrop.style.height = span + 'px';
+  if(span > 0){
+    backdrop.style.height = span + 'px';
+    if(tvLayer) tvLayer.style.height = span + 'px';
+  }
   // --tkg-topbar-h exposed for the moon (.wx-night::after) so its position
   // can stay pinned just below the topbar's actual rendered height —
   // which changes with font-scale (Aa button) and language — instead of
