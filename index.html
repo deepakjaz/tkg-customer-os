@@ -4491,6 +4491,20 @@ function maybePlayDayCycleTv(){
   setTimeout(() => startDayCycleTv(active[0]), 900);
 }
 
+// Mirrors moments.html's extractGoogleDriveId() exactly (2026-08-19) — kept
+// as its own copy here rather than pulled into tkg-shared.js, since this
+// sprint's scope is Day Cycle TV only, not a shared-utility refactor.
+function extractGoogleDriveId_(rawUrl){
+  if(!rawUrl) return null;
+  let match = rawUrl.match(/\/file\/d\/([^\/]+)/);
+  if(match && match[1]) return match[1];
+  match = rawUrl.match(/id=([^&]+)/);
+  if(match && match[1]) return match[1];
+  match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(match && match[1]) return match[1];
+  return null;
+}
+
 function startDayCycleTv(item){
   const layer = document.getElementById('dayCycleTvLayer');
   const video = document.getElementById('dayCycleTvVideo');
@@ -4499,7 +4513,14 @@ function startDayCycleTv(item){
   const moreLink = document.getElementById('dayCycleTvMoreLink');
   if(!layer || !video) return;
 
-  video.src = item.videoUrl;
+  // Same routing as moments.html's video playback: a Drive share link
+  // won't play directly in a <video> tag, so a Drive file ID gets routed
+  // through the /api/stream proxy (stream.js) exactly like Moments does.
+  // If the URL isn't a recognizable Drive link, it's used as-is — covers
+  // a direct/self-hosted video URL pasted into the Sheet instead.
+  const fileId = extractGoogleDriveId_(item.videoUrl);
+  const streamUrl = fileId ? `/api/stream?id=${fileId}` : item.videoUrl;
+  video.src = streamUrl;
   video.muted = true;
   staticEl.classList.remove('fade-out');
   muteHint.classList.remove('show');
