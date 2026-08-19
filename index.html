@@ -726,9 +726,9 @@ input{font-family:inherit;}
    z-index sibling, so when active it visually covers the topbar tagline
    and hero greeting in place, without touching or hiding their DOM.
    Normal state: display:none, zero footprint, zero risk to the Day Cycle
-   backdrop or greeting beneath it. Content source: contentRegistry.dayCycleTv
-   (see loadDayCycleTvFromSheet()) — same Sheet->AppsScript->registry
-   pattern as featuredReviews, not a new architecture.
+   backdrop or greeting beneath it. Content source: the daycycle_tv_* Config
+   keys (window.TKGShared.getConfig()) — an ON/OFF broadcast toggle set from
+   control_panel.html, not a scheduled Sheet-row list.
    ========================================================================== */
 .day-cycle-tv{
   position:absolute;
@@ -3288,8 +3288,8 @@ textarea.field-input{
   <div class="hero-weather-backdrop" id="heroWeatherBackdrop" aria-hidden="true"></div>
 
   <!-- ============ DAY CYCLE TV — Sprint (2026-08-19). Same box as the
-       backdrop above, hidden until an active contentRegistry.dayCycleTv
-       item exists. See maybePlayDayCycleTv() / loadDayCycleTvFromSheet(). ============ -->
+       backdrop above, hidden until daycycle_tv_enabled is 'true' in
+       Config. See startDayCycleTvWatcher() / dayCycleTvPollAndMaybeStart(). ============ -->
   <div class="day-cycle-tv" id="dayCycleTvLayer" aria-hidden="true">
     <video id="dayCycleTvVideo" muted playsinline webkit-playsinline="true"></video>
     <div class="tv-static" id="dayCycleTvStatic"></div>
@@ -4388,12 +4388,10 @@ const contentRegistry = {
   ],
   polls: [],               // reserved — Phase D
   educationalPosts: [],    // reserved — future
-  announcements: [],       // reserved — future
-  // Day Cycle TV — Sprint (2026-08-19). Sheet-only, no hardcoded fallback:
-  // this only ever plays when the Sheet actually supplies a real active
-  // item (see loadDayCycleTvFromSheet() below). Same shape as tagline/
-  // featuredReviews (status/order/startDate/endDate) plus videoUrl/link.
-  dayCycleTv: []
+  announcements: []        // reserved — future
+  // Day Cycle TV moved out of contentRegistry (2026-08-19) — it's a live
+  // ON/OFF broadcast toggle now (daycycle_tv_* Config keys, see below),
+  // not a scheduled/lifecycle content item. See dayCycleTvPollAndMaybeStart().
 };
 
 // ---------------------------------------------------------------------------
@@ -4453,68 +4451,69 @@ function loadFeaturedReviewsFromSheet(){
 loadFeaturedReviewsFromSheet();
 
 // ---------------------------------------------------------------------------
-// DAY CYCLE TV — Sprint (2026-08-19). Same fetch pattern as
-// loadFeaturedReviewsFromSheet() directly above — this file's own
-// APP_SCRIPT_URL, a new '?action=dayCycleTv' branch mirroring the
-// featuredReviews one server-side. On any failure or empty Sheet, the
-// layer simply never activates and the normal Day Cycle backdrop is all
-// that's ever shown — same offline-safe fallback shape used everywhere
-// else in this file. Plays at most once per page load (see
-// __tkgDayCycleTvPlayed guard in maybePlayDayCycleTv) — this is a first
-// proof of one active item, not a rotation/loop system yet.
+// DAY CYCLE TV — Config-driven ON/OFF broadcast (2026-08-19, Phase 2).
+// Replaces the earlier one-shot dayCycleTv contentRegistry/Sheet mechanism
+// entirely — retired, not kept alongside this. Source of truth is the
+// daycycle_tv_enabled/media_url/link/duration_seconds keys in the same
+// Config sheet + control_panel.html used for theme/proximity/moments/
+// runner (window.TKGShared.getConfig()/getCachedConfig()), not a separate
+// sheet or fetch action.
+//
+// While enabled and the Menu screen is active: CRT-on -> video plays for
+// duration_seconds -> CRT-off -> normal Day Cycle -> brief gap -> re-check
+// config -> repeat. Switching OFF from Control Panel is picked up on the
+// next re-check (a live watch loop), not instantly mid-broadcast.
 // ---------------------------------------------------------------------------
-function loadDayCycleTvFromSheet(){
-  if(APP_SCRIPT_URL.indexOf('PASTE_YOUR') !== -1) return;
-  fetch(APP_SCRIPT_URL + '?action=dayCycleTv')
-    .then(res => { if(!res.ok) throw new Error('dayCycleTv fetch failed: ' + res.status); return res.json(); })
-    .then(data => {
-      if(!data || data.status !== 'ok' || !Array.isArray(data.items) || data.items.length === 0) return;
-      contentRegistry.dayCycleTv = data.items;
-      maybePlayDayCycleTv();
-    })
-    .catch(err => {
-      console.warn('loadDayCycleTvFromSheet failed, Day Cycle TV stays off:', err);
-    });
-}
-loadDayCycleTvFromSheet();
+const DAYCYCLE_TV_PREROLL_MS = 900;   // normal Day Cycle visibly shown first
+const DAYCYCLE_TV_OFF_POLL_MS = 5000; // how often to re-check while OFF, so
+                                       // flipping ON while the customer is
+                                       // already on Menu gets noticed
 
-let __tkgDayCycleTvPlayed = false;
-function maybePlayDayCycleTv(){
-  if(__tkgDayCycleTvPlayed) return;
+let __tkgDayCycleTvWatching = false;    // true while the watch-loop is running
+let __tkgDayCycleTvCycleActive = false; // true during a single on-air cycle
+
+// ?tvdemo=1 dev-only override — bypasses live Config entirely so the TV UI
+// itself (CRT-on, static, playback, mute toggle, loop, revert) can be
+// proven with zero Sheet/Apps Script/Drive dependency. No effect at all
+// without the query param; production always reads real Config below.
+function dayCycleTvEffectiveConfig_(liveConfig){
+  if(new URLSearchParams(window.location.search).get('tvdemo') === '1'){
+    return { daycycle_tv_enabled: 'true', daycycle_tv_media_url: './tv-demo.webm', daycycle_tv_link: '', daycycle_tv_duration_seconds: '6' };
+  }
+  return liveConfig;
+}
+
+function startDayCycleTvWatcher(){
+  if(__tkgDayCycleTvWatching) return; // already watching
+  __tkgDayCycleTvWatching = true;
+  dayCycleTvPollAndMaybeStart();
+}
+
+function dayCycleTvPollAndMaybeStart(){
   const menuScreen = document.getElementById('screen-menu');
-  if(!menuScreen || !menuScreen.classList.contains('active')) return;
-  const active = renderContent('dayCycleTv');
-  if(!active.length || !active[0].videoUrl) return;
-  __tkgDayCycleTvPlayed = true;
-  // Brief pause so the normal Day Cycle greeting is visibly there first,
-  // per spec: "Normal Day Cycle -> brief transition -> content plays."
-  setTimeout(() => startDayCycleTv(active[0]), 900);
+  if(!menuScreen || !menuScreen.classList.contains('active')){
+    __tkgDayCycleTvWatching = false; // left the Menu screen — stop watching
+    return;
+  }
+  if(__tkgDayCycleTvCycleActive) return; // on-air; next poll happens when this cycle ends
+  const cached = window.TKGShared ? window.TKGShared.getConfig((liveConfig) => {
+    dayCycleTvMaybeStartFromConfig_(dayCycleTvEffectiveConfig_(liveConfig));
+  }) : null;
+  dayCycleTvMaybeStartFromConfig_(dayCycleTvEffectiveConfig_(cached));
 }
 
-// ---------------------------------------------------------------------------
-// DEV-ONLY DEMO FALLBACK — Day Cycle TV (2026-08-19). Opt-in ONLY via
-// ?tvdemo=1 in the URL. Seeds contentRegistry.dayCycleTv with a tiny local
-// test clip so the TV UI itself (CRT-on, static, playback, mute toggle,
-// auto-revert) can be proven with zero Sheet/Apps Script/Drive dependency.
-// Without the query param this block does nothing at all — production
-// behaviour (Sheet -> Apps Script -> contentRegistry, via
-// loadDayCycleTvFromSheet() above) is completely untouched. Placed AFTER
-// __tkgDayCycleTvPlayed/maybePlayDayCycleTv on purpose — it calls
-// maybePlayDayCycleTv() immediately, and calling it before the `let`
-// above executes throws a TDZ ReferenceError (caught during real-browser
-// testing, not by static syntax checking). Safe to delete this whole
-// block once the real Sheet path is confirmed working.
-// ---------------------------------------------------------------------------
-(function seedDayCycleTvDevDemo_(){
-  if(new URLSearchParams(window.location.search).get('tvdemo') !== '1') return;
-  if(contentRegistry.dayCycleTv.length > 0) return; // real Sheet data already won
-  contentRegistry.dayCycleTv = [{
-    id: 'dev-demo-tv', status: 'active', order: 1, startDate: null, endDate: null,
-    videoUrl: './tv-demo.webm', link: ''
-  }];
-  console.warn('[DEV] Day Cycle TV demo fallback active (?tvdemo=1) — playing local test clip, not Sheet data.');
-  maybePlayDayCycleTv();
-})();
+function dayCycleTvMaybeStartFromConfig_(cfg){
+  if(!__tkgDayCycleTvWatching || __tkgDayCycleTvCycleActive) return;
+  const enabled = cfg && cfg.daycycle_tv_enabled === 'true';
+  const mediaUrl = cfg && (cfg.daycycle_tv_media_url || '').trim();
+  if(!enabled || !mediaUrl){
+    setTimeout(dayCycleTvPollAndMaybeStart, DAYCYCLE_TV_OFF_POLL_MS);
+    return;
+  }
+  const durationSeconds = Math.max(5, Number(cfg.daycycle_tv_duration_seconds) || 30);
+  __tkgDayCycleTvCycleActive = true;
+  setTimeout(() => startDayCycleTv({ videoUrl: mediaUrl, link: cfg.daycycle_tv_link || '' }, durationSeconds), DAYCYCLE_TV_PREROLL_MS);
+}
 
 // Mirrors moments.html's extractGoogleDriveId() exactly (2026-08-19) — kept
 // as its own copy here rather than pulled into tkg-shared.js, since this
@@ -4530,7 +4529,7 @@ function extractGoogleDriveId_(rawUrl){
   return null;
 }
 
-function startDayCycleTv(item){
+function startDayCycleTv(item, durationSeconds){
   const layer = document.getElementById('dayCycleTvLayer');
   const video = document.getElementById('dayCycleTvVideo');
   const staticEl = document.getElementById('dayCycleTvStatic');
@@ -4542,11 +4541,15 @@ function startDayCycleTv(item){
   // won't play directly in a <video> tag, so a Drive file ID gets routed
   // through the /api/stream proxy (stream.js) exactly like Moments does.
   // If the URL isn't a recognizable Drive link, it's used as-is — covers
-  // a direct/self-hosted video URL pasted into the Sheet instead.
+  // a direct/self-hosted video URL from Control Panel instead.
   const fileId = extractGoogleDriveId_(item.videoUrl);
   const streamUrl = fileId ? `/api/stream?id=${fileId}` : item.videoUrl;
   video.src = streamUrl;
   video.muted = true;
+  // Loops so a clip shorter than the configured duration still fills the
+  // whole broadcast; the duration timer below (not 'ended') decides when
+  // the cycle actually stops, per the Control Panel's Duration field.
+  video.loop = true;
   staticEl.classList.remove('fade-out');
   muteHint.classList.remove('show');
   muteHint.textContent = '🔇';
@@ -4570,14 +4573,14 @@ function startDayCycleTv(item){
     muteHint.classList.add('show');
   }, { once: true });
 
-  video.addEventListener('ended', () => stopDayCycleTv(), { once: true });
-
   layer.addEventListener('animationend', function onCrtOn(e){
     if(e.animationName === 'tv-crt-on'){
       layer.classList.remove('tv-crt-on');
       layer.removeEventListener('animationend', onCrtOn);
     }
   });
+
+  setTimeout(() => stopDayCycleTv(), durationSeconds * 1000);
 }
 
 function stopDayCycleTv(){
@@ -4591,8 +4594,13 @@ function stopDayCycleTv(){
       layer.setAttribute('aria-hidden', 'true');
       video.pause();
       video.removeAttribute('src');
+      video.loop = false;
       video.load();
       layer.removeEventListener('animationend', onCrtOff);
+      __tkgDayCycleTvCycleActive = false;
+      // Repeat while still ON, per the broadcast model — re-checks Config
+      // fresh, so an OFF flipped during this cycle takes effect here.
+      dayCycleTvPollAndMaybeStart();
     }
   });
 }
@@ -5730,7 +5738,7 @@ function showScreen(id){
   // becomes the active screen and cancels the moment it isn't. This does
   // not change screen routing, journey visibility, or any frozen logic —
   // showScreen()'s own behavior above this line is untouched.
-  if(id === 'screen-menu'){ startTasteDiscoveryTimer(); updateWxBackdropSpan(); maybePlayDayCycleTv(); }
+  if(id === 'screen-menu'){ startTasteDiscoveryTimer(); updateWxBackdropSpan(); startDayCycleTvWatcher(); }
   else{ cancelTasteDiscoveryTimer(); }
   // Journey screen back button — hidden for a genuine first-time visitor
   // (no saved journey to go back to), shown if a customer who already has

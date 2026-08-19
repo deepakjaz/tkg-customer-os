@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>TKG — Control Panel</title>
+<meta name="theme-color" content="#160F0C">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="TKG Control Panel — staff-only, PIN-gated motherboard for presentation controls and feature switches">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+        .then((reg) => { reg.update(); })
+        .catch((err) => { console.error('[SW] Registration failed:', err); });
+    });
+  }
+</script>
+
+<style>
+/* ==========================================================================
+   TOKENS — reused verbatim from dashboard.html's dark palette so the
+   Control Panel reads as the same staff-only surface, not a new product.
+   ========================================================================== */
+:root{
+  --charcoal:       #160F0C;
+  --ember-card:     #2A1E17;
+  --ember-card-top: #32241B;
+  --marble:         #FAF7F2;
+  --grey-line:      #3D2E24;
+  --ink:            #1C1815;
+  --grey-warm:      #8A8278;
+
+  --ember:          #E85D2C;
+  --ember-bright:   #FF7A45;
+  --gold:           #C9A24B;
+  --gold-bright:    #E0C170;
+  --success:        #4C7A4C;
+  --danger:         #B5392F;
+
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --max-w: 430px;
+
+  --font-display: 'Charcoal-Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{
+  background:var(--charcoal);
+  color:var(--marble);
+  font-family:var(--font-body);
+  -webkit-tap-highlight-color:transparent;
+  height:100%;
+}
+body{display:flex; justify-content:center; min-height:100vh; min-height:100dvh;}
+button{font-family:inherit; cursor:pointer;}
+input,textarea{font-family:inherit;}
+::selection{background:var(--ember); color:var(--marble);}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+}
+.hidden{display:none !important;}
+
+.shell{
+  width:100%;
+  max-width:var(--max-w);
+  min-height:100vh;
+  min-height:100dvh;
+  background:var(--charcoal);
+  display:flex;
+  flex-direction:column;
+}
+.screen{flex:1; display:none; flex-direction:column; padding:0 20px 40px; animation:fade-in 0.35s ease;}
+.screen.active{display:flex;}
+@keyframes fade-in{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.dash-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding-top:18px;
+  margin-bottom:18px;
+}
+.dash-title{font-family:var(--font-display); font-weight:800; font-size:1.375rem; color:var(--marble);}
+.dash-close{
+  background:none;
+  border:1px solid var(--grey-line);
+  color:var(--grey-warm);
+  width:34px; height:34px;
+  border-radius:50%;
+  font-size:1rem;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* PIN gate — identical markup/logic/localStorage key to dashboard.html,
+   so a PIN already set on this device unlocks both. */
+.pin-gate{display:flex; flex-direction:column; flex:1; justify-content:center; gap:16px;}
+.pin-gate p{text-align:center; color:var(--grey-warm); font-size:0.8125rem;}
+.pin-input{
+  width:100%;
+  padding:16px;
+  border-radius:var(--radius-md);
+  border:1.5px solid var(--grey-line);
+  background:var(--ember-card);
+  color:var(--marble);
+  font-size:1.25rem;
+  letter-spacing:0.3em;
+  text-align:center;
+  outline:none;
+}
+.pin-input:focus{border-color:var(--ember);}
+
+.btn-primary{
+  width:100%;
+  padding:16px;
+  border-radius:var(--radius-md);
+  border:none;
+  background:linear-gradient(180deg, var(--ember-bright), var(--ember));
+  color:var(--marble);
+  font-size:1rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+  box-shadow:0 8px 18px -6px rgba(232,93,44,0.55);
+  transition:transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn-primary:active{transform:translateY(1px) scale(0.99); box-shadow:0 4px 10px -4px rgba(232,93,44,0.5);}
+.btn-primary:disabled{opacity:0.55; box-shadow:none;}
+
+.dash-section-label{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:0.7812rem;
+  color:var(--gold-bright);
+  letter-spacing:0.05em;
+  margin:22px 0 10px;
+  text-transform:uppercase;
+}
+.cp-section:first-of-type + .dash-section-label,
+.dash-header + .dash-section-label{margin-top:4px;}
+
+.cp-section{
+  background:var(--ember-card);
+  border:1px solid var(--grey-line);
+  border-radius:var(--radius-lg);
+  padding:16px 16px 6px;
+  margin-bottom:4px;
+}
+.cp-field{margin-bottom:14px;}
+.cp-label{
+  display:block;
+  font-size:0.6875rem;
+  font-weight:700;
+  letter-spacing:0.04em;
+  color:var(--grey-warm);
+  margin-bottom:6px;
+  text-transform:uppercase;
+}
+.cp-input{
+  width:100%;
+  padding:12px 13px;
+  border-radius:var(--radius-sm);
+  border:1.5px solid var(--grey-line);
+  background:var(--charcoal);
+  color:var(--marble);
+  font-size:0.9375rem;
+  outline:none;
+  transition:border-color 0.15s ease;
+}
+.cp-input::placeholder{color:#6B5F53;}
+.cp-input:focus{border-color:var(--ember);}
+.cp-hint{font-size:0.6875rem; color:var(--grey-warm); margin-top:5px; line-height:1.4;}
+
+/* Segmented control — reuses the existing button vocabulary (btn-secondary
+   pill + ember active state, same pattern as .lang-btn/.text-size-btn)
+   instead of introducing a new toggle-switch widget. */
+.cp-seg{display:flex; gap:6px; flex-wrap:wrap;}
+.cp-seg-btn{
+  flex:1;
+  min-width:84px;
+  padding:10px 8px;
+  border-radius:var(--radius-sm);
+  border:1.5px solid var(--grey-line);
+  background:var(--charcoal);
+  color:var(--grey-warm);
+  font-size:0.75rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+  text-align:center;
+  transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.cp-seg-btn.active{
+  background:rgba(232,93,44,0.16);
+  border-color:var(--ember);
+  color:var(--ember-bright);
+}
+
+.cp-highlight-slot{
+  border-top:1px solid var(--grey-line);
+  padding-top:12px;
+  margin-top:12px;
+}
+.cp-highlight-slot:first-child{border-top:none; padding-top:0; margin-top:0;}
+.cp-slot-num{
+  font-family:var(--font-mono);
+  font-size:0.6875rem;
+  color:var(--gold-bright);
+  margin-bottom:8px;
+  letter-spacing:0.04em;
+}
+
+.cp-save-bar{
+  position:sticky;
+  bottom:0;
+  background:linear-gradient(180deg, transparent, var(--charcoal) 30%);
+  padding:16px 0 calc(14px + env(safe-area-inset-bottom, 0px));
+  margin-top:10px;
+}
+.cp-status{
+  text-align:center;
+  font-size:0.75rem;
+  margin-bottom:10px;
+  min-height:1em;
+  color:var(--grey-warm);
+}
+.cp-status.ok{color:var(--success);}
+.cp-status.err{color:var(--danger);}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:24px;
+  transform:translateX(-50%) translateY(140%);
+  background:var(--ember-card-top);
+  color:var(--marble);
+  border:1px solid var(--grey-line);
+  padding:12px 18px;
+  border-radius:var(--radius-md);
+  font-size:0.8125rem;
+  box-shadow:0 12px 30px rgba(0,0,0,0.4);
+  transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
+  z-index:9999;
+  max-width:calc(100% - 40px);
+  text-align:center;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="shell" id="shell">
+  <section class="screen active" id="screen-panel">
+
+    <div class="dash-header">
+      <h1 class="dash-title">Control Panel</h1>
+      <button class="dash-close" id="closeBtn" title="Close" aria-label="Close">✕</button>
+    </div>
+
+    <!-- PIN gate — same tkg_owner_pin localStorage key as dashboard.html -->
+    <div class="pin-gate" id="pinGate">
+      <p>Enter the owner PIN to continue.</p>
+      <input class="pin-input" id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+      <button class="btn-primary" id="pinSubmitBtn">Unlock</button>
+    </div>
+
+    <!-- Panel content — hidden until unlocked -->
+    <div id="panelContent" class="hidden">
+
+      <p class="cp-hint" id="loadStatus" style="margin-bottom:14px;">Loading current config…</p>
+
+      <div class="dash-section-label">Day Cycle TV</div>
+      <div class="cp-section">
+        <div class="cp-field">
+          <label class="cp-label">Broadcast</label>
+          <div class="cp-seg" id="daycycleTvEnabledSeg">
+            <button type="button" class="cp-seg-btn" data-value="false">Off</button>
+            <button type="button" class="cp-seg-btn" data-value="true">On</button>
+          </div>
+          <p class="cp-hint">When On, the Day Cycle repeats this broadcast on the Menu screen until switched Off.</p>
+        </div>
+        <div class="cp-field">
+          <label class="cp-label">Media URL</label>
+          <input class="cp-input" id="daycycleTvMediaUrl" placeholder="Google Drive video link">
+        </div>
+        <div class="cp-field">
+          <label class="cp-label">Optional Action Link</label>
+          <input class="cp-input" id="daycycleTvLink" placeholder="Where it goes when tapped">
+        </div>
+        <div class="cp-field" style="margin-bottom:0;">
+          <label class="cp-label">Duration (seconds)</label>
+          <input class="cp-input" id="daycycleTvDuration" type="number" min="5" max="120" placeholder="30">
+        </div>
+      </div>
+
+      <div class="dash-section-label">Hub Highlights</div>
+      <div class="cp-section" id="hubHighlightsSection">
+        <!-- 4 fixed slots, generated by JS -->
+      </div>
+
+      <div class="dash-section-label">Theme</div>
+      <div class="cp-section">
+        <div class="cp-field" style="margin-bottom:0;">
+          <label class="cp-label">Mode</label>
+          <div class="cp-seg" id="themeModeSeg">
+            <button type="button" class="cp-seg-btn" data-value="auto">Auto</button>
+            <button type="button" class="cp-seg-btn" data-value="light">Light</button>
+            <button type="button" class="cp-seg-btn" data-value="dark">Dark</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-section-label">Feature Toggles</div>
+      <div class="cp-section">
+        <div class="cp-field">
+          <label class="cp-label">Proximity Nudge</label>
+          <div class="cp-seg" id="proximitySeg">
+            <button type="button" class="cp-seg-btn" data-value="false">Off</button>
+            <button type="button" class="cp-seg-btn" data-value="true">On</button>
+          </div>
+        </div>
+        <div class="cp-field">
+          <label class="cp-label">Moments Uploads</label>
+          <div class="cp-seg" id="momentsSeg">
+            <button type="button" class="cp-seg-btn" data-value="open">Open</button>
+            <button type="button" class="cp-seg-btn" data-value="readonly">Read-Only</button>
+          </div>
+        </div>
+        <div class="cp-field" style="margin-bottom:0;">
+          <label class="cp-label">Khichiya Runner</label>
+          <div class="cp-seg" id="runnerSeg">
+            <button type="button" class="cp-seg-btn" data-value="active">Active</button>
+            <button type="button" class="cp-seg-btn" data-value="maintenance">Maintenance</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cp-save-bar">
+        <p class="cp-status" id="saveStatus"></p>
+        <button class="btn-primary" id="saveBtn">Save Changes</button>
+      </div>
+
+    </div>
+
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="tkg-shared.js"></script>
+<script>
+// ---------------------------------------------------------------------------
+// OWNER PIN — identical logic and localStorage keys to dashboard.html, so a
+// PIN already set on this device unlocks both pages. No separate auth system.
+// ---------------------------------------------------------------------------
+const OWNER_PIN_KEY = 'tkg_owner_pin';
+const OWNER_PIN_IS_DEFAULT_KEY = 'tkg_owner_pin_is_default';
+function getOwnerPin(){
+  try{
+    let pin = localStorage.getItem(OWNER_PIN_KEY);
+    if(!pin){
+      pin = '1234';
+      localStorage.setItem(OWNER_PIN_KEY, pin);
+      localStorage.setItem(OWNER_PIN_IS_DEFAULT_KEY, 'true');
+    }
+    return pin;
+  }catch(e){ return '1234'; }
+}
+function isOwnerPinDefault(){
+  try{ return localStorage.getItem(OWNER_PIN_IS_DEFAULT_KEY) === 'true'; }
+  catch(e){ return false; }
+}
+
+let toastTimer;
+function showToast(msg){
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+document.getElementById('closeBtn').addEventListener('click', () => {
+  window.location.href = 'dashboard.html';
+});
+
+document.getElementById('pinSubmitBtn').addEventListener('click', unlockPanel);
+document.getElementById('pinInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') unlockPanel();
+});
+
+function unlockPanel(){
+  const val = document.getElementById('pinInput').value;
+  if(val === getOwnerPin()){
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinGate').style.display = 'none';
+    document.getElementById('panelContent').classList.remove('hidden');
+    if(isOwnerPinDefault()){
+      showToast('Using the default PIN — change it from Dashboard ⚙ Owner Settings');
+    }
+    loadConfig();
+  }else{
+    showToast('Incorrect PIN');
+    document.getElementById('pinInput').value = '';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SEGMENTED CONTROLS — plain click-to-select, mirrors the existing
+// lang-btn/text-size-btn active-state pattern rather than a new widget.
+// ---------------------------------------------------------------------------
+function setSeg(segId, value){
+  const seg = document.getElementById(segId);
+  seg.querySelectorAll('.cp-seg-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.value === String(value));
+  });
+}
+function getSeg(segId){
+  const seg = document.getElementById(segId);
+  const active = seg.querySelector('.cp-seg-btn.active');
+  return active ? active.dataset.value : seg.querySelector('.cp-seg-btn').dataset.value;
+}
+document.querySelectorAll('.cp-seg').forEach((seg) => {
+  seg.addEventListener('click', (e) => {
+    const btn = e.target.closest('.cp-seg-btn');
+    if(!btn) return;
+    seg.querySelectorAll('.cp-seg-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// HUB HIGHLIGHTS — 4 fixed slots (title / image / link), order is the
+// slot's position in the array (slot 1 = order 0, etc.) rather than a
+// separate numeric field, since 4 fixed slots already imply order.
+// ---------------------------------------------------------------------------
+const HUB_SLOT_COUNT = 4;
+function renderHubSlots(){
+  const wrap = document.getElementById('hubHighlightsSection');
+  let html = '';
+  for(let i = 0; i < HUB_SLOT_COUNT; i++){
+    html += `
+      <div class="cp-highlight-slot">
+        <div class="cp-slot-num">SLOT ${i + 1}</div>
+        <div class="cp-field">
+          <label class="cp-label">Title</label>
+          <input class="cp-input" id="hubTitle${i}" placeholder="e.g. Today's Special">
+        </div>
+        <div class="cp-field">
+          <label class="cp-label">Image / Icon URL</label>
+          <input class="cp-input" id="hubImage${i}" placeholder="Optional">
+        </div>
+        <div class="cp-field" style="${i === HUB_SLOT_COUNT - 1 ? 'margin-bottom:0;' : ''}">
+          <label class="cp-label">Destination Link</label>
+          <input class="cp-input" id="hubLink${i}" placeholder="Where tapping this goes">
+        </div>
+      </div>`;
+  }
+  wrap.innerHTML = html;
+}
+function fillHubSlots(highlights){
+  for(let i = 0; i < HUB_SLOT_COUNT; i++){
+    const slot = (highlights && highlights[i]) || {};
+    document.getElementById(`hubTitle${i}`).value = slot.title || '';
+    document.getElementById(`hubImage${i}`).value = slot.image || '';
+    document.getElementById(`hubLink${i}`).value = slot.link || '';
+  }
+}
+function collectHubSlots(){
+  const out = [];
+  for(let i = 0; i < HUB_SLOT_COUNT; i++){
+    const title = document.getElementById(`hubTitle${i}`).value.trim();
+    const image = document.getElementById(`hubImage${i}`).value.trim();
+    const link = document.getElementById(`hubLink${i}`).value.trim();
+    if(title || image || link){
+      out.push({ title: title, image: image, link: link, order: i });
+    }
+  }
+  return out;
+}
+renderHubSlots();
+
+// ---------------------------------------------------------------------------
+// LOAD — populate fields from cached config immediately, then again once
+// the live refresh resolves (freshest source of truth wins at load time).
+// ---------------------------------------------------------------------------
+function populateFields(config){
+  setSeg('daycycleTvEnabledSeg', config.daycycle_tv_enabled === 'true' ? 'true' : 'false');
+  document.getElementById('daycycleTvMediaUrl').value = config.daycycle_tv_media_url || '';
+  document.getElementById('daycycleTvLink').value = config.daycycle_tv_link || '';
+  document.getElementById('daycycleTvDuration').value = config.daycycle_tv_duration_seconds || '30';
+
+  let highlights = [];
+  try{ highlights = JSON.parse(config.hub_highlights || '[]'); }catch(e){ highlights = []; }
+  fillHubSlots(Array.isArray(highlights) ? highlights : []);
+
+  setSeg('themeModeSeg', ['auto','light','dark'].includes(config.theme_mode) ? config.theme_mode : 'auto');
+  setSeg('proximitySeg', config.proximity_nudge_enabled === 'false' ? 'false' : 'true');
+  setSeg('momentsSeg', config.moments_uploads_mode === 'readonly' ? 'readonly' : 'open');
+  setSeg('runnerSeg', config.runner_mode === 'maintenance' ? 'maintenance' : 'active');
+}
+
+function loadConfig(){
+  const cached = window.TKGShared.getConfig((liveConfig) => {
+    populateFields(liveConfig);
+    document.getElementById('loadStatus').textContent = 'Current config loaded.';
+  });
+  populateFields(cached);
+}
+
+// ---------------------------------------------------------------------------
+// SAVE — gathers every field into the full config key set and writes it
+// via TKGShared.saveConfig (identity not required; PIN gate already
+// protects this page).
+// ---------------------------------------------------------------------------
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const saveBtn = document.getElementById('saveBtn');
+  const status = document.getElementById('saveStatus');
+  saveBtn.disabled = true;
+  status.className = 'cp-status';
+  status.textContent = 'Saving…';
+
+  const updates = {
+    daycycle_tv_enabled: getSeg('daycycleTvEnabledSeg'),
+    daycycle_tv_media_url: document.getElementById('daycycleTvMediaUrl').value.trim(),
+    daycycle_tv_link: document.getElementById('daycycleTvLink').value.trim(),
+    daycycle_tv_duration_seconds: document.getElementById('daycycleTvDuration').value.trim() || '30',
+    hub_highlights: JSON.stringify(collectHubSlots()),
+    theme_mode: getSeg('themeModeSeg'),
+    proximity_nudge_enabled: getSeg('proximitySeg'),
+    moments_uploads_mode: getSeg('momentsSeg'),
+    runner_mode: getSeg('runnerSeg')
+  };
+
+  const result = await window.TKGShared.saveConfig(updates);
+  saveBtn.disabled = false;
+  if(result.success){
+    status.classList.add('ok');
+    status.textContent = 'Saved.';
+    showToast('Control Panel changes saved');
+  }else{
+    status.classList.add('err');
+    status.textContent = (result.error && result.error.message) || 'Save failed.';
+  }
+});
+</script>
+</body>
+</html>

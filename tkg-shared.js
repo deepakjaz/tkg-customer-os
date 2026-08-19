@@ -894,6 +894,66 @@
   }
 
   // ========================================================
+  // CONTROL PANEL CONFIG — Sprint (2026-08-18)
+  // Cached-first read so surfaces never block on a network round trip
+  // before deciding what to show. getConfig() returns the cached copy
+  // immediately (or CONFIG_FALLBACK_ if nothing cached yet) and kicks
+  // off a background refresh; pass a callback to react once the live
+  // value lands (e.g. re-check a gate after refresh completes).
+  // ========================================================
+  const CONFIG_CACHE_KEY = 'tkg_control_config';
+  const CONFIG_FALLBACK_ = {
+    hub_highlights: '[]',
+    theme_mode: 'auto',
+    proximity_nudge_enabled: 'true',
+    moments_uploads_mode: 'open',
+    runner_mode: 'active',
+    daycycle_tv_enabled: 'false',
+    daycycle_tv_media_url: '',
+    daycycle_tv_link: '',
+    daycycle_tv_duration_seconds: '30'
+  };
+
+  function getCachedConfig() {
+    try {
+      const raw = localStorage.getItem(CONFIG_CACHE_KEY);
+      if (!raw) return Object.assign({}, CONFIG_FALLBACK_);
+      const parsed = JSON.parse(raw);
+      return Object.assign({}, CONFIG_FALLBACK_, parsed);
+    } catch (e) {
+      return Object.assign({}, CONFIG_FALLBACK_);
+    }
+  }
+
+  function refreshConfig(onUpdate) {
+    fetchFromAppsScript('getConfig').then(function(result) {
+      if (result.success && result.data && result.data.status === 'ok' && result.data.config) {
+        try { localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify(result.data.config)); } catch (e) { }
+        if (typeof onUpdate === 'function') onUpdate(result.data.config);
+      }
+    }).catch(function(err) {
+      console.error('[tkg-shared] refreshConfig failed:', err);
+    });
+  }
+
+  // Reads instantly from cache and refreshes in the background.
+  function getConfig(onUpdate) {
+    const cached = getCachedConfig();
+    refreshConfig(onUpdate);
+    return cached;
+  }
+
+  // Write path for control_panel.html only — identity not required
+  // (the PIN gate, not customer identity, is what protects this).
+  async function saveConfig(updates) {
+    const result = await submitToAppsScript('updateConfig', { updates: updates }, { requireIdentity: false });
+    if (result.success && result.data && result.data.config) {
+      try { localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify(result.data.config)); } catch (e) { }
+    }
+    return result;
+  }
+
+  // ========================================================
   // PUBLIC API
   // ========================================================
   global.TKGShared = {
@@ -920,6 +980,10 @@
     recordJourneyEvent,
     // 200m proximity nudge — Sprint B (2026-08-15)
     checkProximityNudge,
+    // control panel config — cached-first read, background refresh (2026-08-18)
+    getConfig,
+    getCachedConfig,
+    saveConfig,
     // network
     submitToAppsScript,
     fetchFromAppsScript,
