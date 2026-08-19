@@ -4491,6 +4491,31 @@ function maybePlayDayCycleTv(){
   setTimeout(() => startDayCycleTv(active[0]), 900);
 }
 
+// ---------------------------------------------------------------------------
+// DEV-ONLY DEMO FALLBACK — Day Cycle TV (2026-08-19). Opt-in ONLY via
+// ?tvdemo=1 in the URL. Seeds contentRegistry.dayCycleTv with a tiny local
+// test clip so the TV UI itself (CRT-on, static, playback, mute toggle,
+// auto-revert) can be proven with zero Sheet/Apps Script/Drive dependency.
+// Without the query param this block does nothing at all — production
+// behaviour (Sheet -> Apps Script -> contentRegistry, via
+// loadDayCycleTvFromSheet() above) is completely untouched. Placed AFTER
+// __tkgDayCycleTvPlayed/maybePlayDayCycleTv on purpose — it calls
+// maybePlayDayCycleTv() immediately, and calling it before the `let`
+// above executes throws a TDZ ReferenceError (caught during real-browser
+// testing, not by static syntax checking). Safe to delete this whole
+// block once the real Sheet path is confirmed working.
+// ---------------------------------------------------------------------------
+(function seedDayCycleTvDevDemo_(){
+  if(new URLSearchParams(window.location.search).get('tvdemo') !== '1') return;
+  if(contentRegistry.dayCycleTv.length > 0) return; // real Sheet data already won
+  contentRegistry.dayCycleTv = [{
+    id: 'dev-demo-tv', status: 'active', order: 1, startDate: null, endDate: null,
+    videoUrl: './tv-demo.webm', link: ''
+  }];
+  console.warn('[DEV] Day Cycle TV demo fallback active (?tvdemo=1) — playing local test clip, not Sheet data.');
+  maybePlayDayCycleTv();
+})();
+
 // Mirrors moments.html's extractGoogleDriveId() exactly (2026-08-19) — kept
 // as its own copy here rather than pulled into tkg-shared.js, since this
 // sprint's scope is Day Cycle TV only, not a shared-utility refactor.
@@ -4535,7 +4560,10 @@ function startDayCycleTv(item){
 
   layer.setAttribute('aria-hidden', 'false');
   layer.classList.add('active', 'tv-crt-on');
-  video.play().catch(() => { /* autoplay blocked — layer stays visible, muted, tap to play */ });
+  video.addEventListener('error', () => {
+    console.error('[dayCycleTv] video error:', video.error && video.error.code, video.error && video.error.message);
+  }, { once: true });
+  video.play().catch((err) => { console.warn('[dayCycleTv] play() rejected:', err && err.message); /* autoplay blocked — layer stays visible, muted, tap to play */ });
 
   video.addEventListener('playing', () => {
     staticEl.classList.add('fade-out');
@@ -5702,7 +5730,7 @@ function showScreen(id){
   // becomes the active screen and cancels the moment it isn't. This does
   // not change screen routing, journey visibility, or any frozen logic —
   // showScreen()'s own behavior above this line is untouched.
-  if(id === 'screen-menu'){ startTasteDiscoveryTimer(); updateWxBackdropSpan(); }
+  if(id === 'screen-menu'){ startTasteDiscoveryTimer(); updateWxBackdropSpan(); maybePlayDayCycleTv(); }
   else{ cancelTasteDiscoveryTimer(); }
   // Journey screen back button — hidden for a genuine first-time visitor
   // (no saved journey to go back to), shown if a customer who already has
