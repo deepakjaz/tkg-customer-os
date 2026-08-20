@@ -236,6 +236,56 @@ input,textarea{font-family:inherit;}
 .cp-status.ok{color:var(--success);}
 .cp-status.err{color:var(--danger);}
 
+/* TV Media — Step 1 (2026-08-20). Reuses .cp-section/.cp-field/.cp-label/
+   .cp-input/.cp-seg-btn/.btn-primary verbatim; only two small additions:
+   a compact list row and a smaller secondary button for "Add", so the
+   full-width .btn-primary stays reserved for the page's main Save. */
+.cp-tv-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 0;
+  border-top:1px solid var(--grey-line);
+}
+.cp-tv-item:first-child{border-top:none;}
+.cp-tv-item-info{flex:1; min-width:0;}
+.cp-tv-item-title{font-size:0.875rem; font-weight:700; color:var(--marble);}
+.cp-tv-item-link{
+  font-size:0.6875rem;
+  color:var(--grey-warm);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.cp-tv-active-btn{
+  flex-shrink:0;
+  padding:8px 12px;
+  border-radius:var(--radius-sm);
+  border:1.5px solid var(--grey-line);
+  background:var(--charcoal);
+  color:var(--grey-warm);
+  font-size:0.6875rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+}
+.cp-tv-active-btn.active{
+  background:rgba(232,93,44,0.16);
+  border-color:var(--ember);
+  color:var(--ember-bright);
+}
+.btn-secondary{
+  width:100%;
+  padding:13px;
+  border-radius:var(--radius-md);
+  border:1.5px solid var(--grey-line);
+  background:transparent;
+  color:var(--gold-bright);
+  font-size:0.875rem;
+  font-weight:700;
+  letter-spacing:0.02em;
+}
+.btn-secondary:disabled{opacity:0.55;}
+
 .toast{
   position:fixed;
   left:50%;
@@ -285,19 +335,48 @@ input,textarea{font-family:inherit;}
             <button type="button" class="cp-seg-btn" data-value="false">Off</button>
             <button type="button" class="cp-seg-btn" data-value="true">On</button>
           </div>
-          <p class="cp-hint">When On, the Day Cycle repeats this broadcast on the Menu screen until switched Off.</p>
-        </div>
-        <div class="cp-field">
-          <label class="cp-label">Media URL</label>
-          <input class="cp-input" id="daycycleTvMediaUrl" placeholder="Google Drive video link">
+          <p class="cp-hint">When On, the Day Cycle broadcasts the active items from TV Media below on the Menu screen, repeating until switched Off.</p>
         </div>
         <div class="cp-field">
           <label class="cp-label">Optional Action Link</label>
           <input class="cp-input" id="daycycleTvLink" placeholder="Where it goes when tapped">
         </div>
         <div class="cp-field" style="margin-bottom:0;">
-          <label class="cp-label">Duration (seconds)</label>
-          <input class="cp-input" id="daycycleTvDuration" type="number" min="5" max="120" placeholder="30">
+          <label class="cp-label">Max Broadcast Window (seconds)</label>
+          <input class="cp-input" id="daycycleTvDuration" type="number" min="5" max="120" placeholder="60">
+          <p class="cp-hint">The ceiling for the whole broadcast (all active clips together), not a forced length per video.</p>
+        </div>
+      </div>
+
+      <div class="dash-section-label">TV Media</div>
+      <div class="cp-section" id="tvMediaListSection">
+        <p class="cp-hint" id="tvMediaListStatus">Loading media…</p>
+        <!-- existing items rendered here by JS -->
+      </div>
+      <div class="cp-section">
+        <div class="cp-field">
+          <label class="cp-label">Title</label>
+          <input class="cp-input" id="tvMediaTitle" placeholder="e.g. Society Cricket">
+        </div>
+        <div class="cp-field">
+          <label class="cp-label">Source</label>
+          <div class="cp-seg" id="tvMediaSourceSeg">
+            <button type="button" class="cp-seg-btn active" data-value="link">Paste Link</button>
+            <button type="button" class="cp-seg-btn" data-value="upload">Upload Video</button>
+          </div>
+        </div>
+        <div class="cp-field" id="tvMediaLinkField">
+          <label class="cp-label">Video Link</label>
+          <input class="cp-input" id="tvMediaLinkInput" placeholder="Public video link (YouTube, etc.)">
+        </div>
+        <div class="cp-field hidden" id="tvMediaUploadField">
+          <label class="cp-label">Video File</label>
+          <input class="cp-input" id="tvMediaFileInput" type="file" accept="video/*">
+          <p class="cp-hint">Goes into the TKG TV Media Drive folder, same upload as Moments.</p>
+        </div>
+        <div class="cp-field" style="margin-bottom:0;">
+          <button class="btn-secondary" id="tvMediaAddBtn" type="button">Add to TV Media</button>
+          <p class="cp-status" id="tvMediaAddStatus" style="margin-top:8px; margin-bottom:0;"></p>
         </div>
       </div>
 
@@ -407,6 +486,7 @@ function unlockPanel(){
       showToast('Using the default PIN — change it from Dashboard ⚙ Owner Settings');
     }
     loadConfig();
+    loadTvMedia();
   }else{
     showToast('Incorrect PIN');
     document.getElementById('pinInput').value = '';
@@ -489,14 +569,154 @@ function collectHubSlots(){
 renderHubSlots();
 
 // ---------------------------------------------------------------------------
+// TV MEDIA — Step 1 (2026-08-20). Deliberately its own load/save path, not
+// merged into the Config saveBtn flow below: this is a separate Sheet
+// (TV Media, not Control Panel Config) with its own doGet/doPost actions,
+// so it round-trips independently. Existing/generic bits reused as-is:
+// TKGShared.submitToAppsScript (Config's own save path already uses it),
+// the .cp-seg active-toggle click handler wired above, and the same
+// fileToBase64-style read used by moments.html's upload flow.
+// ---------------------------------------------------------------------------
+function tvMediaFileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('tvMediaSourceSeg').addEventListener('click', () => {
+  const isUpload = getSeg('tvMediaSourceSeg') === 'upload';
+  document.getElementById('tvMediaLinkField').classList.toggle('hidden', isUpload);
+  document.getElementById('tvMediaUploadField').classList.toggle('hidden', !isUpload);
+});
+
+function renderTvMediaList(items){
+  const wrap = document.getElementById('tvMediaListSection');
+  if(!items || !items.length){
+    wrap.innerHTML = '<p class="cp-hint">No media added yet.</p>';
+    return;
+  }
+  wrap.innerHTML = items.map((item) => `
+    <div class="cp-tv-item">
+      <div class="cp-tv-item-info">
+        <div class="cp-tv-item-title">${escapeTvMediaHtml_(item.title)}</div>
+        <div class="cp-tv-item-link">${escapeTvMediaHtml_(item.link)}</div>
+      </div>
+      <button type="button" class="cp-tv-active-btn ${item.active ? 'active' : ''}" data-row="${item.rowIndex}" data-active="${item.active}">
+        ${item.active ? 'Active' : 'Off'}
+      </button>
+    </div>
+  `).join('');
+
+  wrap.querySelectorAll('.cp-tv-active-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const rowIndex = btn.dataset.row;
+      const nextActive = btn.dataset.active !== 'true';
+      btn.disabled = true;
+      const result = await window.TKGShared.submitToAppsScript('setTvMediaActive', { rowIndex: rowIndex, active: nextActive }, { requireIdentity: false });
+      if(result && result.success && result.data && result.data.status === 'ok'){
+        renderTvMediaList(result.data.items);
+      }else{
+        btn.disabled = false;
+        showToast('Could not update that item — try again.');
+      }
+    });
+  });
+}
+function escapeTvMediaHtml_(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function loadTvMedia(){
+  window.TKGShared.fetchFromAppsScript('getTvMedia', null, { noCache: true })
+    .then((result) => {
+      if(result && result.success && result.data && result.data.status === 'ok'){
+        renderTvMediaList(result.data.items || []);
+      }else{
+        document.getElementById('tvMediaListStatus').textContent = 'Could not load TV Media.';
+      }
+    });
+}
+
+document.getElementById('tvMediaAddBtn').addEventListener('click', async () => {
+  const addBtn = document.getElementById('tvMediaAddBtn');
+  const status = document.getElementById('tvMediaAddStatus');
+  const title = document.getElementById('tvMediaTitle').value.trim();
+  const isUpload = getSeg('tvMediaSourceSeg') === 'upload';
+
+  if(!title){
+    status.className = 'cp-status err';
+    status.textContent = 'Title is required.';
+    return;
+  }
+
+  addBtn.disabled = true;
+  status.className = 'cp-status';
+
+  try{
+    let link = '';
+    if(isUpload){
+      const fileInput = document.getElementById('tvMediaFileInput');
+      const file = fileInput.files && fileInput.files[0];
+      if(!file){
+        status.className = 'cp-status err';
+        status.textContent = 'Choose a video file first.';
+        addBtn.disabled = false;
+        return;
+      }
+      status.textContent = 'Uploading…';
+      const base64 = await tvMediaFileToBase64(file);
+      const uploadResult = await window.TKGShared.submitToAppsScript('uploadTvMediaFile', { base64Data: base64, mimeType: file.type || 'video/mp4' }, { requireIdentity: false });
+      if(!uploadResult || !uploadResult.success || !uploadResult.data || uploadResult.data.status !== 'ok' || !uploadResult.data.url){
+        status.className = 'cp-status err';
+        status.textContent = 'Upload failed — try again.';
+        addBtn.disabled = false;
+        return;
+      }
+      link = uploadResult.data.url;
+    }else{
+      link = document.getElementById('tvMediaLinkInput').value.trim();
+      if(!link){
+        status.className = 'cp-status err';
+        status.textContent = 'Paste a video link first.';
+        addBtn.disabled = false;
+        return;
+      }
+    }
+
+    status.textContent = 'Saving…';
+    const addResult = await window.TKGShared.submitToAppsScript('addTvMedia', { title: title, link: link, active: true }, { requireIdentity: false });
+    if(addResult && addResult.success && addResult.data && addResult.data.status === 'ok'){
+      renderTvMediaList(addResult.data.items);
+      document.getElementById('tvMediaTitle').value = '';
+      document.getElementById('tvMediaLinkInput').value = '';
+      document.getElementById('tvMediaFileInput').value = '';
+      status.className = 'cp-status ok';
+      status.textContent = 'Added.';
+    }else{
+      status.className = 'cp-status err';
+      status.textContent = 'Could not save — try again.';
+    }
+  }catch(e){
+    status.className = 'cp-status err';
+    status.textContent = 'Something went wrong — try again.';
+  }finally{
+    addBtn.disabled = false;
+  }
+});
+
+// ---------------------------------------------------------------------------
 // LOAD — populate fields from cached config immediately, then again once
 // the live refresh resolves (freshest source of truth wins at load time).
 // ---------------------------------------------------------------------------
 function populateFields(config){
   setSeg('daycycleTvEnabledSeg', config.daycycle_tv_enabled === 'true' ? 'true' : 'false');
-  document.getElementById('daycycleTvMediaUrl').value = config.daycycle_tv_media_url || '';
   document.getElementById('daycycleTvLink').value = config.daycycle_tv_link || '';
-  document.getElementById('daycycleTvDuration').value = config.daycycle_tv_duration_seconds || '30';
+  document.getElementById('daycycleTvDuration').value = config.daycycle_tv_duration_seconds || '60';
 
   let highlights = [];
   try{ highlights = JSON.parse(config.hub_highlights || '[]'); }catch(e){ highlights = []; }
@@ -530,9 +750,8 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
 
   const updates = {
     daycycle_tv_enabled: getSeg('daycycleTvEnabledSeg'),
-    daycycle_tv_media_url: document.getElementById('daycycleTvMediaUrl').value.trim(),
     daycycle_tv_link: document.getElementById('daycycleTvLink').value.trim(),
-    daycycle_tv_duration_seconds: document.getElementById('daycycleTvDuration').value.trim() || '30',
+    daycycle_tv_duration_seconds: document.getElementById('daycycleTvDuration').value.trim() || '60',
     hub_highlights: JSON.stringify(collectHubSlots()),
     theme_mode: getSeg('themeModeSeg'),
     proximity_nudge_enabled: getSeg('proximitySeg'),

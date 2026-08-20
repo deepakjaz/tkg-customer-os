@@ -878,10 +878,17 @@
   // Does not require or attach identity — for public read endpoints.
   // Returns { success: true, data } or { success: false, error }.
   // ========================================================
-  async function fetchFromAppsScript(action, params) {
+  async function fetchFromAppsScript(action, params, options) {
     try {
-      const query = new URLSearchParams(Object.assign({ action: action }, params || {})).toString();
-      const response = await fetch(`${APP_SCRIPT_URL}?${query}`);
+      const opts = options || {};
+      const queryParams = Object.assign({ action: action }, params || {});
+      // noCache: bypasses the browser's HTTP cache for this GET. Plain GETs
+      // to the same Apps Script URL can otherwise be served stale by the
+      // browser — the root cause behind Control Panel needing repeated
+      // Saves before a customer-facing check saw the new value (2026-08-19).
+      if (opts.noCache) queryParams._t = Date.now();
+      const query = new URLSearchParams(queryParams).toString();
+      const response = await fetch(`${APP_SCRIPT_URL}?${query}`, opts.noCache ? { cache: 'no-store' } : undefined);
       const result = await response.json();
       return { success: true, data: result };
     } catch (err) {
@@ -909,9 +916,9 @@
     moments_uploads_mode: 'open',
     runner_mode: 'active',
     daycycle_tv_enabled: 'false',
-    daycycle_tv_media_url: '',
+    // daycycle_tv_media_url retired (2026-08-20, Phase 4) — see AppsScript.gs
     daycycle_tv_link: '',
-    daycycle_tv_duration_seconds: '30'
+    daycycle_tv_duration_seconds: '60'
   };
 
   function getCachedConfig() {
@@ -926,13 +933,18 @@
   }
 
   function refreshConfig(onUpdate) {
-    fetchFromAppsScript('getConfig').then(function(result) {
+    fetchFromAppsScript('getConfig', null, { noCache: true }).then(function(result) {
       if (result.success && result.data && result.data.status === 'ok' && result.data.config) {
         try { localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify(result.data.config)); } catch (e) { }
         if (typeof onUpdate === 'function') onUpdate(result.data.config);
+      } else if (typeof onUpdate === 'function') {
+        // Network/server error — fall back to the last known cache rather
+        // than leaving the caller waiting forever with no decision made.
+        onUpdate(getCachedConfig());
       }
     }).catch(function(err) {
       console.error('[tkg-shared] refreshConfig failed:', err);
+      if (typeof onUpdate === 'function') onUpdate(getCachedConfig());
     });
   }
 
@@ -984,6 +996,10 @@
     getConfig,
     getCachedConfig,
     saveConfig,
+    // force-fresh read, bypassing cache — for decisions that must see the
+    // latest state (e.g. Day Cycle TV deciding whether to start a new
+    // broadcast) (2026-08-19)
+    refreshConfig,
     // network
     submitToAppsScript,
     fetchFromAppsScript,

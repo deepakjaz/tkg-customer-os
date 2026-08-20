@@ -726,9 +726,11 @@ input{font-family:inherit;}
    z-index sibling, so when active it visually covers the topbar tagline
    and hero greeting in place, without touching or hiding their DOM.
    Normal state: display:none, zero footprint, zero risk to the Day Cycle
-   backdrop or greeting beneath it. Content source: the daycycle_tv_* Config
-   keys (window.TKGShared.getConfig()) — an ON/OFF broadcast toggle set from
-   control_panel.html, not a scheduled Sheet-row list.
+   backdrop or greeting beneath it. ON/OFF + link + max window come from
+   the daycycle_tv_* Config keys (window.TKGShared.getConfig()); WHICH
+   videos play comes from the TV Media sheet's active items (2026-08-20,
+   Phase 4 — see startDayCycleTvBroadcast_()/playDayCycleTvItem_()), not a
+   single Config-stored URL.
    ========================================================================== */
 .day-cycle-tv{
   position:absolute;
@@ -4464,55 +4466,146 @@ loadFeaturedReviewsFromSheet();
 // config -> repeat. Switching OFF from Control Panel is picked up on the
 // next re-check (a live watch loop), not instantly mid-broadcast.
 // ---------------------------------------------------------------------------
-const DAYCYCLE_TV_PREROLL_MS = 900;   // normal Day Cycle visibly shown first
-const DAYCYCLE_TV_OFF_POLL_MS = 5000; // how often to re-check while OFF, so
-                                       // flipping ON while the customer is
-                                       // already on Menu gets noticed
+// ---------------------------------------------------------------------------
+// DAY CYCLE TV — Multi-clip broadcast (2026-08-20, Phase 4).
+// Source of truth is now TWO things, not one: daycycle_tv_enabled/link/
+// duration_seconds still come from Config (unchanged keys/mechanism);
+// WHICH videos play now comes from the TV Media sheet's active items
+// (TKGShared 'getTvMedia', same reused mechanism as Control Panel's TV
+// Media list — see AppsScript.gs readTvMedia_()), not the retired
+// daycycle_tv_media_url Config key.
+//
+// The broadcast window (duration_seconds, default 60) belongs to the
+// WHOLE sequence, not one video: active items play in their existing
+// sheet order, each to its own natural end ('ended' advances to the
+// next), until either the list is exhausted or the cumulative window is
+// hit — whichever comes first. CRT-on/off wraps the whole sequence once,
+// not per clip (broadcast is continuous). Everything else — cooling gap,
+// force-fresh reads before starting a NEW broadcast, scroll pause/resume,
+// the once-per-session audio cue, same-tab/new-tab link routing — is the
+// existing Phase 3 mechanism, unchanged, just no longer scoped to one URL.
+//
+// Phase 5 (2026-08-20): the active set is now shuffled into a fresh runtime
+// order once per broadcast (dayCycleTvShuffle_(), called from
+// dayCycleTvMaybeStartFromConfig_ below) — the Sheet's own row order is
+// never touched, only a copy used for this one cycle. No reordering
+// mid-broadcast; the shuffled sequence is fixed once a broadcast starts.
+// ---------------------------------------------------------------------------
+const DAYCYCLE_TV_PREROLL_MS = 900;     // brief pause before the very first
+                                         // broadcast of a watch session only
+const DAYCYCLE_TV_COOLING_MS = 30000;   // fixed gap after a broadcast ends,
+                                         // before the next eligibility check
+const DAYCYCLE_TV_OFF_POLL_MS = 5000;   // how often to re-check while OFF
+                                         // or while no active media exists
+const DAYCYCLE_TV_MAX_WINDOW_FALLBACK_S = 60;
+const DAYCYCLE_TV_AUDIO_CUE_KEY = 'tkg_daycycle_tv_cue_played';
 
-let __tkgDayCycleTvWatching = false;    // true while the watch-loop is running
-let __tkgDayCycleTvCycleActive = false; // true during a single on-air cycle
+let __tkgDayCycleTvWatching = false;      // true while the watch-loop is running
+let __tkgDayCycleTvCycleActive = false;   // true during a single on-air broadcast
+let __tkgDayCycleTvStopping = false;      // idempotency guard within one broadcast
+let __tkgDayCycleTvMaxWindowTimer = null; // safety-cap timer for the WHOLE broadcast
+let __tkgDayCycleTvVisibilityObserver = null;
+let __tkgDayCycleTvAudioCtx = null;
+let __tkgDayCycleTvPlaylist = [];         // active items for the current broadcast
+let __tkgDayCycleTvPlaylistIndex = 0;     // which item is currently playing
 
-// ?tvdemo=1 dev-only override — bypasses live Config entirely so the TV UI
-// itself (CRT-on, static, playback, mute toggle, loop, revert) can be
-// proven with zero Sheet/Apps Script/Drive dependency. No effect at all
-// without the query param; production always reads real Config below.
+// ?tvdemo=1 dev-only override — bypasses live Config AND live TV Media
+// entirely so the TV UI itself can be proven with zero Sheet/Apps Script/
+// Drive dependency. No effect at all without the query param.
 function dayCycleTvEffectiveConfig_(liveConfig){
   if(new URLSearchParams(window.location.search).get('tvdemo') === '1'){
-    return { daycycle_tv_enabled: 'true', daycycle_tv_media_url: './tv-demo.webm', daycycle_tv_link: '', daycycle_tv_duration_seconds: '6' };
+    return { daycycle_tv_enabled: 'true', daycycle_tv_link: '', daycycle_tv_duration_seconds: '20' };
   }
   return liveConfig;
+}
+function dayCycleTvEffectiveMediaItems_(liveItems){
+  if(new URLSearchParams(window.location.search).get('tvdemo') === '1'){
+    // Two short demo entries so the "advance on ended" path is exercised
+    // by the same manual test that already proves single-clip playback,
+    // without needing a live TV Media sheet.
+    return [
+      { title: 'Demo Clip A', link: './tv-demo.webm', active: true, rowIndex: 1 },
+      { title: 'Demo Clip B', link: './tv-demo.webm', active: true, rowIndex: 2 }
+    ];
+  }
+  return liveItems;
 }
 
 function startDayCycleTvWatcher(){
   if(__tkgDayCycleTvWatching) return; // already watching
   __tkgDayCycleTvWatching = true;
-  dayCycleTvPollAndMaybeStart();
+  dayCycleTvPollAndMaybeStart(true);
 }
 
-function dayCycleTvPollAndMaybeStart(){
+// isFirstActivation: true only for the very first check of a watch session
+// (from startDayCycleTvWatcher) — controls whether the short pre-roll
+// applies. Every other call already had the 30s cooling period (or the
+// OFF-poll gap) as its "settle" time and starts immediately once confirmed
+// still enabled with active media.
+function dayCycleTvPollAndMaybeStart(isFirstActivation){
   const menuScreen = document.getElementById('screen-menu');
   if(!menuScreen || !menuScreen.classList.contains('active')){
     __tkgDayCycleTvWatching = false; // left the Menu screen — stop watching
     return;
   }
   if(__tkgDayCycleTvCycleActive) return; // on-air; next poll happens when this cycle ends
-  const cached = window.TKGShared ? window.TKGShared.getConfig((liveConfig) => {
-    dayCycleTvMaybeStartFromConfig_(dayCycleTvEffectiveConfig_(liveConfig));
-  }) : null;
-  dayCycleTvMaybeStartFromConfig_(dayCycleTvEffectiveConfig_(cached));
+  if(!window.TKGShared) return;
+  // Always force-fetch the freshest Config AND the freshest TV Media list
+  // before starting a NEW broadcast — never decide this from a possibly-
+  // stale cache (same reasoning as the earlier Config-only fix; an Active
+  // toggle flipped in Control Panel should be picked up on the very next
+  // eligibility check, not only after a page reload).
+  window.TKGShared.refreshConfig((liveConfig) => {
+    const cfg = dayCycleTvEffectiveConfig_(liveConfig);
+    if(!cfg || cfg.daycycle_tv_enabled !== 'true'){
+      setTimeout(() => dayCycleTvPollAndMaybeStart(false), DAYCYCLE_TV_OFF_POLL_MS);
+      return;
+    }
+    window.TKGShared.fetchFromAppsScript('getTvMedia', null, { noCache: true }).then((result) => {
+      const liveItems = (result && result.success && result.data && result.data.status === 'ok') ? (result.data.items || []) : [];
+      const items = dayCycleTvEffectiveMediaItems_(liveItems);
+      dayCycleTvMaybeStartFromConfig_(cfg, items, isFirstActivation);
+    });
+  });
 }
 
-function dayCycleTvMaybeStartFromConfig_(cfg){
+// Fisher-Yates on a fresh array — never mutates its input, so the Sheet's
+// own row order (what readTvMedia_() returns, what Control Panel displays)
+// is never touched. Called exactly once per broadcast, in
+// dayCycleTvMaybeStartFromConfig_ below — not per clip, not on every poll.
+function dayCycleTvShuffle_(arr){
+  const copy = arr.slice();
+  for(let i = copy.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+function dayCycleTvMaybeStartFromConfig_(cfg, items, isFirstActivation){
   if(!__tkgDayCycleTvWatching || __tkgDayCycleTvCycleActive) return;
-  const enabled = cfg && cfg.daycycle_tv_enabled === 'true';
-  const mediaUrl = cfg && (cfg.daycycle_tv_media_url || '').trim();
-  if(!enabled || !mediaUrl){
-    setTimeout(dayCycleTvPollAndMaybeStart, DAYCYCLE_TV_OFF_POLL_MS);
+  const activeItems = (items || []).filter((item) => item && item.active && item.link);
+  if(!activeItems.length){
+    setTimeout(() => dayCycleTvPollAndMaybeStart(false), DAYCYCLE_TV_OFF_POLL_MS);
     return;
   }
-  const durationSeconds = Math.max(5, Number(cfg.daycycle_tv_duration_seconds) || 30);
+  // Shuffle a runtime copy for THIS broadcast only. The active set itself
+  // (which items qualify) is still exactly what the Sheet/Control Panel
+  // says; only the play order for this one cycle is randomized.
+  const playlist = dayCycleTvShuffle_(activeItems);
+  const maxWindowSeconds = Math.max(5, Number(cfg.daycycle_tv_duration_seconds) || DAYCYCLE_TV_MAX_WINDOW_FALLBACK_S);
   __tkgDayCycleTvCycleActive = true;
-  setTimeout(() => startDayCycleTv({ videoUrl: mediaUrl, link: cfg.daycycle_tv_link || '' }, durationSeconds), DAYCYCLE_TV_PREROLL_MS);
+  __tkgDayCycleTvStopping = false;
+  __tkgDayCycleTvPlaylist = playlist;
+  __tkgDayCycleTvPlaylistIndex = 0;
+  const destinationLink = cfg.daycycle_tv_link || '';
+  if(isFirstActivation){
+    setTimeout(() => startDayCycleTvBroadcast_(destinationLink, maxWindowSeconds), DAYCYCLE_TV_PREROLL_MS);
+  }else{
+    startDayCycleTvBroadcast_(destinationLink, maxWindowSeconds);
+  }
 }
 
 // Mirrors moments.html's extractGoogleDriveId() exactly (2026-08-19) — kept
@@ -4529,49 +4622,107 @@ function extractGoogleDriveId_(rawUrl){
   return null;
 }
 
-function startDayCycleTv(item, durationSeconds){
-  const layer = document.getElementById('dayCycleTvLayer');
-  const video = document.getElementById('dayCycleTvVideo');
-  const staticEl = document.getElementById('dayCycleTvStatic');
-  const muteHint = document.getElementById('dayCycleTvMuteHint');
-  const moreLink = document.getElementById('dayCycleTvMoreLink');
-  if(!layer || !video) return;
-
-  // Same routing as moments.html's video playback: a Drive share link
-  // won't play directly in a <video> tag, so a Drive file ID gets routed
-  // through the /api/stream proxy (stream.js) exactly like Moments does.
-  // If the URL isn't a recognizable Drive link, it's used as-is — covers
-  // a direct/self-hosted video URL from Control Panel instead.
-  const fileId = extractGoogleDriveId_(item.videoUrl);
-  const streamUrl = fileId ? `/api/stream?id=${fileId}` : item.videoUrl;
-  video.src = streamUrl;
-  video.muted = true;
-  // Loops so a clip shorter than the configured duration still fills the
-  // whole broadcast; the duration timer below (not 'ended') decides when
-  // the cycle actually stops, per the Control Panel's Duration field.
-  video.loop = true;
-  staticEl.classList.remove('fade-out');
-  muteHint.classList.remove('show');
-  muteHint.textContent = '🔇';
-
-  if(item.link){
-    moreLink.href = item.link;
-    moreLink.style.display = '';
-  }else{
-    moreLink.style.display = 'none';
+// Point 6 — same-origin/relative URLs (Hub, a Moment, Runner, any other
+// internal TKG page) navigate in this tab, like the rest of the app's own
+// internal links; anything else opens in a new tab, matching the existing
+// convention already used for Instagram/WhatsApp/Google Review links.
+function dayCycleTvIsInternalLink_(url){
+  try{
+    const resolved = new URL(url, window.location.href);
+    return resolved.origin === window.location.origin;
+  }catch(e){
+    return false;
   }
+}
+
+function dayCycleTvSetupDestinationLink_(moreLink, link){
+  if(!link){
+    moreLink.style.display = 'none';
+    moreLink.removeAttribute('href');
+    return;
+  }
+  moreLink.href = link;
+  moreLink.style.display = '';
+  if(dayCycleTvIsInternalLink_(link)){
+    moreLink.removeAttribute('target');
+  }else{
+    moreLink.setAttribute('target', '_blank');
+    moreLink.setAttribute('rel', 'noopener');
+  }
+}
+
+// Point 4 — a short synthesized static/click burst (Web Audio API, no new
+// asset file) rather than a fixed length forced on the video. Autoplay
+// audio policies can still silently block this even after a recent tap;
+// failure here never affects the CRT/video sequence itself.
+function dayCycleTvPlayStaticCue_(){
+  try{
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+    if(!__tkgDayCycleTvAudioCtx) __tkgDayCycleTvAudioCtx = new Ctx();
+    const ctx = __tkgDayCycleTvAudioCtx;
+    if(ctx.state === 'suspended') ctx.resume().catch(() => {});
+    const duration = 0.18;
+    const bufferSize = Math.floor(ctx.sampleRate * duration);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i = 0; i < bufferSize; i++){
+      data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize) * 0.4; // fading noise burst
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.value = 0.5;
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.start();
+  }catch(e){
+    console.warn('[dayCycleTv] static cue failed (often just autoplay policy):', e && e.message);
+  }
+}
+
+// Point 5 — same threshold-based IntersectionObserver pattern already used
+// for video playback in moments.html (setupVideoObserver). Pausing/
+// resuming here never touches __tkgDayCycleTvCycleActive, the max-window
+// timer, or the CRT classes — the broadcast's own state is untouched by
+// scroll, only the video element's play/pause.
+function dayCycleTvSetupVisibilityPause_(layer, video){
+  if(__tkgDayCycleTvVisibilityObserver){
+    __tkgDayCycleTvVisibilityObserver.disconnect();
+  }
+  let pausedByScroll = false;
+  __tkgDayCycleTvVisibilityObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if(entry.intersectionRatio < 0.2){
+        if(!video.paused){
+          pausedByScroll = true;
+          video.pause();
+        }
+      }else if(entry.intersectionRatio >= 0.5){
+        if(pausedByScroll && video.paused){
+          pausedByScroll = false;
+          video.play().catch(() => {});
+        }
+      }
+    });
+  }, { threshold: [0.2, 0.5] });
+  __tkgDayCycleTvVisibilityObserver.observe(layer);
+}
+
+function startDayCycleTvBroadcast_(destinationLink, maxWindowSeconds){
+  const layer = document.getElementById('dayCycleTvLayer');
+  const moreLink = document.getElementById('dayCycleTvMoreLink');
+  if(!layer) return;
+
+  dayCycleTvSetupDestinationLink_(moreLink, destinationLink);
 
   layer.setAttribute('aria-hidden', 'false');
   layer.classList.add('active', 'tv-crt-on');
-  video.addEventListener('error', () => {
-    console.error('[dayCycleTv] video error:', video.error && video.error.code, video.error && video.error.message);
-  }, { once: true });
-  video.play().catch((err) => { console.warn('[dayCycleTv] play() rejected:', err && err.message); /* autoplay blocked — layer stays visible, muted, tap to play */ });
 
-  video.addEventListener('playing', () => {
-    staticEl.classList.add('fade-out');
-    muteHint.classList.add('show');
-  }, { once: true });
+  if(!sessionStorage.getItem(DAYCYCLE_TV_AUDIO_CUE_KEY)){
+    try{ sessionStorage.setItem(DAYCYCLE_TV_AUDIO_CUE_KEY, '1'); }catch(e){}
+    dayCycleTvPlayStaticCue_();
+  }
 
   layer.addEventListener('animationend', function onCrtOn(e){
     if(e.animationName === 'tv-crt-on'){
@@ -4580,10 +4731,86 @@ function startDayCycleTv(item, durationSeconds){
     }
   });
 
-  setTimeout(() => stopDayCycleTv(), durationSeconds * 1000);
+  const video = document.getElementById('dayCycleTvVideo');
+  dayCycleTvSetupVisibilityPause_(layer, video);
+
+  // Safety cap applies to the WHOLE broadcast (the sum of however many
+  // clips play), not any single clip — matches "the 60 seconds is a
+  // broadcast window" rather than a per-video limit.
+  __tkgDayCycleTvMaxWindowTimer = setTimeout(() => stopDayCycleTv(), maxWindowSeconds * 1000);
+
+  playDayCycleTvItem_(0);
+}
+
+// Plays __tkgDayCycleTvPlaylist[index]. On that clip's natural 'ended',
+// advances to index+1; once the list is exhausted, ends the broadcast —
+// same CRT-off/cooling-period path as before, just triggered by the last
+// clip instead of the only clip. video.src is swapped in place on the
+// same <video> element already set up by startDayCycleTvBroadcast_, so
+// the CRT frame, mute state, visibility pause, and destination link never
+// need to be touched again mid-broadcast.
+function playDayCycleTvItem_(index){
+  if(__tkgDayCycleTvStopping) return;
+  const video = document.getElementById('dayCycleTvVideo');
+  const staticEl = document.getElementById('dayCycleTvStatic');
+  const muteHint = document.getElementById('dayCycleTvMuteHint');
+  if(!video) return;
+
+  if(index >= __tkgDayCycleTvPlaylist.length){
+    clearTimeout(__tkgDayCycleTvMaxWindowTimer);
+    stopDayCycleTv();
+    return;
+  }
+  __tkgDayCycleTvPlaylistIndex = index;
+  const item = __tkgDayCycleTvPlaylist[index];
+
+  // Same routing as moments.html's video playback: a Drive share link
+  // won't play directly in a <video> tag, so a Drive file ID gets routed
+  // through the /api/stream proxy (stream.js) exactly like Moments does.
+  const fileId = extractGoogleDriveId_(item.link);
+  const streamUrl = fileId ? `/api/stream?id=${fileId}` : item.link;
+  video.src = streamUrl;
+  video.muted = true;
+  video.loop = false;
+
+  // Only the very first clip of a broadcast shows the CRT-static wash and
+  // the mute-hint appearing — from clip 2 onward the frame is already
+  // "on air", so those cues don't need to repeat between clips.
+  if(index === 0){
+    staticEl.classList.remove('fade-out');
+    muteHint.classList.remove('show');
+    muteHint.textContent = '🔇';
+  }
+
+  video.addEventListener('error', () => {
+    console.error('[dayCycleTv] video error on item', index, ':', video.error && video.error.code, video.error && video.error.message);
+    // A broken link shouldn't hang the whole broadcast — skip to the next
+    // active item instead of stalling on a dead clip until the safety cap.
+    playDayCycleTvItem_(index + 1);
+  }, { once: true });
+
+  video.play().catch((err) => { console.warn('[dayCycleTv] play() rejected on item', index, ':', err && err.message); });
+
+  if(index === 0){
+    video.addEventListener('playing', () => {
+      staticEl.classList.add('fade-out');
+      muteHint.classList.add('show');
+    }, { once: true });
+  }
+
+  video.addEventListener('ended', () => {
+    playDayCycleTvItem_(index + 1);
+  }, { once: true });
 }
 
 function stopDayCycleTv(){
+  if(__tkgDayCycleTvStopping) return; // 'ended' and the max-window timer can both fire
+  __tkgDayCycleTvStopping = true;
+  clearTimeout(__tkgDayCycleTvMaxWindowTimer);
+  if(__tkgDayCycleTvVisibilityObserver){
+    __tkgDayCycleTvVisibilityObserver.disconnect();
+    __tkgDayCycleTvVisibilityObserver = null;
+  }
   const layer = document.getElementById('dayCycleTvLayer');
   const video = document.getElementById('dayCycleTvVideo');
   if(!layer || !video) return;
@@ -4594,13 +4821,14 @@ function stopDayCycleTv(){
       layer.setAttribute('aria-hidden', 'true');
       video.pause();
       video.removeAttribute('src');
-      video.loop = false;
       video.load();
       layer.removeEventListener('animationend', onCrtOff);
       __tkgDayCycleTvCycleActive = false;
-      // Repeat while still ON, per the broadcast model — re-checks Config
-      // fresh, so an OFF flipped during this cycle takes effect here.
-      dayCycleTvPollAndMaybeStart();
+      __tkgDayCycleTvPlaylist = [];
+      __tkgDayCycleTvPlaylistIndex = 0;
+      // Fixed 30s cooling period before the next eligibility check —
+      // unchanged from Phase 3.
+      setTimeout(() => dayCycleTvPollAndMaybeStart(false), DAYCYCLE_TV_COOLING_MS);
     }
   });
 }
