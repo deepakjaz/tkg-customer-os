@@ -764,6 +764,26 @@ input{font-family:inherit;}
   display:block;
   background:#0A0A0A;
 }
+/* YouTube player, Day Cycle TV Phase 6 (2026-08-20) — same box as the
+   native <video>, toggled with .hidden depending on which item type is
+   currently playing (see playDayCycleTvItem_()). object-fit:cover isn't a
+   real CSS property for an iframe's own content, so the iframe itself is
+   deliberately oversized (see dayCycleTvCreateYouTubePlayer_ playerVars
+   sizing) and this wrapper just clips it — same visual crop behavior as
+   the native video's object-fit:cover. */
+#dayCycleTvYouTube{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  background:#0A0A0A;
+}
+#dayCycleTvYouTube iframe{
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:100%; height:100%;
+  pointer-events:none; /* mute/pause controlled from our own mute-hint button, not YouTube's own controls */
+}
 .tv-static{
   position:absolute;
   inset:0;
@@ -3294,6 +3314,7 @@ textarea.field-input{
        Config. See startDayCycleTvWatcher() / dayCycleTvPollAndMaybeStart(). ============ -->
   <div class="day-cycle-tv" id="dayCycleTvLayer" aria-hidden="true">
     <video id="dayCycleTvVideo" muted playsinline webkit-playsinline="true"></video>
+    <div id="dayCycleTvYouTube" class="hidden"></div>
     <div class="tv-static" id="dayCycleTvStatic"></div>
     <button type="button" class="tv-mute-hint" id="dayCycleTvMuteHint" aria-label="Toggle sound">🔇</button>
     <a href="#" class="tv-more-link" id="dayCycleTvMoreLink" style="display:none;" target="_blank" rel="noopener">More Info →</a>
@@ -4686,7 +4707,139 @@ function dayCycleTvPlayStaticCue_(){
 // resuming here never touches __tkgDayCycleTvCycleActive, the max-window
 // timer, or the CRT classes — the broadcast's own state is untouched by
 // scroll, only the video element's play/pause.
-function dayCycleTvSetupVisibilityPause_(layer, video){
+// ---------------------------------------------------------------------------
+// YOUTUBE PLAYER — Phase 6 (2026-08-20). A second player type living in the
+// exact same #dayCycleTvLayer box as the native <video>, toggled per-item
+// (see playDayCycleTvItem_ below). Everything ABOVE the per-item player —
+// broadcast sequencing, the shuffle, the safety-cap timer, the once-per-
+// broadcast CRT transition, cooldown, preroll, destination link — is
+// completely untouched; this only changes what happens for a single item
+// when that item's link is a YouTube URL instead of a Drive/direct file.
+//
+// Real, disclosed constraint: YouTube's own branding (their logo/link) on
+// an embedded player cannot be removed — that's a YouTube Terms of Service
+// restriction, not an engineering gap. What CAN be minimized, and is
+// below: no visible controls, no related-video suggestions at the end, no
+// keyboard shortcuts capturing focus, no closed-caption/annotation clutter,
+// no fullscreen button, muted + inline autoplay to match the native
+// player's own behavior exactly.
+// ---------------------------------------------------------------------------
+let __tkgDayCycleTvYouTubeApiReady = false;
+let __tkgDayCycleTvYouTubeApiLoading = false;
+let __tkgDayCycleTvYouTubePlayer = null;      // one YT.Player instance, reused across YouTube items (loadVideoById swaps the video, same as video.src swapping)
+let __tkgDayCycleTvActivePlayerType = 'video'; // 'video' | 'youtube' — which player the current item is using
+
+// Recognizes watch, youtu.be, /shorts/, and /embed/ URL shapes. Returns
+// null (not a "no match" throw) for anything else, so callers can treat a
+// non-YouTube link exactly as before with a single falsy check.
+function dayCycleTvExtractYouTubeId_(url){
+  if(!url) return null;
+  let match = url.match(/youtube\.com\/watch\?[^#]*\bv=([a-zA-Z0-9_-]{6,})/);
+  if(match && match[1]) return match[1];
+  match = url.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/);
+  if(match && match[1]) return match[1];
+  match = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{6,})/);
+  if(match && match[1]) return match[1];
+  match = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{6,})/);
+  if(match && match[1]) return match[1];
+  return null;
+}
+
+// Loads the IFrame Player API script at most once per page load, however
+// many times this gets called. onReady fires the callback immediately if
+// the API is already loaded by the time this is called again.
+function dayCycleTvEnsureYouTubeApi_(onReady){
+  if(__tkgDayCycleTvYouTubeApiReady){ onReady(); return; }
+  if(!__tkgDayCycleTvYouTubeApiLoading){
+    __tkgDayCycleTvYouTubeApiLoading = true;
+    const existingCallback = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function(){
+      __tkgDayCycleTvYouTubeApiReady = true;
+      if(typeof existingCallback === 'function') existingCallback();
+      __tkgDayCycleTvYouTubeApiReadyCallbacks.forEach((cb) => cb());
+      __tkgDayCycleTvYouTubeApiReadyCallbacks = [];
+    };
+    const script = document.createElement('script');
+    script.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(script);
+  }
+  __tkgDayCycleTvYouTubeApiReadyCallbacks.push(onReady);
+}
+let __tkgDayCycleTvYouTubeApiReadyCallbacks = [];
+
+// Creates the single reusable YT.Player instance the first time a YouTube
+// item plays. Its onStateChange/onError handlers deliberately don't close
+// over a specific item's callbacks — they read __tkgDayCycleTvYouTubeCurrentHandlers
+// at the moment they fire, since the player instance is reused across every
+// subsequent YouTube item via loadVideoById() (constructor-time callbacks
+// would otherwise stay wired to whichever item was playing when the player
+// was first created).
+function dayCycleTvGetYouTubePlayer_(){
+  if(__tkgDayCycleTvYouTubePlayer) return __tkgDayCycleTvYouTubePlayer;
+  __tkgDayCycleTvYouTubePlayer = new YT.Player('dayCycleTvYouTube', {
+    width: '100%',
+    height: '100%',
+    playerVars: {
+      autoplay: 1,
+      mute: 1,
+      controls: 0,      // no visible scrub bar/play button
+      rel: 0,            // no related-video grid at the end
+      modestbranding: 1, // reduces (does not remove) the YouTube logo
+      playsinline: 1,    // no forced fullscreen takeover on iOS
+      fs: 0,              // no fullscreen button
+      disablekb: 1,       // no keyboard shortcuts stealing focus
+      iv_load_policy: 3,  // no annotation/info-card clutter
+      showinfo: 0
+    },
+    events: {
+      onStateChange: (e) => {
+        if(e.data === YT.PlayerState.ENDED && __tkgDayCycleTvYouTubeCurrentHandlers){
+          __tkgDayCycleTvYouTubeCurrentHandlers.onAdvance();
+        }
+      },
+      onError: () => {
+        if(__tkgDayCycleTvYouTubeCurrentHandlers) __tkgDayCycleTvYouTubeCurrentHandlers.onError();
+      }
+    }
+  });
+  return __tkgDayCycleTvYouTubePlayer;
+}
+
+// Generalized (2026-08-20, Phase 6) to pause/resume whichever player type
+// is currently active — __tkgDayCycleTvActivePlayerType is kept up to date
+// by playDayCycleTvItem_ on every item switch, so this always checks the
+// live value rather than being told which player to use at setup time.
+function dayCycleTvPauseActivePlayer_(){
+  if(__tkgDayCycleTvActivePlayerType === 'youtube'){
+    if(__tkgDayCycleTvYouTubePlayer && typeof __tkgDayCycleTvYouTubePlayer.pauseVideo === 'function'){
+      __tkgDayCycleTvYouTubePlayer.pauseVideo();
+    }
+  }else{
+    const video = document.getElementById('dayCycleTvVideo');
+    if(video && !video.paused) video.pause();
+  }
+}
+function dayCycleTvResumeActivePlayer_(){
+  if(__tkgDayCycleTvActivePlayerType === 'youtube'){
+    if(__tkgDayCycleTvYouTubePlayer && typeof __tkgDayCycleTvYouTubePlayer.playVideo === 'function'){
+      __tkgDayCycleTvYouTubePlayer.playVideo();
+    }
+  }else{
+    const video = document.getElementById('dayCycleTvVideo');
+    if(video && video.paused) video.play().catch(() => {});
+  }
+}
+
+function dayCycleTvIsActivePlayerPlaying_(){
+  if(__tkgDayCycleTvActivePlayerType === 'youtube'){
+    return !!(__tkgDayCycleTvYouTubePlayer && typeof __tkgDayCycleTvYouTubePlayer.getPlayerState === 'function'
+      && __tkgDayCycleTvYouTubePlayer.getPlayerState() === 1 /* YT.PlayerState.PLAYING */);
+  }
+  const video = document.getElementById('dayCycleTvVideo');
+  return !!(video && !video.paused);
+}
+
+function dayCycleTvSetupVisibilityPause_(layer){
   if(__tkgDayCycleTvVisibilityObserver){
     __tkgDayCycleTvVisibilityObserver.disconnect();
   }
@@ -4694,14 +4847,14 @@ function dayCycleTvSetupVisibilityPause_(layer, video){
   __tkgDayCycleTvVisibilityObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if(entry.intersectionRatio < 0.2){
-        if(!video.paused){
+        if(dayCycleTvIsActivePlayerPlaying_()){
           pausedByScroll = true;
-          video.pause();
+          dayCycleTvPauseActivePlayer_();
         }
       }else if(entry.intersectionRatio >= 0.5){
-        if(pausedByScroll && video.paused){
+        if(pausedByScroll){
           pausedByScroll = false;
-          video.play().catch(() => {});
+          dayCycleTvResumeActivePlayer_();
         }
       }
     });
@@ -4732,7 +4885,7 @@ function startDayCycleTvBroadcast_(destinationLink, maxWindowSeconds){
   });
 
   const video = document.getElementById('dayCycleTvVideo');
-  dayCycleTvSetupVisibilityPause_(layer, video);
+  dayCycleTvSetupVisibilityPause_(layer);
 
   // Safety cap applies to the WHOLE broadcast (the sum of however many
   // clips play), not any single clip — matches "the 60 seconds is a
@@ -4751,10 +4904,8 @@ function startDayCycleTvBroadcast_(destinationLink, maxWindowSeconds){
 // need to be touched again mid-broadcast.
 function playDayCycleTvItem_(index){
   if(__tkgDayCycleTvStopping) return;
-  const video = document.getElementById('dayCycleTvVideo');
   const staticEl = document.getElementById('dayCycleTvStatic');
   const muteHint = document.getElementById('dayCycleTvMuteHint');
-  if(!video) return;
 
   if(index >= __tkgDayCycleTvPlaylist.length){
     clearTimeout(__tkgDayCycleTvMaxWindowTimer);
@@ -4764,15 +4915,6 @@ function playDayCycleTvItem_(index){
   __tkgDayCycleTvPlaylistIndex = index;
   const item = __tkgDayCycleTvPlaylist[index];
 
-  // Same routing as moments.html's video playback: a Drive share link
-  // won't play directly in a <video> tag, so a Drive file ID gets routed
-  // through the /api/stream proxy (stream.js) exactly like Moments does.
-  const fileId = extractGoogleDriveId_(item.link);
-  const streamUrl = fileId ? `/api/stream?id=${fileId}` : item.link;
-  video.src = streamUrl;
-  video.muted = true;
-  video.loop = false;
-
   // Only the very first clip of a broadcast shows the CRT-static wash and
   // the mute-hint appearing — from clip 2 onward the frame is already
   // "on air", so those cues don't need to repeat between clips.
@@ -4781,6 +4923,37 @@ function playDayCycleTvItem_(index){
     muteHint.classList.remove('show');
     muteHint.textContent = '🔇';
   }
+
+  const youtubeId = dayCycleTvExtractYouTubeId_(item.link);
+  if(youtubeId){
+    playDayCycleTvYouTubeItem_(index, youtubeId, staticEl, muteHint);
+  }else{
+    playDayCycleTvVideoItem_(index, item, staticEl, muteHint);
+  }
+}
+
+// Native <video> playback — unchanged from Phase 4/5, just pulled out of
+// playDayCycleTvItem_ so it sits alongside its YouTube counterpart below
+// rather than being the only path.
+function playDayCycleTvVideoItem_(index, item, staticEl, muteHint){
+  const video = document.getElementById('dayCycleTvVideo');
+  const youtubeContainer = document.getElementById('dayCycleTvYouTube');
+  if(!video) return;
+  __tkgDayCycleTvActivePlayerType = 'video';
+  youtubeContainer.classList.add('hidden');
+  video.classList.remove('hidden');
+  if(__tkgDayCycleTvYouTubePlayer && typeof __tkgDayCycleTvYouTubePlayer.pauseVideo === 'function'){
+    __tkgDayCycleTvYouTubePlayer.pauseVideo();
+  }
+
+  // Same routing as moments.html's video playback: a Drive share link
+  // won't play directly in a <video> tag, so a Drive file ID gets routed
+  // through the /api/stream proxy (stream.js) exactly like Moments does.
+  const fileId = extractGoogleDriveId_(item.link);
+  const streamUrl = fileId ? `/api/stream?id=${fileId}` : item.link;
+  video.src = streamUrl;
+  video.muted = true;
+  video.loop = false;
 
   video.addEventListener('error', () => {
     console.error('[dayCycleTv] video error on item', index, ':', video.error && video.error.code, video.error && video.error.message);
@@ -4803,6 +4976,51 @@ function playDayCycleTvItem_(index){
   }, { once: true });
 }
 
+// YouTube playback — Phase 6. Same "advance on end, skip on error" shape
+// as the native video path above, routed through the YT IFrame API's own
+// onStateChange/onError events instead of the DOM 'ended'/'error' events.
+function playDayCycleTvYouTubeItem_(index, youtubeId, staticEl, muteHint){
+  const video = document.getElementById('dayCycleTvVideo');
+  const youtubeContainer = document.getElementById('dayCycleTvYouTube');
+  __tkgDayCycleTvActivePlayerType = 'youtube';
+  video.classList.add('hidden');
+  video.pause();
+  youtubeContainer.classList.remove('hidden');
+
+  const onAdvance = () => playDayCycleTvItem_(index + 1);
+  const onError = () => {
+    console.error('[dayCycleTv] YouTube playback error on item', index);
+    playDayCycleTvItem_(index + 1);
+  };
+
+  dayCycleTvEnsureYouTubeApi_(() => {
+    if(__tkgDayCycleTvStopping) return; // broadcast may have ended while the API script was still loading
+    const player = dayCycleTvGetYouTubePlayer_();
+    // Update which item's advance/error handlers the player's own
+    // (constructor-time-bound, item-agnostic) event listeners should call
+    // right now — see dayCycleTvGetYouTubePlayer_'s comment above.
+    __tkgDayCycleTvYouTubeCurrentHandlers = { onAdvance, onError };
+    if(typeof player.loadVideoById === 'function'){
+      player.loadVideoById(youtubeId);
+      player.mute();
+    }else{
+      // Player constructed but not yet ready (onReady hasn't fired) — the
+      // very first YouTube item of the page waits one tick and retries
+      // rather than dropping the item.
+      const retryOnReady = () => {
+        player.loadVideoById(youtubeId);
+        player.mute();
+      };
+      if(player.addEventListener) player.addEventListener('onReady', retryOnReady);
+    }
+    if(index === 0){
+      staticEl.classList.add('fade-out');
+      muteHint.classList.add('show');
+    }
+  });
+}
+let __tkgDayCycleTvYouTubeCurrentHandlers = null;
+
 function stopDayCycleTv(){
   if(__tkgDayCycleTvStopping) return; // 'ended' and the max-window timer can both fire
   __tkgDayCycleTvStopping = true;
@@ -4822,6 +5040,18 @@ function stopDayCycleTv(){
       video.pause();
       video.removeAttribute('src');
       video.load();
+      video.classList.remove('hidden');
+      // If a YouTube item was airing when the broadcast ended, pause it
+      // and hide its container so the next broadcast's first frame (which
+      // might be a native video) doesn't briefly show a stale YouTube
+      // frame underneath.
+      const youtubeContainer = document.getElementById('dayCycleTvYouTube');
+      if(youtubeContainer) youtubeContainer.classList.add('hidden');
+      if(__tkgDayCycleTvYouTubePlayer && typeof __tkgDayCycleTvYouTubePlayer.pauseVideo === 'function'){
+        __tkgDayCycleTvYouTubePlayer.pauseVideo();
+      }
+      __tkgDayCycleTvActivePlayerType = 'video';
+      __tkgDayCycleTvYouTubeCurrentHandlers = null;
       layer.removeEventListener('animationend', onCrtOff);
       __tkgDayCycleTvCycleActive = false;
       __tkgDayCycleTvPlaylist = [];
@@ -4833,11 +5063,24 @@ function stopDayCycleTv(){
   });
 }
 
-document.getElementById('dayCycleTvVideo').addEventListener('click', () => {
-  const video = document.getElementById('dayCycleTvVideo');
+// Click-to-toggle-mute now lives on the whole TV layer (not just the
+// <video> element) so it works identically whether a native video or a
+// YouTube item is currently airing — the YouTube iframe itself has
+// pointer-events:none (see CSS) specifically so this handler, not
+// YouTube's own controls, owns the click.
+document.getElementById('dayCycleTvLayer').addEventListener('click', (e) => {
+  if(e.target && e.target.id === 'dayCycleTvMoreLink') return; // let the destination link navigate, don't also toggle mute
   const muteHint = document.getElementById('dayCycleTvMuteHint');
-  video.muted = !video.muted;
-  muteHint.textContent = video.muted ? '🔇' : '🔊';
+  if(__tkgDayCycleTvActivePlayerType === 'youtube'){
+    if(!__tkgDayCycleTvYouTubePlayer || typeof __tkgDayCycleTvYouTubePlayer.isMuted !== 'function') return;
+    const nowMuted = !__tkgDayCycleTvYouTubePlayer.isMuted();
+    if(nowMuted) __tkgDayCycleTvYouTubePlayer.mute(); else __tkgDayCycleTvYouTubePlayer.unMute();
+    muteHint.textContent = nowMuted ? '🔇' : '🔊';
+  }else{
+    const video = document.getElementById('dayCycleTvVideo');
+    video.muted = !video.muted;
+    muteHint.textContent = video.muted ? '🔇' : '🔊';
+  }
 });
 
 // ---------------------------------------------------------------------------
