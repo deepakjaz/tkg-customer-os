@@ -782,7 +782,22 @@ input{font-family:inherit;}
   top:50%; left:50%;
   transform:translate(-50%,-50%);
   width:100%; height:100%;
-  pointer-events:none; /* mute/pause controlled from our own mute-hint button, not YouTube's own controls */
+  pointer-events:none; /* kept as a harmless first line of defense; the real
+    protection is #dayCycleTvYouTubeTapBlock below — mobile browsers don't
+    always fully honor pointer-events:none on an <iframe> for touch, which
+    let taps reach YouTube's own player and deep-link into the YouTube app */
+}
+/* A real, solid element physically on top of the iframe — not a CSS
+   property the browser might not honor. z-index:1 sits above the iframe
+   (which has no explicit z-index) but below the mute-hint/more-link
+   (z-index:2), so those two stay visible and tappable exactly as before.
+   Shown/hidden in lockstep with #dayCycleTvYouTube by
+   playDayCycleTvYouTubeItem_/playDayCycleTvVideoItem_/stopDayCycleTv. */
+#dayCycleTvYouTubeTapBlock{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background:transparent;
 }
 .tv-static{
   position:absolute;
@@ -3315,6 +3330,7 @@ textarea.field-input{
   <div class="day-cycle-tv" id="dayCycleTvLayer" aria-hidden="true">
     <video id="dayCycleTvVideo" muted playsinline webkit-playsinline="true"></video>
     <div id="dayCycleTvYouTube" class="hidden"></div>
+    <div id="dayCycleTvYouTubeTapBlock" class="hidden"></div>
     <div class="tv-static" id="dayCycleTvStatic"></div>
     <button type="button" class="tv-mute-hint" id="dayCycleTvMuteHint" aria-label="Toggle sound">🔇</button>
     <a href="#" class="tv-more-link" id="dayCycleTvMoreLink" style="display:none;" target="_blank" rel="noopener">More Info →</a>
@@ -4938,9 +4954,11 @@ function playDayCycleTvItem_(index){
 function playDayCycleTvVideoItem_(index, item, staticEl, muteHint){
   const video = document.getElementById('dayCycleTvVideo');
   const youtubeContainer = document.getElementById('dayCycleTvYouTube');
+  const youtubeTapBlock = document.getElementById('dayCycleTvYouTubeTapBlock');
   if(!video) return;
   __tkgDayCycleTvActivePlayerType = 'video';
   youtubeContainer.classList.add('hidden');
+  youtubeTapBlock.classList.add('hidden');
   video.classList.remove('hidden');
   if(__tkgDayCycleTvYouTubePlayer && typeof __tkgDayCycleTvYouTubePlayer.pauseVideo === 'function'){
     __tkgDayCycleTvYouTubePlayer.pauseVideo();
@@ -4982,10 +5000,12 @@ function playDayCycleTvVideoItem_(index, item, staticEl, muteHint){
 function playDayCycleTvYouTubeItem_(index, youtubeId, staticEl, muteHint){
   const video = document.getElementById('dayCycleTvVideo');
   const youtubeContainer = document.getElementById('dayCycleTvYouTube');
+  const youtubeTapBlock = document.getElementById('dayCycleTvYouTubeTapBlock');
   __tkgDayCycleTvActivePlayerType = 'youtube';
   video.classList.add('hidden');
   video.pause();
   youtubeContainer.classList.remove('hidden');
+  youtubeTapBlock.classList.remove('hidden');
 
   const onAdvance = () => playDayCycleTvItem_(index + 1);
   const onError = () => {
@@ -5046,7 +5066,9 @@ function stopDayCycleTv(){
       // might be a native video) doesn't briefly show a stale YouTube
       // frame underneath.
       const youtubeContainer = document.getElementById('dayCycleTvYouTube');
+      const youtubeTapBlock = document.getElementById('dayCycleTvYouTubeTapBlock');
       if(youtubeContainer) youtubeContainer.classList.add('hidden');
+      if(youtubeTapBlock) youtubeTapBlock.classList.add('hidden');
       if(__tkgDayCycleTvYouTubePlayer && typeof __tkgDayCycleTvYouTubePlayer.pauseVideo === 'function'){
         __tkgDayCycleTvYouTubePlayer.pauseVideo();
       }
