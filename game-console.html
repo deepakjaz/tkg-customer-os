@@ -280,6 +280,25 @@ body.dark-mode .tkg-nav-item.active {
   width: 52px !important;
   height: 44px !important;
 }
+.tkg-moments-icon-stack {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tkg-global-nav.scrolled .tkg-moments-icon-stack { width: 14px; height: 14px; }
+.tkg-moments-icon-stack svg {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  stroke-width: 2 !important;
+  transition: opacity 0.5s ease !important;
+}
+.tkg-icon-camera { opacity: 1; }
+.tkg-icon-recorder { opacity: 0; }
+.tkg-nav-moments.tkg-swap .tkg-icon-camera { opacity: 0; }
+.tkg-nav-moments.tkg-swap .tkg-icon-recorder { opacity: 1; }
 </style>
 
 <script>
@@ -317,6 +336,24 @@ window.addEventListener('orientationchange', setAppViewportHeight_);
     else if (Math.abs(delta) > DELTA_THRESHOLD) { if (delta > 0) compact(); else normal(); }
     lastScrollTop = current;
   }, { passive: true });
+})();
+
+// Moments nav icon — camera/recorder identity crossfade, ~10s on load then
+// freezes on whichever icon is showing. One-shot per page load, not
+// continuous. Copied verbatim from khichiya-runner.html/index.html — this
+// was missing from this page's nav copy, which is why the camera and
+// video icons showed stacked/both-visible instead of crossfading like
+// every other carrier page.
+(function animateMomentsNavIcon(){
+  const el = document.querySelector('.tkg-nav-moments');
+  if(!el) return;
+  let toggles = 0;
+  const MAX_TOGGLES = 4;
+  const iv = setInterval(() => {
+    el.classList.toggle('tkg-swap');
+    toggles++;
+    if(toggles >= MAX_TOGGLES) clearInterval(iv);
+  }, 2500);
 })();
 </script>
 

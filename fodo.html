@@ -2275,5 +2275,212 @@ function nextTurn() {
 }
 </script>
 
+<!-- ===================== SHARED TKG GLOBAL NAV ===================== -->
+<!-- Copied verbatim from khichiya-runner.html / game-console.html — same
+     5 items, same positioning math, unchanged. Only the 5th item is
+     marked .active (we're inside the Games area via Game Console), same
+     as khichiya-runner.html does. Nothing else on this page was touched. -->
+<nav class="tkg-global-nav" id="globalNav" aria-label="Main Navigation">
+  <a href="./index.html" class="tkg-nav-item" aria-label="Menu" title="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </a>
+  <a href="./moments.html" class="tkg-nav-item tkg-nav-moments" aria-label="Moments" title="Moments">
+    <span class="tkg-moments-icon-stack">
+      <svg class="tkg-icon-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <svg class="tkg-icon-recorder" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+    </span>
+  </a>
+  <a href="./moments_hub.html" class="tkg-nav-item tkg-nav-hub" aria-label="Moments Hub" title="Hub">
+    <img src="./tkg-hub-nav.png" alt="" class="tkg-hub-badge-icon" aria-hidden="true">
+  </a>
+  <a href="./game-console.html" class="tkg-nav-item active" aria-label="Game Console" title="Games" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="11" r="1"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+  </a>
+  <a href="./leaderboard.html" class="tkg-nav-item" aria-label="Leaderboard" title="Leaderboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+  </a>
+</nav>
+
+<style>
+/* Nav CSS — copied verbatim from khichiya-runner.html / game-console.html,
+   zero changes. Scoped entirely under .tkg-global-nav / .tkg-nav-item,
+   which don't exist anywhere else in fodo.html, so nothing here can leak
+   into or be affected by the game's own CSS. */
+.tkg-global-nav {
+  position: fixed !important;
+  bottom: 16px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: min(320px, calc(100vw - 32px)) !important;
+  height: 46px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+  box-sizing: border-box !important;
+  z-index: 99999 !important;
+  opacity: 1 !important;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease,
+              background-color 0.3s ease,
+              width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.tkg-global-nav.scrolled {
+  transform: translateX(-50%) !important;
+  width: 104px !important;
+  height: 104px !important;
+  border-radius: 9999px !important;
+  opacity: 0.94 !important;
+  background: rgba(255, 255, 255, 0.55) !important;
+}
+[data-tkg-theme="dark"] .tkg-global-nav,
+.theme-dark .tkg-global-nav,
+body.dark-mode .tkg-global-nav {
+  background: rgba(18, 18, 18, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+}
+[data-tkg-theme="dark"] .tkg-global-nav.scrolled,
+.theme-dark .tkg-global-nav.scrolled,
+body.dark-mode .tkg-global-nav.scrolled {
+  background: rgba(18, 18, 18, 0.62) !important;
+}
+.tkg-nav-item {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 32px !important;
+  border-radius: 9999px !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  text-decoration: none !important;
+  transition: background-color 0.2s ease, color 0.2s ease,
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.tkg-nav-item:nth-child(1){ transform: translate(calc(-50% - 104px), -50%) !important; }
+.tkg-nav-item:nth-child(2){ transform: translate(calc(-50% - 52px), -50%) !important; }
+.tkg-nav-item:nth-child(3){ transform: translate(-50%, -50%) !important; }
+.tkg-nav-item:nth-child(4){ transform: translate(calc(-50% + 52px), -50%) !important; }
+.tkg-nav-item:nth-child(5){ transform: translate(calc(-50% + 104px), -50%) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item:nth-child(1){ transform: translate(calc(-50% - 36px), -50%) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item:nth-child(2){ transform: translate(-50%, calc(-50% - 36px)) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item:nth-child(3){ transform: translate(-50%, -50%) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item:nth-child(4){ transform: translate(-50%, calc(-50% + 36px)) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item:nth-child(5){ transform: translate(calc(-50% + 36px), -50%) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item {
+  width: 30px !important;
+  height: 26px !important;
+}
+.tkg-nav-item svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke-width: 2 !important;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.tkg-global-nav.scrolled .tkg-nav-item svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+.tkg-nav-item.active {
+  color: #B8431D !important;
+  background: rgba(250, 198, 70, 0.25) !important;
+}
+[data-tkg-theme="dark"] .tkg-nav-item,
+.theme-dark .tkg-nav-item,
+body.dark-mode .tkg-nav-item {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+[data-tkg-theme="dark"] .tkg-nav-item.active,
+.theme-dark .tkg-nav-item.active,
+body.dark-mode .tkg-nav-item.active {
+  color: #FAC646 !important;
+  background: rgba(250, 198, 70, 0.22) !important;
+}
+.tkg-nav-hub {
+  width: 52px !important;
+  height: 44px !important;
+}
+.tkg-moments-icon-stack {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tkg-global-nav.scrolled .tkg-moments-icon-stack { width: 14px; height: 14px; }
+.tkg-moments-icon-stack svg {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  stroke-width: 2 !important;
+  transition: opacity 0.5s ease !important;
+}
+.tkg-icon-camera { opacity: 1; }
+.tkg-icon-recorder { opacity: 0; }
+.tkg-nav-moments.tkg-swap .tkg-icon-camera { opacity: 0; }
+.tkg-nav-moments.tkg-swap .tkg-icon-recorder { opacity: 1; }
+</style>
+
+<script>
+// Same dark-mode detection every other TKG page uses (data-tkg-theme on
+// <html>). Note: fodo.html already has its own setAppViewportHeight_()
+// defined and running earlier in this file for --app-vh, so it is
+// intentionally NOT duplicated here.
+(function(){
+  try {
+    const stored = localStorage.getItem('tkg_theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.setAttribute('data-tkg-theme', 'dark');
+    }
+  } catch(e){}
+})();
+
+// Same directional-pill-scroll behavior as khichiya-runner.html/index.html.
+(function initDirectionalPillScroll() {
+  const nav = document.getElementById('globalNav');
+  if (!nav) return;
+  let lastScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+  const DELTA_THRESHOLD = 6;
+  const TOP_ZONE = 4;
+  function compact() { nav.classList.add('scrolled'); }
+  function normal() { nav.classList.remove('scrolled'); }
+  window.addEventListener('scroll', () => {
+    const current = window.scrollY || document.documentElement.scrollTop || 0;
+    const delta = current - lastScrollTop;
+    if (current <= TOP_ZONE) normal();
+    else if (Math.abs(delta) > DELTA_THRESHOLD) { if (delta > 0) compact(); else normal(); }
+    lastScrollTop = current;
+  }, { passive: true });
+})();
+
+// Moments nav icon — camera/recorder identity crossfade, ~10s on load then
+// freezes on whichever icon is showing. One-shot per page load, not
+// continuous. Copied verbatim from khichiya-runner.html/index.html —
+// this was missing from game-console.html's nav copy, which is why the
+// camera and video icons showed stacked/both-visible instead of
+// crossfading like every other carrier page.
+(function animateMomentsNavIcon(){
+  const el = document.querySelector('.tkg-nav-moments');
+  if(!el) return;
+  let toggles = 0;
+  const MAX_TOGGLES = 4;
+  const iv = setInterval(() => {
+    el.classList.toggle('tkg-swap');
+    toggles++;
+    if(toggles >= MAX_TOGGLES) clearInterval(iv);
+  }, 2500);
+})();
+</script>
+
 </body>
 </html>
