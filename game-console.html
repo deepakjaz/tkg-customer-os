@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Game Console — TKG</title>
+
+<style>
+:root {
+  /* Same variable set as moments_hub.html — this page belongs to the same
+     TKG ecosystem visual language, not a FODO-branded look. */
+  --page-bg:     #FFFFFF;
+  --page-border: #E0E0E0;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --card-bg: #000000;
+  --card-text: #FFFFFF;
+  --card-text-soft: rgba(255,255,255,0.8);
+  --accent-bg: #1A1A1A;
+  --accent-fg: #FFFFFF;
+  --border-crisp: rgba(0,0,0,0.12);
+  --border-light: rgba(0,0,0,0.06);
+  --radius-lg: 16px;
+  --radius-md: 8px;
+  --max-w: 430px;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --glass-bg: rgba(20,20,20,0.65);
+  --glass-border: rgba(255,255,255,0.18);
+  --divider: rgba(0, 0, 0, 0.06);
+  --star-gold: #FBBC04;
+}
+html[data-tkg-theme="dark"] {
+  --page-bg: #000000;
+  --page-border: #2A2A2A;
+  --text-primary: #FFFFFF;
+  --text-secondary: #CCCCCC;
+  --text-tertiary: #888888;
+  --card-bg: #1A1A1A;
+  --card-text: #FFFFFF;
+  --card-text-soft: rgba(255,255,255,0.7);
+  --border-crisp: rgba(255,255,255,0.14);
+  --border-light: rgba(255,255,255,0.08);
+  --divider: rgba(255,255,255,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--page-bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: calc(var(--app-vh, 1vh) * 100);
+  padding-bottom: 96px; /* room for the fixed bottom nav */
+}
+.console-wrap {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 20px 16px 8px;
+}
+.console-header { margin-bottom: 18px; }
+.console-header h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.console-header p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.game-tile {
+  position: relative;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-crisp);
+  background: var(--card-bg);
+  overflow: hidden;
+  margin-bottom: 16px;
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.game-tile:active { transform: scale(0.98); }
+
+.game-tile-icon {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+  display: block;
+}
+.game-tile-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--card-text);
+  margin-bottom: 4px;
+}
+.game-tile-desc {
+  font-size: 0.82rem;
+  color: var(--card-text-soft);
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+.game-tile-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #1C120C;
+  background: var(--star-gold);
+  padding: 9px 16px;
+  border-radius: 9999px;
+}
+
+/* Distinct accent per game — small gradient wash behind the tile content,
+   not a full image asset (zero extra file weight). */
+.game-tile.tile-fodo { background: linear-gradient(160deg, #1A1006 0%, var(--card-bg) 55%); border-color: rgba(232,93,44,0.25); }
+.game-tile.tile-runner { background: linear-gradient(160deg, #0A1A12 0%, var(--card-bg) 55%); border-color: rgba(0,184,148,0.25); }
+</style>
+</head>
+<body>
+
+<div class="console-wrap">
+  <div class="console-header">
+    <h1>🎮 Game Console</h1>
+    <p>Pick a game to play</p>
+  </div>
+
+  <a href="./fodo.html" class="game-tile tile-fodo">
+    <span class="game-tile-icon">🎲</span>
+    <div class="game-tile-title">FODO</div>
+    <div class="game-tile-desc">The Chaos Face-Sticker Ludo Party — classic Ludo with chaos traps, face stickers, and coal-fired kills.</div>
+    <span class="game-tile-cta">Play FODO →</span>
+  </a>
+
+  <a href="./khichiya-runner.html" class="game-tile tile-runner">
+    <span class="game-tile-icon">🏃</span>
+    <div class="game-tile-title">Khichiya Runner</div>
+    <div class="game-tile-desc">Dodge, jump, and run for the high score — quick arcade action, one tap to play.</div>
+    <span class="game-tile-cta">Play Runner →</span>
+  </a>
+</div>
+
+<!-- ===================== SHARED TKG GLOBAL NAV ===================== -->
+<!-- Copied verbatim from khichiya-runner.html — same 5 items, same
+     positioning math, unchanged. Only the 5th item's href/icon/label
+     differ (now points back to this page as "Games" instead of straight
+     into Runner), and it's marked .active since we're on it. -->
+<nav class="tkg-global-nav" id="globalNav" aria-label="Main Navigation">
+  <a href="./index.html" class="tkg-nav-item" aria-label="Menu" title="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </a>
+  <a href="./moments.html" class="tkg-nav-item tkg-nav-moments" aria-label="Moments" title="Moments">
+    <span class="tkg-moments-icon-stack">
+      <svg class="tkg-icon-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <svg class="tkg-icon-recorder" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+    </span>
+  </a>
+  <a href="./moments_hub.html" class="tkg-nav-item tkg-nav-hub" aria-label="Moments Hub" title="Hub">
+    <img src="./tkg-hub-nav.png" alt="" class="tkg-hub-badge-icon" aria-hidden="true">
+  </a>
+  <a href="./game-console.html" class="tkg-nav-item active" aria-label="Game Console" title="Games" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="11" r="1"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+  </a>
+  <a href="./leaderboard.html" class="tkg-nav-item" aria-label="Leaderboard" title="Leaderboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+  </a>
+</nav>
+
+<style>
+/* Nav CSS — copied verbatim from khichiya-runner.html, zero changes.
+   Kept in this page's own <style> tag since this is a standalone file
+   like every other TKG page (no shared stylesheet mechanism exists in
+   this stack — see tkg-shared.js's JS-only, not CSS, sharing pattern). */
+.tkg-global-nav {
+  position: fixed !important;
+  bottom: 16px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: min(320px, calc(100vw - 32px)) !important;
+  height: 46px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+  box-sizing: border-box !important;
+  z-index: 99999 !important;
+  opacity: 1 !important;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease,
+              background-color 0.3s ease,
+              width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.tkg-global-nav.scrolled {
+  transform: translateX(-50%) !important;
+  width: 104px !important;
+  height: 104px !important;
+  border-radius: 9999px !important;
+  opacity: 0.94 !important;
+  background: rgba(255, 255, 255, 0.55) !important;
+}
+[data-tkg-theme="dark"] .tkg-global-nav,
+.theme-dark .tkg-global-nav,
+body.dark-mode .tkg-global-nav {
+  background: rgba(18, 18, 18, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+}
+[data-tkg-theme="dark"] .tkg-global-nav.scrolled,
+.theme-dark .tkg-global-nav.scrolled,
+body.dark-mode .tkg-global-nav.scrolled {
+  background: rgba(18, 18, 18, 0.62) !important;
+}
+.tkg-nav-item {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 32px !important;
+  border-radius: 9999px !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  text-decoration: none !important;
+  transition: background-color 0.2s ease, color 0.2s ease,
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.tkg-nav-item:nth-child(1){ transform: translate(calc(-50% - 104px), -50%) !important; }
+.tkg-nav-item:nth-child(2){ transform: translate(calc(-50% - 52px), -50%) !important; }
+.tkg-nav-item:nth-child(3){ transform: translate(-50%, -50%) !important; }
+.tkg-nav-item:nth-child(4){ transform: translate(calc(-50% + 52px), -50%) !important; }
+.tkg-nav-item:nth-child(5){ transform: translate(calc(-50% + 104px), -50%) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item:nth-child(1){ transform: translate(calc(-50% - 36px), -50%) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item:nth-child(2){ transform: translate(-50%, calc(-50% - 36px)) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item:nth-child(3){ transform: translate(-50%, -50%) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item:nth-child(4){ transform: translate(-50%, calc(-50% + 36px)) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item:nth-child(5){ transform: translate(calc(-50% + 36px), -50%) !important; }
+.tkg-global-nav.scrolled .tkg-nav-item {
+  width: 30px !important;
+  height: 26px !important;
+}
+.tkg-nav-item svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke-width: 2 !important;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.tkg-global-nav.scrolled .tkg-nav-item svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+.tkg-nav-item.active {
+  color: #B8431D !important;
+  background: rgba(250, 198, 70, 0.25) !important;
+}
+[data-tkg-theme="dark"] .tkg-nav-item,
+.theme-dark .tkg-nav-item,
+body.dark-mode .tkg-nav-item {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+[data-tkg-theme="dark"] .tkg-nav-item.active,
+.theme-dark .tkg-nav-item.active,
+body.dark-mode .tkg-nav-item.active {
+  color: #FAC646 !important;
+  background: rgba(250, 198, 70, 0.22) !important;
+}
+.tkg-nav-hub {
+  width: 52px !important;
+  height: 44px !important;
+}
+</style>
+
+<script>
+// Same dark-mode detection every other TKG page uses (data-tkg-theme on
+// <html>), and the same real-viewport-height fix pattern used in FODO —
+// applied here too since this page also has fixed-position content.
+(function(){
+  try {
+    const stored = localStorage.getItem('tkg_theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.setAttribute('data-tkg-theme', 'dark');
+    }
+  } catch(e){}
+})();
+function setAppViewportHeight_() {
+  document.documentElement.style.setProperty('--app-vh', (window.innerHeight * 0.01) + 'px');
+}
+setAppViewportHeight_();
+window.addEventListener('resize', setAppViewportHeight_);
+window.addEventListener('orientationchange', setAppViewportHeight_);
+
+// Same directional-pill-scroll behavior as khichiya-runner.html/index.html.
+(function initDirectionalPillScroll() {
+  const nav = document.getElementById('globalNav');
+  if (!nav) return;
+  let lastScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+  const DELTA_THRESHOLD = 6;
+  const TOP_ZONE = 4;
+  function compact() { nav.classList.add('scrolled'); }
+  function normal() { nav.classList.remove('scrolled'); }
+  window.addEventListener('scroll', () => {
+    const current = window.scrollY || document.documentElement.scrollTop || 0;
+    const delta = current - lastScrollTop;
+    if (current <= TOP_ZONE) normal();
+    else if (Math.abs(delta) > DELTA_THRESHOLD) { if (delta > 0) compact(); else normal(); }
+    lastScrollTop = current;
+  }, { passive: true });
+})();
+</script>
+
+</body>
+</html>

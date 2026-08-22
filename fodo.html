@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>FODO — The Chaos Face-Sticker Ludo Party</title>
+<style>
+  :root {
+    --bg-coal: #120D0A;
+    --card-bg: rgba(30, 20, 15, 0.85);
+    --card-border: rgba(250, 198, 70, 0.25);
+    --tkg-ember: #E85D2C;
+    --tkg-gold: #FAC646;
+    --tkg-coal: #1C120C;
+    --text: #FFFFFF;
+    --text-dim: #A89F91;
+
+    --ludo-red: #E71D36;
+    --ludo-green: #00B894;
+    --ludo-yellow: #FFB300;
+    --ludo-blue: #0984E3;
+
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg-coal);
+    color: var(--text);
+    font-family: var(--font);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Real mobile-Safari/Chrome fix (2026-08-22): 100vh/100dvh alone can
+       still misjudge the true visible height while the address bar is
+       collapsing/expanding right after load — --app-vh is set from actual
+       measured window.innerHeight via JS (see setAppViewportHeight_ below)
+       and kept in sync on resize/orientation change, which is the robust
+       pattern for this exact class of bug. dvh kept as the fallback for
+       the instant before JS runs. */
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: calc(var(--app-vh, 1vh) * 100);
+    overflow-y: auto; /* was overflow:hidden — that silently CLIPPED content
+      top+bottom equally whenever the game didn't fit the real visible
+      area, which is what read as "not vertically centered"; auto means it
+      scrolls instead of clipping if it ever doesn't fit */
+    position: relative;
+  }
+
+  #coal-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 440px;
+    /* min-height:100vh removed (2026-08-22) — body already centers #app
+       vertically within the real measured viewport height (--app-vh
+       above); #app ALSO forcing its own 100vh created two independent
+       "fill the screen" calculations that could disagree slightly on a
+       real phone as the browser chrome resized, which is what likely
+       caused the vertical offset. #app now just sizes to its content. */
+    padding: 4px 8px env(safe-area-inset-bottom, 8px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Header */
+  .top-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 6px 6px;
+  }
+  .title-wrap h1 {
+    font-size: 1.4rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    background: linear-gradient(45deg, #E85D2C, #FAC646, #00B894, #0984E3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .title-wrap p { font-size: 0.65rem; color: var(--text-dim); }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .audio-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: #FFF;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  /* Intro Splash */
+  #intro-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 13, 10, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 200;
+  }
+  #legend-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 13, 10, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 199;
+    overflow-y: auto;
+  }
+  .intro-card {
+    width: 100%;
+    max-width: 360px;
+    background: radial-gradient(circle at 50% 0%, #2A1A12, #140D0A);
+    border: 1.5px solid var(--card-border);
+    border-radius: 20px;
+    padding: 24px 20px;
+    text-align: center;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.8), 0 0 30px rgba(232, 93, 44, 0.25);
+  }
+  .intro-badge {
+    display: inline-block;
+    background: rgba(232, 93, 44, 0.2);
+    border: 1px solid var(--tkg-ember);
+    color: var(--tkg-gold);
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+  .intro-title {
+    font-size: 2rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, #FF6B35, #FAC646);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+  .intro-desc {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+    margin-bottom: 18px;
+  }
+  .intro-features {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .feat-item { font-size: 0.72rem; color: #FFF; font-weight: 700; }
+  .feat-item span { display: block; font-size: 1.3rem; margin-bottom: 4px; }
+
+  /* Chaos Legend — reuses the #intro-modal/.intro-card shell, shown once
+     right after the intro is dismissed, before setup. */
+  .legend-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+  .legend-icon{
+    font-size: 1.6rem;
+    width: 34px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .legend-text{ flex: 1; }
+  .legend-name{ font-size: 0.78rem; font-weight: 800; color: var(--tkg-gold); }
+  .legend-effect{ font-size: 0.72rem; color: var(--text-dim); }
+
+  /* Setup Screen */
+  #setup-screen {
+    width: 100%;
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.5);
+  }
+
+  .game-mode-toggle {
+    display: flex;
+    background: rgba(0,0,0,0.35);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 4px;
+  }
+  .mode-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    padding: 8px 4px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .mode-btn.active {
+    background: var(--tkg-ember);
+    color: #FFF;
+    box-shadow: 0 2px 8px rgba(232,93,44,0.4);
+  }
+
+  #tkg-fill-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 7px 9px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    background: rgba(0,0,0,.25);
+  }
+
+  .player-slots {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .player-setup-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(14px);
+    border: 1.5px solid var(--card-border);
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .avatar-preview-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid #FFF;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+    background: #2A1E17;
+    overflow: hidden;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.4rem;
+  }
+  .avatar-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+  .player-name-input {
+    width: 100%;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--card-border);
+    color: var(--text);
+    padding: 4px 6px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--tkg-ember), #FF7A45);
+    color: #FFF;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(232,93,44,0.45);
+    text-align: center;
+  }
+
+  /* Arena Layout */
+  #game-screen {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .arena-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2px;
+  }
+
+  .player-hud-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid var(--card-border);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    opacity: 0.35;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+  .player-hud-box.active-turn {
+    opacity: 1;
+    transform: scale(1.04);
+    border-color: var(--tkg-gold);
+    box-shadow: 0 0 16px rgba(250, 198, 70, 0.5);
+  }
+  .hud-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1.5px solid #FFF;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    background: #1C120C;
+  }
+  .hud-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .hud-name { font-size: 0.72rem; font-weight: 800; color: #FFF; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* 3D Dice Box */
+  .player-dice {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+  }
+  .player-hud-box.active-turn .player-dice {
+    cursor: pointer;
+  }
+  .player-hud-box.active-turn .dice-scene {
+    animation: dicePulse 1s infinite alternate ease-in-out;
+  }
+  @keyframes dicePulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.08); filter: drop-shadow(0 0 8px var(--tkg-gold)); }
+  }
+
+  /* ==========================================================================
+     3D CSS DIE — Ludo King-inspired tumbling cube. Native CSS 3D transforms
+     only (transform-style:preserve-3d, perspective, rotateX/Y) — no library,
+     no image assets, no added file weight. 6 faces built once at page load
+     (buildDiceCubeFaces_(), reusing the existing DICE_PIP_MAP as its single
+     source of pip layout — not a second copy of that data). Rolling just
+     changes the cube's rotation via JS-set inline transform + a CSS
+     transition, landing on whichever face the roll picked.
+     ========================================================================== */
+  .dice-scene {
+    width: 30px;
+    height: 30px;
+    perspective: 220px;
+  }
+  .dice-cube {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.62s cubic-bezier(0.22, 0.61, 0.36, 1);
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+  .dice-face {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    padding: 3px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    background: linear-gradient(145deg, #FFFFFF 0%, #E2E8F0 100%);
+    box-shadow: inset 0 1px 1px #FFF, inset 0 -2px 3px rgba(0,0,0,0.15);
+    border: 1px solid rgba(0,0,0,0.12);
+  }
+  .dice-face-1{ transform: rotateY(0deg) translateZ(15px); }
+  .dice-face-6{ transform: rotateY(180deg) translateZ(15px); }
+  .dice-face-3{ transform: rotateY(90deg) translateZ(15px); }
+  .dice-face-4{ transform: rotateY(-90deg) translateZ(15px); }
+  .dice-face-2{ transform: rotateX(90deg) translateZ(15px); }
+  .dice-face-5{ transform: rotateX(-90deg) translateZ(15px); }
+  .dice-pip {
+    width: 5px;
+    height: 5px;
+    background: #0F172A;
+    border-radius: 50%;
+    margin: auto;
+    opacity: 0;
+  }
+  .dice-pip.on { opacity: 1; }
+
+  /* Token movement trail — Ludo King-style "momentum" ghost left behind
+     each hop. Plain CSS fade/shrink, one throwaway div per step, removed
+     after its own animation ends (see spawnTokenTrail_ in JS). */
+  .token-trail-ghost {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 15;
+    animation: tokenTrailFade 0.32s ease-out forwards;
+  }
+  @keyframes tokenTrailFade {
+    0%   { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  }
+
+  /* Ludo King Board */
+  #board-wrapper {
+    position: relative;
+    width: 100%;
+    /* Bigger than before (410px), but capped against real viewport height
+       too — not just width — so growing it can't push the game taller
+       than a real phone screen and reintroduce the vertical-fit problem
+       just fixed above. calc(var(--app-vh,1vh)*58) ~= 58% of real
+       viewport height, leaving room for the header/HUD rows/status text
+       around it. */
+    max-width: min(430px, calc(var(--app-vh, 1vh) * 58));
+    aspect-ratio: 1 / 1;
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 3px solid #1C120C;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.7), 0 0 20px rgba(232,93,44,0.2), inset 0 0 0 1px rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+  #board-canvas { width: 100%; height: 100%; display: block; }
+
+  /* Physical Pawn + Face Sticker Token (Mockup Style) */
+  .sticker-token {
+    position: absolute;
+    width: 32px;
+    height: 42px;
+    transform: translate(-50%, -75%);
+    cursor: pointer;
+    z-index: 20;
+    transition: left 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.16s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: auto;
+  }
+  /* Die-Cut Face Sticker (Head) */
+  .token-head {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #FFFFFF;
+    background: #2A1E17;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 1.05rem;
+    z-index: 2;
+    background-size: cover;
+    background-position: center;
+  }
+  .token-head img { width: 100%; height: 100%; object-fit: cover; }
+  /* Map-Pin Pawn Body — Ludo King-inspired reshape (2026-08-22). Was a
+     small rounded pedestal; now a circle + a merged downward point via
+     ::after, giving the classic map-pin/teardrop silhouette while keeping
+     the exact same DOM (still just .token-head + .token-body, still the
+     same --pawn-color variable, still positioned/sized the same way) —
+     no new elements needed in the JS that spawns tokens. */
+  .token-body {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-top: -8px;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--pawn-color, #E71D36) 70%, white) 0%, var(--pawn-color, #E71D36) 55%, color-mix(in srgb, var(--pawn-color, #E71D36) 75%, black) 100%);
+    box-shadow: inset 0 2px 2px rgba(255,255,255,0.5), inset 0 -3px 4px rgba(0,0,0,0.35), 0 3px 6px rgba(0,0,0,0.45);
+    z-index: 1;
+  }
+  .token-body::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 62%;
+    width: 14px;
+    height: 14px;
+    transform: translateX(-50%);
+    background: var(--pawn-color, #E71D36);
+    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+    filter: brightness(0.88);
+  }
+
+  .sticker-token.can-move {
+    filter: drop-shadow(0 0 6px var(--tkg-gold));
+    animation: tokenWiggle 0.4s infinite alternate ease-in-out;
+    z-index: 35;
+  }
+  .sticker-token.walking {
+    transform: translate(-50%, -85%) scale(1.18);
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.45));
+    z-index: 40;
+  }
+  .sticker-token.coal-fired .token-head {
+    filter: grayscale(100%) brightness(40%) contrast(150%);
+    box-shadow: 0 0 14px rgba(255, 69, 0, 0.9);
+  }
+  .sticker-token.coal-fired::after {
+    content: "🔥";
+    position: absolute;
+    top: -12px;
+    font-size: 1.1rem;
+    animation: fireRise 0.4s infinite alternate;
+  }
+  .sticker-token.finished { opacity: 0.45; }
+  .sticker-token.yard-pop {
+    animation: yardPop 0.42s ease-in-out;
+  }
+  @keyframes yardPop {
+    0%   { transform: translate(-50%, -75%) scale(1); }
+    45%  { transform: translate(-50%, -75%) scale(0.15); opacity: 0.3; }
+    55%  { transform: translate(-50%, -75%) scale(0.15); opacity: 0.3; }
+    100% { transform: translate(-50%, -75%) scale(1); opacity: 1; }
+  }
+
+  @keyframes tokenWiggle {
+    0% { transform: translate(-50%, -75%) rotate(-8deg); }
+    100% { transform: translate(-50%, -75%) rotate(8deg); }
+  }
+  @keyframes fireRise {
+    0% { transform: translateY(0) scale(0.9); }
+    100% { transform: translateY(-4px) scale(1.2); }
+  }
+
+  /* Zero-Card Floating Chaos Badges */
+  .fodo-event-badge {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 15;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
+    animation: eventPop 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+  }
+  @keyframes eventPop {
+    0% { transform: translate(-50%, -50%) scale(0); }
+    70% { transform: translate(-50%, -50%) scale(1.25); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+  }
+
+  /* ==========================================================================
+     CHAOS REACTION CARD — one shared popup reused for all 4 traps + the
+     coal-fired kill. Retro/8-16-bit feel comes from steps() easing (chunky,
+     not smooth) rather than different markup per trap type. The face itself
+     is the actual player's sticker (or their default emoji if none set),
+     not a generic icon — the animation happens TO that face.
+     ========================================================================== */
+  .chaos-reaction-overlay{
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 6, 4, 0.55);
+    pointer-events: none;
+  }
+  .chaos-reaction-overlay.show{ display: flex; }
+  .chaos-reaction-card{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .chaos-reaction-face-wrap{
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    border: 3px solid var(--tkg-gold);
+    background: #2A1E17;
+    box-shadow: 0 0 0 4px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.6);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.4rem;
+  }
+  .chaos-reaction-face{
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .chaos-reaction-face img{ width: 100%; height: 100%; object-fit: cover; }
+  .chaos-reaction-tag{
+    font-family: inherit;
+    font-weight: 900;
+    font-size: 1.1rem;
+    letter-spacing: 0.04em;
+    color: var(--tkg-gold);
+    text-shadow: 0 2px 0 rgba(0,0,0,0.8), 0 0 12px rgba(232,93,44,0.6);
+    text-transform: uppercase;
+  }
+
+  /* Black Hole: chunky spin + shrink-into-center, "sucked" feel via steps() */
+  .chaos-reaction-face-wrap.rx-blackhole{
+    animation: rxBlackhole 1.1s steps(6) forwards;
+  }
+  @keyframes rxBlackhole{
+    0%   { transform: scale(1) rotate(0deg); filter: brightness(1); }
+    50%  { transform: scale(0.75) rotate(180deg); filter: brightness(0.7); }
+    100% { transform: scale(0.15) rotate(360deg); filter: brightness(0.2); opacity: 0.2; }
+  }
+  /* Burger: chunky bite/shake, like something is chomping at it */
+  .chaos-reaction-face-wrap.rx-burger{
+    animation: rxBurger 0.9s steps(5) infinite;
+  }
+  @keyframes rxBurger{
+    0%   { transform: scale(1) translateX(0); }
+    25%  { transform: scale(0.92) translateX(-4px); }
+    50%  { transform: scale(1.05) translateX(4px); }
+    75%  { transform: scale(0.9) translateX(-3px); }
+    100% { transform: scale(1) translateX(0); }
+  }
+  /* Noodle: chunky sideways slip/slide, like the ground moved under it */
+  .chaos-reaction-face-wrap.rx-noodle{
+    animation: rxNoodle 0.9s steps(4) infinite;
+  }
+  @keyframes rxNoodle{
+    0%   { transform: translateX(0) rotate(0deg); }
+    33%  { transform: translateX(-10px) rotate(-8deg); }
+    66%  { transform: translateX(8px) rotate(6deg); }
+    100% { transform: translateX(0) rotate(0deg); }
+  }
+  /* Magic Star: chunky flash/zap, old-arcade "hit" strobe */
+  .chaos-reaction-face-wrap.rx-magic{
+    animation: rxMagic 0.7s steps(3) infinite;
+  }
+  @keyframes rxMagic{
+    0%   { filter: brightness(1) saturate(1); box-shadow: 0 0 0 4px rgba(0,0,0,0.5); }
+    50%  { filter: brightness(2.2) saturate(0); box-shadow: 0 0 0 4px rgba(250,198,70,0.9); }
+    100% { filter: brightness(1) saturate(1); box-shadow: 0 0 0 4px rgba(0,0,0,0.5); }
+  }
+  /* Coal-fired kill: chunky char/darken pulse, matches the on-board coal-fired look */
+  .chaos-reaction-face-wrap.rx-coalfired{
+    animation: rxCoalfired 0.8s steps(4) infinite;
+  }
+  @keyframes rxCoalfired{
+    0%   { filter: grayscale(0) brightness(1); }
+    50%  { filter: grayscale(100%) brightness(0.4) contrast(1.5); box-shadow: 0 0 0 4px rgba(255,69,0,0.9); }
+    100% { filter: grayscale(60%) brightness(0.6); }
+  }
+
+  /* Broadcast Alert Banner */
+  #broadcast-banner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    background: rgba(28, 18, 12, 0.96);
+    border: 2px solid var(--tkg-gold);
+    color: #FFF;
+    padding: 8px 16px;
+    border-radius: 12px;
+    box-shadow: 0 8px 26px rgba(0,0,0,0.8), 0 0 18px rgba(232,93,44,0.4);
+    text-align: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  }
+  #broadcast-banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  .status-bar { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-align: center; }
+
+  /* Modals */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
+  }
+  .overlay.show { display: flex; }
+  .modal-card {
+    width: 100%;
+    max-width: 330px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.6);
+  }
+  #crop-canvas-box {
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    border: 3px solid var(--tkg-gold);
+    overflow: hidden;
+    margin: 0 auto 10px;
+    background: #000;
+  }
+  #cropCanvas { width: 100%; height: 100%; cursor: grab; }
+</style>
+</head>
+<body>
+
+<canvas id="coal-canvas"></canvas>
+
+<!-- Runner-Style Intro Splash -->
+<div id="intro-modal">
+  <div class="intro-card">
+    <div class="intro-badge">TKG PARTY GAME</div>
+    <div class="intro-title">FODO</div>
+    <p class="intro-desc">The chaotic Face-Sticker Ludo party! Roll, step, dodge food monsters, and Fodo opponents on real coal heat.</p>
+    
+    <div class="intro-features">
+      <div class="feat-item"><span>📸</span>Face Sticker</div>
+      <div class="feat-item"><span>🍔</span>Chaos Traps</div>
+      <div class="feat-item"><span>🔥</span>Coal KOs</div>
+    </div>
+
+    <button type="button" class="btn-start" style="width:100%;" onclick="dismissIntro()">LET'S PLAY 🎲</button>
+  </div>
+</div>
+
+<!-- Chaos Legend — shown once, right after the intro, before Setup -->
+<div id="legend-modal" style="display:none;">
+  <div class="intro-card">
+    <div class="intro-badge">HOW CHAOS WORKS</div>
+    <div class="intro-title" style="font-size:1.4rem;">CHAOS TRAPS</div>
+    <p class="intro-desc">Land on one, watch the chaos.</p>
+
+    <div class="legend-row">
+      <div class="legend-icon">🌀</div>
+      <div class="legend-text">
+        <div class="legend-name">BLACK HOLE</div>
+        <div class="legend-effect">Sucks you back 3 steps</div>
+      </div>
+    </div>
+    <div class="legend-row">
+      <div class="legend-icon">🍔</div>
+      <div class="legend-text">
+        <div class="legend-name">BURGER MONSTER</div>
+        <div class="legend-effect">Chomp! Back to yard</div>
+      </div>
+    </div>
+    <div class="legend-row">
+      <div class="legend-icon">🍜</div>
+      <div class="legend-text">
+        <div class="legend-name">NOODLE SLIP</div>
+        <div class="legend-effect">Slip! 4 steps back</div>
+      </div>
+    </div>
+    <div class="legend-row" style="margin-bottom:18px;">
+      <div class="legend-icon">⭐</div>
+      <div class="legend-text">
+        <div class="legend-name">MAGIC STAR</div>
+        <div class="legend-effect">Land here = KO</div>
+      </div>
+    </div>
+
+    <button type="button" class="btn-start" style="width:100%;" onclick="dismissLegend()">GOT IT 🎲</button>
+  </div>
+</div>
+
+<div id="app">
+  <div class="top-header">
+    <div class="title-wrap">
+      <h1>FODO</h1>
+      <p>The Chaos Face-Sticker Ludo Party</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="audio-btn" id="pauseToggleBtn" onclick="pauseGame()" aria-label="Pause game" title="Pause">⏸️</button>
+      <button type="button" class="audio-btn" id="audioToggleBtn" onclick="toggleAudio()" aria-label="Toggle sound">🔊</button>
+    </div>
+  </div>
+
+  <!-- Pause overlay — reuses the same .overlay/.modal-card shell as the
+       winner modal below, not a new visual system. -->
+  <div class="overlay" id="pause-modal">
+    <div class="modal-card">
+      <h2 style="font-size:1.3rem; margin-bottom:6px;">⏸️ PAUSED</h2>
+      <p style="font-size:0.8rem; color:var(--text-dim); margin-bottom:18px;">The game is on hold. Resume whenever you're ready.</p>
+      <button type="button" class="btn-start" style="width:100%; margin-bottom:10px;" onclick="resumeGame()">▶️ RESUME</button>
+      <button type="button" class="mode-btn" style="width:100%; background:rgba(255,255,255,0.08); color:#fff;" onclick="quitToMenu()">🏠 QUIT TO MENU</button>
+    </div>
+  </div>
+
+  <!-- Setup Screen -->
+  <div id="setup-screen">
+    <div class="game-mode-toggle" id="player-count-toggle">
+      <button type="button" class="mode-btn" id="mode-1p" onclick="setGameMode(1)">1 PLAYER</button>
+      <button type="button" class="mode-btn active" id="mode-2p" onclick="setGameMode(2)">2 PLAYERS</button>
+      <button type="button" class="mode-btn" id="mode-3p" onclick="setGameMode(3)">3 PLAYERS</button>
+      <button type="button" class="mode-btn" id="mode-4p" onclick="setGameMode(4)">4 PLAYERS</button>
+    </div>
+
+    <div id="tkg-fill-row">
+      <input id="tkg-fill" type="checkbox" style="accent-color:#FAC646;width:16px;height:16px;">
+      <label id="tkg-fill-label" for="tkg-fill" style="font-size:.72rem;font-weight:800;color:#fff;cursor:pointer;">Add TKG to fill remaining seats</label>
+    </div>
+
+    <div style="font-size:0.75rem; font-weight:800; text-align:center; color:var(--tkg-gold);">
+      📸 Tap any avatar to upload or snap your face sticker!
+    </div>
+    
+    <div class="player-slots">
+      <div class="player-setup-card" id="slot-p0">
+        <div class="avatar-preview-box" id="avatar-btn-0" onclick="openCropper(0)">🤪</div>
+        <input type="text" class="player-name-input" id="player-name-0" value="Red Face">
+      </div>
+
+      <div class="player-setup-card" id="slot-p1">
+        <div class="avatar-preview-box" id="avatar-btn-1" onclick="openCropper(1)">🤖</div>
+        <input type="text" class="player-name-input" id="player-name-1" value="Green Face">
+      </div>
+
+      <div class="player-setup-card" id="slot-p2">
+        <div class="avatar-preview-box" id="avatar-btn-2" onclick="openCropper(2)">🤯</div>
+        <input type="text" class="player-name-input" id="player-name-2" value="Blue Face">
+      </div>
+
+      <div class="player-setup-card" id="slot-p3">
+        <div class="avatar-preview-box" id="avatar-btn-3" onclick="openCropper(3)">🥳</div>
+        <input type="text" class="player-name-input" id="player-name-3" value="Yellow Face">
+      </div>
+    </div>
+
+    <button type="button" class="btn-start" onclick="startGame()">ENTER THE ARENA 🎲</button>
+  </div>
+
+  <!-- Game Arena Screen -->
+  <div id="game-screen">
+    <!-- Top Row: Red (Top-Left) and Green (Top-Right) -->
+    <div class="arena-row">
+      <div class="player-hud-box p0-box" id="hud-p0">
+        <div class="hud-avatar" id="hud-img-0">🤪</div>
+        <div class="hud-name" id="hud-name-0">Red</div>
+        <div class="player-dice" id="dice-0" onclick="onRollDice(0)">
+          <div class="dice-scene"><div class="dice-cube" id="dice-cube-0"></div></div>
+        </div>
+      </div>
+
+      <div class="player-hud-box p1-box" id="hud-p1">
+        <div class="player-dice" id="dice-1" onclick="onRollDice(1)">
+          <div class="dice-scene"><div class="dice-cube" id="dice-cube-1"></div></div>
+        </div>
+        <div class="hud-name" id="hud-name-1">Green</div>
+        <div class="hud-avatar" id="hud-img-1">🤖</div>
+      </div>
+    </div>
+
+    <!-- Clean Ludo King Board -->
+    <div id="board-wrapper">
+      <canvas id="board-canvas" width="600" height="600"></canvas>
+      <div id="events-layer"></div>
+      <div id="tokens-layer"></div>
+      <div id="broadcast-banner">🔥 FODO EVENT!</div>
+    </div>
+
+    <!-- Bottom Row: Blue (Bottom-Left) and Yellow (Bottom-Right) -->
+    <div class="arena-row">
+      <div class="player-hud-box p3-box" id="hud-p3">
+        <div class="hud-avatar" id="hud-img-3">🥳</div>
+        <div class="hud-name" id="hud-name-3">Blue</div>
+        <div class="player-dice" id="dice-3" onclick="onRollDice(3)">
+          <div class="dice-scene"><div class="dice-cube" id="dice-cube-3"></div></div>
+        </div>
+      </div>
+
+      <div class="player-hud-box p2-box" id="hud-p2">
+        <div class="player-dice" id="dice-2" onclick="onRollDice(2)">
+          <div class="dice-scene"><div class="dice-cube" id="dice-cube-2"></div></div>
+        </div>
+        <div class="hud-name" id="hud-name-2">Yellow</div>
+        <div class="hud-avatar" id="hud-img-2">🤯</div>
+      </div>
+    </div>
+
+    <div class="status-bar" id="game-status-text">Tap active player's dice to roll!</div>
+  </div>
+
+  <!-- Face Cropper Modal -->
+  <div class="overlay" id="cropper-modal">
+    <div class="modal-card">
+      <h2 style="font-size:1.2rem; margin-bottom:4px;">Face Sticker Studio</h2>
+      <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:10px;">Position face naturally in circle</p>
+      
+      <div id="crop-canvas-box">
+        <canvas id="cropCanvas" width="300" height="300"></canvas>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; padding:0 4px;">
+        <span style="font-size:0.85rem;">🔍</span>
+        <input type="range" id="cropZoomSlider" min="0.5" max="3" step="0.01" value="1" style="flex:1; accent-color:var(--tkg-gold);">
+        <span style="font-size:1.15rem;">🔍</span>
+      </div>
+
+      <div style="display:flex; gap:8px; justify-content:center; margin-bottom:12px;">
+        <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFile(event)">
+        <button type="button" class="mode-btn" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="document.getElementById('file-input').click()">📁 Gallery</button>
+        <button type="button" class="mode-btn" style="background:var(--ludo-green); color:#fff;" onclick="triggerCamera()">📷 Camera</button>
+      </div>
+
+      <button type="button" class="btn-start" style="width:100%;" onclick="saveFaceCrop()">APPLY STICKER ✨</button>
+    </div>
+  </div>
+
+  <!-- Winner Modal -->
+  <!-- Chaos Reaction Card — one shared popup for all 4 traps + coal-fired kill.
+       Shows the affected player's own face sticker with a short, chunky
+       (steps()-eased, not smooth) animation and a 1-2 word tag — no
+       explanatory sentences. Auto-dismisses on its own. -->
+  <div class="chaos-reaction-overlay" id="chaosReactionOverlay">
+    <div class="chaos-reaction-card" id="chaosReactionCard">
+      <div class="chaos-reaction-face-wrap" id="chaosReactionFaceWrap">
+        <div class="chaos-reaction-face" id="chaosReactionFace"></div>
+      </div>
+      <div class="chaos-reaction-tag" id="chaosReactionTag"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="winner-modal">
+    <div class="modal-card">
+      <h2 id="winner-title" style="color:var(--tkg-gold);">👑 VICTORY!</h2>
+      <p id="winner-desc" style="font-size:0.85rem; margin-bottom:14px;">All 4 face stickers reached home!</p>
+      <button type="button" class="btn-start" onclick="location.reload()">PLAY AGAIN 🎲</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   1. COAL RISING EMBER BACKGROUND PARTICLES ENGINE
+   ========================================================================== */
+const coalCanvas = document.getElementById('coal-canvas');
+const coalCtx = coalCanvas.getContext('2d');
+let embers = [];
+
+function resizeCoalCanvas() {
+  coalCanvas.width = window.innerWidth;
+  coalCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCoalCanvas);
+resizeCoalCanvas();
+
+function createEmber() {
+  return {
+    x: Math.random() * coalCanvas.width,
+    y: coalCanvas.height + 10,
+    size: Math.random() * 3 + 1,
+    speedY: Math.random() * 1.5 + 0.5,
+    speedX: (Math.random() - 0.5) * 0.6,
+    opacity: Math.random() * 0.6 + 0.2,
+    hue: Math.random() * 30 + 15
+  };
+}
+
+for (let i = 0; i < 35; i++) {
+  const e = createEmber();
+  e.y = Math.random() * coalCanvas.height;
+  embers.push(e);
+}
+
+function animateEmbers() {
+  coalCtx.clearRect(0, 0, coalCanvas.width, coalCanvas.height);
+  embers.forEach(e => {
+    e.y -= e.speedY;
+    e.x += e.speedX;
+    if (e.y < -10) Object.assign(e, createEmber());
+    coalCtx.beginPath();
+    coalCtx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+    coalCtx.fillStyle = `hsla(${e.hue}, 100%, 60%, ${e.opacity})`;
+    coalCtx.shadowBlur = 8;
+    coalCtx.shadowColor = `hsl(${e.hue}, 100%, 50%)`;
+    coalCtx.fill();
+  });
+  requestAnimationFrame(animateEmbers);
+}
+animateEmbers();
+
+function dismissIntro() {
+  document.getElementById('intro-modal').style.display = 'none';
+  document.getElementById('legend-modal').style.display = 'flex';
+}
+function dismissLegend() {
+  document.getElementById('legend-modal').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+}
+
+/* ==========================================================================
+   2. SOUND ENGINE (Global Mute + Authentic Physical FX)
+   ========================================================================== */
+// Real-device mobile viewport height fix (2026-08-22) — sets --app-vh from
+// actual measured window.innerHeight, kept in sync as the browser's
+// address bar shows/hides. Standard robust pattern for the "vertical
+// centering looks off on a real phone" class of bug; dvh alone is close
+// but this closes the gap for the moment right after load before the
+// browser chrome has settled.
+function setAppViewportHeight_() {
+  document.documentElement.style.setProperty('--app-vh', (window.innerHeight * 0.01) + 'px');
+}
+setAppViewportHeight_();
+window.addEventListener('resize', setAppViewportHeight_);
+window.addEventListener('orientationchange', setAppViewportHeight_);
+
+let isPaused = false;
+
+// Pauses by (1) blocking the two real entry points a turn can advance
+// through — onRollDice and onSelectToken, guarded below — and (2) putting
+// a full-screen overlay up so nothing is visible/tappable underneath.
+// Doesn't try to freeze an in-flight CSS animation mid-frame (a token
+// already hopping will finish that one hop); it stops anything NEW from
+// starting, which is what "stop the game" practically means here.
+function pauseGame() {
+  if (isPaused) return;
+  isPaused = true;
+  document.getElementById('pause-modal').classList.add('show');
+}
+
+function resumeGame() {
+  isPaused = false;
+  document.getElementById('pause-modal').classList.remove('show');
+  // If it was the computer's turn, its auto-roll setTimeout may have
+  // already fired (and no-op'd, since onRollDice checks isPaused) while
+  // the game was paused — give it a fresh chance to actually roll now.
+  if (players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving) {
+    setTimeout(() => { if (!isPaused) onRollDice(currentTurn); }, 500);
+  }
+}
+
+function quitToMenu() {
+  window.location.href = './index.html';
+}
+
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+let isAudioMuted = false;
+
+function toggleAudio() {
+  isAudioMuted = !isAudioMuted;
+  document.getElementById('audioToggleBtn').textContent = isAudioMuted ? '🔇' : '🔊';
+}
+
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+// Short filtered-noise burst — a real "click"/"thud" texture, not a pure
+// tone. Used to make the dice roll and capture sounds feel more physical
+// (Ludo King-style), instead of everything being a synthesized oscillator
+// sweep. Still zero external files — the noise buffer is generated in code.
+function playNoiseBurst_(ctx, startTime, duration, volume, filterFreq) {
+  const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = filterFreq;
+  filter.Q.value = 1.1;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(volume, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  source.start(startTime);
+  source.stop(startTime + duration);
+}
+
+function playSound(type) {
+  if (isAudioMuted) return;
+  try {
+    ensureAudio();
+    const ctx = audioCtx;
+    const now = ctx.currentTime;
+
+    if (type === 'roll') {
+      // 5 tumbling bounces, each a tonal "clack" + a noise "click" layered
+      // together — the noise gives it a physical, dice-in-hand texture
+      // instead of reading as a pure musical note; timing has a little
+      // randomness so it doesn't sound metronomic, like real dice settling.
+      const bounces = 5;
+      for (let i = 0; i < bounces; i++) {
+        const bounceTime = now + i * 0.065 + Math.random() * 0.015;
+        const decay = 1 - (i / bounces) * 0.6; // later bounces are quieter, like it's settling
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(260 + Math.random() * 180, bounceTime);
+        gain.gain.setValueAtTime(0.18 * decay, bounceTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, bounceTime + 0.045);
+        osc.start(bounceTime);
+        osc.stop(bounceTime + 0.045);
+
+        playNoiseBurst_(ctx, bounceTime, 0.035, 0.22 * decay, 1800 + Math.random() * 800);
+      }
+      return;
+    }
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'step') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(340, now);
+      osc.frequency.exponentialRampToValueAtTime(220, now + 0.08);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+      osc.start(now); osc.stop(now + 0.08);
+    } else if (type === 'cut') {
+      // Sharper "thud + crack" — a fast low thump for impact weight, plus
+      // a noise crack on top for the harsher, more dramatic capture hit
+      // Ludo King reviewers describe as "soul-crushing" — a single tonal
+      // sweep read as thin by comparison.
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(45, now + 0.22);
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.start(now); osc.stop(now + 0.22);
+      playNoiseBurst_(ctx, now, 0.09, 0.35, 900);
+    } else if (type === 'star') {
+      // Two-note bright ascending "ding" for landing on a safe star — this
+      // sound didn't exist before; distinct from every chaos/capture sound.
+      [0, 0.09].forEach((offset, i) => {
+        const sOsc = ctx.createOscillator();
+        const sGain = ctx.createGain();
+        sOsc.connect(sGain); sGain.connect(ctx.destination);
+        sOsc.type = 'sine';
+        sOsc.frequency.setValueAtTime(i === 0 ? 660 : 990, now + offset);
+        sGain.gain.setValueAtTime(0.22, now + offset);
+        sGain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.18);
+        sOsc.start(now + offset); sOsc.stop(now + offset + 0.18);
+      });
+    } else if (type === 'event') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.linearRampToValueAtTime(700, now + 0.12);
+      osc.frequency.linearRampToValueAtTime(140, now + 0.28);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
+      osc.start(now); osc.stop(now + 0.28);
+    } else if (type === 'magic') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.3);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+      osc.start(now); osc.stop(now + 0.3);
+    } else if (type === 'blackhole') {
+      // Descending whoosh/suction — pitch falls as if being pulled away
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(500, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.5);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+      osc.start(now); osc.stop(now + 0.5);
+    } else if (type === 'burger') {
+      // Two quick low "chomp" thuds
+      [0, 0.12].forEach((offset) => {
+        const bOsc = ctx.createOscillator();
+        const bGain = ctx.createGain();
+        bOsc.connect(bGain); bGain.connect(ctx.destination);
+        bOsc.type = 'square';
+        bOsc.frequency.setValueAtTime(140, now + offset);
+        bOsc.frequency.exponentialRampToValueAtTime(60, now + offset + 0.09);
+        bGain.gain.setValueAtTime(0.4, now + offset);
+        bGain.gain.linearRampToValueAtTime(0.01, now + offset + 0.09);
+        bOsc.start(now + offset); bOsc.stop(now + offset + 0.09);
+      });
+    } else if (type === 'noodle') {
+      // Quick up-down slide/slip
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.linearRampToValueAtTime(180, now + 0.12);
+      osc.frequency.linearRampToValueAtTime(260, now + 0.24);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.24);
+      osc.start(now); osc.stop(now + 0.24);
+    }
+  } catch(e){}
+}
+
+/* ==========================================================================
+   3. BOARD TOPOLOGY & LAYOUT
+   ========================================================================== */
+const MAIN_CIRCUIT = [
+  [1,6],[2,6],[3,6],[4,6],[5,6],
+  [6,5],[6,4],[6,3],[6,2],[6,1],[6,0],
+  [7,0],
+  [8,0],[8,1],[8,2],[8,3],[8,4],[8,5],
+  [9,6],[10,6],[11,6],[12,6],[13,6],[14,6],
+  [14,7],
+  [14,8],[13,8],[12,8],[11,8],[10,8],[9,8],
+  [8,9],[8,10],[8,11],[8,12],[8,13],[8,14],
+  [7,14],
+  [6,14],[6,13],[6,12],[6,11],[6,10],[6,9],
+  [5,8],[4,8],[3,8],[2,8],[1,8],[0,8],
+  [0,7],
+  [0,6]
+];
+
+const HOME_PATHS = {
+  0: [[1,7],[2,7],[3,7],[4,7],[5,7]],
+  1: [[7,1],[7,2],[7,3],[7,4],[7,5]],
+  2: [[13,7],[12,7],[11,7],[10,7],[9,7]],
+  3: [[7,13],[7,12],[7,11],[7,10],[7,9]]
+};
+
+const PLAYER_CONFIG = [
+  { id: 0, color: 'red', hex: '#E71D36', defaultEmoji: '🤪', startTile: 0, homeEntryTile: 50 },
+  { id: 1, color: 'green', hex: '#00B894', defaultEmoji: '🤖', startTile: 13, homeEntryTile: 11 },
+  { id: 2, color: 'blue', hex: '#0984E3', defaultEmoji: '🤯', startTile: 26, homeEntryTile: 24 },
+  { id: 3, color: 'yellow', hex: '#FFB300', defaultEmoji: '🥳', startTile: 39, homeEntryTile: 37 }
+];
+
+const SAFE_TILES = [0, 8, 13, 21, 26, 34, 39, 47];
+
+/* ==========================================================================
+   4. DYNAMIC FODO CHAOS EVENTS & FIRST-TIME EXPLAINER
+   ========================================================================== */
+let activeFodoEvents = {};
+let magicProtectedTiles = {};
+let hasExplainedTrap = {}; // First-appearance explainer flag
+
+const EVENT_TEMPLATES = [
+  {
+    type: 'blackhole',
+    icon: '🌀',
+    name: 'BLACK HOLE!',
+    introTip: '🌀 BLACK HOLE: Sucks pawn backwards 3 steps!',
+    action: (pIdx, tIdx) => {
+      playSound('blackhole');
+      showChaosReactionCard(pIdx, 'rx-blackhole', 'SUCKED!');
+      stepBackToken(pIdx, tIdx, 3);
+    }
+  },
+  {
+    type: 'burger',
+    icon: '🍔',
+    name: 'BURGER MONSTER!',
+    introTip: '🍔 BURGER MONSTER: CHOMP! Sends pawn back to Yard!',
+    action: (pIdx, tIdx) => {
+      playSound('burger');
+      showChaosReactionCard(pIdx, 'rx-burger', 'CHOMP!');
+      sendTokenToYard(pIdx, tIdx);
+    }
+  },
+  {
+    type: 'noodle',
+    icon: '🍜',
+    name: 'NOODLE SLIP!',
+    introTip: '🍜 NOODLE SLIP: Slippery! Slides backward 4 steps!',
+    action: (pIdx, tIdx) => {
+      playSound('noodle');
+      showChaosReactionCard(pIdx, 'rx-noodle', 'SLIP!');
+      stepBackToken(pIdx, tIdx, 4);
+    }
+  },
+  {
+    type: 'magic',
+    icon: '⭐',
+    name: 'MAGIC STAR KO!',
+    introTip: '⭐ DANGEROUS STAR: Land here = Instant KO!',
+    action: (pIdx, tIdx) => {
+      playSound('magic');
+      showChaosReactionCard(pIdx, 'rx-magic', 'KO!');
+      sendTokenToYard(pIdx, tIdx);
+    }
+  }
+];
+
+function spawnRandomFodoEvents() {
+  for (let tile in activeFodoEvents) {
+    activeFodoEvents[tile].turnsLeft--;
+    if (activeFodoEvents[tile].turnsLeft <= 0) delete activeFodoEvents[tile];
+  }
+  for (let tile in magicProtectedTiles) {
+    magicProtectedTiles[tile]--;
+    if (magicProtectedTiles[tile] <= 0) delete magicProtectedTiles[tile];
+  }
+
+  const currentCount = Object.keys(activeFodoEvents).length;
+  if (currentCount < 4 && Math.random() < 0.72) {
+    const available = [];
+    for (let i = 0; i < 52; i++) {
+      if (!activeFodoEvents[i]) available.push(i);
+    }
+    if (available.length) {
+      const howMany = currentCount === 0 ? 1 : (Math.random() < 0.25 ? 2 : 1);
+      for (let n = 0; n < Math.min(howMany, 4 - currentCount); n++) {
+        const randomTile = available.splice(Math.floor(Math.random() * available.length), 1)[0];
+        const template = EVENT_TEMPLATES[Math.floor(Math.random() * EVENT_TEMPLATES.length)];
+        
+        // Check first-time intro tip
+        if (!hasExplainedTrap[template.type]) {
+          hasExplainedTrap[template.type] = true;
+          broadcastHighlight('NEW TRAP DETECTED!', template.introTip);
+        }
+
+        activeFodoEvents[randomTile] = {
+          type: template.type,
+          icon: template.icon,
+          name: template.name,
+          turnsLeft: Math.floor(Math.random() * 2) + 1,
+          onLand: template.action
+        };
+      }
+    }
+  }
+  renderFodoEventsDOM();
+}
+
+function renderFodoEventsDOM() {
+  const layer = document.getElementById('events-layer');
+  const S = 600 / 15;
+  const wrapper = document.getElementById('board-wrapper');
+  const scale = wrapper.clientWidth / 600;
+  const liveKeys = new Set(Object.keys(activeFodoEvents));
+
+  [...layer.children].forEach(el => {
+    if (!liveKeys.has(el.dataset.tile)) el.remove();
+  });
+
+  for (const tile in activeFodoEvents) {
+    const ev = activeFodoEvents[tile];
+    let el = layer.querySelector(`[data-tile="${tile}"]`);
+    const cell = MAIN_CIRCUIT[tile];
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'fodo-event-badge';
+      el.dataset.tile = tile;
+      el.textContent = ev.icon;
+      layer.appendChild(el);
+    }
+    el.style.left = ((cell[0] * S + S/2) * scale) + 'px';
+    el.style.top = ((cell[1] * S + S/2) * scale) + 'px';
+  }
+}
+
+function broadcastHighlight(title, subtitle) {
+  const banner = document.getElementById('broadcast-banner');
+  banner.innerHTML = `<div style="font-size:0.9rem; color:var(--tkg-gold); margin-bottom:2px;">${title}</div><div style="font-size:0.75rem; color:#FFF;">${subtitle}</div>`;
+  banner.classList.add('show');
+  setTimeout(() => banner.classList.remove('show'), 2200);
+}
+
+const CHAOS_REACTION_DURATION_MS = 2200; // ~2.2s — an example of "5s" was too long, this is the shorter real default
+let chaosReactionTimer = null;
+
+// One shared popup for every chaos type + the coal-fired kill: shows the
+// AFFECTED player's own face sticker (falls back to their default emoji if
+// they never set one), a short 1-2 word tag, and a chunky/retro animation
+// class (see CSS rx-* keyframes above) — the animation carries the story,
+// not a sentence of text. rxClass selects which CSS animation plays.
+function showChaosReactionCard(pIdx, rxClass, tag){
+  const overlay = document.getElementById('chaosReactionOverlay');
+  const faceWrap = document.getElementById('chaosReactionFaceWrap');
+  const face = document.getElementById('chaosReactionFace');
+  const tagEl = document.getElementById('chaosReactionTag');
+  const p = players[pIdx];
+
+  face.innerHTML = p.avatar ? `<img src="${p.avatar}">` : '';
+  face.textContent = p.avatar ? '' : (PLAYER_CONFIG[pIdx].defaultEmoji || '🙂');
+
+  faceWrap.className = 'chaos-reaction-face-wrap ' + rxClass;
+  tagEl.textContent = tag;
+
+  overlay.classList.add('show');
+
+  clearTimeout(chaosReactionTimer);
+  chaosReactionTimer = setTimeout(() => {
+    overlay.classList.remove('show');
+    faceWrap.className = 'chaos-reaction-face-wrap';
+  }, CHAOS_REACTION_DURATION_MS);
+}
+
+/* ==========================================================================
+   5. GAME STATE & SETUP SEATS
+   ========================================================================== */
+let activePlayerCount = 2;
+let activeSeatIndices = [0,1];
+let tkgFill = false;
+let players = [
+  { name: "Red Face", avatar: null, isAI: false, tokens: [{ step: -1 }, { step: -1 }, { step: -1 }, { step: -1 }] },
+  { name: "Green Face", avatar: null, isAI: false, tokens: [{ step: -1 }, { step: -1 }, { step: -1 }, { step: -1 }] },
+  { name: "Yellow Face", avatar: null, isAI: false, tokens: [{ step: -1 }, { step: -1 }, { step: -1 }, { step: -1 }] },
+  { name: "Blue Face", avatar: null, isAI: false, tokens: [{ step: -1 }, { step: -1 }, { step: -1 }, { step: -1 }] }
+];
+
+let currentTurn = 0;
+let lastDiceRoll = 1;
+let isRolling = false;
+let isTokenMoving = false;
+let canSelectToken = false;
+let consecutiveSixes = 0;
+
+function setGameMode(mode) {
+  activePlayerCount = mode;
+  document.querySelectorAll('#player-count-toggle .mode-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById(`mode-${mode}p`);
+  if (btn) btn.classList.add('active');
+
+  const fillRow = document.getElementById('tkg-fill-row');
+  const checkbox = document.getElementById('tkg-fill');
+  const fillLabel = document.getElementById('tkg-fill-label');
+  if (mode < 4) {
+    fillRow.style.display = 'flex';
+    if (fillLabel) fillLabel.textContent = mode === 1 ? 'Add more TKG opponents' : 'Add TKG to fill remaining seats';
+    tkgFill = checkbox.checked;
+  } else {
+    fillRow.style.display = 'none';
+    checkbox.checked = false;
+    tkgFill = false;
+  }
+
+  // 1 Player defaults to exactly 1 human + 1 TKG (seats 0,1) — same
+  // minimal-default pattern 2P/3P already use, not a forced 3-computer
+  // match. The same "Add TKG" checkbox now optionally expands it to 2 or
+  // 3 TKG opponents, same generic mechanism as 2P/3P below.
+  if (mode === 1) {
+    activeSeatIndices = tkgFill ? [0,1,2,3] : [0,1];
+  } else if (mode === 4) {
+    activeSeatIndices = [0,1,2,3];
+  } else {
+    activeSeatIndices = Array.from({length: mode}, (_, i) => i);
+    if (tkgFill) activeSeatIndices = [0,1,2,3];
+  }
+
+  updateSetupSeatVisibility();
+}
+
+function updateSetupSeatVisibility() {
+  for (let i = 0; i < 4; i++) {
+    const slot = document.getElementById(`slot-p${i}`);
+    if (!slot) continue;
+    slot.style.display = activeSeatIndices.includes(i) ? 'flex' : 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const cb = document.getElementById('tkg-fill');
+  if (cb) cb.addEventListener('change', () => {
+    tkgFill = cb.checked;
+    setGameMode(activePlayerCount);
+  });
+  setGameMode(2);
+});
+
+/* ==========================================================================
+   6. FACE STICKER STUDIO (Comfortable Initial Zoom)
+   ========================================================================== */
+let croppingPlayerIdx = 0;
+let cropImg = new Image();
+let cropX = 0, cropY = 0, cropScale = 1;
+let cropBaseScale = 1; // the "comfortable, not extreme close-up" scale computed on load — slider is relative to this
+let isDragging = false, startX, startY;
+
+function openCropper(playerIdx) {
+  croppingPlayerIdx = playerIdx;
+  document.getElementById('cropper-modal').classList.add('show');
+  drawCropCanvas();
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    cropImg.onload = () => {
+      // Natural comfortable initial scaling (not extreme close-up)
+      const minDim = Math.min(cropImg.width, cropImg.height);
+      cropBaseScale = 220 / minDim;
+      cropScale = cropBaseScale;
+      cropX = (300 - cropImg.width * cropScale) / 2;
+      cropY = (300 - cropImg.height * cropScale) / 2;
+      const slider = document.getElementById('cropZoomSlider');
+      if (slider) slider.value = 1; // reset to "base" zoom for the new image
+      drawCropCanvas();
+    };
+    cropImg.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function triggerCamera() {
+  const input = document.getElementById('file-input');
+  input.setAttribute('capture', 'user');
+  input.click();
+}
+
+function drawCropCanvas() {
+  const canvas = document.getElementById('cropCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 300, 300);
+
+  if (cropImg.src) {
+    ctx.save();
+    ctx.drawImage(cropImg, cropX, cropY, cropImg.width * cropScale, cropImg.height * cropScale);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0, 0, 300, 300);
+    ctx.fillStyle = "#FFF";
+    ctx.font = "14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Upload / Snap Photo", 150, 150);
+  }
+}
+
+const cropCanvas = document.getElementById('cropCanvas');
+cropCanvas.addEventListener('mousedown', (e) => { isDragging = true; startX = e.clientX - cropX; startY = e.clientY - cropY; });
+window.addEventListener('mouseup', () => isDragging = false);
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  cropX = e.clientX - startX;
+  cropY = e.clientY - startY;
+  drawCropCanvas();
+});
+
+cropCanvas.addEventListener('touchstart', (e) => {
+  isDragging = true;
+  startX = e.touches[0].clientX - cropX;
+  startY = e.touches[0].clientY - cropY;
+}, { passive: true });
+window.addEventListener('touchend', () => isDragging = false);
+window.addEventListener('touchmove', (e) => {
+  if (!isDragging) return;
+  cropX = e.touches[0].clientX - startX;
+  cropY = e.touches[0].clientY - startY;
+  drawCropCanvas();
+}, { passive: true });
+
+// Zoom slider — relative to cropBaseScale (the comfortable non-extreme
+// default), not an absolute multiplier, so it behaves sensibly regardless
+// of the source photo's native resolution. Zooms around the canvas center
+// rather than the image's top-left, so whatever the user has already
+// positioned in the middle of the circle stays centered as they zoom.
+document.getElementById('cropZoomSlider').addEventListener('input', (e) => {
+  if (!cropImg.src) return;
+  const newScale = cropBaseScale * parseFloat(e.target.value);
+  const centerX = 150, centerY = 150;
+  const imgSpaceX = (centerX - cropX) / cropScale;
+  const imgSpaceY = (centerY - cropY) / cropScale;
+  cropX = centerX - imgSpaceX * newScale;
+  cropY = centerY - imgSpaceY * newScale;
+  cropScale = newScale;
+  drawCropCanvas();
+});
+
+function saveFaceCrop() {
+  const canvas = document.getElementById('cropCanvas');
+  const stickerData = canvas.toDataURL('image/png');
+  players[croppingPlayerIdx].avatar = stickerData;
+  document.getElementById(`avatar-btn-${croppingPlayerIdx}`).innerHTML = `<img src="${stickerData}">`;
+  document.getElementById('cropper-modal').classList.remove('show');
+}
+
+/* ==========================================================================
+   7. BOARD CANVAS RENDERING
+   ========================================================================== */
+// Lightens (positive amt) or darkens (negative amt) a #RRGGBB hex color by
+// blending toward white/black. Used only for the board's glossy gradient
+// fills (drawBoard) — pure math, no canvas/image dependency.
+function colorLighten_(hex, amt) {
+  const num = parseInt(hex.replace('#', ''), 16);
+  let r = (num >> 16) & 0xFF, g = (num >> 8) & 0xFF, b = num & 0xFF;
+  const mix = (channel) => {
+    const target = amt >= 0 ? 255 : 0;
+    return Math.round(channel + (target - channel) * Math.abs(amt));
+  };
+  r = mix(r); g = mix(g); b = mix(b);
+  return `rgb(${r},${g},${b})`;
+}
+
+function drawBoard() {
+  const canvas = document.getElementById('board-canvas');
+  const ctx = canvas.getContext('2d');
+  const S = 600 / 15;
+
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, 600, 600);
+
+  // Small gradient helper — Ludo King-style glossy depth on flat color
+  // fills, native Canvas API only, no images/libraries.
+  const glossyFill = (x, y, w, h, hex) => {
+    const g = ctx.createLinearGradient(x, y, x, y + h);
+    g.addColorStop(0, colorLighten_(hex, 0.22));
+    g.addColorStop(0.55, hex);
+    g.addColorStop(1, colorLighten_(hex, -0.16));
+    return g;
+  };
+
+  const drawCornerYard = (gx, gy, colorHex) => {
+    ctx.fillStyle = glossyFill(gx * S, gy * S, 6 * S, 6 * S, colorHex);
+    ctx.fillRect(gx * S, gy * S, 6 * S, 6 * S);
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.25)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 3;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect((gx + 0.75) * S, (gy + 0.75) * S, 4.5 * S, 4.5 * S);
+    ctx.restore();
+    // Crisp black outline on the white yard frame — was missing entirely
+    // before, which is part of why the whole board read as "soft"/faded
+    // rather than sharp like Ludo King's.
+    ctx.strokeStyle = "#1A1410";
+    ctx.lineWidth = 2;
+    ctx.strokeRect((gx + 0.75) * S, (gy + 0.75) * S, 4.5 * S, 4.5 * S);
+
+    const spots = [
+      [gx + 1.75, gy + 1.75],
+      [gx + 3.25, gy + 1.75],
+      [gx + 1.75, gy + 3.25],
+      [gx + 3.25, gy + 3.25]
+    ];
+    spots.forEach(sp => {
+      const cx = sp[0] * S + S/2, cy = sp[1] * S + S/2;
+      const spotGrad = ctx.createRadialGradient(cx - 5, cy - 5, 2, cx, cy, 18);
+      spotGrad.addColorStop(0, colorLighten_(colorHex, 0.3));
+      spotGrad.addColorStop(1, colorLighten_(colorHex, -0.1));
+      ctx.fillStyle = spotGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#FFFFFF";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  };
+
+  drawCornerYard(0, 0, PLAYER_CONFIG[0].hex); // top-left
+  drawCornerYard(9, 0, PLAYER_CONFIG[1].hex); // top-right
+  drawCornerYard(9, 9, PLAYER_CONFIG[2].hex); // bottom-right
+  drawCornerYard(0, 9, PLAYER_CONFIG[3].hex); // bottom-left
+
+  // Sharp Main Track Outlines — was #94A3B8 (a pale blue-grey, the exact
+  // "faded" look flagged) — now a crisp near-black, matching Ludo King's
+  // solid grid lines.
+  MAIN_CIRCUIT.forEach((cell, idx) => {
+    const cx = cell[0] * S;
+    const cy = cell[1] * S;
+    ctx.strokeStyle = "#1A1410";
+    ctx.lineWidth = 1.6;
+    ctx.strokeRect(cx, cy, S, S);
+
+    if (idx === 0) { ctx.fillStyle = PLAYER_CONFIG[0].hex; ctx.fillRect(cx, cy, S, S); }
+    if (idx === 13) { ctx.fillStyle = PLAYER_CONFIG[1].hex; ctx.fillRect(cx, cy, S, S); }
+    if (idx === 26) { ctx.fillStyle = PLAYER_CONFIG[2].hex; ctx.fillRect(cx, cy, S, S); }
+    if (idx === 39) { ctx.fillStyle = PLAYER_CONFIG[3].hex; ctx.fillRect(cx, cy, S, S); }
+
+    if (idx === 0 || idx === 13 || idx === 26 || idx === 39) {
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 20px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const arrow = idx === 0 ? "→" : (idx === 13 ? "↓" : (idx === 26 ? "←" : "↑"));
+      ctx.fillText(arrow, cx + S/2, cy + S/2);
+    }
+
+    if (SAFE_TILES.includes(idx) && idx !== 0 && idx !== 13 && idx !== 26 && idx !== 39) {
+      ctx.font = "bold 22px sans-serif";
+      ctx.fillStyle = "#64748B";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("☆", cx + S/2, cy + S/2);
+    }
+
+    if (magicProtectedTiles[idx]) {
+      ctx.fillStyle = "rgba(250, 198, 70, 0.4)";
+      ctx.fillRect(cx, cy, S, S);
+    }
+  });
+
+  // Was: fillRect + strokeRect PER CELL — that put a visible white border
+  // around every individual cell, which is exactly the "still has lines"
+  // look flagged from the screenshots: 4 internal seams cutting a 5-cell
+  // lane into a grid instead of reading as one continuous colored stretch,
+  // the way Ludo King's home lane looks. Fixed two ways: (1) one gradient
+  // spanning the WHOLE lane's bounding box, not a repeating per-cell
+  // gradient (which would still visually band even without a stroke), and
+  // (2) exactly ONE outer border around the whole lane instead of one
+  // around every cell.
+  // Corrected (2026-08-22): the "one continuous lane" version below was
+  // wrong — Deepak's actual reference screenshots (real Ludo King + his
+  // own approved mockup) both show each home-lane cell individually
+  // bordered, exactly like every other track cell — it's a TRACK, not a
+  // solid painted block. The real complaint was the border COLOR (was
+  // faded white/light), not the borders' existence. Fixed by going back
+  // to per-cell strokes, using the same crisp #1A1410 black already
+  // applied to the shared MAIN_CIRCUIT cells, instead of removing them.
+  const drawSolidHome = (cells, hex) => {
+    cells.forEach(c => {
+      ctx.fillStyle = glossyFill(c[0] * S, c[1] * S, S, S, hex);
+      ctx.fillRect(c[0] * S, c[1] * S, S, S);
+      ctx.strokeStyle = "#1A1410";
+      ctx.lineWidth = 1.6;
+      ctx.strokeRect(c[0] * S, c[1] * S, S, S);
+    });
+  };
+  drawSolidHome(HOME_PATHS[0], PLAYER_CONFIG[0].hex);
+  drawSolidHome(HOME_PATHS[1], PLAYER_CONFIG[1].hex);
+  drawSolidHome(HOME_PATHS[2], PLAYER_CONFIG[2].hex);
+  drawSolidHome(HOME_PATHS[3], PLAYER_CONFIG[3].hex);
+
+  // Center Home
+  ctx.beginPath();
+  ctx.moveTo(6 * S, 6 * S); ctx.lineTo(9 * S, 6 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[1].hex; ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(9 * S, 6 * S); ctx.lineTo(9 * S, 9 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[2].hex; ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(9 * S, 9 * S); ctx.lineTo(6 * S, 9 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[3].hex; ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(6 * S, 9 * S); ctx.lineTo(6 * S, 6 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[0].hex; ctx.fill();
+}
+
+/* ==========================================================================
+   8. TOKEN COORDINATES & DOM SPAWN
+   ========================================================================== */
+function getGlobalTrackIndex(pIdx, step) {
+  if (step < 0 || step > 50) return -1;
+  return (PLAYER_CONFIG[pIdx].startTile + step) % 52;
+}
+
+function getTokenPixelCoords(pIdx, tIdx, step) {
+  const S = 600 / 15;
+  if (step === -1) {
+    const baseOffsets = [
+      [[1.75, 1.75], [3.25, 1.75], [1.75, 3.25], [3.25, 3.25]],
+      [[10.75, 1.75], [12.25, 1.75], [10.75, 3.25], [12.25, 3.25]],
+      [[10.75, 10.75], [12.25, 10.75], [10.75, 12.25], [12.25, 12.25]],
+      [[1.75, 10.75], [3.25, 10.75], [1.75, 12.25], [3.25, 12.25]]
+    ];
+    const spot = baseOffsets[pIdx][tIdx];
+    return { x: spot[0] * S + S/2, y: spot[1] * S + S/2 };
+  } else if (step === 56) {
+    const centerOff = [[7.1, 7.5], [7.5, 7.1], [7.9, 7.5], [7.5, 7.9]];
+    return { x: centerOff[pIdx][0] * S, y: centerOff[pIdx][1] * S };
+  } else if (step > 50) {
+    const homeIdx = step - 51;
+    const cell = HOME_PATHS[pIdx][homeIdx];
+    return { x: cell[0] * S + S/2, y: cell[1] * S + S/2 };
+  } else {
+    const gIdx = getGlobalTrackIndex(pIdx, step);
+    const cell = MAIN_CIRCUIT[gIdx];
+    return { x: cell[0] * S + S/2, y: cell[1] * S + S/2 };
+  }
+}
+
+// Drops one fading "ghost" circle at a token's current position, in that
+// token's own color, right before it steps to the next cell — reads the
+// same getTokenPixelCoords()/scale math renderAllTokensDOM() already uses,
+// not a second coordinate system.
+function spawnTokenTrail_(pIdx, tIdx) {
+  const wrapper = document.getElementById('board-wrapper');
+  const layer = document.getElementById('tokens-layer');
+  if (!wrapper || !layer) return;
+  const scale = wrapper.clientWidth / 600;
+  const t = players[pIdx].tokens[tIdx];
+  const coords = getTokenPixelCoords(pIdx, tIdx, t.step);
+
+  const ghost = document.createElement('div');
+  ghost.className = 'token-trail-ghost';
+  ghost.style.left = (coords.x * scale) + 'px';
+  ghost.style.top = (coords.y * scale) + 'px';
+  ghost.style.background = PLAYER_CONFIG[pIdx].hex;
+  layer.appendChild(ghost);
+  setTimeout(() => ghost.remove(), 340);
+}
+
+function renderAllTokensDOM() {
+  const wrapper = document.getElementById('board-wrapper');
+  const scale = wrapper.clientWidth / 600;
+
+  players.forEach((p, pIdx) => {
+    p.tokens.forEach((t, tIdx) => {
+      const el = document.getElementById(`token-${pIdx}-${tIdx}`);
+      if (!el) return;
+      const coords = getTokenPixelCoords(pIdx, tIdx, t.step);
+      el.style.left = (coords.x * scale) + 'px';
+      el.style.top = (coords.y * scale) + 'px';
+      if (t.step === 56) el.classList.add('finished');
+      else el.classList.remove('finished');
+    });
+  });
+  renderFodoEventsDOM();
+}
+
+function spawnTokensDOM() {
+  const layer = document.getElementById('tokens-layer');
+  layer.innerHTML = '';
+
+  players.forEach((p, pIdx) => {
+    // Only spawn tokens for strictly active seats
+    if (!activeSeatIndices.includes(pIdx)) return;
+
+    p.tokens.forEach((t, tIdx) => {
+      const el = document.createElement('div');
+      el.className = `sticker-token token-p${pIdx}`;
+      el.id = `token-${pIdx}-${tIdx}`;
+      el.style.setProperty('--pawn-color', PLAYER_CONFIG[pIdx].hex);
+
+      // Structure: Die-Cut Head + Colored Pawn Pedestal
+      const head = document.createElement('div');
+      head.className = 'token-head';
+      if (p.avatar) {
+        head.innerHTML = `<img src="${p.avatar}">`;
+      } else {
+        head.textContent = PLAYER_CONFIG[pIdx].defaultEmoji;
+      }
+
+      const body = document.createElement('div');
+      body.className = 'token-body';
+
+      el.appendChild(head);
+      el.appendChild(body);
+      el.onclick = () => onSelectToken(pIdx, tIdx);
+      layer.appendChild(el);
+    });
+  });
+  renderAllTokensDOM();
+}
+
+window.addEventListener('resize', renderAllTokensDOM);
+
+/* ==========================================================================
+   9. 2.5D DICE & GAME ENGINE
+   ========================================================================== */
+const DICE_PIP_MAP = {
+  1: [4],
+  2: [0, 8],
+  3: [0, 4, 8],
+  4: [0, 2, 6, 8],
+  5: [0, 2, 4, 6, 8],
+  6: [0, 2, 3, 5, 6, 8]
+};
+
+// Rotating the CUBE by these amounts brings the named face to point at the
+// viewer — inverse of each face's own placement transform in the CSS above
+// (e.g. face-6 is placed at rotateY(180deg), so rotating the cube by
+// rotateY(180deg) brings it to the front; face-3 at rotateY(90deg) needs
+// the cube rotated by rotateY(-90deg), and so on).
+const DICE_FACE_ROTATION = {
+  1: { x: 0, y: 0 },
+  6: { x: 0, y: 180 },
+  3: { x: 0, y: -90 },
+  4: { x: 0, y: 90 },
+  2: { x: -90, y: 0 },
+  5: { x: 90, y: 0 }
+};
+
+// Track each die's accumulated rotation so every roll adds full spins on
+// top of wherever it already is, rather than snapping backward through
+// the shortest CSS-transition path (which would look like it un-rolls).
+const diceCubeState = [
+  { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }
+];
+
+// Built once per die at page load — 6 faces, each with 9 pip divs laid out
+// from DICE_PIP_MAP (single source of truth, same map the old flat-grid
+// dice used). Rolling afterwards never touches the DOM structure again,
+// only the cube's rotation.
+function buildDiceCubeFaces_(playerIdx) {
+  const cube = document.getElementById(`dice-cube-${playerIdx}`);
+  if (!cube || cube.children.length) return; // already built
+  for (let value = 1; value <= 6; value++) {
+    const face = document.createElement('div');
+    face.className = `dice-face dice-face-${value}`;
+    const activePips = DICE_PIP_MAP[value] || [4];
+    for (let i = 0; i < 9; i++) {
+      const pip = document.createElement('div');
+      pip.className = 'dice-pip' + (activePips.includes(i) ? ' on' : '');
+      face.appendChild(pip);
+    }
+    cube.appendChild(face);
+  }
+}
+
+function renderDicePips(playerIdx, value) {
+  buildDiceCubeFaces_(playerIdx);
+  const cube = document.getElementById(`dice-cube-${playerIdx}`);
+  if (!cube) return;
+  const target = DICE_FACE_ROTATION[value] || DICE_FACE_ROTATION[1];
+  const state = diceCubeState[playerIdx];
+
+  // Add extra full spins (2 turns on each axis) on top of the target face
+  // rotation so the tumble reads as continuous motion, then normalize the
+  // stored state back into 0-359 range so numbers don't grow unbounded
+  // over a long game.
+  const spins = 2;
+  state.x = (state.x - (state.x % 360)) + spins * 360 + target.x;
+  state.y = (state.y - (state.y % 360)) + spins * 360 + target.y;
+
+  cube.style.transform = `rotateX(${state.x}deg) rotateY(${state.y}deg)`;
+}
+
+function startGame() {
+  // Mirrors setGameMode()'s logic exactly (single source of truth would be
+  // even better, but this keeps the fix minimal and matches the existing
+  // pattern already used elsewhere in this file) — 1P now defaults to
+  // exactly 1 human + 1 TKG, expanding only if "Add TKG" was checked.
+  if (activePlayerCount === 1) {
+    activeSeatIndices = tkgFill ? [0,1,2,3] : [0,1];
+  } else if (activePlayerCount === 4) {
+    activeSeatIndices = [0,1,2,3];
+  } else {
+    activeSeatIndices = Array.from({length: activePlayerCount}, (_, i) => i);
+    if (tkgFill) {
+      for (let i = activePlayerCount; i < 4; i++) activeSeatIndices.push(i);
+    }
+  }
+
+  for (let i = 0; i < 4; i++) {
+    const input = document.getElementById(`player-name-${i}`);
+    players[i].name = input?.value || PLAYER_CONFIG[i].color;
+    players[i].isAI = (activePlayerCount === 1 && i > 0) || (tkgFill && activePlayerCount < 4 && i >= activePlayerCount);
+
+    const hudImg = document.getElementById(`hud-img-${i}`);
+    if (players[i].avatar) hudImg.innerHTML = `<img src="${players[i].avatar}">`;
+    else hudImg.textContent = PLAYER_CONFIG[i].defaultEmoji;
+
+    document.getElementById(`hud-name-${i}`).textContent = players[i].isAI ? 'TKG' : players[i].name;
+    renderDicePips(i, 1);
+    players[i].tokens = [{step:-1},{step:-1},{step:-1},{step:-1}];
+  }
+
+  // Strictly hide inactive corner HUDs
+  for (let i = 0; i < 4; i++) {
+    const hud = document.getElementById(`hud-p${i}`);
+    if (hud) hud.style.display = activeSeatIndices.includes(i) ? 'flex' : 'none';
+  }
+
+  currentTurn = activeSeatIndices[0];
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'flex';
+
+  drawBoard();
+  spawnTokensDOM();
+  updateTurnUI();
+}
+
+function updateTurnUI() {
+  for (let i = 0; i < 4; i++) {
+    const box = document.getElementById(`hud-p${i}`);
+    if (box) {
+      if (i === currentTurn) box.classList.add('active-turn');
+      else box.classList.remove('active-turn');
+    }
+  }
+
+  const p = players[currentTurn];
+  document.getElementById('game-status-text').textContent = p.isAI ? `Computer is rolling...` : `${p.name}'s turn — Roll dice!`;
+  document.querySelectorAll('.sticker-token').forEach(el => el.classList.remove('can-move'));
+  canSelectToken = false;
+  drawBoard();
+
+  if (p.isAI) {
+    setTimeout(() => onRollDice(currentTurn), 700);
+  }
+}
+
+function onRollDice(playerIdx) {
+  if (isPaused) return;
+  if (playerIdx !== currentTurn || isRolling || isTokenMoving || canSelectToken) return;
+  isRolling = true;
+  playSound('roll');
+
+  // The 3D cube's own CSS transition (0.62s, see .dice-cube) IS the tumble
+  // animation now — no separate artificial delay/class needed before it.
+  // Gameplay waits for that same duration so a move can't start before the
+  // die visually settles on its face.
+  lastDiceRoll = Math.floor(Math.random() * 6) + 1;
+  renderDicePips(playerIdx, lastDiceRoll);
+
+  setTimeout(() => {
+    isRolling = false;
+    evaluateLegalMoves();
+  }, 620);
+}
+
+function evaluateLegalMoves() {
+  const p = players[currentTurn];
+  const legalTokens = [];
+
+  if (lastDiceRoll === 6) {
+    consecutiveSixes++;
+    if (consecutiveSixes === 3) {
+      broadcastHighlight('3 SIXES IN A ROW!', 'Turn Forfeited!');
+      consecutiveSixes = 0;
+      setTimeout(nextTurn, 1000);
+      return;
+    }
+  } else {
+    consecutiveSixes = 0;
+  }
+
+  p.tokens.forEach((t, idx) => {
+    if (t.step === -1 && lastDiceRoll === 6) {
+      legalTokens.push(idx);
+    } else if (t.step >= 0 && t.step + lastDiceRoll <= 56) {
+      legalTokens.push(idx);
+    }
+  });
+
+  if (legalTokens.length === 0) {
+    document.getElementById('game-status-text').textContent = "No legal moves!";
+    setTimeout(nextTurn, 850);
+  } else if (p.isAI) {
+    const choice = legalTokens[Math.floor(Math.random() * legalTokens.length)];
+    setTimeout(() => onSelectToken(currentTurn, choice), 500);
+  } else if (legalTokens.length === 1) {
+    onSelectToken(currentTurn, legalTokens[0]);
+  } else {
+    canSelectToken = true;
+    document.getElementById('game-status-text').textContent = "Choose a pawn to move!";
+    legalTokens.forEach(idx => {
+      document.getElementById(`token-${currentTurn}-${idx}`).classList.add('can-move');
+    });
+  }
+}
+
+/* ==========================================================================
+   10. STEP-BY-STEP LAZY WALKING ANIMATION ENGINE
+   ========================================================================== */
+function onSelectToken(pIdx, tIdx) {
+  if (isPaused) return;
+  if (pIdx !== currentTurn || (!canSelectToken && isRolling && !players[pIdx].isAI) || isTokenMoving) return;
+  const t = players[pIdx].tokens[tIdx];
+
+  if (t.step === -1 && lastDiceRoll !== 6) return;
+  if (t.step >= 0 && t.step + lastDiceRoll > 56) return;
+
+  canSelectToken = false;
+  isTokenMoving = true;
+  document.querySelectorAll('.sticker-token').forEach(el => el.classList.remove('can-move'));
+
+  const tokenEl = document.getElementById(`token-${pIdx}-${tIdx}`);
+  tokenEl.classList.add('walking');
+
+  // Step 1: Release token out of Yard
+  if (t.step === -1) {
+    t.step = 0;
+    playSound('step');
+    renderAllTokensDOM();
+    setTimeout(() => {
+      tokenEl.classList.remove('walking');
+      isTokenMoving = false;
+      handleArrivalLogic(pIdx, tIdx);
+    }, 280);
+    return;
+  }
+
+  // Step 2: Lazy step-by-step walking sequence (Strict cell-to-cell hop)
+  let stepsRemaining = lastDiceRoll;
+  function walkOneStep() {
+    if (stepsRemaining <= 0) {
+      tokenEl.classList.remove('walking');
+      isTokenMoving = false;
+      handleArrivalLogic(pIdx, tIdx);
+      return;
+    }
+
+    spawnTokenTrail_(pIdx, tIdx); // ghost marks the cell being left, before t.step changes
+    t.step += 1;
+    stepsRemaining--;
+    playSound('step');
+    renderAllTokensDOM();
+
+    setTimeout(walkOneStep, 180);
+  }
+
+  walkOneStep();
+}
+
+function handleArrivalLogic(pIdx, tIdx) {
+  const t = players[pIdx].tokens[tIdx];
+
+  if (checkPlayerWon(pIdx)) {
+    document.getElementById('winner-title').textContent = `👑 ${players[pIdx].name} WINS!`;
+    document.getElementById('winner-modal').classList.add('show');
+    return;
+  }
+
+  if (t.step >= 0 && t.step <= 50) {
+    const gTile = getGlobalTrackIndex(pIdx, t.step);
+    const isProtected = SAFE_TILES.includes(gTile) || magicProtectedTiles[gTile];
+
+    // Landing on an actual safe star (not a chaos tile occupying the same
+    // spot, which has its own distinct sound) gets its own cheerful cue —
+    // this sound didn't exist before this pass.
+    if (SAFE_TILES.includes(gTile) && !activeFodoEvents[gTile]) {
+      playSound('star');
+    }
+
+    // Standard Ludo Cutting with Coal-Fired Effect
+    if (!isProtected) {
+      players.forEach((opp, oppIdx) => {
+        if (oppIdx === pIdx || !activeSeatIndices.includes(oppIdx)) return;
+        opp.tokens.forEach((oppT, oppTIdx) => {
+          if (oppT.step >= 0 && oppT.step <= 50) {
+            const oppGTile = getGlobalTrackIndex(oppIdx, oppT.step);
+            if (oppGTile === gTile) {
+              playSound('cut');
+              const oppEl = document.getElementById(`token-${oppIdx}-${oppTIdx}`);
+              if (oppEl) oppEl.classList.add('coal-fired');
+              showChaosReactionCard(oppIdx, 'rx-coalfired', 'BURNED!');
+
+              setTimeout(() => {
+                oppT.step = -1;
+                if (oppEl) oppEl.classList.remove('coal-fired');
+                if (oppEl) oppEl.classList.add('yard-pop');
+                renderAllTokensDOM();
+                setTimeout(() => { if (oppEl) oppEl.classList.remove('yard-pop'); }, 420);
+              }, 1000);
+            }
+          }
+        });
+      });
+    }
+
+    if (activeFodoEvents[gTile]) {
+      const ev = activeFodoEvents[gTile];
+      delete activeFodoEvents[gTile];
+      ev.onLand(pIdx, tIdx);
+    }
+  }
+
+  if (lastDiceRoll === 6) {
+    document.getElementById('game-status-text').textContent = "Rolled a 6! Roll again!";
+    isRolling = false;
+    if (players[currentTurn].isAI) {
+      setTimeout(() => onRollDice(currentTurn), 700);
+    }
+  } else {
+    setTimeout(nextTurn, 650);
+  }
+}
+
+// Animates backward movement one cell at a time (140ms/step — a touch
+// quicker than the forward 180ms/step, matches the "yanked back" feel of
+// a chaos hit), with the same trail-ghost as forward movement. Was a
+// single instant jump before; this is the fix for that carried-over gap.
+function stepBackToken(pIdx, tIdx, steps) {
+  const t = players[pIdx].tokens[tIdx];
+  let remaining = Math.min(steps, t.step); // never step below 0 via the loop
+  function hopBack() {
+    if (remaining <= 0) { renderAllTokensDOM(); return; }
+    spawnTokenTrail_(pIdx, tIdx);
+    t.step = Math.max(0, t.step - 1);
+    remaining--;
+    playSound('step');
+    renderAllTokensDOM();
+    if (remaining > 0) setTimeout(hopBack, 140);
+  }
+  hopBack();
+}
+
+// Yard isn't a cell on the 52-tile path, so there's no meaningful "walk"
+// back to it — instead this is a quick shrink-and-reappear pop, which
+// reads as "yanked off the board" rather than either an instant teleport
+// or a nonsensical walk backward through tiles that don't lead to the yard.
+function sendTokenToYard(pIdx, tIdx) {
+  const t = players[pIdx].tokens[tIdx];
+  const tokenEl = document.getElementById(`token-${pIdx}-${tIdx}`);
+  if (tokenEl) {
+    tokenEl.classList.add('yard-pop');
+    setTimeout(() => {
+      t.step = -1;
+      renderAllTokensDOM();
+      setTimeout(() => tokenEl.classList.remove('yard-pop'), 220);
+    }, 200);
+  } else {
+    t.step = -1;
+    renderAllTokensDOM();
+  }
+}
+
+function checkPlayerWon(pIdx) {
+  return players[pIdx].tokens.every(t => t.step === 56);
+}
+
+function nextTurn() {
+  spawnRandomFodoEvents();
+  const pos = activeSeatIndices.indexOf(currentTurn);
+  currentTurn = activeSeatIndices[(pos + 1) % activeSeatIndices.length];
+  updateTurnUI();
+}
+</script>
+
+</body>
+</html>
