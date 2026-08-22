@@ -7837,6 +7837,7 @@ const installActionBtn = document.getElementById('installActionBtn');
 const installDismissBtn = document.getElementById('installDismissBtn');
 
 let deferredInstallEvent = null;
+let installBannerAutoDismissTimer = null; // iOS path only — see showInstallBanner()
 
 function isStandalone(){
   return window.matchMedia('(display-mode: standalone)').matches
@@ -7864,6 +7865,7 @@ function setBottomNavHiddenForInstallBanner_(hidden){
 }
 
 function dismissInstallBanner(persist){
+  clearTimeout(installBannerAutoDismissTimer);
   installBanner.classList.remove('show');
   setBottomNavHiddenForInstallBanner_(false);
   if(persist){
@@ -7888,13 +7890,19 @@ function showInstallBanner(){
     installBanner.classList.add('show');
     setBottomNavHiddenForInstallBanner_(true);
   }else if(isIos()){
-    // iOS Safari — no programmatic install, show manual instructions instead
+    // iOS Safari — no programmatic install, show manual instructions instead.
+    // There's no real action to wait for here (unlike Android's actual
+    // install prompt below), so this auto-dismisses on its own after a
+    // few seconds instead of sitting indefinitely until manually tapped —
+    // same as tapping "Got It" (permanently dismissed, won't show again).
     installTitle.textContent = dict.install.iosTitle;
     installSub.textContent = dict.install.iosSub;
     installActionBtn.textContent = dict.install.iosBtn;
     installActionBtn.classList.remove('hidden');
     installBanner.classList.add('show');
     setBottomNavHiddenForInstallBanner_(true);
+    clearTimeout(installBannerAutoDismissTimer);
+    installBannerAutoDismissTimer = setTimeout(() => dismissInstallBanner(true), 7000);
   }
   // Any other platform/browser: beforeinstallprompt never fired, not iOS —
   // skip entirely rather than show a dead-end button.

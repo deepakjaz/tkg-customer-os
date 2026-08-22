@@ -778,6 +778,22 @@
 
 <canvas id="coal-canvas"></canvas>
 
+<div class="geo-hint-toast" id="geoHintToast" aria-live="polite">Not stalking you 😄 — just helping TKG know where you're visiting from.</div>
+
+<!-- tkg-shared.js — same canonical Journey/identity module Runner/Leaderboard
+     already use. Read here (early) so the rest of the page can know the
+     visitor's active Journey; the actual prompt UI/wiring lives further
+     down, right before the nav, same split Runner uses. -->
+<script src="./tkg-shared.js"></script>
+<script>
+var tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
+if (window.TKGShared) TKGShared.logEvent('FODO', 'opened');
+// 200m Proximity Nudge — same silent no-op guard Runner/Leaderboard use
+// (only Fri/Sat/Sun, only if location permission is already granted,
+// only within 200m of TKG). Never auto-selects a Journey.
+if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJourneyPrompt(); });
+</script>
+
 <!-- Runner-Style Intro Splash -->
 <div id="intro-modal">
   <div class="intro-card">
@@ -1052,6 +1068,13 @@ function animateEmbers() {
 animateEmbers();
 
 function dismissIntro() {
+  // iOS Safari only unlocks WebAudio when resume() runs directly inside a
+  // real tap. "LET'S PLAY" is the very first tap of the whole game, so
+  // warming up here guarantees audio is unlocked before ANY sound needs
+  // to play — including a computer opponent's turn later, which fires
+  // from a setTimeout with no tap of its own and would otherwise stay
+  // silent for the rest of the session on iPhone.
+  ensureAudio();
   document.getElementById('intro-modal').style.display = 'none';
   document.getElementById('legend-modal').style.display = 'flex';
 }
@@ -2275,6 +2298,126 @@ function nextTurn() {
 }
 </script>
 
+<!-- JOURNEY PROMPT — cross-surface Journey correction, same pattern as
+     Runner/Leaderboard. Shown only when this surface has no valid
+     Journey context yet (see init script below). Deliberately separate
+     markup/CSS from FODO's own #intro-modal/#legend-modal — must never
+     look like or interfere with those. Choosing a Journey closes this
+     immediately, no second confirm button. -->
+<div class="journey-prompt-backdrop" id="journeyPromptBackdrop"></div>
+<div class="journey-prompt-card" id="journeyPromptCard">
+  <h2>👋 Welcome to TKG</h2>
+  <p>How can we help you today?</p>
+  <button type="button" class="journey-prompt-choice" data-journey-choice="atTKG">🟢 I'm at TKG</button>
+  <button type="button" class="journey-prompt-choice" data-journey-choice="planning">🟡 Planning my visit</button>
+  <button type="button" class="journey-prompt-choice" data-journey-choice="exploring">⚪ Just exploring</button>
+</div>
+
+<style>
+/* JOURNEY PROMPT + GEO HINT TOAST — same structure as Runner/Leaderboard's
+   version, restyled to FODO's own coal/ember palette instead of Runner's
+   stone/ink vars (same component, different skin, per the established
+   ecosystem pattern of each surface theming this to its own look). */
+.journey-prompt-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(18,13,10,0.75);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease;
+  z-index:400;
+}
+.journey-prompt-backdrop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+.journey-prompt-card{
+  position:fixed;
+  left:50%;
+  top:50%;
+  transform:translate(-50%, calc(-50% + 12px));
+  width:calc(100% - 48px);
+  max-width:320px;
+  background: radial-gradient(circle at 50% 0%, #2A1A12, #140D0A);
+  border: 1.5px solid var(--card-border);
+  color: var(--text);
+  border-radius:20px;
+  padding:22px 20px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.8), 0 0 30px rgba(232, 93, 44, 0.25);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+  z-index:401;
+}
+.journey-prompt-backdrop.show + .journey-prompt-card{
+  opacity:1;
+  pointer-events:auto;
+  transform:translate(-50%, -50%);
+}
+.journey-prompt-card h2{
+  font-size:1.0625rem;
+  font-weight:700;
+  margin:0 0 4px;
+  color: var(--tkg-gold);
+}
+.journey-prompt-card p{
+  font-size:0.8125rem;
+  color: var(--text-dim);
+  margin:0 0 16px;
+}
+.journey-prompt-choice{
+  display:block;
+  width:100%;
+  text-align:left;
+  padding:13px 15px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.3);
+  color: var(--text);
+  font-size:0.875rem;
+  font-weight:600;
+  cursor:pointer;
+  margin-bottom:9px;
+  transition:background 0.15s ease, transform 0.1s ease;
+}
+.journey-prompt-choice:last-child{ margin-bottom:0; }
+.journey-prompt-choice:active{
+  transform:scale(0.98);
+  background: rgba(232, 93, 44, 0.25);
+}
+
+/* GEO HINT TOAST — ported verbatim from tkg-shared.js's expected markup
+   (fixed hex values by design, same reasoning as the proximity nudge
+   banner: identical/isolated across all surfaces rather than needing a
+   per-page variable map). */
+.geo-hint-toast{
+  position:fixed;
+  left:50%;
+  top:calc(env(safe-area-inset-top, 0px) + 14px);
+  transform:translate(-50%, -12px);
+  max-width:min(88vw, 360px);
+  padding:10px 16px;
+  border-radius:999px;
+  background:rgba(28,24,21,0.82);
+  color:#FFFFFF;
+  font-size:0.8125rem;
+  font-weight:500;
+  text-align:center;
+  line-height:1.3;
+  box-shadow:0 8px 24px rgba(28,24,21,0.28);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  opacity:0;
+  pointer-events:none;
+  z-index:170;
+  transition:opacity 0.25s ease, transform 0.25s ease;
+}
+.geo-hint-toast.show{
+  opacity:1;
+  transform:translate(-50%, 0);
+}
+</style>
+
 <!-- ===================== SHARED TKG GLOBAL NAV ===================== -->
 <!-- Copied verbatim from khichiya-runner.html / game-console.html — same
      5 items, same positioning math, unchanged. Only the 5th item is
@@ -2410,6 +2553,16 @@ body.dark-mode .tkg-nav-item.active {
   width: 52px !important;
   height: 44px !important;
 }
+.tkg-nav-hub .tkg-hub-badge-icon {
+  width: 34px !important;
+  height: 34px !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 0 4px rgba(250, 198, 70, 0.55));
+}
+.tkg-global-nav.scrolled .tkg-nav-hub .tkg-hub-badge-icon {
+  width: 34px !important;
+  height: 34px !important;
+}
 .tkg-moments-icon-stack {
   position: relative;
   width: 18px;
@@ -2480,6 +2633,42 @@ body.dark-mode .tkg-nav-item.active {
     if(toggles >= MAX_TOGGLES) clearInterval(iv);
   }, 2500);
 })();
+</script>
+
+<script>
+// ========== JOURNEY PROMPT — cross-surface Journey correction ==========
+// Shown only when this surface has no valid Journey context yet. Uses the
+// existing TKGShared.setJourneyContext()/getJourneyContext() — no new
+// storage key. Global Nav is hidden only for this first-run case and
+// restored the instant a choice is made; never blocks normal navigation
+// once a Journey exists. tkgActiveJourney is the global var already set
+// near the top of this file.
+var journeyPromptBackdrop = document.getElementById('journeyPromptBackdrop');
+var journeyPromptCard = document.getElementById('journeyPromptCard');
+var fodoGlobalNavForJourney = document.getElementById('globalNav');
+
+function openJourneyPrompt(){
+  if(fodoGlobalNavForJourney) fodoGlobalNavForJourney.style.display = 'none';
+  journeyPromptBackdrop.classList.add('show');
+}
+
+function closeJourneyPrompt(){
+  journeyPromptBackdrop.classList.remove('show');
+  if(fodoGlobalNavForJourney) fodoGlobalNavForJourney.style.display = '';
+}
+
+document.querySelectorAll('.journey-prompt-choice').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var choice = btn.dataset.journeyChoice;
+    if(window.TKGShared) TKGShared.setJourneyContext(choice);
+    if(window.TKGShared) TKGShared.setJourneyOriginIfUnset('FODO'); // write-once — first surface a Journey was picked on
+    if(window.TKGShared) TKGShared.recordJourneyEvent(choice, 'FODO'); // same Journey Analytics + location flow Menu uses
+    tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
+    closeJourneyPrompt();
+  });
+});
+
+if(!tkgActiveJourney) openJourneyPrompt();
 </script>
 
 </body>

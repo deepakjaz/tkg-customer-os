@@ -211,7 +211,10 @@
   // 'Leaderboard' added Sprint B (2026-08-15) — Leaderboard gains its own
   // Journey selection UI for the first time this sprint (see below), so
   // it must be a valid origin surface like the other 4.
-  const JOURNEY_ORIGIN_SURFACES = ['Menu', 'Hub', 'Moments', 'Runner', 'Leaderboard'];
+  // 'FODO' and 'Games' added (2026-08-22) — FODO and Game Console gain
+  // their own Journey Prompt for the first time this session, same
+  // pattern as Runner/Leaderboard's standalone card component.
+  const JOURNEY_ORIGIN_SURFACES = ['Menu', 'Hub', 'Moments', 'Runner', 'Leaderboard', 'FODO', 'Games'];
 
   function getJourneyOrigin() {
     try {
