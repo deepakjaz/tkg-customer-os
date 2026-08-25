@@ -77,23 +77,17 @@
     z-index: 10;
   }
 
-  /* Header */
+  /* Header — branding removed (2026-08-24): was FODO title + subtitle,
+     just eating vertical space the board should get instead. Keeps only
+     the two functional buttons, now right-aligned since there's nothing
+     on the left anymore. */
   .top-header {
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     padding: 2px 6px 6px;
   }
-  .title-wrap h1 {
-    font-size: 1.4rem;
-    font-weight: 900;
-    letter-spacing: 2px;
-    background: linear-gradient(45deg, #E85D2C, #FAC646, #00B894, #0984E3);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .title-wrap p { font-size: 0.65rem; color: var(--text-dim); }
 
   .header-actions {
     display: flex;
@@ -114,19 +108,12 @@
     cursor: pointer;
   }
 
-  /* Intro Splash */
-  #intro-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(18, 13, 10, 0.95);
-    backdrop-filter: blur(10px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 200;
-  }
+  /* Chaos Reference — repurposed from the old forced "Chaos Legend"
+     splash (2026-08-24). No longer auto-shown between intro and setup —
+     that whole forced intro→legend→setup sequence is gone. Now opened
+     on demand via a small header button, both from Setup and in-game,
+     so a first-time player who wants the explanation can still get it,
+     without it being forced on everyone every time. */
   #legend-modal {
     position: fixed;
     inset: 0;
@@ -175,20 +162,6 @@
     line-height: 1.4;
     margin-bottom: 18px;
   }
-  .intro-features {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
-    background: rgba(0,0,0,0.3);
-    padding: 10px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.06);
-  }
-  .feat-item { font-size: 0.72rem; color: #FFF; font-weight: 700; }
-  .feat-item span { display: block; font-size: 1.3rem; margin-bottom: 4px; }
-
-  /* Chaos Legend — reuses the #intro-modal/.intro-card shell, shown once
-     right after the intro is dismissed, before setup. */
   .legend-row{
     display: flex;
     align-items: center;
@@ -210,6 +183,38 @@
   .legend-name{ font-size: 0.78rem; font-weight: 800; color: var(--tkg-gold); }
   .legend-effect{ font-size: 0.72rem; color: var(--text-dim); }
 
+  /* Chaos Intro moment — brief full-screen burst on BEGIN, ~1s total,
+     then straight into the live board. Not a modal, no text, no buttons
+     — just a quick energetic flash matching FODO's identity. */
+  .chaos-intro-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(232,93,44,0.35), rgba(18,13,10,0.97) 70%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 210;
+    pointer-events: none;
+  }
+  .chaos-intro-overlay.show { display: flex; }
+  .chaos-intro-burst {
+    display: flex;
+    gap: 18px;
+  }
+  .chaos-intro-icon {
+    font-size: 2.6rem;
+    opacity: 0;
+    animation: chaosIntroPop 0.7s steps(4) forwards;
+    animation-delay: calc(var(--d) * 0.08s);
+    filter: drop-shadow(0 0 10px rgba(250,198,70,0.6));
+  }
+  @keyframes chaosIntroPop {
+    0%   { opacity: 0; transform: scale(0.2) rotate(-15deg); }
+    40%  { opacity: 1; transform: scale(1.3) rotate(8deg); }
+    70%  { transform: scale(0.9) rotate(-4deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+
   /* Setup Screen */
   #setup-screen {
     width: 100%;
@@ -218,19 +223,66 @@
     border: 1.5px solid var(--card-border);
     border-radius: var(--radius-lg);
     padding: 14px;
-    display: none;
+    display: flex;
     flex-direction: column;
     gap: 10px;
     box-shadow: 0 16px 36px rgba(0,0,0,0.5);
   }
 
-  .game-mode-toggle {
-    display: flex;
-    background: rgba(0,0,0,0.35);
-    border-radius: 10px;
-    padding: 3px;
-    gap: 4px;
+  /* Player-count CARDS (2026-08-24) — replaces the old tab/segmented-
+     control bar. Each is its own clickable card with a clear selected
+     glow, not a shared pill. Kept compact (not huge) so there's still
+     room for the player setup cards underneath. */
+  .player-count-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
+  .player-count-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 6px;
+    border-radius: 12px;
+    border: 1.5px solid var(--card-border);
+    background: rgba(0,0,0,0.28);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  .player-count-card:active { transform: scale(0.97); }
+  .player-count-card-icons { font-size: 1.05rem; letter-spacing: 1px; }
+  .player-count-card-label { font-size: 0.72rem; font-weight: 800; }
+  .player-count-card.active {
+    border-color: var(--tkg-gold);
+    background: rgba(250,198,70,0.14);
+    color: #FFF;
+    box-shadow: 0 0 0 1px var(--tkg-gold), 0 4px 14px rgba(250,198,70,0.35);
+  }
+
+  /* Chaos reference icon — continuously rotating/pulsing (real motion,
+     not a static swap) so it reads as alive rather than a dull help
+     glyph. Cycles 🌀→🍔→🍜→⭐ via JS (see cycleChaosRefIcon). The 🌀
+     cyclone emoji renders naturally blue/purple in most emoji sets — a
+     black hole should read as dark/black, not blue, so it gets a
+     specific darkening filter the other 3 icons don't. */
+  .chaos-ref-icon {
+    display: inline-block;
+    font-size: 1.15rem;
+    animation: chaosRefMotion 2.4s ease-in-out infinite;
+  }
+  .chaos-ref-icon.is-blackhole {
+    filter: grayscale(1) brightness(0.35) contrast(1.5);
+  }
+  @keyframes chaosRefMotion {
+    0%   { transform: rotate(0deg) scale(1); }
+    25%  { transform: rotate(90deg) scale(1.12); }
+    50%  { transform: rotate(180deg) scale(1); }
+    75%  { transform: rotate(270deg) scale(1.12); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
   .mode-btn {
     flex: 1;
     border: none;
@@ -381,6 +433,34 @@
     align-items: center;
     justify-content: center;
     cursor: default;
+    position: relative;
+  }
+  /* Bouncing turn cue — only ever shown above a HUMAN player's own dice
+     while it's genuinely their turn to roll. Disappears the instant that
+     dice is tapped (see onRollDice()). Never shown for a TKG/computer
+     turn. Plain CSS triangle, not an image/emoji, so it stays crisp and
+     matches the dice's own color-neutral gold accent. */
+  .turn-arrow {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 9px solid var(--tkg-gold);
+    opacity: 0;
+    pointer-events: none;
+    filter: drop-shadow(0 0 4px rgba(250,198,70,0.7));
+  }
+  .turn-arrow.show {
+    opacity: 1;
+    animation: turnArrowBounce 0.8s ease-in-out infinite;
+  }
+  @keyframes turnArrowBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%      { transform: translateX(-50%) translateY(4px); }
   }
   .player-hud-box.active-turn .player-dice {
     cursor: pointer;
@@ -464,17 +544,31 @@
   }
 
   /* Ludo King Board */
-  #board-wrapper {
+  /* #board-stage owns the exact sizing formula #board-wrapper used to have
+     (same numbers, unchanged) — this is the size/height budget the earlier
+     vertical-fit fix was tuned against, so keeping it identical here means
+     zero risk of reintroducing that problem. #board-wrapper is now a 34px-
+     inset box INSIDE the stage, same visual chrome as before (background/
+     border/radius/shadow/overflow:hidden), just holding the canvas only.
+     Pawns/events live in the stage itself (not inside the clipped
+     wrapper), inset by the same 34px so their coordinate math still lines
+     up with the canvas exactly — but with real room on all 4 sides to
+     extend past the visible board edge (a classic Ludo pawn's head/face
+     naturally does this) without ever being cut off. */
+  #board-stage {
     position: relative;
-    width: 100%;
-    /* Bigger than before (410px), but capped against real viewport height
-       too — not just width — so growing it can't push the game taller
-       than a real phone screen and reintroduce the vertical-fit problem
-       just fixed above. calc(var(--app-vh,1vh)*58) ~= 58% of real
-       viewport height, leaving room for the header/HUD rows/status text
-       around it. */
-    max-width: min(430px, calc(var(--app-vh, 1vh) * 58));
+    width: calc(100% + 16px);
+    max-width: min(450px, calc(var(--app-vh, 1vh) * 62));
     aspect-ratio: 1 / 1;
+    /* Reclaims #app's own 8px horizontal padding on each side — real,
+       safe width recovery on narrow phones, where the board is
+       width-bound rather than height-bound (confirmed by measurement).
+       Doesn't affect anything outside #board-stage itself. */
+    margin: 0 -8px;
+  }
+  #board-wrapper {
+    position: absolute;
+    inset: 46px;
     background: #FFFFFF;
     border-radius: 12px;
     border: 3px solid #1C120C;
@@ -482,13 +576,27 @@
     overflow: hidden;
   }
   #board-canvas { width: 100%; height: 100%; display: block; }
+  #events-layer, #tokens-layer {
+    position: absolute;
+    inset: 46px;
+    pointer-events: none;
+  }
 
   /* Physical Pawn + Face Sticker Token (Mockup Style) */
   .sticker-token {
     position: absolute;
     width: 32px;
     height: 42px;
-    transform: translate(-50%, -75%);
+    /* Anchor corrected (2026-08-25) — was -75%, which is an arbitrary
+       fraction of the bounding box, not where the pawn actually touches
+       the board. The map-pin's real visual TIP (the point at the bottom
+       of .token-body::after) is what must sit on the cell centre, per
+       the map-pin metaphor: FACE + BODY sit above, the POINT is the
+       anchor. Measured directly against the pin's actual rendered
+       geometry (body top + 62% + full pseudo-element height) rather
+       than guessed — the old value left the tip 9.9px short of the
+       cell centre at rest. */
+    transform: translate(-50%, -98.55%);
     cursor: pointer;
     z-index: 20;
     transition: left 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.16s ease;
@@ -550,7 +658,7 @@
     z-index: 35;
   }
   .sticker-token.walking {
-    transform: translate(-50%, -85%) scale(1.18);
+    transform: translate(-50%, -108.59%) scale(1.18);
     filter: drop-shadow(0 8px 12px rgba(0,0,0,0.45));
     z-index: 40;
   }
@@ -794,24 +902,8 @@ if (window.TKGShared) TKGShared.logEvent('FODO', 'opened');
 if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJourneyPrompt(); });
 </script>
 
-<!-- Runner-Style Intro Splash -->
-<div id="intro-modal">
-  <div class="intro-card">
-    <div class="intro-badge">TKG PARTY GAME</div>
-    <div class="intro-title">FODO</div>
-    <p class="intro-desc">The chaotic Face-Sticker Ludo party! Roll, step, dodge food monsters, and Fodo opponents on real coal heat.</p>
-    
-    <div class="intro-features">
-      <div class="feat-item"><span>📸</span>Face Sticker</div>
-      <div class="feat-item"><span>🍔</span>Chaos Traps</div>
-      <div class="feat-item"><span>🔥</span>Coal KOs</div>
-    </div>
-
-    <button type="button" class="btn-start" style="width:100%;" onclick="dismissIntro()">LET'S PLAY 🎲</button>
-  </div>
-</div>
-
-<!-- Chaos Legend — shown once, right after the intro, before Setup -->
+<!-- Chaos Reference — no longer auto-shown; opened on demand via the ❓
+     button in the header (both from Setup and in-game). -->
 <div id="legend-modal" style="display:none;">
   <div class="intro-card">
     <div class="intro-badge">HOW CHAOS WORKS</div>
@@ -851,36 +943,61 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
   </div>
 </div>
 
+<!-- Chaos Intro moment — brief energetic transition on BEGIN, NOT a
+     tutorial. Same steps()-eased chunky visual language already used for
+     Chaos trap reactions elsewhere in this file. -->
+<div class="chaos-intro-overlay" id="chaosIntroOverlay">
+  <div class="chaos-intro-burst">
+    <span class="chaos-intro-icon" style="--d:0">🌀</span>
+    <span class="chaos-intro-icon" style="--d:1">🍔</span>
+    <span class="chaos-intro-icon" style="--d:2">🍜</span>
+    <span class="chaos-intro-icon" style="--d:3">⭐</span>
+  </div>
+</div>
+
 <div id="app">
   <div class="top-header">
-    <div class="title-wrap">
-      <h1>FODO</h1>
-      <p>The Chaos Face-Sticker Ludo Party</p>
-    </div>
     <div class="header-actions">
-      <button type="button" class="audio-btn" id="pauseToggleBtn" onclick="pauseGame()" aria-label="Pause game" title="Pause">⏸️</button>
+      <button type="button" class="audio-btn" id="chaosRefBtn" onclick="openChaosReference()" aria-label="Chaos reference" title="Chaos reference">
+        <span id="chaosRefIcon" class="chaos-ref-icon is-blackhole">🌀</span>
+      </button>
+      <button type="button" class="audio-btn" id="pauseToggleBtn" onclick="pauseGame()" aria-label="Pause game" title="Pause" style="display:none;">⏸️</button>
       <button type="button" class="audio-btn" id="audioToggleBtn" onclick="toggleAudio()" aria-label="Toggle sound">🔊</button>
     </div>
   </div>
 
-  <!-- Pause overlay — reuses the same .overlay/.modal-card shell as the
-       winner modal below, not a new visual system. -->
+  <!-- Pause overlay — now uses the same .intro-card Chaos/ember shell as
+       the rest of FODO's identity moments (Chaos reference, Chaos intro
+       burst), not the plain generic .modal-card. Exactly 2 buttons. -->
   <div class="overlay" id="pause-modal">
-    <div class="modal-card">
-      <h2 style="font-size:1.3rem; margin-bottom:6px;">⏸️ PAUSED</h2>
-      <p style="font-size:0.8rem; color:var(--text-dim); margin-bottom:18px;">The game is on hold. Resume whenever you're ready.</p>
+    <div class="intro-card">
+      <div class="intro-badge">⏸️ PAUSED</div>
+      <div class="intro-title" style="font-size:1.6rem;">Hold Up</div>
+      <p class="intro-desc">The chaos is on ice. Ready when you are.</p>
       <button type="button" class="btn-start" style="width:100%; margin-bottom:10px;" onclick="resumeGame()">▶️ RESUME</button>
-      <button type="button" class="mode-btn" style="width:100%; background:rgba(255,255,255,0.08); color:#fff;" onclick="quitToMenu()">🏠 QUIT TO MENU</button>
+      <button type="button" class="mode-btn" style="width:100%; background:rgba(255,255,255,0.08); color:#fff;" onclick="quitToMenu()">QUIT</button>
     </div>
   </div>
 
   <!-- Setup Screen -->
   <div id="setup-screen">
-    <div class="game-mode-toggle" id="player-count-toggle">
-      <button type="button" class="mode-btn" id="mode-1p" onclick="setGameMode(1)">1 PLAYER</button>
-      <button type="button" class="mode-btn active" id="mode-2p" onclick="setGameMode(2)">2 PLAYERS</button>
-      <button type="button" class="mode-btn" id="mode-3p" onclick="setGameMode(3)">3 PLAYERS</button>
-      <button type="button" class="mode-btn" id="mode-4p" onclick="setGameMode(4)">4 PLAYERS</button>
+    <div class="player-count-grid" id="player-count-toggle">
+      <button type="button" class="player-count-card" id="mode-1p" onclick="setGameMode(1)">
+        <span class="player-count-card-icons">👤</span>
+        <span class="player-count-card-label">1 PLAYER</span>
+      </button>
+      <button type="button" class="player-count-card active" id="mode-2p" onclick="setGameMode(2)">
+        <span class="player-count-card-icons">👤👤</span>
+        <span class="player-count-card-label">2 PLAYERS</span>
+      </button>
+      <button type="button" class="player-count-card" id="mode-3p" onclick="setGameMode(3)">
+        <span class="player-count-card-icons">👤👤👤</span>
+        <span class="player-count-card-label">3 PLAYERS</span>
+      </button>
+      <button type="button" class="player-count-card" id="mode-4p" onclick="setGameMode(4)">
+        <span class="player-count-card-icons">👤👤👤👤</span>
+        <span class="player-count-card-label">4 PLAYERS</span>
+      </button>
     </div>
 
     <div id="tkg-fill-row">
@@ -914,7 +1031,7 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
       </div>
     </div>
 
-    <button type="button" class="btn-start" onclick="startGame()">ENTER THE ARENA 🎲</button>
+    <button type="button" class="btn-start" onclick="startGame()">BEGIN 🎲</button>
   </div>
 
   <!-- Game Arena Screen -->
@@ -922,25 +1039,29 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
     <!-- Top Row: Red (Top-Left) and Green (Top-Right) -->
     <div class="arena-row">
       <div class="player-hud-box p0-box" id="hud-p0">
-        <div class="hud-avatar" id="hud-img-0">🤪</div>
-        <div class="hud-name" id="hud-name-0">Red</div>
         <div class="player-dice" id="dice-0" onclick="onRollDice(0)">
+          <div class="turn-arrow" id="turn-arrow-0"></div>
           <div class="dice-scene"><div class="dice-cube" id="dice-cube-0"></div></div>
         </div>
+        <div class="hud-name" id="hud-name-0">Red</div>
+        <div class="hud-avatar" id="hud-img-0">🤪</div>
       </div>
 
       <div class="player-hud-box p1-box" id="hud-p1">
+        <div class="hud-avatar" id="hud-img-1">🤖</div>
+        <div class="hud-name" id="hud-name-1">Green</div>
         <div class="player-dice" id="dice-1" onclick="onRollDice(1)">
+          <div class="turn-arrow" id="turn-arrow-1"></div>
           <div class="dice-scene"><div class="dice-cube" id="dice-cube-1"></div></div>
         </div>
-        <div class="hud-name" id="hud-name-1">Green</div>
-        <div class="hud-avatar" id="hud-img-1">🤖</div>
       </div>
     </div>
 
     <!-- Clean Ludo King Board -->
-    <div id="board-wrapper">
-      <canvas id="board-canvas" width="600" height="600"></canvas>
+    <div id="board-stage">
+      <div id="board-wrapper">
+        <canvas id="board-canvas" width="600" height="600"></canvas>
+      </div>
       <div id="events-layer"></div>
       <div id="tokens-layer"></div>
       <div id="broadcast-banner">🔥 FODO EVENT!</div>
@@ -952,12 +1073,14 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
         <div class="hud-avatar" id="hud-img-3">🥳</div>
         <div class="hud-name" id="hud-name-3">Blue</div>
         <div class="player-dice" id="dice-3" onclick="onRollDice(3)">
+          <div class="turn-arrow" id="turn-arrow-3"></div>
           <div class="dice-scene"><div class="dice-cube" id="dice-cube-3"></div></div>
         </div>
       </div>
 
       <div class="player-hud-box p2-box" id="hud-p2">
         <div class="player-dice" id="dice-2" onclick="onRollDice(2)">
+          <div class="turn-arrow" id="turn-arrow-2"></div>
           <div class="dice-scene"><div class="dice-cube" id="dice-cube-2"></div></div>
         </div>
         <div class="hud-name" id="hud-name-2">Yellow</div>
@@ -1067,21 +1190,27 @@ function animateEmbers() {
 }
 animateEmbers();
 
-function dismissIntro() {
-  // iOS Safari only unlocks WebAudio when resume() runs directly inside a
-  // real tap. "LET'S PLAY" is the very first tap of the whole game, so
-  // warming up here guarantees audio is unlocked before ANY sound needs
-  // to play — including a computer opponent's turn later, which fires
-  // from a setTimeout with no tap of its own and would otherwise stay
-  // silent for the rest of the session on iPhone.
-  ensureAudio();
-  document.getElementById('intro-modal').style.display = 'none';
+function openChaosReference() {
   document.getElementById('legend-modal').style.display = 'flex';
 }
 function dismissLegend() {
   document.getElementById('legend-modal').style.display = 'none';
-  document.getElementById('setup-screen').style.display = 'flex';
 }
+
+// Chaos reference icon cycle — plain interval, swaps the glyph itself
+// (not a crossfade of multiple stacked icons — only ONE showing at a
+// time, per the "not four icons permanently in the header" instruction).
+const CHAOS_REF_ICONS = ['🌀', '🍔', '🍜', '⭐'];
+let chaosRefIconIdx = 0;
+function cycleChaosRefIcon() {
+  const el = document.getElementById('chaosRefIcon');
+  if (!el) return;
+  chaosRefIconIdx = (chaosRefIconIdx + 1) % CHAOS_REF_ICONS.length;
+  const icon = CHAOS_REF_ICONS[chaosRefIconIdx];
+  el.textContent = icon;
+  el.classList.toggle('is-blackhole', icon === '🌀');
+}
+setInterval(cycleChaosRefIcon, 1800);
 
 /* ==========================================================================
    2. SOUND ENGINE (Global Mute + Authentic Physical FX)
@@ -1125,7 +1254,10 @@ function resumeGame() {
 }
 
 function quitToMenu() {
-  window.location.href = './index.html';
+  // Was './index.html' — stale from before Game Console existed as the
+  // actual games hub. FODO is launched FROM Game Console (via its tile),
+  // so QUIT should return there, not skip past it to the food menu.
+  window.location.href = './game-console.html';
 }
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -1505,7 +1637,7 @@ let consecutiveSixes = 0;
 
 function setGameMode(mode) {
   activePlayerCount = mode;
-  document.querySelectorAll('#player-count-toggle .mode-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#player-count-toggle .player-count-card').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById(`mode-${mode}p`);
   if (btn) btn.classList.add('active');
 
@@ -2006,6 +2138,15 @@ function renderDicePips(playerIdx, value) {
 }
 
 function startGame() {
+  // iOS Safari only unlocks WebAudio when resume() runs directly inside a
+  // real tap. BEGIN is now the very first tap of the whole game (no more
+  // LET'S PLAY before it), so warming up here guarantees audio is
+  // unlocked before ANY sound needs to play — including a computer
+  // opponent's turn later, which fires from a setTimeout with no tap of
+  // its own and would otherwise stay silent for the rest of the session
+  // on iPhone.
+  ensureAudio();
+
   // Mirrors setGameMode()'s logic exactly (single source of truth would be
   // even better, but this keeps the fix minimal and matches the existing
   // pattern already used elsewhere in this file) — 1P now defaults to
@@ -2043,11 +2184,22 @@ function startGame() {
 
   currentTurn = activeSeatIndices[0];
   document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('game-screen').style.display = 'flex';
 
-  drawBoard();
-  spawnTokensDOM();
-  updateTurnUI();
+  // Short Chaos intro moment (~950ms) instead of the old text tutorial —
+  // introduces the FEELING of FODO, explains nothing. Board/HUD only get
+  // drawn and turn logic only starts once this finishes, so the AI's
+  // first move (if seat 0 were ever AI) can't fire before the board is
+  // even on screen.
+  const introOverlay = document.getElementById('chaosIntroOverlay');
+  introOverlay.classList.add('show');
+  setTimeout(() => {
+    introOverlay.classList.remove('show');
+    document.getElementById('game-screen').style.display = 'flex';
+    document.getElementById('pauseToggleBtn').style.display = '';
+    drawBoard();
+    spawnTokensDOM();
+    updateTurnUI();
+  }, 950);
 }
 
 function updateTurnUI() {
@@ -2065,6 +2217,14 @@ function updateTurnUI() {
   canSelectToken = false;
   drawBoard();
 
+  // Bouncing turn-arrow — only for the active HUMAN player's own dice,
+  // never for a TKG/computer turn. Cleared from every dice first so only
+  // one is ever showing at a time.
+  for (let i = 0; i < 4; i++) {
+    const arrow = document.getElementById(`turn-arrow-${i}`);
+    if (arrow) arrow.classList.toggle('show', i === currentTurn && !p.isAI);
+  }
+
   if (p.isAI) {
     setTimeout(() => onRollDice(currentTurn), 700);
   }
@@ -2074,6 +2234,9 @@ function onRollDice(playerIdx) {
   if (isPaused) return;
   if (playerIdx !== currentTurn || isRolling || isTokenMoving || canSelectToken) return;
   isRolling = true;
+  // Dice tapped — arrow's job is done for this turn.
+  const arrow = document.getElementById(`turn-arrow-${playerIdx}`);
+  if (arrow) arrow.classList.remove('show');
   playSound('roll');
 
   // The 3D cube's own CSS transition (0.62s, see .dice-cube) IS the tumble
@@ -2192,6 +2355,17 @@ function handleArrivalLogic(pIdx, tIdx) {
     return;
   }
 
+  // Extra-roll turn result — ONE authoritative decision, computed here,
+  // not scattered. killedOpponent is set the instant a kill is detected
+  // (synchronous, same tick), independent of the 1s coal-fired animation
+  // delay below — the reward must never wait on presentation timing.
+  // reachedHome reads this token's own step right now, before any of the
+  // logic below runs; checkPlayerWon() already returned above if this
+  // was the winning (4th) pawn, so reaching here with step===56 can only
+  // mean "one pawn home, game continues".
+  let killedOpponent = false;
+  const reachedHome = (t.step === 56);
+
   if (t.step >= 0 && t.step <= 50) {
     const gTile = getGlobalTrackIndex(pIdx, t.step);
     const isProtected = SAFE_TILES.includes(gTile) || magicProtectedTiles[gTile];
@@ -2211,6 +2385,7 @@ function handleArrivalLogic(pIdx, tIdx) {
           if (oppT.step >= 0 && oppT.step <= 50) {
             const oppGTile = getGlobalTrackIndex(oppIdx, oppT.step);
             if (oppGTile === gTile) {
+              killedOpponent = true; // one or many kills this landing — still just ONE extra roll
               playSound('cut');
               const oppEl = document.getElementById(`token-${oppIdx}-${oppTIdx}`);
               if (oppEl) oppEl.classList.add('coal-fired');
@@ -2236,11 +2411,26 @@ function handleArrivalLogic(pIdx, tIdx) {
     }
   }
 
-  if (lastDiceRoll === 6) {
-    document.getElementById('game-status-text').textContent = "Rolled a 6! Roll again!";
+  // EXTRA ROLL = 6 OR KILL OR PAWN REACHES HOME — any one or more of
+  // these earns exactly ONE extra roll, never stacked. The 3-in-a-row-
+  // sixes forfeit is a separate, higher-priority check already handled
+  // earlier in evaluateLegalMoves() (returns before a move ever happens),
+  // so it can't be bypassed by this.
+  const earnedExtraRoll = (lastDiceRoll === 6) || killedOpponent || reachedHome;
+
+  if (earnedExtraRoll) {
+    const reason = lastDiceRoll === 6 ? "Rolled a 6!" : killedOpponent ? "Opponent down!" : "Pawn is home!";
+    document.getElementById('game-status-text').textContent = `${reason} Roll again!`;
     isRolling = false;
     if (players[currentTurn].isAI) {
       setTimeout(() => onRollDice(currentTurn), 700);
+    } else {
+      // Same player keeps the turn — the arrow was hidden the instant
+      // they tapped the dice for THIS roll (see onRollDice()), and
+      // nothing else was re-showing it for the extra roll. Restore it
+      // now so the player has a clear cue their dice is live again.
+      const arrow = document.getElementById(`turn-arrow-${currentTurn}`);
+      if (arrow) arrow.classList.add('show');
     }
   } else {
     setTimeout(nextTurn, 650);
