@@ -4,50 +4,81 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>FODO — The Chaos Face-Sticker Ludo Party</title>
+
+<!-- Theme sync from khichiya-runner.html -->
+<script>
+(function(){
+  try{
+    var theme = localStorage.getItem('tkg_theme');
+    if (theme === 'dark' || theme === 'light') {
+      document.documentElement.setAttribute('data-tkg-theme', theme);
+    } else {
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-tkg-theme', prefersDark ? 'dark' : 'light');
+    }
+  }catch(e){
+    document.documentElement.setAttribute('data-tkg-theme', 'dark');
+  }
+})();
+</script>
+
 <style>
   :root {
-    --bg-coal: #120D0A;
-    --card-bg: rgba(30, 20, 15, 0.85);
-    --card-border: rgba(250, 198, 70, 0.25);
+    --bg-page: #0F0E0C;
+    --card-bg: rgba(28, 20, 16, 0.88);
+    --card-border: rgba(250, 198, 70, 0.3);
     --tkg-ember: #E85D2C;
     --tkg-gold: #FAC646;
     --tkg-coal: #1C120C;
-    --text: #FFFFFF;
+    --text-main: #FFFFFF;
     --text-dim: #A89F91;
+    --input-bg: rgba(0, 0, 0, 0.45);
+    --btn-bg: linear-gradient(135deg, #E85D2C, #FF7A45);
+    --btn-text: #FFFFFF;
 
     --ludo-red: #E71D36;
     --ludo-green: #00B894;
     --ludo-yellow: #FFB300;
     --ludo-blue: #0984E3;
 
-    --radius-lg: 18px;
-    --radius-md: 12px;
     --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  }
+
+  html[data-tkg-theme="light"] {
+    --bg-page: #F4EDE2;
+    --card-bg: #FFFFFF;
+    --card-border: rgba(26, 20, 16, 0.18);
+    --tkg-gold: #C98B3D;
+    --text-main: #1A1410;
+    --text-dim: #6B5F52;
+    --input-bg: rgba(26, 20, 16, 0.06);
+    --btn-bg: linear-gradient(135deg, #E85D2C, #F3763F);
+    --btn-text: #FFFFFF;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
   body {
-    background: var(--bg-coal);
-    color: var(--text);
+    background-color: var(--bg-page);
+    background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('tkg-marble-black.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: var(--text-main);
     font-family: var(--font);
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Real mobile-Safari/Chrome fix (2026-08-22): 100vh/100dvh alone can
-       still misjudge the true visible height while the address bar is
-       collapsing/expanding right after load — --app-vh is set from actual
-       measured window.innerHeight via JS (see setAppViewportHeight_ below)
-       and kept in sync on resize/orientation change, which is the robust
-       pattern for this exact class of bug. dvh kept as the fallback for
-       the instant before JS runs. */
     min-height: 100vh;
     min-height: 100dvh;
     min-height: calc(var(--app-vh, 1vh) * 100);
-    overflow-y: auto; /* was overflow:hidden — that silently CLIPPED content
-      top+bottom equally whenever the game didn't fit the real visible
-      area, which is what read as "not vertically centered"; auto means it
-      scrolls instead of clipping if it ever doesn't fit */
+    overflow-y: auto;
     position: relative;
+    padding: 6px 8px;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  html[data-tkg-theme="light"] body {
+    background-image: none;
   }
 
   #coal-canvas {
@@ -61,34 +92,24 @@
 
   #app {
     width: 100%;
-    max-width: 440px;
-    /* min-height:100vh removed (2026-08-22) — body already centers #app
-       vertically within the real measured viewport height (--app-vh
-       above); #app ALSO forcing its own 100vh created two independent
-       "fill the screen" calculations that could disagree slightly on a
-       real phone as the browser chrome resized, which is what likely
-       caused the vertical offset. #app now just sizes to its content. */
-    padding: 4px 8px env(safe-area-inset-bottom, 8px);
+    max-width: 430px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
     z-index: 10;
+    padding-bottom: 60px;
   }
 
-  /* Header — branding removed (2026-08-24): was FODO title + subtitle,
-     just eating vertical space the board should get instead. Keeps only
-     the two functional buttons, now right-aligned since there's nothing
-     on the left anymore. */
+  /* Header Actions */
   .top-header {
     width: 100%;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding: 2px 6px 6px;
+    padding: 0 4px 4px;
   }
-
   .header-actions {
     display: flex;
     align-items: center;
@@ -96,143 +117,61 @@
   }
   .audio-btn {
     background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    color: #FFF;
-    width: 32px;
-    height: 32px;
+    border: 1.5px solid var(--card-border);
+    color: var(--text-main);
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   }
 
-  /* Chaos Reference — repurposed from the old forced "Chaos Legend"
-     splash (2026-08-24). No longer auto-shown between intro and setup —
-     that whole forced intro→legend→setup sequence is gone. Now opened
-     on demand via a small header button, both from Setup and in-game,
-     so a first-time player who wants the explanation can still get it,
-     without it being forced on everyone every time. */
-  #legend-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(18, 13, 10, 0.95);
-    backdrop-filter: blur(10px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 199;
-    overflow-y: auto;
-  }
-  .intro-card {
-    width: 100%;
-    max-width: 360px;
-    background: radial-gradient(circle at 50% 0%, #2A1A12, #140D0A);
-    border: 1.5px solid var(--card-border);
-    border-radius: 20px;
-    padding: 24px 20px;
-    text-align: center;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.8), 0 0 30px rgba(232, 93, 44, 0.25);
-  }
-  .intro-badge {
+  .chaos-ref-icon {
     display: inline-block;
-    background: rgba(232, 93, 44, 0.2);
-    border: 1px solid var(--tkg-ember);
-    color: var(--tkg-gold);
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 20px;
-    margin-bottom: 10px;
+    font-size: 1.15rem;
+    animation: chaosRefMotion 2.4s ease-in-out infinite;
   }
-  .intro-title {
-    font-size: 2rem;
-    font-weight: 900;
-    background: linear-gradient(45deg, #FF6B35, #FAC646);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 6px;
+  .chaos-ref-icon.is-blackhole {
+    filter: grayscale(1) brightness(0.35) contrast(1.5);
+    animation: chaosRefBlackhole 2.4s ease-in-out infinite;
   }
-  .intro-desc {
-    font-size: 0.82rem;
-    color: var(--text-dim);
-    line-height: 1.4;
-    margin-bottom: 18px;
+  @keyframes chaosRefMotion {
+    0%   { transform: rotate(0deg) scale(1); }
+    50%  { transform: rotate(180deg) scale(1.12); }
+    100% { transform: rotate(360deg) scale(1); }
   }
-  .legend-row{
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-align: left;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-    padding: 8px 10px;
-    margin-bottom: 8px;
-  }
-  .legend-icon{
-    font-size: 1.6rem;
-    width: 34px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-  .legend-text{ flex: 1; }
-  .legend-name{ font-size: 0.78rem; font-weight: 800; color: var(--tkg-gold); }
-  .legend-effect{ font-size: 0.72rem; color: var(--text-dim); }
-
-  /* Chaos Intro moment — brief full-screen burst on BEGIN, ~1s total,
-     then straight into the live board. Not a modal, no text, no buttons
-     — just a quick energetic flash matching FODO's identity. */
-  .chaos-intro-overlay {
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(circle at 50% 50%, rgba(232,93,44,0.35), rgba(18,13,10,0.97) 70%);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 210;
-    pointer-events: none;
-  }
-  .chaos-intro-overlay.show { display: flex; }
-  .chaos-intro-burst {
-    display: flex;
-    gap: 18px;
-  }
-  .chaos-intro-icon {
-    font-size: 2.6rem;
-    opacity: 0;
-    animation: chaosIntroPop 0.7s steps(4) forwards;
-    animation-delay: calc(var(--d) * 0.08s);
-    filter: drop-shadow(0 0 10px rgba(250,198,70,0.6));
-  }
-  @keyframes chaosIntroPop {
-    0%   { opacity: 0; transform: scale(0.2) rotate(-15deg); }
-    40%  { opacity: 1; transform: scale(1.3) rotate(8deg); }
-    70%  { transform: scale(0.9) rotate(-4deg); }
-    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  @keyframes chaosRefBlackhole {
+    0%, 100% { transform: scale(1); filter: grayscale(1) brightness(0.35) contrast(1.5); }
+    50%      { transform: scale(0.82); filter: grayscale(1) brightness(0.15) contrast(1.8); }
   }
 
   /* Setup Screen */
   #setup-screen {
     width: 100%;
     background: var(--card-bg);
-    backdrop-filter: blur(16px);
-    border: 1.5px solid var(--card-border);
-    border-radius: var(--radius-lg);
-    padding: 14px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 2px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    box-shadow: 0 16px 36px rgba(0,0,0,0.5);
+    gap: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
   }
 
-  /* Player-count CARDS (2026-08-24) — replaces the old tab/segmented-
-     control bar. Each is its own clickable card with a clear selected
-     glow, not a shared pill. Kept compact (not huge) so there's still
-     room for the player setup cards underneath. */
+  .setup-stage-title {
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-align: center;
+    color: var(--tkg-gold);
+  }
+
   .player-count-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -242,62 +181,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
-    padding: 10px 6px;
+    gap: 4px;
+    padding: 12px 6px;
     border-radius: 12px;
     border: 1.5px solid var(--card-border);
-    background: rgba(0,0,0,0.28);
+    background: var(--input-bg);
     color: var(--text-dim);
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+    transition: all 0.15s ease;
   }
-  .player-count-card:active { transform: scale(0.97); }
-  .player-count-card-icons { font-size: 1.05rem; letter-spacing: 1px; }
-  .player-count-card-label { font-size: 0.72rem; font-weight: 800; }
   .player-count-card.active {
     border-color: var(--tkg-gold);
-    background: rgba(250,198,70,0.14);
-    color: #FFF;
-    box-shadow: 0 0 0 1px var(--tkg-gold), 0 4px 14px rgba(250,198,70,0.35);
-  }
-
-  /* Chaos reference icon — continuously rotating/pulsing (real motion,
-     not a static swap) so it reads as alive rather than a dull help
-     glyph. Cycles 🌀→🍔→🍜→⭐ via JS (see cycleChaosRefIcon). The 🌀
-     cyclone emoji renders naturally blue/purple in most emoji sets — a
-     black hole should read as dark/black, not blue, so it gets a
-     specific darkening filter the other 3 icons don't. */
-  .chaos-ref-icon {
-    display: inline-block;
-    font-size: 1.15rem;
-    animation: chaosRefMotion 2.4s ease-in-out infinite;
-  }
-  .chaos-ref-icon.is-blackhole {
-    filter: grayscale(1) brightness(0.35) contrast(1.5);
-  }
-  @keyframes chaosRefMotion {
-    0%   { transform: rotate(0deg) scale(1); }
-    25%  { transform: rotate(90deg) scale(1.12); }
-    50%  { transform: rotate(180deg) scale(1); }
-    75%  { transform: rotate(270deg) scale(1.12); }
-    100% { transform: rotate(360deg) scale(1); }
-  }
-
-  .mode-btn {
-    flex: 1;
-    border: none;
-    background: transparent;
-    color: var(--text-dim);
-    padding: 8px 4px;
-    font-size: 0.72rem;
-    font-weight: 800;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  .mode-btn.active {
-    background: var(--tkg-ember);
-    color: #FFF;
-    box-shadow: 0 2px 8px rgba(232,93,44,0.4);
+    background: rgba(250, 198, 70, 0.18);
+    color: var(--text-main);
+    box-shadow: 0 0 12px rgba(250, 198, 70, 0.35);
   }
 
   #tkg-fill-row {
@@ -305,78 +202,106 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 7px 9px;
+    padding: 8px 10px;
     border: 1px solid var(--card-border);
     border-radius: 10px;
-    background: rgba(0,0,0,.25);
+    background: var(--input-bg);
   }
 
   .player-slots {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 8px;
   }
   .player-setup-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(14px);
+    background: var(--input-bg);
     border: 1.5px solid var(--card-border);
     border-radius: 12px;
-    padding: 8px;
+    padding: 14px 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+    gap: 8px;
   }
   .avatar-preview-box {
-    width: 48px;
-    height: 48px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
-    border: 2px solid #FFF;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-    background: #2A1E17;
+    border: 2px solid var(--tkg-gold);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    background: var(--card-bg);
     overflow: hidden;
-    margin-bottom: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 1.4rem;
+    font-size: 2rem;
   }
   .avatar-preview-box img { width: 100%; height: 100%; object-fit: cover; }
   .player-name-input {
-    width: 100%;
-    background: rgba(0,0,0,0.35);
+    width: 80%;
+    background: var(--card-bg);
     border: 1px solid var(--card-border);
-    color: var(--text);
-    padding: 4px 6px;
+    color: var(--text-main);
+    padding: 8px 10px;
     border-radius: 6px;
-    font-size: 0.72rem;
+    font-size: 0.85rem;
     text-align: center;
     font-weight: 700;
   }
 
-  .btn-start {
-    background: linear-gradient(135deg, var(--tkg-ember), #FF7A45);
+  .avatar-slot-badge {
+    font-size: 0.7rem;
+    font-weight: 900;
     color: #FFF;
-    border: none;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  .btn-start {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1.5px solid var(--tkg-gold);
     border-radius: 12px;
     padding: 13px;
     font-size: 0.95rem;
-    font-weight: 800;
-    letter-spacing: 1px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    box-shadow: 0 6px 20px rgba(232,93,44,0.45);
+    box-shadow: 0 6px 18px rgba(232, 93, 44, 0.45);
     text-align: center;
+    transition: transform 0.1s ease;
+  }
+  .btn-start:active { transform: scale(0.98); }
+
+  .mode-btn {
+    flex: 1;
+    border: 1.5px solid var(--card-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    padding: 10px 4px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    border-radius: 10px;
+    cursor: pointer;
   }
 
-  /* Arena Layout */
+  /* ---------------- ARENA SCREEN & BALANCED HUD ---------------- */
   #game-screen {
     width: 100%;
     display: none;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 0px;
+  }
+
+  #game-frame {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px; /* Perfectly equal gap from board to top and bottom cards */
   }
 
   .arena-row {
@@ -384,140 +309,162 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 2px;
+    gap: 8px;
   }
 
-  .player-hud-box {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-    border-radius: 12px;
+  .player-hud-card {
+    width: 48.5%;
     background: var(--card-bg);
-    backdrop-filter: blur(16px);
-    border: 1.5px solid var(--card-border);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-    opacity: 0.35;
-    transition: all 0.25s ease;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 2px solid var(--card-border);
+    border-radius: 12px;
+    padding: 6px 8px;
+    margin-top: 0px; /* Removed offset to keep top & bottom gaps identical */
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    opacity: 0.45;
+    transition: opacity 0.2s ease, transform 0.2s ease;
     position: relative;
   }
-  .player-hud-box.active-turn {
+  .player-hud-card.p-right { margin-left: auto; }
+  .player-hud-card.active-turn {
     opacity: 1;
-    transform: scale(1.04);
+    transform: scale(1.02);
     border-color: var(--tkg-gold);
-    box-shadow: 0 0 16px rgba(250, 198, 70, 0.5);
+    box-shadow: 0 0 16px rgba(250, 198, 70, 0.6);
   }
-  .hud-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    border: 1.5px solid #FFF;
+
+  .card-top-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
+  .card-pips { display: flex; gap: 3px; }
+  .card-pip {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #00B894;
+    border: 1px solid #005040;
+  }
+
+  .card-body-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .player-hud-card.align-left .card-body-row { flex-direction: row; }
+  .player-hud-card.align-right .card-body-row { flex-direction: row-reverse; }
+
+  .hud-avatar-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1.5px solid var(--card-border);
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
-    background: #1C120C;
+    font-size: 1.3rem;
+    background: #111;
+    flex-shrink: 0;
   }
-  .hud-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .hud-name { font-size: 0.72rem; font-weight: 800; color: #FFF; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hud-avatar-box img { width: 100%; height: 100%; object-fit: cover; }
 
-  /* 3D Dice Box */
-  .player-dice {
-    width: 38px;
-    height: 38px;
+  .hud-player-name {
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: var(--text-main);
+    text-align: center;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px #000;
+  }
+
+  .player-dice-slot {
+    width: 40px;
+    height: 40px;
     border-radius: 8px;
-    background: transparent;
-    box-shadow: none;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: default;
     position: relative;
+    flex-shrink: 0;
   }
-  /* Bouncing turn cue — only ever shown above a HUMAN player's own dice
-     while it's genuinely their turn to roll. Disappears the instant that
-     dice is tapped (see onRollDice()). Never shown for a TKG/computer
-     turn. Plain CSS triangle, not an image/emoji, so it stays crisp and
-     matches the dice's own color-neutral gold accent. */
+  .player-hud-card.active-turn .player-dice-slot { cursor: pointer; }
+
+  /* Bouncing Turn Arrow */
   .turn-arrow {
     position: absolute;
-    top: -15px;
+    top: -16px;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
     height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 9px solid var(--tkg-gold);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 10px solid var(--tkg-gold);
     opacity: 0;
     pointer-events: none;
-    filter: drop-shadow(0 0 4px rgba(250,198,70,0.7));
+    filter: drop-shadow(0 0 5px rgba(250, 198, 70, 0.8));
+    z-index: 10;
   }
   .turn-arrow.show {
     opacity: 1;
-    animation: turnArrowBounce 0.8s ease-in-out infinite;
+    animation: turnArrowBounce 0.7s ease-in-out infinite;
   }
   @keyframes turnArrowBounce {
     0%, 100% { transform: translateX(-50%) translateY(0); }
     50%      { transform: translateX(-50%) translateY(4px); }
   }
-  .player-hud-box.active-turn .player-dice {
-    cursor: pointer;
-  }
-  .player-hud-box.active-turn .dice-scene {
-    animation: dicePulse 1s infinite alternate ease-in-out;
-  }
-  @keyframes dicePulse {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.08); filter: drop-shadow(0 0 8px var(--tkg-gold)); }
-  }
 
-  /* ==========================================================================
-     3D CSS DIE — Ludo King-inspired tumbling cube. Native CSS 3D transforms
-     only (transform-style:preserve-3d, perspective, rotateX/Y) — no library,
-     no image assets, no added file weight. 6 faces built once at page load
-     (buildDiceCubeFaces_(), reusing the existing DICE_PIP_MAP as its single
-     source of pip layout — not a second copy of that data). Rolling just
-     changes the cube's rotation via JS-set inline transform + a CSS
-     transition, landing on whichever face the roll picked.
-     ========================================================================== */
+  /* 3D Rolling Dice */
   .dice-scene {
-    width: 30px;
-    height: 30px;
-    perspective: 220px;
+    width: 28px;
+    height: 28px;
+    perspective: 200px;
   }
   .dice-cube {
     position: relative;
     width: 100%;
     height: 100%;
     transform-style: preserve-3d;
-    transition: transform 0.62s cubic-bezier(0.22, 0.61, 0.36, 1);
-    transform: rotateX(0deg) rotateY(0deg);
+    transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
   .dice-face {
     position: absolute;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    padding: 3px;
+    padding: 2px;
     box-sizing: border-box;
-    border-radius: 6px;
+    border-radius: 5px;
     background: linear-gradient(145deg, #FFFFFF 0%, #E2E8F0 100%);
-    box-shadow: inset 0 1px 1px #FFF, inset 0 -2px 3px rgba(0,0,0,0.15);
-    border: 1px solid rgba(0,0,0,0.12);
+    border: 1px solid rgba(0,0,0,0.15);
   }
-  .dice-face-1{ transform: rotateY(0deg) translateZ(15px); }
-  .dice-face-6{ transform: rotateY(180deg) translateZ(15px); }
-  .dice-face-3{ transform: rotateY(90deg) translateZ(15px); }
-  .dice-face-4{ transform: rotateY(-90deg) translateZ(15px); }
-  .dice-face-2{ transform: rotateX(90deg) translateZ(15px); }
-  .dice-face-5{ transform: rotateX(-90deg) translateZ(15px); }
+  .dice-face-1{ transform: rotateY(0deg) translateZ(14px); }
+  .dice-face-6{ transform: rotateY(180deg) translateZ(14px); }
+  .dice-face-3{ transform: rotateY(90deg) translateZ(14px); }
+  .dice-face-4{ transform: rotateY(-90deg) translateZ(14px); }
+  .dice-face-2{ transform: rotateX(90deg) translateZ(14px); }
+  .dice-face-5{ transform: rotateX(-90deg) translateZ(14px); }
   .dice-pip {
-    width: 5px;
-    height: 5px;
+    width: 4.5px;
+    height: 4.5px;
     background: #0F172A;
     border-radius: 50%;
     margin: auto;
@@ -525,90 +472,46 @@
   }
   .dice-pip.on { opacity: 1; }
 
-  /* Token movement trail — Ludo King-style "momentum" ghost left behind
-     each hop. Plain CSS fade/shrink, one throwaway div per step, removed
-     after its own animation ends (see spawnTokenTrail_ in JS). */
-  .token-trail-ghost {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 15;
-    animation: tokenTrailFade 0.32s ease-out forwards;
-  }
-  @keyframes tokenTrailFade {
-    0%   { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
-  }
-
-  /* Ludo King Board */
-  /* #board-stage owns the exact sizing formula #board-wrapper used to have
-     (same numbers, unchanged) — this is the size/height budget the earlier
-     vertical-fit fix was tuned against, so keeping it identical here means
-     zero risk of reintroducing that problem. #board-wrapper is now a 34px-
-     inset box INSIDE the stage, same visual chrome as before (background/
-     border/radius/shadow/overflow:hidden), just holding the canvas only.
-     Pawns/events live in the stage itself (not inside the clipped
-     wrapper), inset by the same 34px so their coordinate math still lines
-     up with the canvas exactly — but with real room on all 4 sides to
-     extend past the visible board edge (a classic Ludo pawn's head/face
-     naturally does this) without ever being cut off. */
+  /* ---------------- BOARD CONTAINER & CANVAS ---------------- */
   #board-stage {
     position: relative;
-    width: calc(100% + 16px);
-    max-width: min(450px, calc(var(--app-vh, 1vh) * 62));
+    width: 100%;
     aspect-ratio: 1 / 1;
-    /* Reclaims #app's own 8px horizontal padding on each side — real,
-       safe width recovery on narrow phones, where the board is
-       width-bound rather than height-bound (confirmed by measurement).
-       Doesn't affect anything outside #board-stage itself. */
-    margin: 0 -8px;
   }
   #board-wrapper {
     position: absolute;
-    inset: 46px;
+    inset: 0;
     background: #FFFFFF;
     border-radius: 12px;
-    border: 3px solid #1C120C;
-    box-shadow: 0 14px 40px rgba(0,0,0,0.7), 0 0 20px rgba(232,93,44,0.2), inset 0 0 0 1px rgba(255,255,255,0.08);
+    border: 3.5px solid #1C120C;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
     overflow: hidden;
   }
   #board-canvas { width: 100%; height: 100%; display: block; }
   #events-layer, #tokens-layer {
     position: absolute;
-    inset: 46px;
+    inset: 0;
     pointer-events: none;
   }
 
-  /* Physical Pawn + Face Sticker Token (Mockup Style) */
+  /* Physical Map-Pin Tokens */
   .sticker-token {
     position: absolute;
-    width: 32px;
-    height: 42px;
-    /* Anchor corrected (2026-08-25) — was -75%, which is an arbitrary
-       fraction of the bounding box, not where the pawn actually touches
-       the board. The map-pin's real visual TIP (the point at the bottom
-       of .token-body::after) is what must sit on the cell centre, per
-       the map-pin metaphor: FACE + BODY sit above, the POINT is the
-       anchor. Measured directly against the pin's actual rendered
-       geometry (body top + 62% + full pseudo-element height) rather
-       than guessed — the old value left the tip 9.9px short of the
-       cell centre at rest. */
-    transform: translate(-50%, -98.55%);
+    --token-scale: 1;
+    width: calc(28px * var(--token-scale));
+    height: calc(38px * var(--token-scale));
+    transform: translate(-50%, -100%);
     cursor: pointer;
     z-index: 20;
-    transition: left 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.16s ease;
+    transition: left 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: flex;
     flex-direction: column;
     align-items: center;
     pointer-events: auto;
   }
-  /* Die-Cut Face Sticker (Head) */
   .token-head {
-    width: 26px;
-    height: 26px;
+    width: calc(24px * var(--token-scale));
+    height: calc(24px * var(--token-scale));
     border-radius: 50%;
     border: 2px solid #FFFFFF;
     background: #2A1E17;
@@ -617,241 +520,91 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    font-size: 1.05rem;
+    font-size: calc(0.95rem * var(--token-scale));
     z-index: 2;
-    background-size: cover;
-    background-position: center;
   }
   .token-head img { width: 100%; height: 100%; object-fit: cover; }
-  /* Map-Pin Pawn Body — Ludo King-inspired reshape (2026-08-22). Was a
-     small rounded pedestal; now a circle + a merged downward point via
-     ::after, giving the classic map-pin/teardrop silhouette while keeping
-     the exact same DOM (still just .token-head + .token-body, still the
-     same --pawn-color variable, still positioned/sized the same way) —
-     no new elements needed in the JS that spawns tokens. */
   .token-body {
     position: relative;
-    width: 20px;
-    height: 20px;
+    width: calc(18px * var(--token-scale));
+    height: calc(18px * var(--token-scale));
     border-radius: 50%;
-    margin-top: -8px;
+    margin-top: calc(-7px * var(--token-scale));
     background: linear-gradient(160deg, color-mix(in srgb, var(--pawn-color, #E71D36) 70%, white) 0%, var(--pawn-color, #E71D36) 55%, color-mix(in srgb, var(--pawn-color, #E71D36) 75%, black) 100%);
-    box-shadow: inset 0 2px 2px rgba(255,255,255,0.5), inset 0 -3px 4px rgba(0,0,0,0.35), 0 3px 6px rgba(0,0,0,0.45);
+    box-shadow: inset 0 2px 2px rgba(255,255,255,0.5), 0 3px 6px rgba(0,0,0,0.45);
     z-index: 1;
   }
   .token-body::after {
     content: '';
     position: absolute;
     left: 50%;
-    top: 62%;
-    width: 14px;
-    height: 14px;
+    top: 50%;
+    width: calc(14px * var(--token-scale));
+    height: calc(14px * var(--token-scale));
     transform: translateX(-50%);
     background: var(--pawn-color, #E71D36);
     clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
-    filter: brightness(0.88);
   }
 
   .sticker-token.can-move {
-    filter: drop-shadow(0 0 6px var(--tkg-gold));
-    animation: tokenWiggle 0.4s infinite alternate ease-in-out;
+    animation: tokenWiggle 0.6s infinite alternate ease-in-out;
     z-index: 35;
   }
   .sticker-token.walking {
-    transform: translate(-50%, -108.59%) scale(1.18);
-    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.45));
+    transform: translate(-50%, -110%) scale(1.15);
     z-index: 40;
   }
   .sticker-token.coal-fired .token-head {
     filter: grayscale(100%) brightness(40%) contrast(150%);
-    box-shadow: 0 0 14px rgba(255, 69, 0, 0.9);
   }
-  .sticker-token.coal-fired::after {
-    content: "🔥";
-    position: absolute;
-    top: -12px;
-    font-size: 1.1rem;
-    animation: fireRise 0.4s infinite alternate;
-  }
-  .sticker-token.finished { opacity: 0.45; }
-  .sticker-token.yard-pop {
-    animation: yardPop 0.42s ease-in-out;
-  }
-  @keyframes yardPop {
-    0%   { transform: translate(-50%, -75%) scale(1); }
-    45%  { transform: translate(-50%, -75%) scale(0.15); opacity: 0.3; }
-    55%  { transform: translate(-50%, -75%) scale(0.15); opacity: 0.3; }
-    100% { transform: translate(-50%, -75%) scale(1); opacity: 1; }
-  }
+  .sticker-token.finished { opacity: 0.4; }
 
   @keyframes tokenWiggle {
-    0% { transform: translate(-50%, -75%) rotate(-8deg); }
-    100% { transform: translate(-50%, -75%) rotate(8deg); }
-  }
-  @keyframes fireRise {
-    0% { transform: translateY(0) scale(0.9); }
-    100% { transform: translateY(-4px) scale(1.2); }
+    0% { transform: translate(-50%, -100%) rotate(-4deg); }
+    100% { transform: translate(-50%, -100%) rotate(4deg); }
   }
 
-  /* Zero-Card Floating Chaos Badges */
-  .fodo-event-badge {
+  .token-trail-ghost {
     position: absolute;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.35rem;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 15;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
-    animation: eventPop 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    animation: tokenTrailFade 0.3s ease-out forwards;
   }
-  @keyframes eventPop {
-    0% { transform: translate(-50%, -50%) scale(0); }
-    70% { transform: translate(-50%, -50%) scale(1.25); }
-    100% { transform: translate(-50%, -50%) scale(1); }
+  @keyframes tokenTrailFade {
+    0%   { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
   }
 
-  /* ==========================================================================
-     CHAOS REACTION CARD — one shared popup reused for all 4 traps + the
-     coal-fired kill. Retro/8-16-bit feel comes from steps() easing (chunky,
-     not smooth) rather than different markup per trap type. The face itself
-     is the actual player's sticker (or their default emoji if none set),
-     not a generic icon — the animation happens TO that face.
-     ========================================================================== */
-  .chaos-reaction-overlay{
-    position: fixed;
-    inset: 0;
-    z-index: 90;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(10, 6, 4, 0.55);
-    pointer-events: none;
-  }
-  .chaos-reaction-overlay.show{ display: flex; }
-  .chaos-reaction-card{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
-  .chaos-reaction-face-wrap{
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
-    border: 3px solid var(--tkg-gold);
-    background: #2A1E17;
-    box-shadow: 0 0 0 4px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.6);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.4rem;
-  }
-  .chaos-reaction-face{
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .chaos-reaction-face img{ width: 100%; height: 100%; object-fit: cover; }
-  .chaos-reaction-tag{
-    font-family: inherit;
-    font-weight: 900;
-    font-size: 1.1rem;
-    letter-spacing: 0.04em;
-    color: var(--tkg-gold);
-    text-shadow: 0 2px 0 rgba(0,0,0,0.8), 0 0 12px rgba(232,93,44,0.6);
-    text-transform: uppercase;
-  }
-
-  /* Black Hole: chunky spin + shrink-into-center, "sucked" feel via steps() */
-  .chaos-reaction-face-wrap.rx-blackhole{
-    animation: rxBlackhole 1.1s steps(6) forwards;
-  }
-  @keyframes rxBlackhole{
-    0%   { transform: scale(1) rotate(0deg); filter: brightness(1); }
-    50%  { transform: scale(0.75) rotate(180deg); filter: brightness(0.7); }
-    100% { transform: scale(0.15) rotate(360deg); filter: brightness(0.2); opacity: 0.2; }
-  }
-  /* Burger: chunky bite/shake, like something is chomping at it */
-  .chaos-reaction-face-wrap.rx-burger{
-    animation: rxBurger 0.9s steps(5) infinite;
-  }
-  @keyframes rxBurger{
-    0%   { transform: scale(1) translateX(0); }
-    25%  { transform: scale(0.92) translateX(-4px); }
-    50%  { transform: scale(1.05) translateX(4px); }
-    75%  { transform: scale(0.9) translateX(-3px); }
-    100% { transform: scale(1) translateX(0); }
-  }
-  /* Noodle: chunky sideways slip/slide, like the ground moved under it */
-  .chaos-reaction-face-wrap.rx-noodle{
-    animation: rxNoodle 0.9s steps(4) infinite;
-  }
-  @keyframes rxNoodle{
-    0%   { transform: translateX(0) rotate(0deg); }
-    33%  { transform: translateX(-10px) rotate(-8deg); }
-    66%  { transform: translateX(8px) rotate(6deg); }
-    100% { transform: translateX(0) rotate(0deg); }
-  }
-  /* Magic Star: chunky flash/zap, old-arcade "hit" strobe */
-  .chaos-reaction-face-wrap.rx-magic{
-    animation: rxMagic 0.7s steps(3) infinite;
-  }
-  @keyframes rxMagic{
-    0%   { filter: brightness(1) saturate(1); box-shadow: 0 0 0 4px rgba(0,0,0,0.5); }
-    50%  { filter: brightness(2.2) saturate(0); box-shadow: 0 0 0 4px rgba(250,198,70,0.9); }
-    100% { filter: brightness(1) saturate(1); box-shadow: 0 0 0 4px rgba(0,0,0,0.5); }
-  }
-  /* Coal-fired kill: chunky char/darken pulse, matches the on-board coal-fired look */
-  .chaos-reaction-face-wrap.rx-coalfired{
-    animation: rxCoalfired 0.8s steps(4) infinite;
-  }
-  @keyframes rxCoalfired{
-    0%   { filter: grayscale(0) brightness(1); }
-    50%  { filter: grayscale(100%) brightness(0.4) contrast(1.5); box-shadow: 0 0 0 4px rgba(255,69,0,0.9); }
-    100% { filter: grayscale(60%) brightness(0.6); }
-  }
-
-  /* Broadcast Alert Banner */
-  #broadcast-banner {
+  .fodo-event-badge {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.5);
-    background: rgba(28, 18, 12, 0.96);
-    border: 2px solid var(--tkg-gold);
-    color: #FFF;
-    padding: 8px 16px;
-    border-radius: 12px;
-    box-shadow: 0 8px 26px rgba(0,0,0,0.8), 0 0 18px rgba(232,93,44,0.4);
-    text-align: center;
-    font-weight: 800;
-    font-size: 0.85rem;
-    z-index: 60;
-    opacity: 0;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    transform: translate(-50%, -50%);
     pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    z-index: 15;
   }
-  #broadcast-banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-  .status-bar { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-align: center; }
+  .status-bar {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-main);
+    text-align: center;
+    padding: 6px 0 2px;
+  }
 
   /* Modals */
   .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.8);
     backdrop-filter: blur(6px);
     display: none;
     align-items: center;
@@ -862,17 +615,17 @@
   .overlay.show { display: flex; }
   .modal-card {
     width: 100%;
-    max-width: 330px;
+    max-width: 320px;
     background: var(--card-bg);
-    border: 1.5px solid var(--card-border);
+    border: 2px solid var(--card-border);
     border-radius: 16px;
-    padding: 16px;
+    padding: 18px;
     text-align: center;
     box-shadow: 0 16px 36px rgba(0,0,0,0.6);
   }
   #crop-canvas-box {
-    width: 170px;
-    height: 170px;
+    width: 160px;
+    height: 160px;
     border-radius: 50%;
     border: 3px solid var(--tkg-gold);
     overflow: hidden;
@@ -880,6 +633,621 @@
     background: #000;
   }
   #cropCanvas { width: 100%; height: 100%; cursor: grab; }
+
+  #broadcast-banner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    background: var(--card-bg);
+    border: 2px solid var(--tkg-gold);
+    color: var(--text-main);
+    padding: 8px 16px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+    text-align: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  #broadcast-banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  .chaos-reaction-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 6, 4, 0.65);
+    pointer-events: none;
+  }
+  .chaos-reaction-overlay.show{ display: flex; }
+  .chaos-reaction-face-wrap {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    border: 3px solid var(--tkg-gold);
+    background: #2A1E17;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.4rem;
+  }
+  .chaos-reaction-face { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .chaos-reaction-face img { width: 100%; height: 100%; object-fit: cover; }
+  .chaos-reaction-tag {
+    font-weight: 900;
+    font-size: 1.1rem;
+    color: var(--tkg-gold);
+    text-transform: uppercase;
+    text-shadow: 0 2px 4px #000;
+    text-align: center;
+    margin-top: 6px;
+  }
+
+  /* ============================================================
+     CINEMATIC KILL REPLAY (2026-08-27) — self-contained mini-stage,
+     independent of the real board's coordinate system entirely.
+     ============================================================ */
+  .chaos-cinema-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 4, 3, 0.82);
+    pointer-events: none;
+  }
+  .chaos-cinema-overlay.show { display: flex; }
+
+  .chaos-cinema-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* The stage is a fixed small scene — not derived from board size or
+     coordinates in any way. Overflow hidden so the internal camera zoom
+     below never spills its content outside this frame. This outer frame
+     owns the visible chrome and never itself moves. */
+  .chaos-cinema-camera-frame {
+    width: 220px;
+    height: 220px;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid var(--tkg-gold);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.7), 0 0 30px rgba(232,93,44,0.25);
+  }
+
+  /* This is what actually zooms/pans — entirely internal to the popup's
+     own scene. It never references, reads, or touches the real board's
+     transform, size, or position in any way. Plain full-size layer with
+     no border/shadow of its own (that chrome lives on the outer frame
+     above, which never moves — putting it here too would make the frame
+     itself visually zoom, not just its contents). */
+  .chaos-cinema-camera {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: #1C120C;
+  }
+
+  .chaos-cinema-backdrop {
+    position: absolute;
+    inset: 0;
+  }
+  .chaos-cinema-backdrop--kill {
+    background: radial-gradient(circle at 50% 55%, #2A1A12 0%, #120D0A 75%);
+  }
+  .chaos-cinema-backdrop--blackhole {
+    background: radial-gradient(circle at 50% 55%, #1A1024 0%, #05030A 80%);
+  }
+  .chaos-cinema-backdrop--burger {
+    background: radial-gradient(circle at 50% 55%, #3A2410 0%, #150D06 80%);
+  }
+  .chaos-cinema-backdrop--noodle {
+    background: radial-gradient(circle at 50% 55%, #241A0C 0%, #100B05 80%);
+  }
+  .chaos-cinema-backdrop--magic {
+    background: radial-gradient(circle at 50% 55%, #241C05 0%, #0D0A02 80%);
+  }
+
+  .chaos-cinema-pawn {
+    position: absolute;
+    bottom: 30%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .chaos-cinema-pawn--victim { left: 62%; transform: translateX(-50%); }
+  .chaos-cinema-pawn--victim.centered { left: 50%; }
+  .chaos-cinema-pawn--attacker { left: 30%; transform: translateX(-50%); }
+
+  /* --- Trap props (2026-08-27, Phase 2) — hidden by default, shown only
+     for their own trap's sequence via JS toggling .show --- */
+  .chaos-cinema-vortex {
+    position: absolute;
+    left: 50%;
+    bottom: 34%;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    transform: translate(-50%, 50%) scale(0);
+    background: conic-gradient(from 0deg, #3A1F5C, #0D0616, #3A1F5C, #0D0616, #3A1F5C);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .chaos-cinema-vortex.show { animation: cinemaVortexForm 1.9s ease-in-out forwards; }
+
+  .chaos-cinema-burger {
+    position: absolute;
+    left: 78%;
+    bottom: 32%;
+    transform: translate(-50%, 50%) scale(0);
+    font-size: 3.2rem;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .chaos-cinema-burger.show { animation: cinemaBurgerSequence 1.1s ease-in-out forwards; }
+
+  .chaos-cinema-starburst {
+    position: absolute;
+    left: 50%;
+    bottom: 38%;
+    width: 8px;
+    height: 8px;
+    transform: translate(-50%, 50%) scale(0);
+    background: radial-gradient(circle, #FFF8DC 0%, #FAC646 40%, transparent 72%);
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 0 0 0 rgba(250,198,70,0.7);
+  }
+  .chaos-cinema-starburst.show { animation: cinemaStarburst 0.5s ease-out forwards; }
+
+  .chaos-cinema-head {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 3px solid #FFFFFF;
+    background: #2A1E17;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 1px 3px rgba(255,255,255,0.7);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+  }
+  .chaos-cinema-head img { width: 100%; height: 100%; object-fit: cover; }
+
+  .chaos-cinema-impact-ring {
+    position: absolute;
+    left: 48%;
+    bottom: 38%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 3px solid var(--tkg-gold);
+    opacity: 0;
+    transform: translate(-50%, 50%) scale(0.3);
+    pointer-events: none;
+  }
+  .chaos-cinema-impact-ring.pulse {
+    animation: cinemaImpactRing 0.4s ease-out;
+  }
+
+  .chaos-cinema-tag {
+    font-weight: 900;
+    font-size: 1.15rem;
+    color: var(--tkg-gold);
+    text-transform: uppercase;
+    text-shadow: 0 2px 4px #000;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    max-width: 240px;
+  }
+  .chaos-cinema-tag.show { opacity: 1; transform: translateY(0); }
+
+  /* --- Camera moves (applied to .chaos-cinema-camera's own transform,
+         never anything board-related) --- */
+  .chaos-cinema-camera.zoom-in { animation: cinemaZoomIn 0.6s cubic-bezier(0.34,1.2,0.4,1) forwards; }
+  .chaos-cinema-camera.zoom-out { animation: cinemaZoomOut 0.7s ease-in-out forwards; }
+  @keyframes cinemaZoomIn {
+    0%   { transform: scale(1) translate(0,0); }
+    100% { transform: scale(1.35) translate(-6%, -4%); }
+  }
+  @keyframes cinemaZoomOut {
+    0%   { transform: scale(1.35) translate(-6%, -4%); }
+    100% { transform: scale(1) translate(0,0); }
+  }
+
+  /* --- Attacker performance --- */
+  .chaos-cinema-pawn--attacker.crouch { animation: cinemaCrouch 0.35s ease-in-out forwards; }
+  .chaos-cinema-pawn--attacker.lunge { animation: cinemaLunge 0.3s cubic-bezier(0.5,0,0.75,0) forwards; }
+  .chaos-cinema-pawn--attacker.settle { animation: cinemaSettle 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  @keyframes cinemaCrouch {
+    0%   { transform: translateX(-50%) scale(1); }
+    100% { transform: translateX(-50%) scale(0.85) translateY(4px); }
+  }
+  @keyframes cinemaLunge {
+    0%   { transform: translateX(-50%) scale(0.85) translateY(4px); }
+    100% { transform: translateX(calc(-50% + 66px)) scale(1.05) translateY(0); }
+  }
+  @keyframes cinemaSettle {
+    0%   { transform: translateX(calc(-50% + 66px)) scale(1.05); }
+    60%  { transform: translateX(calc(-50% + 40px)) scale(0.97); }
+    100% { transform: translateX(calc(-50% + 40px)) scale(1); }
+  }
+
+  /* --- Victim performance --- */
+  .chaos-cinema-pawn--victim.recoil { animation: cinemaRecoil 0.3s ease-out forwards; }
+  .chaos-cinema-pawn--victim.charring .chaos-cinema-head {
+    animation: cinemaChar 0.6s ease-in forwards;
+  }
+  .chaos-cinema-pawn--victim.knocked-back { animation: cinemaKnockback 0.55s cubic-bezier(0.5,0,0.75,0) forwards; }
+  @keyframes cinemaRecoil {
+    0%   { transform: translateX(-50%) rotate(0deg); }
+    30%  { transform: translateX(-42%) rotate(8deg); }
+    60%  { transform: translateX(-56%) rotate(-5deg); }
+    100% { transform: translateX(-50%) rotate(0deg); }
+  }
+  @keyframes cinemaChar {
+    0%   { filter: grayscale(0%) brightness(100%) contrast(100%); }
+    100% { filter: grayscale(100%) brightness(35%) contrast(160%); }
+  }
+  @keyframes cinemaKnockback {
+    0%   { transform: translateX(-50%) scale(1); opacity: 1; }
+    100% { transform: translateX(20%) scale(0.35); opacity: 0; }
+  }
+  @keyframes cinemaImpactRing {
+    0%   { opacity: 0.9; transform: translate(-50%, 50%) scale(0.3); border-width: 4px; }
+    100% { opacity: 0; transform: translate(-50%, 50%) scale(2.6); border-width: 1px; }
+  }
+
+  /* --- Black Hole prop + victim choreography --- */
+  @keyframes cinemaVortexForm {
+    0%   { opacity: 0; transform: translate(-50%, 50%) scale(0); }
+    30%  { opacity: 1; transform: translate(-50%, 50%) scale(1) rotate(0deg); }
+    100% { opacity: 1; transform: translate(-50%, 50%) scale(1.4) rotate(720deg); }
+  }
+  .chaos-cinema-pawn--victim.bh-pull { animation: cinemaBlackholePull 0.5s ease-in-out forwards; }
+  .chaos-cinema-pawn--victim.bh-orbit { animation: cinemaBlackholeOrbit 0.9s ease-in-out forwards; }
+  .chaos-cinema-pawn--victim.bh-vanish { animation: cinemaBlackholeVanish 0.5s cubic-bezier(0.5,0,0.9,0) forwards; }
+  @keyframes cinemaBlackholePull {
+    0%   { transform: translateX(-50%) translateY(0) scale(1); }
+    100% { transform: translateX(-50%) translateY(-4px) scale(0.95); }
+  }
+  @keyframes cinemaBlackholeOrbit {
+    0%   { transform: translateX(-50%) translateY(-4px) scale(0.95); }
+    25%  { transform: translateX(-70%) translateY(-10px) scale(0.85) rotate(-10deg); }
+    50%  { transform: translateX(-50%) translateY(-16px) scale(0.75) rotate(0deg); }
+    75%  { transform: translateX(-30%) translateY(-10px) scale(0.65) rotate(10deg); }
+    100% { transform: translateX(-50%) translateY(-6px) scale(0.55); }
+  }
+  @keyframes cinemaBlackholeVanish {
+    0%   { transform: translateX(-50%) translateY(-6px) scale(0.55); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(6px) scale(0.05); opacity: 0; }
+  }
+
+  /* --- Burger prop + victim choreography --- */
+  @keyframes cinemaBurgerSequence {
+    0%   { opacity: 0; transform: translate(-50%, 50%) scale(0) rotate(0deg); }
+    25%  { opacity: 1; transform: translate(-50%, 50%) scale(1) rotate(-8deg); }
+    45%  { transform: translate(-50%, 50%) scale(1.15) rotate(10deg); }
+    60%  { transform: translate(-50%, 50%) scale(0.85) rotate(-4deg); }
+    75%  { transform: translate(-50%, 50%) scale(1.1) rotate(6deg); }
+    100% { opacity: 1; transform: translate(-50%, 50%) scale(0.9) rotate(0deg); }
+  }
+  .chaos-cinema-pawn--victim.burger-lean { animation: cinemaBurgerLean 0.35s ease-in forwards; }
+  .chaos-cinema-pawn--victim.burger-chomp1 { animation: cinemaBurgerChomp 0.2s ease-in forwards; }
+  .chaos-cinema-pawn--victim.burger-chomp2 { animation: cinemaBurgerChomp 0.18s ease-in forwards; }
+  .chaos-cinema-pawn--victim.burger-gone { animation: cinemaBurgerGone 0.3s ease-in forwards; }
+  @keyframes cinemaBurgerLean {
+    0%   { transform: translateX(-50%) scale(1); }
+    100% { transform: translateX(-38%) scale(0.95); }
+  }
+  @keyframes cinemaBurgerChomp {
+    0%   { transform: translateX(-38%) scale(0.85); }
+    50%  { transform: translateX(-38%) scale(0.7, 0.5); }
+    100% { transform: translateX(-38%) scale(0.85); }
+  }
+  @keyframes cinemaBurgerGone {
+    0%   { transform: translateX(-38%) scale(0.85); opacity: 1; }
+    100% { transform: translateX(-38%) scale(0.1); opacity: 0; }
+  }
+
+  /* --- Noodle Slip victim choreography (no separate prop — this trap is
+     about the pawn losing its own footing, not an external creature) --- */
+  .chaos-cinema-pawn--victim.noodle-slip { animation: cinemaNoodleSlip 0.3s ease-in forwards; }
+  .chaos-cinema-pawn--victim.noodle-wobble { animation: cinemaNoodleWobble 0.6s ease-in-out forwards; }
+  .chaos-cinema-pawn--victim.noodle-slide { animation: cinemaNoodleSlide 0.7s cubic-bezier(0.5,0,0.75,0) forwards; }
+  .chaos-cinema-pawn--victim.noodle-recover { animation: cinemaNoodleRecover 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  @keyframes cinemaNoodleSlip {
+    0%   { transform: translateX(-50%) rotate(0deg) translateY(0); }
+    100% { transform: translateX(-50%) rotate(14deg) translateY(3px); }
+  }
+  @keyframes cinemaNoodleWobble {
+    0%   { transform: translateX(-50%) rotate(14deg) translateY(3px); }
+    25%  { transform: translateX(-46%) rotate(-10deg) translateY(0); }
+    50%  { transform: translateX(-54%) rotate(16deg) translateY(3px); }
+    75%  { transform: translateX(-46%) rotate(-8deg) translateY(0); }
+    100% { transform: translateX(-50%) rotate(10deg) translateY(2px); }
+  }
+  @keyframes cinemaNoodleSlide {
+    0%   { transform: translateX(-50%) rotate(10deg) translateY(2px); }
+    100% { transform: translateX(-90%) rotate(20deg) translateY(4px); }
+  }
+  @keyframes cinemaNoodleRecover {
+    0%   { transform: translateX(-90%) rotate(20deg); opacity: 1; }
+    60%  { transform: translateX(-95%) rotate(-6deg); opacity: 1; }
+    100% { transform: translateX(-95%) rotate(0deg); opacity: 0.85; }
+  }
+
+  /* --- Magic Star prop + victim choreography --- */
+  @keyframes cinemaStarburst {
+    0%   { opacity: 0; transform: translate(-50%, 50%) scale(0); box-shadow: 0 0 0 0 rgba(250,198,70,0.7); }
+    40%  { opacity: 1; transform: translate(-50%, 50%) scale(8); box-shadow: 0 0 40px 20px rgba(250,198,70,0.5); }
+    100% { opacity: 0; transform: translate(-50%, 50%) scale(14); box-shadow: 0 0 0 0 rgba(250,198,70,0); }
+  }
+  .chaos-cinema-pawn--victim.magic-freeze { animation: cinemaMagicFreeze 0.3s ease-in forwards; }
+  .chaos-cinema-pawn--victim.magic-shock .chaos-cinema-head { animation: cinemaMagicShock 0.25s ease-in-out; }
+  .chaos-cinema-pawn--victim.magic-pop { animation: cinemaMagicPop 0.35s cubic-bezier(0.5,0,0.9,0) forwards; }
+  @keyframes cinemaMagicFreeze {
+    0%   { transform: translateX(-50%) scale(1); }
+    100% { transform: translateX(-50%) scale(1.06); }
+  }
+  @keyframes cinemaMagicShock {
+    0%, 100% { filter: brightness(100%); }
+    50% { filter: brightness(250%) contrast(150%); }
+  }
+  @keyframes cinemaMagicPop {
+    0%   { transform: translateX(-50%) scale(1.06); opacity: 1; }
+    60%  { transform: translateX(-50%) scale(1.3); opacity: 1; }
+    100% { transform: translateX(-50%) scale(0.05); opacity: 0; }
+  }
+
+  /* ============================================================
+     TKG FLOATING GLASS PILL NAVIGATION (VERBATIM FROM RUNNER)
+     ============================================================ */
+  .tkg-global-nav {
+    position: fixed !important;
+    bottom: 16px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: min(320px, calc(100vw - 32px)) !important;
+    height: 46px !important;
+    border-radius: 9999px !important;
+    background: rgba(255, 255, 255, 0.65) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+    box-sizing: border-box !important;
+    z-index: 99999 !important;
+    opacity: 1 !important;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease,
+                background-color 0.3s ease,
+                width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+                border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .tkg-global-nav.scrolled {
+    transform: translateX(-50%) !important;
+    width: 104px !important;
+    height: 104px !important;
+    border-radius: 9999px !important;
+    opacity: 0.94 !important;
+    background: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  [data-tkg-theme="dark"] .tkg-global-nav,
+  .theme-dark .tkg-global-nav,
+  body.dark-mode .tkg-global-nav {
+    background: rgba(18, 18, 18, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  [data-tkg-theme="dark"] .tkg-global-nav.scrolled,
+  .theme-dark .tkg-global-nav.scrolled,
+  body.dark-mode .tkg-global-nav.scrolled {
+    background: rgba(18, 18, 18, 0.62) !important;
+  }
+
+  .tkg-nav-item {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 32px !important;
+    border-radius: 9999px !important;
+    color: rgba(0, 0, 0, 0.55) !important;
+    text-decoration: none !important;
+    transition: background-color 0.2s ease, color 0.2s ease,
+                width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tkg-nav-item:nth-child(1){ transform: translate(calc(-50% - 104px), -50%) !important; }
+  .tkg-nav-item:nth-child(2){ transform: translate(calc(-50% - 52px), -50%) !important; }
+  .tkg-nav-item:nth-child(3){ transform: translate(-50%, -50%) !important; }
+  .tkg-nav-item:nth-child(4){ transform: translate(calc(-50% + 52px), -50%) !important; }
+  .tkg-nav-item:nth-child(5){ transform: translate(calc(-50% + 104px), -50%) !important; }
+
+  .tkg-global-nav.scrolled .tkg-nav-item:nth-child(1){ transform: translate(calc(-50% - 36px), -50%) !important; }
+  .tkg-global-nav.scrolled .tkg-nav-item:nth-child(2){ transform: translate(-50%, calc(-50% - 36px)) !important; }
+  .tkg-global-nav.scrolled .tkg-nav-item:nth-child(3){ transform: translate(-50%, -50%) !important; }
+  .tkg-global-nav.scrolled .tkg-nav-item:nth-child(4){ transform: translate(-50%, calc(-50% + 36px)) !important; }
+  .tkg-global-nav.scrolled .tkg-nav-item:nth-child(5){ transform: translate(calc(-50% + 36px), -50%) !important; }
+
+  .tkg-global-nav.scrolled .tkg-nav-item {
+    width: 30px !important;
+    height: 26px !important;
+  }
+
+  .tkg-nav-item svg {
+    width: 18px !important;
+    height: 18px !important;
+    stroke-width: 2 !important;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .tkg-global-nav.scrolled .tkg-nav-item svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .tkg-nav-item.active {
+    color: #B8431D !important;
+    background: rgba(250, 198, 70, 0.25) !important;
+  }
+
+  [data-tkg-theme="dark"] .tkg-nav-item,
+  .theme-dark .tkg-nav-item,
+  body.dark-mode .tkg-nav-item {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  [data-tkg-theme="dark"] .tkg-nav-item.active,
+  .theme-dark .tkg-nav-item.active,
+  body.dark-mode .tkg-nav-item.active {
+    color: #FAC646 !important;
+    background: rgba(250, 198, 70, 0.22) !important;
+  }
+
+  .tkg-nav-hub {
+    width: 52px !important;
+    height: 44px !important;
+  }
+  .tkg-global-nav.scrolled .tkg-nav-hub {
+    width: 52px !important;
+    height: 44px !important;
+  }
+  .tkg-nav-hub .tkg-hub-badge-icon {
+    width: 34px !important;
+    height: 34px !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 0 4px rgba(250, 198, 70, 0.55));
+  }
+  .tkg-global-nav.scrolled .tkg-nav-hub .tkg-hub-badge-icon {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .tkg-moments-icon-stack {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .tkg-global-nav.scrolled .tkg-moments-icon-stack { width: 14px; height: 14px; }
+  .tkg-moments-icon-stack svg {
+    position: absolute !important;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    stroke-width: 2 !important;
+    transition: opacity 0.5s ease !important;
+  }
+  .tkg-icon-camera { opacity: 1; }
+  .tkg-icon-recorder { opacity: 0; }
+  .tkg-nav-moments.tkg-swap .tkg-icon-camera { opacity: 0; }
+  .tkg-nav-moments.tkg-swap .tkg-icon-recorder { opacity: 1; }
+
+  /* Journey Prompt */
+  .journey-prompt-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(28,24,21,0.55);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.25s ease;
+    z-index:400;
+  }
+  .journey-prompt-backdrop.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .journey-prompt-card{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, calc(-50% + 12px));
+    width:calc(100% - 48px);
+    max-width:320px;
+    background:var(--card-bg);
+    color:var(--text-main);
+    border-radius:20px;
+    border: 1.5px solid var(--card-border);
+    padding:22px 20px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.5);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.25s ease, transform 0.25s ease;
+    z-index:401;
+  }
+  .journey-prompt-backdrop.show + .journey-prompt-card{
+    opacity:1;
+    pointer-events:auto;
+    transform:translate(-50%, -50%);
+  }
+  .journey-prompt-card h2{ font-size:1.0625rem; font-weight:700; margin:0 0 4px; color:var(--tkg-gold); }
+  .journey-prompt-card p{ font-size:0.8125rem; color:var(--text-dim); margin:0 0 16px; }
+  .journey-prompt-choice{
+    display:block;
+    width:100%;
+    text-align:left;
+    padding:13px 15px;
+    border-radius:14px;
+    border:1px solid var(--card-border);
+    background:var(--input-bg);
+    color:var(--text-main);
+    font-size:0.875rem;
+    font-weight:600;
+    cursor:pointer;
+    margin-bottom:9px;
+  }
+
+  .geo-hint-toast{
+    position:fixed;
+    left:50%;
+    top:calc(env(safe-area-inset-top, 0px) + 14px);
+    transform:translate(-50%, -12px);
+    max-width:min(88vw, 360px);
+    padding:10px 16px;
+    border-radius:999px;
+    background:rgba(28,24,21,0.82);
+    color:#FFFFFF;
+    font-size:0.8125rem;
+    font-weight:500;
+    text-align:center;
+    line-height:1.3;
+    box-shadow:0 8px 24px rgba(28,24,21,0.28);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    opacity:0;
+    pointer-events:none;
+    z-index:170;
+    transition:opacity 0.25s ease, transform 0.25s ease;
+  }
+  .geo-hint-toast.show{ opacity:1; transform:translate(-50%, 0); }
 </style>
 </head>
 <body>
@@ -888,204 +1256,225 @@
 
 <div class="geo-hint-toast" id="geoHintToast" aria-live="polite">Not stalking you 😄 — just helping TKG know where you're visiting from.</div>
 
-<!-- tkg-shared.js — same canonical Journey/identity module Runner/Leaderboard
-     already use. Read here (early) so the rest of the page can know the
-     visitor's active Journey; the actual prompt UI/wiring lives further
-     down, right before the nav, same split Runner uses. -->
 <script src="./tkg-shared.js"></script>
 <script>
 var tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
 if (window.TKGShared) TKGShared.logEvent('FODO', 'opened');
-// 200m Proximity Nudge — same silent no-op guard Runner/Leaderboard use
-// (only Fri/Sat/Sun, only if location permission is already granted,
-// only within 200m of TKG). Never auto-selects a Journey.
 if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJourneyPrompt(); });
 </script>
 
-<!-- Chaos Reference — no longer auto-shown; opened on demand via the ❓
-     button in the header (both from Setup and in-game). -->
-<div id="legend-modal" style="display:none;">
-  <div class="intro-card">
-    <div class="intro-badge">HOW CHAOS WORKS</div>
-    <div class="intro-title" style="font-size:1.4rem;">CHAOS TRAPS</div>
-    <p class="intro-desc">Land on one, watch the chaos.</p>
+<!-- CHAOS REFERENCE MODAL -->
+<div id="legend-modal" class="overlay">
+  <div class="modal-card">
+    <div style="font-size:0.75rem; font-weight:900; color:var(--text-dim); margin-bottom:4px;">REFERENCE</div>
+    <div style="font-size:1.3rem; font-weight:900; color:var(--tkg-gold); margin-bottom:12px;">CHAOS TRAPS</div>
 
-    <div class="legend-row">
-      <div class="legend-icon">🌀</div>
-      <div class="legend-text">
-        <div class="legend-name">BLACK HOLE</div>
-        <div class="legend-effect">Sucks you back 3 steps</div>
-      </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; text-align:left;">
+      <div style="font-size:1.4rem;">🌀</div>
+      <div><div style="font-weight:800; font-size:0.8rem; color:var(--tkg-gold);">BLACK HOLE</div><div style="font-size:0.7rem; color:var(--text-dim);">Sucks you back 3 steps</div></div>
     </div>
-    <div class="legend-row">
-      <div class="legend-icon">🍔</div>
-      <div class="legend-text">
-        <div class="legend-name">BURGER MONSTER</div>
-        <div class="legend-effect">Chomp! Back to yard</div>
-      </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; text-align:left;">
+      <div style="font-size:1.4rem;">🍔</div>
+      <div><div style="font-weight:800; font-size:0.8rem; color:var(--tkg-gold);">BURGER MONSTER</div><div style="font-size:0.7rem; color:var(--text-dim);">Chomp! Back to yard</div></div>
     </div>
-    <div class="legend-row">
-      <div class="legend-icon">🍜</div>
-      <div class="legend-text">
-        <div class="legend-name">NOODLE SLIP</div>
-        <div class="legend-effect">Slip! 4 steps back</div>
-      </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; text-align:left;">
+      <div style="font-size:1.4rem;">🍜</div>
+      <div><div style="font-weight:800; font-size:0.8rem; color:var(--tkg-gold);">NOODLE SLIP</div><div style="font-size:0.7rem; color:var(--text-dim);">Slip! 4 steps back</div></div>
     </div>
-    <div class="legend-row" style="margin-bottom:18px;">
-      <div class="legend-icon">⭐</div>
-      <div class="legend-text">
-        <div class="legend-name">MAGIC STAR</div>
-        <div class="legend-effect">Land here = KO</div>
-      </div>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; text-align:left;">
+      <div style="font-size:1.4rem;">⭐</div>
+      <div><div style="font-weight:800; font-size:0.8rem; color:var(--tkg-gold);">MAGIC STAR</div><div style="font-size:0.7rem; color:var(--text-dim);">Land here = Instant KO</div></div>
     </div>
 
     <button type="button" class="btn-start" style="width:100%;" onclick="dismissLegend()">GOT IT 🎲</button>
   </div>
 </div>
 
-<!-- Chaos Intro moment — brief energetic transition on BEGIN, NOT a
-     tutorial. Same steps()-eased chunky visual language already used for
-     Chaos trap reactions elsewhere in this file. -->
-<div class="chaos-intro-overlay" id="chaosIntroOverlay">
-  <div class="chaos-intro-burst">
-    <span class="chaos-intro-icon" style="--d:0">🌀</span>
-    <span class="chaos-intro-icon" style="--d:1">🍔</span>
-    <span class="chaos-intro-icon" style="--d:2">🍜</span>
-    <span class="chaos-intro-icon" style="--d:3">⭐</span>
+<!-- First-time-only trap explainer (restored 2026-08-26) — shown once per
+     trap type, the first time a player's token actually lands on one, not
+     forced upfront like the full Chaos Traps reference above. -->
+<div id="trap-explainer-modal" class="overlay">
+  <div class="modal-card">
+    <div style="font-size:0.75rem; font-weight:900; color:var(--text-dim); margin-bottom:4px;">HOLD UP</div>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; text-align:left;">
+      <div id="trap-explainer-icon" style="font-size:2.2rem;"></div>
+      <div>
+        <div id="trap-explainer-name" style="font-weight:900; font-size:1rem; color:var(--tkg-gold);"></div>
+        <div id="trap-explainer-desc" style="font-size:0.78rem; color:var(--text-dim);"></div>
+      </div>
+    </div>
+    <button type="button" class="btn-start" style="width:100%;" onclick="dismissTrapExplainer()">GOT IT 🎲</button>
   </div>
 </div>
 
 <div id="app">
   <div class="top-header">
     <div class="header-actions">
-      <button type="button" class="audio-btn" id="chaosRefBtn" onclick="openChaosReference()" aria-label="Chaos reference" title="Chaos reference">
+      <button type="button" class="audio-btn" id="chaosRefBtn" onclick="openChaosReference()" aria-label="Chaos Reference">
         <span id="chaosRefIcon" class="chaos-ref-icon is-blackhole">🌀</span>
       </button>
-      <button type="button" class="audio-btn" id="pauseToggleBtn" onclick="pauseGame()" aria-label="Pause game" title="Pause" style="display:none;">⏸️</button>
+      <button type="button" class="audio-btn" id="pauseToggleBtn" onclick="pauseGame()" aria-label="Pause game" style="display:none;">⏸️</button>
       <button type="button" class="audio-btn" id="audioToggleBtn" onclick="toggleAudio()" aria-label="Toggle sound">🔊</button>
     </div>
   </div>
 
-  <!-- Pause overlay — now uses the same .intro-card Chaos/ember shell as
-       the rest of FODO's identity moments (Chaos reference, Chaos intro
-       burst), not the plain generic .modal-card. Exactly 2 buttons. -->
+  <!-- PAUSE MODAL -->
   <div class="overlay" id="pause-modal">
-    <div class="intro-card">
-      <div class="intro-badge">⏸️ PAUSED</div>
-      <div class="intro-title" style="font-size:1.6rem;">Hold Up</div>
-      <p class="intro-desc">The chaos is on ice. Ready when you are.</p>
-      <button type="button" class="btn-start" style="width:100%; margin-bottom:10px;" onclick="resumeGame()">▶️ RESUME</button>
-      <button type="button" class="mode-btn" style="width:100%; background:rgba(255,255,255,0.08); color:#fff;" onclick="quitToMenu()">QUIT</button>
+    <div class="modal-card">
+      <div style="font-size:1.3rem; font-weight:900; color:var(--tkg-gold); margin-bottom:6px;">PAUSED</div>
+      <p style="font-size:0.8rem; color:var(--text-dim); margin-bottom:14px;">The game is on hold. Ready to resume?</p>
+      <button type="button" class="btn-start" style="width:100%; margin-bottom:8px;" onclick="resumeGame()">▶️ RESUME</button>
+      <button type="button" class="mode-btn" style="width:100%;" onclick="quitToMenu()">QUIT MATCH</button>
     </div>
   </div>
 
-  <!-- Setup Screen -->
+  <!-- SETUP SCREEN -->
   <div id="setup-screen">
-    <div class="player-count-grid" id="player-count-toggle">
-      <button type="button" class="player-count-card" id="mode-1p" onclick="setGameMode(1)">
-        <span class="player-count-card-icons">👤</span>
-        <span class="player-count-card-label">1 PLAYER</span>
-      </button>
-      <button type="button" class="player-count-card active" id="mode-2p" onclick="setGameMode(2)">
-        <span class="player-count-card-icons">👤👤</span>
-        <span class="player-count-card-label">2 PLAYERS</span>
-      </button>
-      <button type="button" class="player-count-card" id="mode-3p" onclick="setGameMode(3)">
-        <span class="player-count-card-icons">👤👤👤</span>
-        <span class="player-count-card-label">3 PLAYERS</span>
-      </button>
-      <button type="button" class="player-count-card" id="mode-4p" onclick="setGameMode(4)">
-        <span class="player-count-card-icons">👤👤👤👤</span>
-        <span class="player-count-card-label">4 PLAYERS</span>
-      </button>
-    </div>
-
-    <div id="tkg-fill-row">
-      <input id="tkg-fill" type="checkbox" style="accent-color:#FAC646;width:16px;height:16px;">
-      <label id="tkg-fill-label" for="tkg-fill" style="font-size:.72rem;font-weight:800;color:#fff;cursor:pointer;">Add TKG to fill remaining seats</label>
-    </div>
-
-    <div style="font-size:0.75rem; font-weight:800; text-align:center; color:var(--tkg-gold);">
-      📸 Tap any avatar to upload or snap your face sticker!
-    </div>
-    
-    <div class="player-slots">
-      <div class="player-setup-card" id="slot-p0">
-        <div class="avatar-preview-box" id="avatar-btn-0" onclick="openCropper(0)">🤪</div>
-        <input type="text" class="player-name-input" id="player-name-0" value="Red Face">
+    <!-- STAGE 1: SELECT PLAYERS -->
+    <div id="stage-select">
+      <div class="setup-stage-title" style="margin-bottom:12px;">SELECT PLAYERS</div>
+      <div class="player-count-grid" id="player-count-toggle" style="margin-bottom:10px;">
+        <button type="button" class="player-count-card" id="mode-1p" onclick="setGameMode(1)">
+          <span style="font-size:1.2rem;">👤</span>
+          <span style="font-size:0.75rem; font-weight:800;">1 PLAYER</span>
+        </button>
+        <button type="button" class="player-count-card active" id="mode-2p" onclick="setGameMode(2)">
+          <span style="font-size:1.2rem;">👤👤</span>
+          <span style="font-size:0.75rem; font-weight:800;">2 PLAYERS</span>
+        </button>
+        <button type="button" class="player-count-card" id="mode-3p" onclick="setGameMode(3)">
+          <span style="font-size:1.2rem;">👤👤👤</span>
+          <span style="font-size:0.75rem; font-weight:800;">3 PLAYERS</span>
+        </button>
+        <button type="button" class="player-count-card" id="mode-4p" onclick="setGameMode(4)">
+          <span style="font-size:1.2rem;">👤👤👤👤</span>
+          <span style="font-size:0.75rem; font-weight:800;">4 PLAYERS</span>
+        </button>
       </div>
 
-      <div class="player-setup-card" id="slot-p1">
-        <div class="avatar-preview-box" id="avatar-btn-1" onclick="openCropper(1)">🤖</div>
-        <input type="text" class="player-name-input" id="player-name-1" value="Green Face">
+      <div id="tkg-fill-row" style="margin-bottom:14px;">
+        <input id="tkg-fill" type="checkbox" style="accent-color:var(--tkg-gold); width:16px; height:16px;">
+        <label id="tkg-fill-label" for="tkg-fill" style="font-size:.75rem; font-weight:800; cursor:pointer;">Add AI to fill remaining seats</label>
       </div>
 
-      <div class="player-setup-card" id="slot-p2">
-        <div class="avatar-preview-box" id="avatar-btn-2" onclick="openCropper(2)">🤯</div>
-        <input type="text" class="player-name-input" id="player-name-2" value="Blue Face">
-      </div>
-
-      <div class="player-setup-card" id="slot-p3">
-        <div class="avatar-preview-box" id="avatar-btn-3" onclick="openCropper(3)">🥳</div>
-        <input type="text" class="player-name-input" id="player-name-3" value="Yellow Face">
-      </div>
+      <button type="button" class="btn-start" style="width:100%;" onclick="goToAvatarStage()">NEXT →</button>
     </div>
 
-    <button type="button" class="btn-start" onclick="startGame()">BEGIN 🎲</button>
+    <!-- STAGE 2: CREATE AVATAR -->
+    <div id="stage-avatar" style="display:none; flex-direction:column; gap:10px;">
+      <div class="setup-stage-title">PLAYER AVATAR</div>
+      <div class="avatar-step-indicator" id="avatar-step-indicator" style="font-size:0.75rem; font-weight:800; text-align:center; color:var(--text-dim);">Player 1 of 2</div>
+
+      <div class="player-slots" id="player-slots">
+        <div class="player-setup-card" id="slot-p0">
+          <div class="avatar-slot-badge" style="background:#E71D36;">RED · TOP-LEFT</div>
+          <div class="avatar-preview-box" id="avatar-btn-0" onclick="openCropper(0)">🤪</div>
+          <input type="text" class="player-name-input" id="player-name-0" value="Red Face">
+        </div>
+        <div class="player-setup-card" id="slot-p1">
+          <div class="avatar-slot-badge" style="background:#00B894;">GREEN · TOP-RIGHT</div>
+          <div class="avatar-preview-box" id="avatar-btn-1" onclick="openCropper(1)">🤖</div>
+          <input type="text" class="player-name-input" id="player-name-1" value="Green Face">
+        </div>
+        <div class="player-setup-card" id="slot-p2">
+          <div class="avatar-slot-badge" style="background:#0984E3;">BLUE · BOTTOM-RIGHT</div>
+          <div class="avatar-preview-box" id="avatar-btn-2" onclick="openCropper(2)">🤯</div>
+          <input type="text" class="player-name-input" id="player-name-2" value="Blue Face">
+        </div>
+        <div class="player-setup-card" id="slot-p3">
+          <div class="avatar-slot-badge" style="background:#FFB300;">YELLOW · BOTTOM-LEFT</div>
+          <div class="avatar-preview-box" id="avatar-btn-3" onclick="openCropper(3)">🥳</div>
+          <input type="text" class="player-name-input" id="player-name-3" value="Yellow Face">
+        </div>
+      </div>
+
+      <div class="avatar-step-actions" style="display:flex; gap:8px;">
+        <button type="button" class="mode-btn" id="avatar-back-btn" onclick="backAvatarStep()">← Back</button>
+        <button type="button" class="btn-start" id="avatar-next-btn" style="flex:2;" onclick="nextAvatarStep()">NEXT →</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Game Arena Screen -->
+  <!-- GAME ARENA SCREEN -->
   <div id="game-screen">
-    <!-- Top Row: Red (Top-Left) and Green (Top-Right) -->
-    <div class="arena-row">
-      <div class="player-hud-box p0-box" id="hud-p0">
-        <div class="player-dice" id="dice-0" onclick="onRollDice(0)">
+    <div id="game-frame">
+      
+      <!-- TOP ROW: Red (Top-Left) & Green (Top-Right) -->
+      <div class="arena-row">
+        <div class="player-hud-card align-left" id="hud-p0">
           <div class="turn-arrow" id="turn-arrow-0"></div>
-          <div class="dice-scene"><div class="dice-cube" id="dice-cube-0"></div></div>
+          <div class="card-top-strip">
+            <span>🇮🇳 India</span>
+            <div class="card-pips"><span class="card-pip"></span><span class="card-pip"></span><span class="card-pip"></span><span class="card-pip"></span></div>
+          </div>
+          <div class="card-body-row">
+            <div class="player-dice-slot" id="dice-0" onclick="onRollDice(0)">
+              <div class="dice-scene"><div class="dice-cube" id="dice-cube-0"></div></div>
+            </div>
+            <div class="hud-player-name" id="hud-name-0">Red</div>
+            <div class="hud-avatar-box" id="hud-img-0">🤪</div>
+          </div>
         </div>
-        <div class="hud-name" id="hud-name-0">Red</div>
-        <div class="hud-avatar" id="hud-img-0">🤪</div>
-      </div>
 
-      <div class="player-hud-box p1-box" id="hud-p1">
-        <div class="hud-avatar" id="hud-img-1">🤖</div>
-        <div class="hud-name" id="hud-name-1">Green</div>
-        <div class="player-dice" id="dice-1" onclick="onRollDice(1)">
+        <div class="player-hud-card align-right p-right" id="hud-p1">
           <div class="turn-arrow" id="turn-arrow-1"></div>
-          <div class="dice-scene"><div class="dice-cube" id="dice-cube-1"></div></div>
+          <div class="card-top-strip">
+            <span>🇮🇳 India</span>
+            <div class="card-pips"><span class="card-pip"></span><span class="card-pip"></span><span class="card-pip"></span><span class="card-pip"></span></div>
+          </div>
+          <div class="card-body-row">
+            <div class="hud-avatar-box" id="hud-img-1">🤖</div>
+            <div class="hud-player-name" id="hud-name-1">Green</div>
+            <div class="player-dice-slot" id="dice-1" onclick="onRollDice(1)">
+              <div class="dice-scene"><div class="dice-cube" id="dice-cube-1"></div></div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Clean Ludo King Board -->
-    <div id="board-stage">
-      <div id="board-wrapper">
-        <canvas id="board-canvas" width="600" height="600"></canvas>
+      <!-- 15x15 PROPORTIONAL LUDO BOARD -->
+      <div id="board-stage">
+        <div id="board-wrapper">
+          <canvas id="board-canvas" width="600" height="600"></canvas>
+        </div>
+        <div id="events-layer"></div>
+        <div id="tokens-layer"></div>
+        <div id="broadcast-banner">🔥 FODO EVENT!</div>
       </div>
-      <div id="events-layer"></div>
-      <div id="tokens-layer"></div>
-      <div id="broadcast-banner">🔥 FODO EVENT!</div>
-    </div>
 
-    <!-- Bottom Row: Blue (Bottom-Left) and Yellow (Bottom-Right) -->
-    <div class="arena-row">
-      <div class="player-hud-box p3-box" id="hud-p3">
-        <div class="hud-avatar" id="hud-img-3">🥳</div>
-        <div class="hud-name" id="hud-name-3">Blue</div>
-        <div class="player-dice" id="dice-3" onclick="onRollDice(3)">
+      <!-- BOTTOM ROW: Yellow (Bottom-Left) & Blue (Bottom-Right) -->
+      <div class="arena-row">
+        <div class="player-hud-card align-left" id="hud-p3">
           <div class="turn-arrow" id="turn-arrow-3"></div>
-          <div class="dice-scene"><div class="dice-cube" id="dice-cube-3"></div></div>
+          <div class="card-top-strip">
+            <span>🇮🇳 India</span>
+            <div class="card-pips"><span class="card-pip"></span><span class="card-pip"></span><span class="card-pip"></span><span class="card-pip"></span></div>
+          </div>
+          <div class="card-body-row">
+            <div class="player-dice-slot" id="dice-3" onclick="onRollDice(3)">
+              <div class="dice-scene"><div class="dice-cube" id="dice-cube-3"></div></div>
+            </div>
+            <div class="hud-player-name" id="hud-name-3">Yellow</div>
+            <div class="hud-avatar-box" id="hud-img-3">🥳</div>
+          </div>
+        </div>
+
+        <div class="player-hud-card align-right p-right" id="hud-p2">
+          <div class="turn-arrow" id="turn-arrow-2"></div>
+          <div class="card-top-strip">
+            <span>🇮🇳 India</span>
+            <div class="card-pips"><span class="card-pip"></span><span class="card-pip"></span><span class="card-pip"></span><span class="card-pip"></span></div>
+          </div>
+          <div class="card-body-row">
+            <div class="hud-avatar-box" id="hud-img-2">🤯</div>
+            <div class="hud-player-name" id="hud-name-2">Blue</div>
+            <div class="player-dice-slot" id="dice-2" onclick="onRollDice(2)">
+              <div class="dice-scene"><div class="dice-cube" id="dice-cube-2"></div></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="player-hud-box p2-box" id="hud-p2">
-        <div class="player-dice" id="dice-2" onclick="onRollDice(2)">
-          <div class="turn-arrow" id="turn-arrow-2"></div>
-          <div class="dice-scene"><div class="dice-cube" id="dice-cube-2"></div></div>
-        </div>
-        <div class="hud-name" id="hud-name-2">Yellow</div>
-        <div class="hud-avatar" id="hud-img-2">🤯</div>
-      </div>
     </div>
 
     <div class="status-bar" id="game-status-text">Tap active player's dice to roll!</div>
@@ -1094,36 +1483,32 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
   <!-- Face Cropper Modal -->
   <div class="overlay" id="cropper-modal">
     <div class="modal-card">
-      <h2 style="font-size:1.2rem; margin-bottom:4px;">Face Sticker Studio</h2>
+      <div style="font-size:1.1rem; font-weight:900; color:var(--tkg-gold); margin-bottom:4px;">FACE STICKER STUDIO</div>
       <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:10px;">Position face naturally in circle</p>
       
       <div id="crop-canvas-box">
         <canvas id="cropCanvas" width="300" height="300"></canvas>
       </div>
 
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; padding:0 4px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
         <span style="font-size:0.85rem;">🔍</span>
         <input type="range" id="cropZoomSlider" min="0.5" max="3" step="0.01" value="1" style="flex:1; accent-color:var(--tkg-gold);">
         <span style="font-size:1.15rem;">🔍</span>
       </div>
 
       <div style="display:flex; gap:8px; justify-content:center; margin-bottom:12px;">
-        <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFile(event)">
-        <button type="button" class="mode-btn" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="document.getElementById('file-input').click()">📁 Gallery</button>
+        <button type="button" class="mode-btn" onclick="document.getElementById('file-input').click()">📁 Gallery</button>
         <button type="button" class="mode-btn" style="background:var(--ludo-green); color:#fff;" onclick="triggerCamera()">📷 Camera</button>
+        <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFile(event)">
       </div>
 
       <button type="button" class="btn-start" style="width:100%;" onclick="saveFaceCrop()">APPLY STICKER ✨</button>
     </div>
   </div>
 
-  <!-- Winner Modal -->
-  <!-- Chaos Reaction Card — one shared popup for all 4 traps + coal-fired kill.
-       Shows the affected player's own face sticker with a short, chunky
-       (steps()-eased, not smooth) animation and a 1-2 word tag — no
-       explanatory sentences. Auto-dismisses on its own. -->
+  <!-- Chaos Reactions -->
   <div class="chaos-reaction-overlay" id="chaosReactionOverlay">
-    <div class="chaos-reaction-card" id="chaosReactionCard">
+    <div style="display:flex; flex-direction:column; align-items:center;">
       <div class="chaos-reaction-face-wrap" id="chaosReactionFaceWrap">
         <div class="chaos-reaction-face" id="chaosReactionFace"></div>
       </div>
@@ -1131,19 +1516,76 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
     </div>
   </div>
 
+  <!-- Cinematic Kill Replay (2026-08-27) — a small self-contained mini-
+       stage, NOT a view into the real board. The real board's token
+       position updates instantly and silently underneath while this
+       plays, exactly as it already does today; this is purely a
+       dramatized layer on top, staged in its own independent scene. -->
+  <div class="chaos-cinema-overlay" id="chaosCinemaOverlay">
+    <div class="chaos-cinema-stage">
+      <div class="chaos-cinema-camera-frame">
+        <div class="chaos-cinema-camera" id="chaosCinemaCamera">
+          <div class="chaos-cinema-backdrop" id="chaosCinemaBackdrop"></div>
+          <div class="chaos-cinema-vortex" id="chaosCinemaVortex"></div>
+          <div class="chaos-cinema-burger" id="chaosCinemaBurger">🍔</div>
+          <div class="chaos-cinema-starburst" id="chaosCinemaStarburst"></div>
+          <div class="chaos-cinema-pawn chaos-cinema-pawn--victim" id="chaosCinemaVictim">
+            <div class="chaos-cinema-head" id="chaosCinemaVictimHead"></div>
+          </div>
+          <div class="chaos-cinema-impact-ring" id="chaosCinemaImpactRing"></div>
+          <div class="chaos-cinema-pawn chaos-cinema-pawn--attacker" id="chaosCinemaAttacker">
+            <div class="chaos-cinema-head" id="chaosCinemaAttackerHead"></div>
+          </div>
+        </div>
+      </div>
+      <div class="chaos-cinema-tag" id="chaosCinemaTag"></div>
+    </div>
+  </div>
+
+  <!-- Winner Modal -->
   <div class="overlay" id="winner-modal">
     <div class="modal-card">
-      <h2 id="winner-title" style="color:var(--tkg-gold);">👑 VICTORY!</h2>
-      <p id="winner-desc" style="font-size:0.85rem; margin-bottom:14px;">All 4 face stickers reached home!</p>
-      <button type="button" class="btn-start" onclick="location.reload()">PLAY AGAIN 🎲</button>
+      <div style="font-size:1.4rem; font-weight:900; color:var(--tkg-gold); margin-bottom:6px;">👑 VICTORY!</div>
+      <p id="winner-desc" style="font-size:0.85rem; margin-bottom:14px; color:var(--text-dim);">All 4 face stickers reached home!</p>
+      <button type="button" class="btn-start" style="width:100%;" onclick="quitToMenu()">PLAY AGAIN 🎲</button>
     </div>
   </div>
 </div>
 
+<!-- JOURNEY PROMPT -->
+<div class="journey-prompt-backdrop" id="journeyPromptBackdrop"></div>
+<div class="journey-prompt-card" id="journeyPromptCard">
+  <h2>👋 Welcome to TKG</h2>
+  <p>How can we help you today?</p>
+  <button type="button" class="journey-prompt-choice" data-journey-choice="atTKG">🟢 I'm at TKG</button>
+  <button type="button" class="journey-prompt-choice" data-journey-choice="planning">🟡 Planning my visit</button>
+  <button type="button" class="journey-prompt-choice" data-journey-choice="exploring">⚪ Just exploring</button>
+</div>
+
+<!-- ===================== SHARED TKG GLOBAL NAV (VERBATIM FROM RUNNER) ===================== -->
+<nav class="tkg-global-nav" id="globalNav" aria-label="Main Navigation">
+  <a href="./index.html" class="tkg-nav-item" aria-label="Menu" title="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </a>
+  <a href="./moments.html" class="tkg-nav-item tkg-nav-moments" aria-label="Moments" title="Moments">
+    <span class="tkg-moments-icon-stack">
+      <svg class="tkg-icon-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <svg class="tkg-icon-recorder" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+    </span>
+  </a>
+  <a href="./moments_hub.html" class="tkg-nav-item tkg-nav-hub" aria-label="Moments Hub" title="Hub">
+    <img src="./tkg-hub-nav.png" alt="" class="tkg-hub-badge-icon" aria-hidden="true">
+  </a>
+  <a href="./game-console.html" class="tkg-nav-item active" aria-label="Game Console" title="Games" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="11" r="1"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+  </a>
+  <a href="./leaderboard.html" class="tkg-nav-item" aria-label="Leaderboard" title="Leaderboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+  </a>
+</nav>
+
 <script>
-/* ==========================================================================
-   1. COAL RISING EMBER BACKGROUND PARTICLES ENGINE
-   ========================================================================== */
+/* Background Particle Engine */
 const coalCanvas = document.getElementById('coal-canvas');
 const coalCtx = coalCanvas.getContext('2d');
 let embers = [];
@@ -1159,15 +1601,14 @@ function createEmber() {
   return {
     x: Math.random() * coalCanvas.width,
     y: coalCanvas.height + 10,
-    size: Math.random() * 3 + 1,
-    speedY: Math.random() * 1.5 + 0.5,
-    speedX: (Math.random() - 0.5) * 0.6,
-    opacity: Math.random() * 0.6 + 0.2,
-    hue: Math.random() * 30 + 15
+    size: Math.random() * 2 + 1,
+    speedY: Math.random() * 1.2 + 0.4,
+    speedX: (Math.random() - 0.5) * 0.4,
+    opacity: Math.random() * 0.4 + 0.1
   };
 }
 
-for (let i = 0; i < 35; i++) {
+for (let i = 0; i < 25; i++) {
   const e = createEmber();
   e.y = Math.random() * coalCanvas.height;
   embers.push(e);
@@ -1175,91 +1616,21 @@ for (let i = 0; i < 35; i++) {
 
 function animateEmbers() {
   coalCtx.clearRect(0, 0, coalCanvas.width, coalCanvas.height);
+  const isLight = document.documentElement.getAttribute('data-tkg-theme') === 'light';
   embers.forEach(e => {
     e.y -= e.speedY;
     e.x += e.speedX;
     if (e.y < -10) Object.assign(e, createEmber());
     coalCtx.beginPath();
     coalCtx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
-    coalCtx.fillStyle = `hsla(${e.hue}, 100%, 60%, ${e.opacity})`;
-    coalCtx.shadowBlur = 8;
-    coalCtx.shadowColor = `hsl(${e.hue}, 100%, 50%)`;
+    coalCtx.fillStyle = isLight ? `rgba(232,93,44,${e.opacity * 0.25})` : `rgba(250,198,70,${e.opacity * 0.5})`;
     coalCtx.fill();
   });
   requestAnimationFrame(animateEmbers);
 }
 animateEmbers();
 
-function openChaosReference() {
-  document.getElementById('legend-modal').style.display = 'flex';
-}
-function dismissLegend() {
-  document.getElementById('legend-modal').style.display = 'none';
-}
-
-// Chaos reference icon cycle — plain interval, swaps the glyph itself
-// (not a crossfade of multiple stacked icons — only ONE showing at a
-// time, per the "not four icons permanently in the header" instruction).
-const CHAOS_REF_ICONS = ['🌀', '🍔', '🍜', '⭐'];
-let chaosRefIconIdx = 0;
-function cycleChaosRefIcon() {
-  const el = document.getElementById('chaosRefIcon');
-  if (!el) return;
-  chaosRefIconIdx = (chaosRefIconIdx + 1) % CHAOS_REF_ICONS.length;
-  const icon = CHAOS_REF_ICONS[chaosRefIconIdx];
-  el.textContent = icon;
-  el.classList.toggle('is-blackhole', icon === '🌀');
-}
-setInterval(cycleChaosRefIcon, 1800);
-
-/* ==========================================================================
-   2. SOUND ENGINE (Global Mute + Authentic Physical FX)
-   ========================================================================== */
-// Real-device mobile viewport height fix (2026-08-22) — sets --app-vh from
-// actual measured window.innerHeight, kept in sync as the browser's
-// address bar shows/hides. Standard robust pattern for the "vertical
-// centering looks off on a real phone" class of bug; dvh alone is close
-// but this closes the gap for the moment right after load before the
-// browser chrome has settled.
-function setAppViewportHeight_() {
-  document.documentElement.style.setProperty('--app-vh', (window.innerHeight * 0.01) + 'px');
-}
-setAppViewportHeight_();
-window.addEventListener('resize', setAppViewportHeight_);
-window.addEventListener('orientationchange', setAppViewportHeight_);
-
-let isPaused = false;
-
-// Pauses by (1) blocking the two real entry points a turn can advance
-// through — onRollDice and onSelectToken, guarded below — and (2) putting
-// a full-screen overlay up so nothing is visible/tappable underneath.
-// Doesn't try to freeze an in-flight CSS animation mid-frame (a token
-// already hopping will finish that one hop); it stops anything NEW from
-// starting, which is what "stop the game" practically means here.
-function pauseGame() {
-  if (isPaused) return;
-  isPaused = true;
-  document.getElementById('pause-modal').classList.add('show');
-}
-
-function resumeGame() {
-  isPaused = false;
-  document.getElementById('pause-modal').classList.remove('show');
-  // If it was the computer's turn, its auto-roll setTimeout may have
-  // already fired (and no-op'd, since onRollDice checks isPaused) while
-  // the game was paused — give it a fresh chance to actually roll now.
-  if (players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving) {
-    setTimeout(() => { if (!isPaused) onRollDice(currentTurn); }, 500);
-  }
-}
-
-function quitToMenu() {
-  // Was './index.html' — stale from before Game Console existed as the
-  // actual games hub. FODO is launched FROM Game Console (via its tile),
-  // so QUIT should return there, not skip past it to the food menu.
-  window.location.href = './game-console.html';
-}
-
+/* Audio */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
 let isAudioMuted = false;
@@ -1274,33 +1645,31 @@ function ensureAudio() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-// Short filtered-noise burst — a real "click"/"thud" texture, not a pure
-// tone. Used to make the dice roll and capture sounds feel more physical
-// (Ludo King-style), instead of everything being a synthesized oscillator
-// sweep. Still zero external files — the noise buffer is generated in code.
+/* Genuine WebAudio noise-burst texture (restored) — combined with the
+   tonal "clack" below for a more physical dice-roll feel than a pure
+   oscillator tone alone can give. */
 function playNoiseBurst_(ctx, startTime, duration, volume, filterFreq) {
-  const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+  const bufferSize = ctx.sampleRate * duration;
   const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
   const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
 
-  const source = ctx.createBufferSource();
-  source.buffer = buffer;
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
 
   const filter = ctx.createBiquadFilter();
   filter.type = 'bandpass';
-  filter.frequency.value = filterFreq;
-  filter.Q.value = 1.1;
+  filter.frequency.setValueAtTime(filterFreq, startTime);
 
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(volume, startTime);
   gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-  source.connect(filter);
+  noise.connect(filter);
   filter.connect(gain);
   gain.connect(ctx.destination);
-  source.start(startTime);
-  source.stop(startTime + duration);
+  noise.start(startTime);
+  noise.stop(startTime + duration);
 }
 
 function playSound(type) {
@@ -1311,119 +1680,191 @@ function playSound(type) {
     const now = ctx.currentTime;
 
     if (type === 'roll') {
-      // 5 tumbling bounces, each a tonal "clack" + a noise "click" layered
-      // together — the noise gives it a physical, dice-in-hand texture
-      // instead of reading as a pure musical note; timing has a little
-      // randomness so it doesn't sound metronomic, like real dice settling.
-      const bounces = 5;
-      for (let i = 0; i < bounces; i++) {
-        const bounceTime = now + i * 0.065 + Math.random() * 0.015;
-        const decay = 1 - (i / bounces) * 0.6; // later bounces are quieter, like it's settling
+      for (let i = 0; i < 4; i++) {
+        const bounceTime = now + i * 0.07;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        osc.connect(gain); gain.connect(ctx.destination);
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(260 + Math.random() * 180, bounceTime);
-        gain.gain.setValueAtTime(0.18 * decay, bounceTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, bounceTime + 0.045);
-        osc.start(bounceTime);
-        osc.stop(bounceTime + 0.045);
-
-        playNoiseBurst_(ctx, bounceTime, 0.035, 0.22 * decay, 1800 + Math.random() * 800);
+        osc.frequency.setValueAtTime(280 + Math.random() * 150, bounceTime);
+        gain.gain.setValueAtTime(0.12, bounceTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, bounceTime + 0.04);
+        osc.start(bounceTime); osc.stop(bounceTime + 0.04);
+        playNoiseBurst_(ctx, bounceTime, 0.05, 0.08, 1200 + Math.random() * 600);
       }
+      return;
+    }
+
+    if (type === 'blackhole') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(500, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc.start(now); osc.stop(now + 0.4);
+      return;
+    }
+
+    if (type === 'burger') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(140, now);
+      gain.gain.setValueAtTime(0.28, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.start(now); osc.stop(now + 0.12);
+      playNoiseBurst_(ctx, now + 0.1, 0.1, 0.2, 400);
+      return;
+    }
+
+    if (type === 'noodle') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(420, now);
+      osc.frequency.exponentialRampToValueAtTime(180, now + 0.25);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now); osc.stop(now + 0.25);
+      return;
+    }
+
+    if (type === 'magic') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1200, now);
+      osc.frequency.exponentialRampToValueAtTime(2000, now + 0.08);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.start(now); osc.stop(now + 0.15);
+      return;
+    }
+
+    if (type === 'star') {
+      [660, 880].forEach((freq, i) => {
+        const t = now + i * 0.09;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.16, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        osc.start(t); osc.stop(t + 0.12);
+      });
       return;
     }
 
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+    osc.connect(gain); gain.connect(ctx.destination);
 
     if (type === 'step') {
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(340, now);
-      osc.frequency.exponentialRampToValueAtTime(220, now + 0.08);
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-      osc.start(now); osc.stop(now + 0.08);
+      osc.frequency.setValueAtTime(360, now);
+      osc.frequency.exponentialRampToValueAtTime(240, now + 0.07);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.07);
+      osc.start(now); osc.stop(now + 0.07);
     } else if (type === 'cut') {
-      // Sharper "thud + crack" — a fast low thump for impact weight, plus
-      // a noise crack on top for the harsher, more dramatic capture hit
-      // Ludo King reviewers describe as "soul-crushing" — a single tonal
-      // sweep read as thin by comparison.
       osc.type = 'square';
       osc.frequency.setValueAtTime(180, now);
-      osc.frequency.exponentialRampToValueAtTime(45, now + 0.22);
-      gain.gain.setValueAtTime(0.4, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-      osc.start(now); osc.stop(now + 0.22);
-      playNoiseBurst_(ctx, now, 0.09, 0.35, 900);
-    } else if (type === 'star') {
-      // Two-note bright ascending "ding" for landing on a safe star — this
-      // sound didn't exist before; distinct from every chaos/capture sound.
-      [0, 0.09].forEach((offset, i) => {
-        const sOsc = ctx.createOscillator();
-        const sGain = ctx.createGain();
-        sOsc.connect(sGain); sGain.connect(ctx.destination);
-        sOsc.type = 'sine';
-        sOsc.frequency.setValueAtTime(i === 0 ? 660 : 990, now + offset);
-        sGain.gain.setValueAtTime(0.22, now + offset);
-        sGain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.18);
-        sOsc.start(now + offset); sOsc.stop(now + offset + 0.18);
-      });
-    } else if (type === 'event') {
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(260, now);
-      osc.frequency.linearRampToValueAtTime(700, now + 0.12);
-      osc.frequency.linearRampToValueAtTime(140, now + 0.28);
-      gain.gain.setValueAtTime(0.35, now);
-      gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
-      osc.start(now); osc.stop(now + 0.28);
-    } else if (type === 'magic') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(440, now);
-      osc.frequency.exponentialRampToValueAtTime(880, now + 0.3);
+      osc.frequency.exponentialRampToValueAtTime(45, now + 0.2);
       gain.gain.setValueAtTime(0.3, now);
-      gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-      osc.start(now); osc.stop(now + 0.3);
-    } else if (type === 'blackhole') {
-      // Descending whoosh/suction — pitch falls as if being pulled away
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(500, now);
-      osc.frequency.exponentialRampToValueAtTime(80, now + 0.5);
-      gain.gain.setValueAtTime(0.3, now);
-      gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
-      osc.start(now); osc.stop(now + 0.5);
-    } else if (type === 'burger') {
-      // Two quick low "chomp" thuds
-      [0, 0.12].forEach((offset) => {
-        const bOsc = ctx.createOscillator();
-        const bGain = ctx.createGain();
-        bOsc.connect(bGain); bGain.connect(ctx.destination);
-        bOsc.type = 'square';
-        bOsc.frequency.setValueAtTime(140, now + offset);
-        bOsc.frequency.exponentialRampToValueAtTime(60, now + offset + 0.09);
-        bGain.gain.setValueAtTime(0.4, now + offset);
-        bGain.gain.linearRampToValueAtTime(0.01, now + offset + 0.09);
-        bOsc.start(now + offset); bOsc.stop(now + offset + 0.09);
-      });
-    } else if (type === 'noodle') {
-      // Quick up-down slide/slip
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(300, now);
-      osc.frequency.linearRampToValueAtTime(180, now + 0.12);
-      osc.frequency.linearRampToValueAtTime(260, now + 0.24);
-      gain.gain.setValueAtTime(0.3, now);
-      gain.gain.linearRampToValueAtTime(0.01, now + 0.24);
-      osc.start(now); osc.stop(now + 0.24);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc.start(now); osc.stop(now + 0.2);
     }
   } catch(e){}
 }
 
-/* ==========================================================================
-   3. BOARD TOPOLOGY & LAYOUT
-   ========================================================================== */
+/* Chaos Button Cycling */
+const CHAOS_REF_ICONS = ['🌀', '🍔', '🍜', '⭐'];
+let chaosRefIconIdx = 0;
+function cycleChaosRefIcon() {
+  const el = document.getElementById('chaosRefIcon');
+  if (!el) return;
+  chaosRefIconIdx = (chaosRefIconIdx + 1) % CHAOS_REF_ICONS.length;
+  const icon = CHAOS_REF_ICONS[chaosRefIconIdx];
+  el.textContent = icon;
+  el.classList.toggle('is-blackhole', icon === '🌀');
+}
+setInterval(cycleChaosRefIcon, 2000);
+
+function openChaosReference() { document.getElementById('legend-modal').classList.add('show'); }
+function dismissLegend() { document.getElementById('legend-modal').classList.remove('show'); }
+
+/* Restored (2026-08-26) — first-time-only trap explainer. Reuses the same
+   descriptions already written for the Chaos Reference legend above,
+   rather than duplicating fresh copy. */
+const TRAP_INFO = {
+  blackhole: { icon: '🌀', name: 'BLACK HOLE', desc: 'Sucks you back 3 steps' },
+  burger:    { icon: '🍔', name: 'BURGER MONSTER', desc: 'Chomp! Back to yard' },
+  noodle:    { icon: '🍜', name: 'NOODLE SLIP', desc: 'Slip! 4 steps back' },
+  magic:     { icon: '⭐', name: 'MAGIC STAR', desc: 'Land here = Instant KO' },
+};
+let pendingTrapEffect_ = null;
+
+function maybeExplainTrap(type, runEffect) {
+  if (hasExplainedTrap[type]) { runEffect(); return; }
+  hasExplainedTrap[type] = true;
+  pendingTrapEffect_ = runEffect;
+  const info = TRAP_INFO[type];
+  document.getElementById('trap-explainer-icon').textContent = info.icon;
+  document.getElementById('trap-explainer-name').textContent = info.name;
+  document.getElementById('trap-explainer-desc').textContent = info.desc;
+  document.getElementById('trap-explainer-modal').classList.add('show');
+}
+function dismissTrapExplainer() {
+  document.getElementById('trap-explainer-modal').classList.remove('show');
+  const effect = pendingTrapEffect_;
+  pendingTrapEffect_ = null;
+  if (effect) effect();
+}
+
+/* Pause System */
+let isPaused = false;
+function pauseGame() {
+  if (isPaused) return;
+  isPaused = true;
+  document.getElementById('pause-modal').classList.add('show');
+}
+function resumeGame() {
+  isPaused = false;
+  document.getElementById('pause-modal').classList.remove('show');
+  if (players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving) {
+    setTimeout(() => { if (!isPaused) onRollDice(currentTurn); }, 500);
+  }
+}
+
+/* Restored (2026-08-26) — was replaced with location.reload(), which
+   works but is a much harsher transition than an in-app return to setup:
+   a full reload flashes the whole page white and re-runs every startup
+   script (theme detection, ember canvas, Journey/proximity check, nav
+   bar init) for no real reason, when all that's actually needed is
+   clearing the active game's state and showing the setup screen again. */
+function quitToMenu() {
+  isPaused = false;
+  isRolling = false;
+  isTokenMoving = false;
+  consecutiveSixes = 0;
+  activeFodoEvents = {};
+  document.getElementById('pause-modal').classList.remove('show');
+  document.getElementById('winner-modal').classList.remove('show');
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('pauseToggleBtn').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('stage-avatar').style.display = 'none';
+  document.getElementById('stage-select').style.display = 'flex';
+}
+
+/* ---------------- BOARD TOPOLOGY ---------------- */
 const MAIN_CIRCUIT = [
   [1,6],[2,6],[3,6],[4,6],[5,6],
   [6,5],[6,4],[6,3],[6,2],[6,1],[6,0],
@@ -1456,57 +1897,40 @@ const PLAYER_CONFIG = [
 
 const SAFE_TILES = [0, 8, 13, 21, 26, 34, 39, 47];
 
-/* ==========================================================================
-   4. DYNAMIC FODO CHAOS EVENTS & FIRST-TIME EXPLAINER
-   ========================================================================== */
+/* Dynamic Events */
 let activeFodoEvents = {};
-let magicProtectedTiles = {};
-let hasExplainedTrap = {}; // First-appearance explainer flag
+// Restored (2026-08-26) — tracks which trap types this player has already
+// seen the one-time explainer for, keyed by trap type string.
+let hasExplainedTrap = {};
 
 const EVENT_TEMPLATES = [
   {
-    type: 'blackhole',
-    icon: '🌀',
-    name: 'BLACK HOLE!',
-    introTip: '🌀 BLACK HOLE: Sucks pawn backwards 3 steps!',
-    action: (pIdx, tIdx) => {
-      playSound('blackhole');
-      showChaosReactionCard(pIdx, 'rx-blackhole', 'SUCKED!');
-      stepBackToken(pIdx, tIdx, 3);
-    }
+    type: 'blackhole', icon: '🌀', name: 'BLACK HOLE!',
+    action: (pIdx, tIdx) => maybeExplainTrap('blackhole', () => {
+      broadcastHighlight('🔥 FODO EVENT!', 'BLACK HOLE!');
+      playTrapCinema('blackhole', pIdx, tIdx, () => stepBackToken(pIdx, tIdx, 3));
+    })
   },
   {
-    type: 'burger',
-    icon: '🍔',
-    name: 'BURGER MONSTER!',
-    introTip: '🍔 BURGER MONSTER: CHOMP! Sends pawn back to Yard!',
-    action: (pIdx, tIdx) => {
-      playSound('burger');
-      showChaosReactionCard(pIdx, 'rx-burger', 'CHOMP!');
-      sendTokenToYard(pIdx, tIdx);
-    }
+    type: 'burger', icon: '🍔', name: 'BURGER MONSTER!',
+    action: (pIdx, tIdx) => maybeExplainTrap('burger', () => {
+      broadcastHighlight('🔥 FODO EVENT!', 'BURGER MONSTER!');
+      playTrapCinema('burger', pIdx, tIdx, () => sendTokenToYard(pIdx, tIdx));
+    })
   },
   {
-    type: 'noodle',
-    icon: '🍜',
-    name: 'NOODLE SLIP!',
-    introTip: '🍜 NOODLE SLIP: Slippery! Slides backward 4 steps!',
-    action: (pIdx, tIdx) => {
-      playSound('noodle');
-      showChaosReactionCard(pIdx, 'rx-noodle', 'SLIP!');
-      stepBackToken(pIdx, tIdx, 4);
-    }
+    type: 'noodle', icon: '🍜', name: 'NOODLE SLIP!',
+    action: (pIdx, tIdx) => maybeExplainTrap('noodle', () => {
+      broadcastHighlight('🔥 FODO EVENT!', 'NOODLE SLIP!');
+      playTrapCinema('noodle', pIdx, tIdx, () => stepBackToken(pIdx, tIdx, 4));
+    })
   },
   {
-    type: 'magic',
-    icon: '⭐',
-    name: 'MAGIC STAR KO!',
-    introTip: '⭐ DANGEROUS STAR: Land here = Instant KO!',
-    action: (pIdx, tIdx) => {
-      playSound('magic');
-      showChaosReactionCard(pIdx, 'rx-magic', 'KO!');
-      sendTokenToYard(pIdx, tIdx);
-    }
+    type: 'magic', icon: '⭐', name: 'MAGIC STAR KO!',
+    action: (pIdx, tIdx) => maybeExplainTrap('magic', () => {
+      broadcastHighlight('🔥 FODO EVENT!', 'MAGIC STAR KO!');
+      playTrapCinema('magic', pIdx, tIdx, () => sendTokenToYard(pIdx, tIdx));
+    })
   }
 ];
 
@@ -1515,37 +1939,20 @@ function spawnRandomFodoEvents() {
     activeFodoEvents[tile].turnsLeft--;
     if (activeFodoEvents[tile].turnsLeft <= 0) delete activeFodoEvents[tile];
   }
-  for (let tile in magicProtectedTiles) {
-    magicProtectedTiles[tile]--;
-    if (magicProtectedTiles[tile] <= 0) delete magicProtectedTiles[tile];
-  }
-
   const currentCount = Object.keys(activeFodoEvents).length;
-  if (currentCount < 4 && Math.random() < 0.72) {
+  if (currentCount < 3 && Math.random() < 0.6) {
     const available = [];
     for (let i = 0; i < 52; i++) {
-      if (!activeFodoEvents[i]) available.push(i);
+      if (!activeFodoEvents[i] && !SAFE_TILES.includes(i)) available.push(i);
     }
     if (available.length) {
-      const howMany = currentCount === 0 ? 1 : (Math.random() < 0.25 ? 2 : 1);
-      for (let n = 0; n < Math.min(howMany, 4 - currentCount); n++) {
-        const randomTile = available.splice(Math.floor(Math.random() * available.length), 1)[0];
-        const template = EVENT_TEMPLATES[Math.floor(Math.random() * EVENT_TEMPLATES.length)];
-        
-        // Check first-time intro tip
-        if (!hasExplainedTrap[template.type]) {
-          hasExplainedTrap[template.type] = true;
-          broadcastHighlight('NEW TRAP DETECTED!', template.introTip);
-        }
-
-        activeFodoEvents[randomTile] = {
-          type: template.type,
-          icon: template.icon,
-          name: template.name,
-          turnsLeft: Math.floor(Math.random() * 2) + 1,
-          onLand: template.action
-        };
-      }
+      const randomTile = available[Math.floor(Math.random() * available.length)];
+      const template = EVENT_TEMPLATES[Math.floor(Math.random() * EVENT_TEMPLATES.length)];
+      activeFodoEvents[randomTile] = {
+        type: template.type, icon: template.icon, name: template.name,
+        turnsLeft: Math.floor(Math.random() * 2) + 2,
+        onLand: template.action
+      };
     }
   }
   renderFodoEventsDOM();
@@ -1555,77 +1962,224 @@ function renderFodoEventsDOM() {
   const layer = document.getElementById('events-layer');
   const S = 600 / 15;
   const wrapper = document.getElementById('board-wrapper');
+  if (!wrapper) return;
   const scale = wrapper.clientWidth / 600;
-  const liveKeys = new Set(Object.keys(activeFodoEvents));
-
-  [...layer.children].forEach(el => {
-    if (!liveKeys.has(el.dataset.tile)) el.remove();
-  });
+  layer.innerHTML = '';
 
   for (const tile in activeFodoEvents) {
     const ev = activeFodoEvents[tile];
-    let el = layer.querySelector(`[data-tile="${tile}"]`);
     const cell = MAIN_CIRCUIT[tile];
-    if (!el) {
-      el = document.createElement('div');
-      el.className = 'fodo-event-badge';
-      el.dataset.tile = tile;
-      el.textContent = ev.icon;
-      layer.appendChild(el);
-    }
+    const el = document.createElement('div');
+    el.className = 'fodo-event-badge';
+    el.textContent = ev.icon;
     el.style.left = ((cell[0] * S + S/2) * scale) + 'px';
     el.style.top = ((cell[1] * S + S/2) * scale) + 'px';
+    layer.appendChild(el);
   }
 }
 
+/* Restored (2026-08-26) — the #broadcast-banner element and its .show
+   CSS transition existed, but this function (the only thing that ever
+   added the .show class) was missing, so the banner never actually
+   appeared during play. */
 function broadcastHighlight(title, subtitle) {
   const banner = document.getElementById('broadcast-banner');
-  banner.innerHTML = `<div style="font-size:0.9rem; color:var(--tkg-gold); margin-bottom:2px;">${title}</div><div style="font-size:0.75rem; color:#FFF;">${subtitle}</div>`;
+  if (!banner) return;
+  banner.innerHTML = subtitle ? `${title}<br><span style="font-weight:600;font-size:0.7rem;">${subtitle}</span>` : title;
   banner.classList.add('show');
-  setTimeout(() => banner.classList.remove('show'), 2200);
+  setTimeout(() => banner.classList.remove('show'), 1400);
 }
 
-const CHAOS_REACTION_DURATION_MS = 2200; // ~2.2s — an example of "5s" was too long, this is the shorter real default
-let chaosReactionTimer = null;
-
-// One shared popup for every chaos type + the coal-fired kill: shows the
-// AFFECTED player's own face sticker (falls back to their default emoji if
-// they never set one), a short 1-2 word tag, and a chunky/retro animation
-// class (see CSS rx-* keyframes above) — the animation carries the story,
-// not a sentence of text. rxClass selects which CSS animation plays.
-function showChaosReactionCard(pIdx, rxClass, tag){
+function showChaosReactionCard(pIdx, rxClass, tag) {
   const overlay = document.getElementById('chaosReactionOverlay');
-  const faceWrap = document.getElementById('chaosReactionFaceWrap');
   const face = document.getElementById('chaosReactionFace');
   const tagEl = document.getElementById('chaosReactionTag');
   const p = players[pIdx];
 
-  face.innerHTML = p.avatar ? `<img src="${p.avatar}">` : '';
-  face.textContent = p.avatar ? '' : (PLAYER_CONFIG[pIdx].defaultEmoji || '🙂');
+  if (p.avatar) face.innerHTML = `<img src="${p.avatar}">`;
+  else face.textContent = PLAYER_CONFIG[pIdx].defaultEmoji;
 
-  faceWrap.className = 'chaos-reaction-face-wrap ' + rxClass;
   tagEl.textContent = tag;
+  overlay.classList.add('show');
+  setTimeout(() => overlay.classList.remove('show'), 1600);
+}
+
+/* Cinematic Kill Replay (2026-08-27, Phase 1) — a small self-contained
+   mini-stage popup, NOT a view into the real board. The real board's
+   token position updates silently underneath (via onDone, fired mid-
+   sequence once the victim has visually left the stage) exactly as it
+   already did before this existed — this only adds a dramatized layer
+   on top. Timing is deliberately open (~3.4s total) rather than forced
+   into a fixed short window, per an explicit "let it breathe, tune
+   speed later once all 5 exist" decision. */
+const KILL_PUNCHLINES = [
+  "Ekk baar jo maine commitment kar di... uske baad toh main khud ki bhi nahi sunta. 🔥",
+  "Not the hero's journey you were hoping for.",
+  "Arre arre... seedha coal-fired!",
+  "Bhai ka return ticket kat gaya.",
+  "Pakad liya! Bhaag ab.",
+  "Picture abhi baaki hai... par tumhare liye nahi.",
+  "Too easy, bhai.",
+  "Game mein rehna tha, ghar chale gaye.",
+  "Oho! Seedha ghar.",
+  "Mil gaya! 😂",
+];
+
+function playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone) {
+  const overlay = document.getElementById('chaosCinemaOverlay');
+  const camera = document.getElementById('chaosCinemaCamera');
+  const backdrop = document.getElementById('chaosCinemaBackdrop');
+  const attackerEl = document.getElementById('chaosCinemaAttacker');
+  const victimEl = document.getElementById('chaosCinemaVictim');
+  const attackerHead = document.getElementById('chaosCinemaAttackerHead');
+  const victimHead = document.getElementById('chaosCinemaVictimHead');
+  const ring = document.getElementById('chaosCinemaImpactRing');
+  const tagEl = document.getElementById('chaosCinemaTag');
+  const vortex = document.getElementById('chaosCinemaVortex');
+  const burger = document.getElementById('chaosCinemaBurger');
+  const starburst = document.getElementById('chaosCinemaStarburst');
+
+  const attacker = players[attackerPIdx];
+  const victim = players[victimPIdx];
+  if (attacker.avatar) attackerHead.innerHTML = `<img src="${attacker.avatar}">`;
+  else attackerHead.textContent = PLAYER_CONFIG[attackerPIdx].defaultEmoji;
+  if (victim.avatar) victimHead.innerHTML = `<img src="${victim.avatar}">`;
+  else victimHead.textContent = PLAYER_CONFIG[victimPIdx].defaultEmoji;
+
+  // Reset every animation class from any previous playthrough, and hide
+  // the trap-only props (this is a kill, not a Chaos trap).
+  [camera, attackerEl, victimEl, ring, tagEl].forEach(el => {
+    el.className = el.id === 'chaosCinemaCamera' ? 'chaos-cinema-camera'
+      : el.id === 'chaosCinemaAttacker' ? 'chaos-cinema-pawn chaos-cinema-pawn--attacker'
+      : el.id === 'chaosCinemaVictim' ? 'chaos-cinema-pawn chaos-cinema-pawn--victim'
+      : el.id === 'chaosCinemaImpactRing' ? 'chaos-cinema-impact-ring'
+      : 'chaos-cinema-tag';
+  });
+  [vortex, burger, starburst].forEach(el => el.className = el.className.split(' ')[0]);
+  backdrop.className = 'chaos-cinema-backdrop chaos-cinema-backdrop--kill';
+  attackerEl.style.display = '';
+  tagEl.textContent = KILL_PUNCHLINES[Math.floor(Math.random() * KILL_PUNCHLINES.length)];
 
   overlay.classList.add('show');
 
-  clearTimeout(chaosReactionTimer);
-  chaosReactionTimer = setTimeout(() => {
-    overlay.classList.remove('show');
-    faceWrap.className = 'chaos-reaction-face-wrap';
-  }, CHAOS_REACTION_DURATION_MS);
+  setTimeout(() => attackerEl.classList.add('crouch'), 100);
+  setTimeout(() => {
+    attackerEl.classList.add('lunge');
+    camera.classList.add('zoom-in');
+  }, 450);
+  setTimeout(() => {
+    playSound('cut');
+    victimEl.classList.add('recoil');
+    ring.classList.add('pulse');
+  }, 750);
+  setTimeout(() => {
+    victimEl.classList.add('charring');
+    attackerEl.classList.add('settle');
+  }, 900);
+  setTimeout(() => {
+    victimEl.classList.add('knocked-back');
+  }, 1500);
+  setTimeout(() => {
+    // Victim has visually left the stage — finalize the real board
+    // state now, silently, underneath this still-open popup.
+    if (onDone) onDone();
+  }, 2050);
+  setTimeout(() => tagEl.classList.add('show'), 1900);
+  setTimeout(() => camera.classList.add('zoom-out'), 3300);
+  setTimeout(() => overlay.classList.remove('show'), 3900);
 }
 
-/* ==========================================================================
-   5. GAME STATE & SETUP SEATS
-   ========================================================================== */
+/* Chaos Trap Cinema (2026-08-27, Phase 2) — same shared mini-stage as
+   the kill replay above, one centered victim pawn instead of two, and a
+   trap-specific prop (vortex / burger / none for noodle / starburst).
+   Same "board updates silently underneath, onDone fires once the victim
+   has visually resolved" pattern as Phase 1. */
+const TRAP_PUNCHLINES = {
+  blackhole: ["Gaya andar.", "Gravity OP hai.", "Andar chala gaya, bhai.", "Black hole ne bhi reject nahi kiya... seedha accept kiya.", "Poof. Gone."],
+  burger: ["Arre bhai, Burger ne kha liya!", "Aaj lunch tum ho. 🍔", "Kha gaya re!", "Burger ka mood kharab tha.", "Bas bhai, digest ho gaya.", "RIP? Nah. LUNCH."],
+  noodle: ["Pair fisla, izzat bhi fisli.", "Arre sambhal!", "Full slippery scene.", "Yeh kya slide maar di!", "Control gaya bhai."],
+  magic: ["Taara mila, luck nahi.", "⭐ Kismat ne bola: NOPE.", "Arre wah... KO!", "Star ne seedha reject kar diya."],
+};
+
+function playTrapCinema(type, pIdx, tIdx, onDone) {
+  const overlay = document.getElementById('chaosCinemaOverlay');
+  const camera = document.getElementById('chaosCinemaCamera');
+  const backdrop = document.getElementById('chaosCinemaBackdrop');
+  const attackerEl = document.getElementById('chaosCinemaAttacker');
+  const victimEl = document.getElementById('chaosCinemaVictim');
+  const victimHead = document.getElementById('chaosCinemaVictimHead');
+  const ring = document.getElementById('chaosCinemaImpactRing');
+  const tagEl = document.getElementById('chaosCinemaTag');
+  const vortex = document.getElementById('chaosCinemaVortex');
+  const burger = document.getElementById('chaosCinemaBurger');
+  const starburst = document.getElementById('chaosCinemaStarburst');
+
+  const victim = players[pIdx];
+  if (victim.avatar) victimHead.innerHTML = `<img src="${victim.avatar}">`;
+  else victimHead.textContent = PLAYER_CONFIG[pIdx].defaultEmoji;
+
+  // Reset state from any previous playthrough — no attacker in a trap
+  // sequence, so it's hidden entirely rather than just unanimated.
+  camera.className = 'chaos-cinema-camera';
+  victimEl.className = 'chaos-cinema-pawn chaos-cinema-pawn--victim centered';
+  ring.className = 'chaos-cinema-impact-ring';
+  tagEl.className = 'chaos-cinema-tag';
+  [vortex, burger, starburst].forEach(el => el.className = el.className.split(' ')[0]);
+  attackerEl.style.display = 'none';
+  backdrop.className = `chaos-cinema-backdrop chaos-cinema-backdrop--${type}`;
+  tagEl.textContent = TRAP_PUNCHLINES[type][Math.floor(Math.random() * TRAP_PUNCHLINES[type].length)];
+
+  overlay.classList.add('show');
+
+  if (type === 'blackhole') {
+    setTimeout(() => vortex.classList.add('show'), 100);
+    setTimeout(() => victimEl.classList.add('bh-pull'), 200);
+    setTimeout(() => { victimEl.classList.add('bh-orbit'); camera.classList.add('zoom-in'); playSound('blackhole'); }, 700);
+    setTimeout(() => victimEl.classList.add('bh-vanish'), 1600);
+    setTimeout(() => { if (onDone) onDone(); }, 2100);
+    setTimeout(() => tagEl.classList.add('show'), 1900);
+    setTimeout(() => camera.classList.add('zoom-out'), 3200);
+    setTimeout(() => overlay.classList.remove('show'), 3800);
+  } else if (type === 'burger') {
+    setTimeout(() => burger.classList.add('show'), 150);
+    setTimeout(() => { victimEl.classList.add('burger-lean'); camera.classList.add('zoom-in'); }, 300);
+    setTimeout(() => { victimEl.classList.add('burger-chomp1'); playSound('burger'); }, 650);
+    setTimeout(() => victimEl.classList.add('burger-chomp2'), 950);
+    setTimeout(() => victimEl.classList.add('burger-gone'), 1250);
+    setTimeout(() => { if (onDone) onDone(); }, 1650);
+    setTimeout(() => tagEl.classList.add('show'), 1700);
+    setTimeout(() => camera.classList.add('zoom-out'), 3000);
+    setTimeout(() => overlay.classList.remove('show'), 3600);
+  } else if (type === 'noodle') {
+    setTimeout(() => { victimEl.classList.add('noodle-slip'); camera.classList.add('zoom-in'); playSound('noodle'); }, 200);
+    setTimeout(() => victimEl.classList.add('noodle-wobble'), 550);
+    setTimeout(() => victimEl.classList.add('noodle-slide'), 1150);
+    setTimeout(() => victimEl.classList.add('noodle-recover'), 1900);
+    setTimeout(() => { if (onDone) onDone(); }, 2200);
+    setTimeout(() => tagEl.classList.add('show'), 2100);
+    setTimeout(() => camera.classList.add('zoom-out'), 3300);
+    setTimeout(() => overlay.classList.remove('show'), 3900);
+  } else if (type === 'magic') {
+    setTimeout(() => victimEl.classList.add('magic-freeze'), 200);
+    setTimeout(() => { starburst.classList.add('show'); camera.classList.add('zoom-in'); playSound('magic'); }, 550);
+    setTimeout(() => victimEl.classList.add('magic-shock'), 650);
+    setTimeout(() => victimEl.classList.add('magic-pop'), 950);
+    setTimeout(() => { if (onDone) onDone(); }, 1350);
+    setTimeout(() => tagEl.classList.add('show'), 1500);
+    setTimeout(() => camera.classList.add('zoom-out'), 2900);
+    setTimeout(() => overlay.classList.remove('show'), 3500);
+  }
+}
+
+/* ---------------- GAME STATE ---------------- */
 let activePlayerCount = 2;
-let activeSeatIndices = [0,1];
+let activeSeatIndices = [0,2];
 let tkgFill = false;
 let players = [
   { name: "Red Face", avatar: null, isAI: false, tokens: [{ step: -1 }, { step: -1 }, { step: -1 }, { step: -1 }] },
   { name: "Green Face", avatar: null, isAI: false, tokens: [{ step: -1 }, { step: -1 }, { step: -1 }, { step: -1 }] },
-  { name: "Yellow Face", avatar: null, isAI: false, tokens: [{ step: -1 }, { step: -1 }, { step: -1 }, { step: -1 }] },
-  { name: "Blue Face", avatar: null, isAI: false, tokens: [{ step: -1 }, { step: -1 }, { step: -1 }, { step: -1 }] }
+  { name: "Blue Face", avatar: null, isAI: false, tokens: [{ step: -1 }, { step: -1 }, { step: -1 }, { step: -1 }] },
+  { name: "Yellow Face", avatar: null, isAI: false, tokens: [{ step: -1 }, { step: -1 }, { step: -1 }, { step: -1 }] }
 ];
 
 let currentTurn = 0;
@@ -1635,18 +2189,22 @@ let isTokenMoving = false;
 let canSelectToken = false;
 let consecutiveSixes = 0;
 
+function computeActiveSeatIndices(mode, fillWithTkg) {
+  if (mode === 1) return fillWithTkg ? [0,1,2,3] : [0,2];
+  if (mode === 4) return [0,1,2,3];
+  const seats = Array.from({length: mode}, (_, i) => i);
+  return fillWithTkg ? [0,1,2,3] : seats;
+}
+
 function setGameMode(mode) {
   activePlayerCount = mode;
   document.querySelectorAll('#player-count-toggle .player-count-card').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById(`mode-${mode}p`);
-  if (btn) btn.classList.add('active');
+  document.getElementById(`mode-${mode}p`)?.classList.add('active');
 
   const fillRow = document.getElementById('tkg-fill-row');
   const checkbox = document.getElementById('tkg-fill');
-  const fillLabel = document.getElementById('tkg-fill-label');
   if (mode < 4) {
     fillRow.style.display = 'flex';
-    if (fillLabel) fillLabel.textContent = mode === 1 ? 'Add more TKG opponents' : 'Add TKG to fill remaining seats';
     tkgFill = checkbox.checked;
   } else {
     fillRow.style.display = 'none';
@@ -1654,27 +2212,47 @@ function setGameMode(mode) {
     tkgFill = false;
   }
 
-  // 1 Player defaults to exactly 1 human + 1 TKG (seats 0,1) — same
-  // minimal-default pattern 2P/3P already use, not a forced 3-computer
-  // match. The same "Add TKG" checkbox now optionally expands it to 2 or
-  // 3 TKG opponents, same generic mechanism as 2P/3P below.
-  if (mode === 1) {
-    activeSeatIndices = tkgFill ? [0,1,2,3] : [0,1];
-  } else if (mode === 4) {
-    activeSeatIndices = [0,1,2,3];
-  } else {
-    activeSeatIndices = Array.from({length: mode}, (_, i) => i);
-    if (tkgFill) activeSeatIndices = [0,1,2,3];
-  }
-
-  updateSetupSeatVisibility();
+  activeSeatIndices = computeActiveSeatIndices(mode, tkgFill);
 }
 
-function updateSetupSeatVisibility() {
-  for (let i = 0; i < 4; i++) {
-    const slot = document.getElementById(`slot-p${i}`);
-    if (!slot) continue;
-    slot.style.display = activeSeatIndices.includes(i) ? 'flex' : 'none';
+let currentAvatarStepPos = 0;
+let avatarStepSeats = [0, 2];
+
+function goToAvatarStage() {
+  avatarStepSeats = activePlayerCount === 1 ? [0] : Array.from({length: activePlayerCount}, (_, i) => i);
+  currentAvatarStepPos = 0;
+  document.getElementById('stage-select').style.display = 'none';
+  document.getElementById('stage-avatar').style.display = 'flex';
+  showAvatarStep();
+}
+
+function showAvatarStep() {
+  document.querySelectorAll('#player-slots .player-setup-card').forEach(c => c.style.display = 'none');
+  const seatIdx = avatarStepSeats[currentAvatarStepPos];
+  const card = document.getElementById(`slot-p${seatIdx}`);
+  if (card) card.style.display = 'flex';
+
+  document.getElementById('avatar-step-indicator').textContent = `Player ${currentAvatarStepPos + 1} of ${avatarStepSeats.length}`;
+  document.getElementById('avatar-back-btn').textContent = currentAvatarStepPos === 0 ? '← Change Players' : '← Back';
+  document.getElementById('avatar-next-btn').textContent = currentAvatarStepPos === avatarStepSeats.length - 1 ? 'BEGIN 🎲' : 'NEXT →';
+}
+
+function nextAvatarStep() {
+  if (currentAvatarStepPos < avatarStepSeats.length - 1) {
+    currentAvatarStepPos++;
+    showAvatarStep();
+  } else {
+    startGame();
+  }
+}
+
+function backAvatarStep() {
+  if (currentAvatarStepPos > 0) {
+    currentAvatarStepPos--;
+    showAvatarStep();
+  } else {
+    document.getElementById('stage-avatar').style.display = 'none';
+    document.getElementById('stage-select').style.display = 'flex';
   }
 }
 
@@ -1687,13 +2265,10 @@ document.addEventListener('DOMContentLoaded', () => {
   setGameMode(2);
 });
 
-/* ==========================================================================
-   6. FACE STICKER STUDIO (Comfortable Initial Zoom)
-   ========================================================================== */
+/* Face Cropper */
 let croppingPlayerIdx = 0;
 let cropImg = new Image();
-let cropX = 0, cropY = 0, cropScale = 1;
-let cropBaseScale = 1; // the "comfortable, not extreme close-up" scale computed on load — slider is relative to this
+let cropX = 0, cropY = 0, cropScale = 1, cropBaseScale = 1;
 let isDragging = false, startX, startY;
 
 function openCropper(playerIdx) {
@@ -1708,14 +2283,12 @@ function handleFile(e) {
   const reader = new FileReader();
   reader.onload = (event) => {
     cropImg.onload = () => {
-      // Natural comfortable initial scaling (not extreme close-up)
       const minDim = Math.min(cropImg.width, cropImg.height);
       cropBaseScale = 220 / minDim;
       cropScale = cropBaseScale;
       cropX = (300 - cropImg.width * cropScale) / 2;
       cropY = (300 - cropImg.height * cropScale) / 2;
-      const slider = document.getElementById('cropZoomSlider');
-      if (slider) slider.value = 1; // reset to "base" zoom for the new image
+      document.getElementById('cropZoomSlider').value = 1;
       drawCropCanvas();
     };
     cropImg.src = event.target.result;
@@ -1771,11 +2344,6 @@ window.addEventListener('touchmove', (e) => {
   drawCropCanvas();
 }, { passive: true });
 
-// Zoom slider — relative to cropBaseScale (the comfortable non-extreme
-// default), not an absolute multiplier, so it behaves sensibly regardless
-// of the source photo's native resolution. Zooms around the canvas center
-// rather than the image's top-left, so whatever the user has already
-// positioned in the middle of the circle stays centered as they zoom.
 document.getElementById('cropZoomSlider').addEventListener('input', (e) => {
   if (!cropImg.src) return;
   const newScale = cropBaseScale * parseFloat(e.target.value);
@@ -1796,23 +2364,7 @@ function saveFaceCrop() {
   document.getElementById('cropper-modal').classList.remove('show');
 }
 
-/* ==========================================================================
-   7. BOARD CANVAS RENDERING
-   ========================================================================== */
-// Lightens (positive amt) or darkens (negative amt) a #RRGGBB hex color by
-// blending toward white/black. Used only for the board's glossy gradient
-// fills (drawBoard) — pure math, no canvas/image dependency.
-function colorLighten_(hex, amt) {
-  const num = parseInt(hex.replace('#', ''), 16);
-  let r = (num >> 16) & 0xFF, g = (num >> 8) & 0xFF, b = num & 0xFF;
-  const mix = (channel) => {
-    const target = amt >= 0 ? 255 : 0;
-    return Math.round(channel + (target - channel) * Math.abs(amt));
-  };
-  r = mix(r); g = mix(g); b = mix(b);
-  return `rgb(${r},${g},${b})`;
-}
-
+/* ---------------- BOARD CANVAS DRAWING ---------------- */
 function drawBoard() {
   const canvas = document.getElementById('board-canvas');
   const ctx = canvas.getContext('2d');
@@ -1821,70 +2373,47 @@ function drawBoard() {
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, 600, 600);
 
-  // Small gradient helper — Ludo King-style glossy depth on flat color
-  // fills, native Canvas API only, no images/libraries.
-  const glossyFill = (x, y, w, h, hex) => {
-    const g = ctx.createLinearGradient(x, y, x, y + h);
-    g.addColorStop(0, colorLighten_(hex, 0.22));
-    g.addColorStop(0.55, hex);
-    g.addColorStop(1, colorLighten_(hex, -0.16));
-    return g;
-  };
-
-  const drawCornerYard = (gx, gy, colorHex) => {
-    ctx.fillStyle = glossyFill(gx * S, gy * S, 6 * S, 6 * S, colorHex);
+  const drawYard = (gx, gy, hex) => {
+    ctx.fillStyle = hex;
     ctx.fillRect(gx * S, gy * S, 6 * S, 6 * S);
 
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetY = 3;
+    // Inner White Box
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect((gx + 0.75) * S, (gy + 0.75) * S, 4.5 * S, 4.5 * S);
-    ctx.restore();
-    // Crisp black outline on the white yard frame — was missing entirely
-    // before, which is part of why the whole board read as "soft"/faded
-    // rather than sharp like Ludo King's.
-    ctx.strokeStyle = "#1A1410";
-    ctx.lineWidth = 2;
-    ctx.strokeRect((gx + 0.75) * S, (gy + 0.75) * S, 4.5 * S, 4.5 * S);
+    ctx.fillRect((gx + 0.8) * S, (gy + 0.8) * S, 4.4 * S, 4.4 * S);
 
+    ctx.strokeStyle = "#111111";
+    ctx.lineWidth = 2;
+    ctx.strokeRect((gx + 0.8) * S, (gy + 0.8) * S, 4.4 * S, 4.4 * S);
+
+    // Exact Symmetrical Yard Rings
     const spots = [
-      [gx + 1.75, gy + 1.75],
-      [gx + 3.25, gy + 1.75],
-      [gx + 1.75, gy + 3.25],
-      [gx + 3.25, gy + 3.25]
+      [gx + 2.0, gy + 2.0], [gx + 4.0, gy + 2.0],
+      [gx + 2.0, gy + 4.0], [gx + 4.0, gy + 4.0]
     ];
     spots.forEach(sp => {
-      const cx = sp[0] * S + S/2, cy = sp[1] * S + S/2;
-      const spotGrad = ctx.createRadialGradient(cx - 5, cy - 5, 2, cx, cy, 18);
-      spotGrad.addColorStop(0, colorLighten_(colorHex, 0.3));
-      spotGrad.addColorStop(1, colorLighten_(colorHex, -0.1));
-      ctx.fillStyle = spotGrad;
+      const cx = sp[0] * S, cy = sp[1] * S;
+      ctx.fillStyle = hex;
       ctx.beginPath();
       ctx.arc(cx, cy, 18, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = "#FFFFFF";
       ctx.beginPath();
-      ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+      ctx.arc(cx, cy, 11, 0, Math.PI * 2);
       ctx.fill();
     });
   };
 
-  drawCornerYard(0, 0, PLAYER_CONFIG[0].hex); // top-left
-  drawCornerYard(9, 0, PLAYER_CONFIG[1].hex); // top-right
-  drawCornerYard(9, 9, PLAYER_CONFIG[2].hex); // bottom-right
-  drawCornerYard(0, 9, PLAYER_CONFIG[3].hex); // bottom-left
+  drawYard(0, 0, PLAYER_CONFIG[0].hex); // Red (Top Left)
+  drawYard(9, 0, PLAYER_CONFIG[1].hex); // Green (Top Right)
+  drawYard(9, 9, PLAYER_CONFIG[2].hex); // Blue (Bottom Right)
+  drawYard(0, 9, PLAYER_CONFIG[3].hex); // Yellow (Bottom Left)
 
-  // Sharp Main Track Outlines — was #94A3B8 (a pale blue-grey, the exact
-  // "faded" look flagged) — now a crisp near-black, matching Ludo King's
-  // solid grid lines.
+  // Main Track Cells
   MAIN_CIRCUIT.forEach((cell, idx) => {
-    const cx = cell[0] * S;
-    const cy = cell[1] * S;
-    ctx.strokeStyle = "#1A1410";
-    ctx.lineWidth = 1.6;
+    const cx = cell[0] * S, cy = cell[1] * S;
+    ctx.strokeStyle = "#111111";
+    ctx.lineWidth = 1.5;
     ctx.strokeRect(cx, cy, S, S);
 
     if (idx === 0) { ctx.fillStyle = PLAYER_CONFIG[0].hex; ctx.fillRect(cx, cy, S, S); }
@@ -1894,7 +2423,7 @@ function drawBoard() {
 
     if (idx === 0 || idx === 13 || idx === 26 || idx === 39) {
       ctx.fillStyle = "#FFFFFF";
-      ctx.font = "bold 20px sans-serif";
+      ctx.font = "bold 18px sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       const arrow = idx === 0 ? "→" : (idx === 13 ? "↓" : (idx === 26 ? "←" : "↑"));
@@ -1902,42 +2431,21 @@ function drawBoard() {
     }
 
     if (SAFE_TILES.includes(idx) && idx !== 0 && idx !== 13 && idx !== 26 && idx !== 39) {
-      ctx.font = "bold 22px sans-serif";
+      ctx.font = "bold 20px sans-serif";
       ctx.fillStyle = "#64748B";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("☆", cx + S/2, cy + S/2);
-    }
-
-    if (magicProtectedTiles[idx]) {
-      ctx.fillStyle = "rgba(250, 198, 70, 0.4)";
-      ctx.fillRect(cx, cy, S, S);
+      ctx.fillText("★", cx + S/2, cy + S/2);
     }
   });
 
-  // Was: fillRect + strokeRect PER CELL — that put a visible white border
-  // around every individual cell, which is exactly the "still has lines"
-  // look flagged from the screenshots: 4 internal seams cutting a 5-cell
-  // lane into a grid instead of reading as one continuous colored stretch,
-  // the way Ludo King's home lane looks. Fixed two ways: (1) one gradient
-  // spanning the WHOLE lane's bounding box, not a repeating per-cell
-  // gradient (which would still visually band even without a stroke), and
-  // (2) exactly ONE outer border around the whole lane instead of one
-  // around every cell.
-  // Corrected (2026-08-22): the "one continuous lane" version below was
-  // wrong — Deepak's actual reference screenshots (real Ludo King + his
-  // own approved mockup) both show each home-lane cell individually
-  // bordered, exactly like every other track cell — it's a TRACK, not a
-  // solid painted block. The real complaint was the border COLOR (was
-  // faded white/light), not the borders' existence. Fixed by going back
-  // to per-cell strokes, using the same crisp #1A1410 black already
-  // applied to the shared MAIN_CIRCUIT cells, instead of removing them.
+  // Home Runs
   const drawSolidHome = (cells, hex) => {
     cells.forEach(c => {
-      ctx.fillStyle = glossyFill(c[0] * S, c[1] * S, S, S, hex);
+      ctx.fillStyle = hex;
       ctx.fillRect(c[0] * S, c[1] * S, S, S);
-      ctx.strokeStyle = "#1A1410";
-      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = "#111111";
+      ctx.lineWidth = 1.5;
       ctx.strokeRect(c[0] * S, c[1] * S, S, S);
     });
   };
@@ -1946,20 +2454,18 @@ function drawBoard() {
   drawSolidHome(HOME_PATHS[2], PLAYER_CONFIG[2].hex);
   drawSolidHome(HOME_PATHS[3], PLAYER_CONFIG[3].hex);
 
-  // Center Home
-  ctx.beginPath();
-  ctx.moveTo(6 * S, 6 * S); ctx.lineTo(9 * S, 6 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[1].hex; ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(9 * S, 6 * S); ctx.lineTo(9 * S, 9 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[2].hex; ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(9 * S, 9 * S); ctx.lineTo(6 * S, 9 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[3].hex; ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(6 * S, 9 * S); ctx.lineTo(6 * S, 6 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[0].hex; ctx.fill();
+  // Center Conic / Triangles
+  ctx.beginPath(); ctx.moveTo(6 * S, 6 * S); ctx.lineTo(9 * S, 6 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[1].hex; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(9 * S, 6 * S); ctx.lineTo(9 * S, 9 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[2].hex; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(9 * S, 9 * S); ctx.lineTo(6 * S, 9 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[3].hex; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(6 * S, 9 * S); ctx.lineTo(6 * S, 6 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[0].hex; ctx.fill();
+
+  ctx.strokeStyle = "#111111";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(6 * S, 6 * S, 3 * S, 3 * S);
 }
 
-/* ==========================================================================
-   8. TOKEN COORDINATES & DOM SPAWN
-   ========================================================================== */
+/* ---------------- TOKEN COORDINATES & RENDERING ---------------- */
 function getGlobalTrackIndex(pIdx, step) {
   if (step < 0 || step > 50) return -1;
   return (PLAYER_CONFIG[pIdx].startTile + step) % 52;
@@ -1969,13 +2475,13 @@ function getTokenPixelCoords(pIdx, tIdx, step) {
   const S = 600 / 15;
   if (step === -1) {
     const baseOffsets = [
-      [[1.75, 1.75], [3.25, 1.75], [1.75, 3.25], [3.25, 3.25]],
-      [[10.75, 1.75], [12.25, 1.75], [10.75, 3.25], [12.25, 3.25]],
-      [[10.75, 10.75], [12.25, 10.75], [10.75, 12.25], [12.25, 12.25]],
-      [[1.75, 10.75], [3.25, 10.75], [1.75, 12.25], [3.25, 12.25]]
+      [[2.0, 2.0], [4.0, 2.0], [2.0, 4.0], [4.0, 4.0]], // Red
+      [[11.0, 2.0], [13.0, 2.0], [11.0, 4.0], [13.0, 4.0]], // Green
+      [[11.0, 11.0], [13.0, 11.0], [11.0, 13.0], [13.0, 13.0]], // Blue
+      [[2.0, 11.0], [4.0, 11.0], [2.0, 13.0], [4.0, 13.0]] // Yellow
     ];
     const spot = baseOffsets[pIdx][tIdx];
-    return { x: spot[0] * S + S/2, y: spot[1] * S + S/2 };
+    return { x: spot[0] * S, y: spot[1] * S };
   } else if (step === 56) {
     const centerOff = [[7.1, 7.5], [7.5, 7.1], [7.9, 7.5], [7.5, 7.9]];
     return { x: centerOff[pIdx][0] * S, y: centerOff[pIdx][1] * S };
@@ -1990,10 +2496,6 @@ function getTokenPixelCoords(pIdx, tIdx, step) {
   }
 }
 
-// Drops one fading "ghost" circle at a token's current position, in that
-// token's own color, right before it steps to the next cell — reads the
-// same getTokenPixelCoords()/scale math renderAllTokensDOM() already uses,
-// not a second coordinate system.
 function spawnTokenTrail_(pIdx, tIdx) {
   const wrapper = document.getElementById('board-wrapper');
   const layer = document.getElementById('tokens-layer');
@@ -2008,12 +2510,14 @@ function spawnTokenTrail_(pIdx, tIdx) {
   ghost.style.top = (coords.y * scale) + 'px';
   ghost.style.background = PLAYER_CONFIG[pIdx].hex;
   layer.appendChild(ghost);
-  setTimeout(() => ghost.remove(), 340);
+  setTimeout(() => ghost.remove(), 320);
 }
 
 function renderAllTokensDOM() {
   const wrapper = document.getElementById('board-wrapper');
+  if (!wrapper) return;
   const scale = wrapper.clientWidth / 600;
+  const tokenScale = scale / (410 / 600);
 
   players.forEach((p, pIdx) => {
     p.tokens.forEach((t, tIdx) => {
@@ -2022,6 +2526,7 @@ function renderAllTokensDOM() {
       const coords = getTokenPixelCoords(pIdx, tIdx, t.step);
       el.style.left = (coords.x * scale) + 'px';
       el.style.top = (coords.y * scale) + 'px';
+      el.style.setProperty('--token-scale', tokenScale);
       if (t.step === 56) el.classList.add('finished');
       else el.classList.remove('finished');
     });
@@ -2034,7 +2539,6 @@ function spawnTokensDOM() {
   layer.innerHTML = '';
 
   players.forEach((p, pIdx) => {
-    // Only spawn tokens for strictly active seats
     if (!activeSeatIndices.includes(pIdx)) return;
 
     p.tokens.forEach((t, tIdx) => {
@@ -2043,14 +2547,10 @@ function spawnTokensDOM() {
       el.id = `token-${pIdx}-${tIdx}`;
       el.style.setProperty('--pawn-color', PLAYER_CONFIG[pIdx].hex);
 
-      // Structure: Die-Cut Head + Colored Pawn Pedestal
       const head = document.createElement('div');
       head.className = 'token-head';
-      if (p.avatar) {
-        head.innerHTML = `<img src="${p.avatar}">`;
-      } else {
-        head.textContent = PLAYER_CONFIG[pIdx].defaultEmoji;
-      }
+      if (p.avatar) head.innerHTML = `<img src="${p.avatar}">`;
+      else head.textContent = PLAYER_CONFIG[pIdx].defaultEmoji;
 
       const body = document.createElement('div');
       body.className = 'token-body';
@@ -2066,46 +2566,22 @@ function spawnTokensDOM() {
 
 window.addEventListener('resize', renderAllTokensDOM);
 
-/* ==========================================================================
-   9. 2.5D DICE & GAME ENGINE
-   ========================================================================== */
+/* ---------------- 3D DICE & TURN LOGIC ---------------- */
 const DICE_PIP_MAP = {
-  1: [4],
-  2: [0, 8],
-  3: [0, 4, 8],
-  4: [0, 2, 6, 8],
-  5: [0, 2, 4, 6, 8],
-  6: [0, 2, 3, 5, 6, 8]
+  1: [4], 2: [0, 8], 3: [0, 4, 8],
+  4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8]
 };
 
-// Rotating the CUBE by these amounts brings the named face to point at the
-// viewer — inverse of each face's own placement transform in the CSS above
-// (e.g. face-6 is placed at rotateY(180deg), so rotating the cube by
-// rotateY(180deg) brings it to the front; face-3 at rotateY(90deg) needs
-// the cube rotated by rotateY(-90deg), and so on).
 const DICE_FACE_ROTATION = {
-  1: { x: 0, y: 0 },
-  6: { x: 0, y: 180 },
-  3: { x: 0, y: -90 },
-  4: { x: 0, y: 90 },
-  2: { x: -90, y: 0 },
-  5: { x: 90, y: 0 }
+  1: { x: 0, y: 0 }, 6: { x: 0, y: 180 }, 3: { x: 0, y: -90 },
+  4: { x: 0, y: 90 }, 2: { x: -90, y: 0 }, 5: { x: 90, y: 0 }
 };
 
-// Track each die's accumulated rotation so every roll adds full spins on
-// top of wherever it already is, rather than snapping backward through
-// the shortest CSS-transition path (which would look like it un-rolls).
-const diceCubeState = [
-  { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }
-];
+const diceCubeState = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }];
 
-// Built once per die at page load — 6 faces, each with 9 pip divs laid out
-// from DICE_PIP_MAP (single source of truth, same map the old flat-grid
-// dice used). Rolling afterwards never touches the DOM structure again,
-// only the cube's rotation.
 function buildDiceCubeFaces_(playerIdx) {
   const cube = document.getElementById(`dice-cube-${playerIdx}`);
-  if (!cube || cube.children.length) return; // already built
+  if (!cube || cube.children.length) return;
   for (let value = 1; value <= 6; value++) {
     const face = document.createElement('div');
     face.className = `dice-face dice-face-${value}`;
@@ -2126,41 +2602,14 @@ function renderDicePips(playerIdx, value) {
   const target = DICE_FACE_ROTATION[value] || DICE_FACE_ROTATION[1];
   const state = diceCubeState[playerIdx];
 
-  // Add extra full spins (2 turns on each axis) on top of the target face
-  // rotation so the tumble reads as continuous motion, then normalize the
-  // stored state back into 0-359 range so numbers don't grow unbounded
-  // over a long game.
-  const spins = 2;
-  state.x = (state.x - (state.x % 360)) + spins * 360 + target.x;
-  state.y = (state.y - (state.y % 360)) + spins * 360 + target.y;
-
+  state.x = (state.x - (state.x % 360)) + 720 + target.x;
+  state.y = (state.y - (state.y % 360)) + 720 + target.y;
   cube.style.transform = `rotateX(${state.x}deg) rotateY(${state.y}deg)`;
 }
 
 function startGame() {
-  // iOS Safari only unlocks WebAudio when resume() runs directly inside a
-  // real tap. BEGIN is now the very first tap of the whole game (no more
-  // LET'S PLAY before it), so warming up here guarantees audio is
-  // unlocked before ANY sound needs to play — including a computer
-  // opponent's turn later, which fires from a setTimeout with no tap of
-  // its own and would otherwise stay silent for the rest of the session
-  // on iPhone.
   ensureAudio();
-
-  // Mirrors setGameMode()'s logic exactly (single source of truth would be
-  // even better, but this keeps the fix minimal and matches the existing
-  // pattern already used elsewhere in this file) — 1P now defaults to
-  // exactly 1 human + 1 TKG, expanding only if "Add TKG" was checked.
-  if (activePlayerCount === 1) {
-    activeSeatIndices = tkgFill ? [0,1,2,3] : [0,1];
-  } else if (activePlayerCount === 4) {
-    activeSeatIndices = [0,1,2,3];
-  } else {
-    activeSeatIndices = Array.from({length: activePlayerCount}, (_, i) => i);
-    if (tkgFill) {
-      for (let i = activePlayerCount; i < 4; i++) activeSeatIndices.push(i);
-    }
-  }
+  activeSeatIndices = computeActiveSeatIndices(activePlayerCount, tkgFill);
 
   for (let i = 0; i < 4; i++) {
     const input = document.getElementById(`player-name-${i}`);
@@ -2171,12 +2620,11 @@ function startGame() {
     if (players[i].avatar) hudImg.innerHTML = `<img src="${players[i].avatar}">`;
     else hudImg.textContent = PLAYER_CONFIG[i].defaultEmoji;
 
-    document.getElementById(`hud-name-${i}`).textContent = players[i].isAI ? 'TKG' : players[i].name;
+    document.getElementById(`hud-name-${i}`).textContent = players[i].isAI ? 'AI BOT' : players[i].name;
     renderDicePips(i, 1);
     players[i].tokens = [{step:-1},{step:-1},{step:-1},{step:-1}];
   }
 
-  // Strictly hide inactive corner HUDs
   for (let i = 0; i < 4; i++) {
     const hud = document.getElementById(`hud-p${i}`);
     if (hud) hud.style.display = activeSeatIndices.includes(i) ? 'flex' : 'none';
@@ -2184,42 +2632,27 @@ function startGame() {
 
   currentTurn = activeSeatIndices[0];
   document.getElementById('setup-screen').style.display = 'none';
-
-  // Short Chaos intro moment (~950ms) instead of the old text tutorial —
-  // introduces the FEELING of FODO, explains nothing. Board/HUD only get
-  // drawn and turn logic only starts once this finishes, so the AI's
-  // first move (if seat 0 were ever AI) can't fire before the board is
-  // even on screen.
-  const introOverlay = document.getElementById('chaosIntroOverlay');
-  introOverlay.classList.add('show');
-  setTimeout(() => {
-    introOverlay.classList.remove('show');
-    document.getElementById('game-screen').style.display = 'flex';
-    document.getElementById('pauseToggleBtn').style.display = '';
-    drawBoard();
-    spawnTokensDOM();
-    updateTurnUI();
-  }, 950);
+  document.getElementById('game-screen').style.display = 'flex';
+  document.getElementById('pauseToggleBtn').style.display = 'flex';
+  
+  drawBoard();
+  spawnTokensDOM();
+  updateTurnUI();
 }
 
 function updateTurnUI() {
   for (let i = 0; i < 4; i++) {
     const box = document.getElementById(`hud-p${i}`);
     if (box) {
-      if (i === currentTurn) box.classList.add('active-turn');
-      else box.classList.remove('active-turn');
+      box.classList.toggle('active-turn', i === currentTurn);
     }
   }
 
   const p = players[currentTurn];
-  document.getElementById('game-status-text').textContent = p.isAI ? `Computer is rolling...` : `${p.name}'s turn — Roll dice!`;
+  document.getElementById('game-status-text').textContent = p.isAI ? `Bot is rolling...` : `${p.name}'s turn — Roll dice!`;
   document.querySelectorAll('.sticker-token').forEach(el => el.classList.remove('can-move'));
   canSelectToken = false;
-  drawBoard();
 
-  // Bouncing turn-arrow — only for the active HUMAN player's own dice,
-  // never for a TKG/computer turn. Cleared from every dice first so only
-  // one is ever showing at a time.
   for (let i = 0; i < 4; i++) {
     const arrow = document.getElementById(`turn-arrow-${i}`);
     if (arrow) arrow.classList.toggle('show', i === currentTurn && !p.isAI);
@@ -2231,18 +2664,11 @@ function updateTurnUI() {
 }
 
 function onRollDice(playerIdx) {
-  if (isPaused) return;
-  if (playerIdx !== currentTurn || isRolling || isTokenMoving || canSelectToken) return;
+  if (isPaused || playerIdx !== currentTurn || isRolling || isTokenMoving || canSelectToken) return;
   isRolling = true;
-  // Dice tapped — arrow's job is done for this turn.
-  const arrow = document.getElementById(`turn-arrow-${playerIdx}`);
-  if (arrow) arrow.classList.remove('show');
+  document.getElementById(`turn-arrow-${playerIdx}`)?.classList.remove('show');
   playSound('roll');
 
-  // The 3D cube's own CSS transition (0.62s, see .dice-cube) IS the tumble
-  // animation now — no separate artificial delay/class needed before it.
-  // Gameplay waits for that same duration so a move can't start before the
-  // die visually settles on its face.
   lastDiceRoll = Math.floor(Math.random() * 6) + 1;
   renderDicePips(playerIdx, lastDiceRoll);
 
@@ -2259,8 +2685,8 @@ function evaluateLegalMoves() {
   if (lastDiceRoll === 6) {
     consecutiveSixes++;
     if (consecutiveSixes === 3) {
-      broadcastHighlight('3 SIXES IN A ROW!', 'Turn Forfeited!');
       consecutiveSixes = 0;
+      document.getElementById('game-status-text').textContent = "3 Sixes! Turn forfeited!";
       setTimeout(nextTurn, 1000);
       return;
     }
@@ -2269,16 +2695,13 @@ function evaluateLegalMoves() {
   }
 
   p.tokens.forEach((t, idx) => {
-    if (t.step === -1 && lastDiceRoll === 6) {
-      legalTokens.push(idx);
-    } else if (t.step >= 0 && t.step + lastDiceRoll <= 56) {
-      legalTokens.push(idx);
-    }
+    if (t.step === -1 && lastDiceRoll === 6) legalTokens.push(idx);
+    else if (t.step >= 0 && t.step + lastDiceRoll <= 56) legalTokens.push(idx);
   });
 
   if (legalTokens.length === 0) {
     document.getElementById('game-status-text').textContent = "No legal moves!";
-    setTimeout(nextTurn, 850);
+    setTimeout(nextTurn, 800);
   } else if (p.isAI) {
     const choice = legalTokens[Math.floor(Math.random() * legalTokens.length)];
     setTimeout(() => onSelectToken(currentTurn, choice), 500);
@@ -2288,17 +2711,13 @@ function evaluateLegalMoves() {
     canSelectToken = true;
     document.getElementById('game-status-text').textContent = "Choose a pawn to move!";
     legalTokens.forEach(idx => {
-      document.getElementById(`token-${currentTurn}-${idx}`).classList.add('can-move');
+      document.getElementById(`token-${currentTurn}-${idx}`)?.classList.add('can-move');
     });
   }
 }
 
-/* ==========================================================================
-   10. STEP-BY-STEP LAZY WALKING ANIMATION ENGINE
-   ========================================================================== */
 function onSelectToken(pIdx, tIdx) {
-  if (isPaused) return;
-  if (pIdx !== currentTurn || (!canSelectToken && isRolling && !players[pIdx].isAI) || isTokenMoving) return;
+  if (isPaused || pIdx !== currentTurn || (!canSelectToken && isRolling && !players[pIdx].isAI) || isTokenMoving) return;
   const t = players[pIdx].tokens[tIdx];
 
   if (t.step === -1 && lastDiceRoll !== 6) return;
@@ -2309,99 +2728,83 @@ function onSelectToken(pIdx, tIdx) {
   document.querySelectorAll('.sticker-token').forEach(el => el.classList.remove('can-move'));
 
   const tokenEl = document.getElementById(`token-${pIdx}-${tIdx}`);
-  tokenEl.classList.add('walking');
+  tokenEl?.classList.add('walking');
 
-  // Step 1: Release token out of Yard
   if (t.step === -1) {
     t.step = 0;
     playSound('step');
     renderAllTokensDOM();
     setTimeout(() => {
-      tokenEl.classList.remove('walking');
+      tokenEl?.classList.remove('walking');
       isTokenMoving = false;
       handleArrivalLogic(pIdx, tIdx);
     }, 280);
     return;
   }
 
-  // Step 2: Lazy step-by-step walking sequence (Strict cell-to-cell hop)
   let stepsRemaining = lastDiceRoll;
   function walkOneStep() {
     if (stepsRemaining <= 0) {
-      tokenEl.classList.remove('walking');
+      tokenEl?.classList.remove('walking');
       isTokenMoving = false;
       handleArrivalLogic(pIdx, tIdx);
       return;
     }
 
-    spawnTokenTrail_(pIdx, tIdx); // ghost marks the cell being left, before t.step changes
+    spawnTokenTrail_(pIdx, tIdx);
     t.step += 1;
     stepsRemaining--;
     playSound('step');
     renderAllTokensDOM();
 
-    setTimeout(walkOneStep, 180);
+    setTimeout(walkOneStep, 170);
   }
-
   walkOneStep();
 }
 
 function handleArrivalLogic(pIdx, tIdx) {
   const t = players[pIdx].tokens[tIdx];
 
-  if (checkPlayerWon(pIdx)) {
+  if (players[pIdx].tokens.every(tk => tk.step === 56)) {
     document.getElementById('winner-title').textContent = `👑 ${players[pIdx].name} WINS!`;
     document.getElementById('winner-modal').classList.add('show');
     return;
   }
 
-  // Extra-roll turn result — ONE authoritative decision, computed here,
-  // not scattered. killedOpponent is set the instant a kill is detected
-  // (synchronous, same tick), independent of the 1s coal-fired animation
-  // delay below — the reward must never wait on presentation timing.
-  // reachedHome reads this token's own step right now, before any of the
-  // logic below runs; checkPlayerWon() already returned above if this
-  // was the winning (4th) pawn, so reaching here with step===56 can only
-  // mean "one pawn home, game continues".
   let killedOpponent = false;
-  const reachedHome = (t.step === 56);
-
   if (t.step >= 0 && t.step <= 50) {
     const gTile = getGlobalTrackIndex(pIdx, t.step);
-    const isProtected = SAFE_TILES.includes(gTile) || magicProtectedTiles[gTile];
-
-    // Landing on an actual safe star (not a chaos tile occupying the same
-    // spot, which has its own distinct sound) gets its own cheerful cue —
-    // this sound didn't exist before this pass.
-    if (SAFE_TILES.includes(gTile) && !activeFodoEvents[gTile]) {
-      playSound('star');
-    }
-
-    // Standard Ludo Cutting with Coal-Fired Effect
-    if (!isProtected) {
+    if (!SAFE_TILES.includes(gTile)) {
+      const kills = [];
       players.forEach((opp, oppIdx) => {
         if (oppIdx === pIdx || !activeSeatIndices.includes(oppIdx)) return;
         opp.tokens.forEach((oppT, oppTIdx) => {
-          if (oppT.step >= 0 && oppT.step <= 50) {
-            const oppGTile = getGlobalTrackIndex(oppIdx, oppT.step);
-            if (oppGTile === gTile) {
-              killedOpponent = true; // one or many kills this landing — still just ONE extra roll
-              playSound('cut');
-              const oppEl = document.getElementById(`token-${oppIdx}-${oppTIdx}`);
-              if (oppEl) oppEl.classList.add('coal-fired');
-              showChaosReactionCard(oppIdx, 'rx-coalfired', 'BURNED!');
-
-              setTimeout(() => {
-                oppT.step = -1;
-                if (oppEl) oppEl.classList.remove('coal-fired');
-                if (oppEl) oppEl.classList.add('yard-pop');
-                renderAllTokensDOM();
-                setTimeout(() => { if (oppEl) oppEl.classList.remove('yard-pop'); }, 420);
-              }, 1000);
-            }
+          if (oppT.step >= 0 && oppT.step <= 50 && getGlobalTrackIndex(oppIdx, oppT.step) === gTile) {
+            kills.push({ oppIdx, oppTIdx, oppT });
           }
         });
       });
+      if (kills.length > 0) {
+        killedOpponent = true;
+        // Cinema Kill Replay (2026-08-27) — the drama now lives entirely
+        // in the mini-stage popup, not on the real board. The board's
+        // own token state finalizes silently in onDone, once the victim
+        // has visually left the popup's stage — the real board is
+        // hidden behind the popup the whole time anyway, so there's
+        // nothing to see there until this resolves. If more than one
+        // opponent token was stacked on the same tile (rare), the
+        // popup performs once using the first, and onDone finalizes
+        // every kill collected, not just the one shown.
+        playKillCinema(pIdx, kills[0].oppIdx, kills[0].oppTIdx, () => {
+          kills.forEach(k => { k.oppT.step = -1; });
+          renderAllTokensDOM();
+        });
+      }
+    } else if (gTile !== 0 && gTile !== 13 && gTile !== 26 && gTile !== 39) {
+      // Landed safely on a genuine star tile (not one of the 4 colored
+      // start tiles, which are also in SAFE_TILES but aren't "stars") —
+      // restored chime that was missing from this version.
+      playSound('star');
     }
 
     if (activeFodoEvents[gTile]) {
@@ -2411,39 +2814,22 @@ function handleArrivalLogic(pIdx, tIdx) {
     }
   }
 
-  // EXTRA ROLL = 6 OR KILL OR PAWN REACHES HOME — any one or more of
-  // these earns exactly ONE extra roll, never stacked. The 3-in-a-row-
-  // sixes forfeit is a separate, higher-priority check already handled
-  // earlier in evaluateLegalMoves() (returns before a move ever happens),
-  // so it can't be bypassed by this.
-  const earnedExtraRoll = (lastDiceRoll === 6) || killedOpponent || reachedHome;
-
-  if (earnedExtraRoll) {
-    const reason = lastDiceRoll === 6 ? "Rolled a 6!" : killedOpponent ? "Opponent down!" : "Pawn is home!";
-    document.getElementById('game-status-text').textContent = `${reason} Roll again!`;
+  if (lastDiceRoll === 6 || killedOpponent || t.step === 56) {
+    document.getElementById('game-status-text').textContent = "Roll again!";
     isRolling = false;
     if (players[currentTurn].isAI) {
       setTimeout(() => onRollDice(currentTurn), 700);
     } else {
-      // Same player keeps the turn — the arrow was hidden the instant
-      // they tapped the dice for THIS roll (see onRollDice()), and
-      // nothing else was re-showing it for the extra roll. Restore it
-      // now so the player has a clear cue their dice is live again.
-      const arrow = document.getElementById(`turn-arrow-${currentTurn}`);
-      if (arrow) arrow.classList.add('show');
+      document.getElementById(`turn-arrow-${currentTurn}`)?.classList.add('show');
     }
   } else {
-    setTimeout(nextTurn, 650);
+    setTimeout(nextTurn, 600);
   }
 }
 
-// Animates backward movement one cell at a time (140ms/step — a touch
-// quicker than the forward 180ms/step, matches the "yanked back" feel of
-// a chaos hit), with the same trail-ghost as forward movement. Was a
-// single instant jump before; this is the fix for that carried-over gap.
 function stepBackToken(pIdx, tIdx, steps) {
   const t = players[pIdx].tokens[tIdx];
-  let remaining = Math.min(steps, t.step); // never step below 0 via the loop
+  let remaining = Math.min(steps, t.step);
   function hopBack() {
     if (remaining <= 0) { renderAllTokensDOM(); return; }
     spawnTokenTrail_(pIdx, tIdx);
@@ -2456,28 +2842,10 @@ function stepBackToken(pIdx, tIdx, steps) {
   hopBack();
 }
 
-// Yard isn't a cell on the 52-tile path, so there's no meaningful "walk"
-// back to it — instead this is a quick shrink-and-reappear pop, which
-// reads as "yanked off the board" rather than either an instant teleport
-// or a nonsensical walk backward through tiles that don't lead to the yard.
 function sendTokenToYard(pIdx, tIdx) {
   const t = players[pIdx].tokens[tIdx];
-  const tokenEl = document.getElementById(`token-${pIdx}-${tIdx}`);
-  if (tokenEl) {
-    tokenEl.classList.add('yard-pop');
-    setTimeout(() => {
-      t.step = -1;
-      renderAllTokensDOM();
-      setTimeout(() => tokenEl.classList.remove('yard-pop'), 220);
-    }, 200);
-  } else {
-    t.step = -1;
-    renderAllTokensDOM();
-  }
-}
-
-function checkPlayerWon(pIdx) {
-  return players[pIdx].tokens.every(t => t.step === 56);
+  t.step = -1;
+  renderAllTokensDOM();
 }
 
 function nextTurn() {
@@ -2486,332 +2854,34 @@ function nextTurn() {
   currentTurn = activeSeatIndices[(pos + 1) % activeSeatIndices.length];
   updateTurnUI();
 }
-</script>
 
-<!-- JOURNEY PROMPT — cross-surface Journey correction, same pattern as
-     Runner/Leaderboard. Shown only when this surface has no valid
-     Journey context yet (see init script below). Deliberately separate
-     markup/CSS from FODO's own #intro-modal/#legend-modal — must never
-     look like or interfere with those. Choosing a Journey closes this
-     immediately, no second confirm button. -->
-<div class="journey-prompt-backdrop" id="journeyPromptBackdrop"></div>
-<div class="journey-prompt-card" id="journeyPromptCard">
-  <h2>👋 Welcome to TKG</h2>
-  <p>How can we help you today?</p>
-  <button type="button" class="journey-prompt-choice" data-journey-choice="atTKG">🟢 I'm at TKG</button>
-  <button type="button" class="journey-prompt-choice" data-journey-choice="planning">🟡 Planning my visit</button>
-  <button type="button" class="journey-prompt-choice" data-journey-choice="exploring">⚪ Just exploring</button>
-</div>
-
-<style>
-/* JOURNEY PROMPT + GEO HINT TOAST — same structure as Runner/Leaderboard's
-   version, restyled to FODO's own coal/ember palette instead of Runner's
-   stone/ink vars (same component, different skin, per the established
-   ecosystem pattern of each surface theming this to its own look). */
-.journey-prompt-backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(18,13,10,0.75);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.25s ease;
-  z-index:400;
-}
-.journey-prompt-backdrop.show{
-  opacity:1;
-  pointer-events:auto;
-}
-.journey-prompt-card{
-  position:fixed;
-  left:50%;
-  top:50%;
-  transform:translate(-50%, calc(-50% + 12px));
-  width:calc(100% - 48px);
-  max-width:320px;
-  background: radial-gradient(circle at 50% 0%, #2A1A12, #140D0A);
-  border: 1.5px solid var(--card-border);
-  color: var(--text);
-  border-radius:20px;
-  padding:22px 20px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.8), 0 0 30px rgba(232, 93, 44, 0.25);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.25s ease, transform 0.25s ease;
-  z-index:401;
-}
-.journey-prompt-backdrop.show + .journey-prompt-card{
-  opacity:1;
-  pointer-events:auto;
-  transform:translate(-50%, -50%);
-}
-.journey-prompt-card h2{
-  font-size:1.0625rem;
-  font-weight:700;
-  margin:0 0 4px;
-  color: var(--tkg-gold);
-}
-.journey-prompt-card p{
-  font-size:0.8125rem;
-  color: var(--text-dim);
-  margin:0 0 16px;
-}
-.journey-prompt-choice{
-  display:block;
-  width:100%;
-  text-align:left;
-  padding:13px 15px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.1);
-  background: rgba(0,0,0,0.3);
-  color: var(--text);
-  font-size:0.875rem;
-  font-weight:600;
-  cursor:pointer;
-  margin-bottom:9px;
-  transition:background 0.15s ease, transform 0.1s ease;
-}
-.journey-prompt-choice:last-child{ margin-bottom:0; }
-.journey-prompt-choice:active{
-  transform:scale(0.98);
-  background: rgba(232, 93, 44, 0.25);
-}
-
-/* GEO HINT TOAST — ported verbatim from tkg-shared.js's expected markup
-   (fixed hex values by design, same reasoning as the proximity nudge
-   banner: identical/isolated across all surfaces rather than needing a
-   per-page variable map). */
-.geo-hint-toast{
-  position:fixed;
-  left:50%;
-  top:calc(env(safe-area-inset-top, 0px) + 14px);
-  transform:translate(-50%, -12px);
-  max-width:min(88vw, 360px);
-  padding:10px 16px;
-  border-radius:999px;
-  background:rgba(28,24,21,0.82);
-  color:#FFFFFF;
-  font-size:0.8125rem;
-  font-weight:500;
-  text-align:center;
-  line-height:1.3;
-  box-shadow:0 8px 24px rgba(28,24,21,0.28);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-  opacity:0;
-  pointer-events:none;
-  z-index:170;
-  transition:opacity 0.25s ease, transform 0.25s ease;
-}
-.geo-hint-toast.show{
-  opacity:1;
-  transform:translate(-50%, 0);
-}
-</style>
-
-<!-- ===================== SHARED TKG GLOBAL NAV ===================== -->
-<!-- Copied verbatim from khichiya-runner.html / game-console.html — same
-     5 items, same positioning math, unchanged. Only the 5th item is
-     marked .active (we're inside the Games area via Game Console), same
-     as khichiya-runner.html does. Nothing else on this page was touched. -->
-<nav class="tkg-global-nav" id="globalNav" aria-label="Main Navigation">
-  <a href="./index.html" class="tkg-nav-item" aria-label="Menu" title="Menu">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-  </a>
-  <a href="./moments.html" class="tkg-nav-item tkg-nav-moments" aria-label="Moments" title="Moments">
-    <span class="tkg-moments-icon-stack">
-      <svg class="tkg-icon-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      <svg class="tkg-icon-recorder" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-    </span>
-  </a>
-  <a href="./moments_hub.html" class="tkg-nav-item tkg-nav-hub" aria-label="Moments Hub" title="Hub">
-    <img src="./tkg-hub-nav.png" alt="" class="tkg-hub-badge-icon" aria-hidden="true">
-  </a>
-  <a href="./game-console.html" class="tkg-nav-item active" aria-label="Game Console" title="Games" aria-current="page">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="11" r="1"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
-  </a>
-  <a href="./leaderboard.html" class="tkg-nav-item" aria-label="Leaderboard" title="Leaderboard">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
-  </a>
-</nav>
-
-<style>
-/* Nav CSS — copied verbatim from khichiya-runner.html / game-console.html,
-   zero changes. Scoped entirely under .tkg-global-nav / .tkg-nav-item,
-   which don't exist anywhere else in fodo.html, so nothing here can leak
-   into or be affected by the game's own CSS. */
-.tkg-global-nav {
-  position: fixed !important;
-  bottom: 16px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  width: min(320px, calc(100vw - 32px)) !important;
-  height: 46px !important;
-  border-radius: 9999px !important;
-  background: rgba(255, 255, 255, 0.65) !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
-  box-sizing: border-box !important;
-  z-index: 99999 !important;
-  opacity: 1 !important;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.25s ease,
-              background-color 0.3s ease,
-              width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-              height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-.tkg-global-nav.scrolled {
-  transform: translateX(-50%) !important;
-  width: 104px !important;
-  height: 104px !important;
-  border-radius: 9999px !important;
-  opacity: 0.94 !important;
-  background: rgba(255, 255, 255, 0.55) !important;
-}
-[data-tkg-theme="dark"] .tkg-global-nav,
-.theme-dark .tkg-global-nav,
-body.dark-mode .tkg-global-nav {
-  background: rgba(18, 18, 18, 0.72) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
-}
-[data-tkg-theme="dark"] .tkg-global-nav.scrolled,
-.theme-dark .tkg-global-nav.scrolled,
-body.dark-mode .tkg-global-nav.scrolled {
-  background: rgba(18, 18, 18, 0.62) !important;
-}
-.tkg-nav-item {
-  position: absolute !important;
-  left: 50% !important;
-  top: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 40px !important;
-  height: 32px !important;
-  border-radius: 9999px !important;
-  color: rgba(0, 0, 0, 0.55) !important;
-  text-decoration: none !important;
-  transition: background-color 0.2s ease, color 0.2s ease,
-              width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  -webkit-tap-highlight-color: transparent;
-}
-.tkg-nav-item:nth-child(1){ transform: translate(calc(-50% - 104px), -50%) !important; }
-.tkg-nav-item:nth-child(2){ transform: translate(calc(-50% - 52px), -50%) !important; }
-.tkg-nav-item:nth-child(3){ transform: translate(-50%, -50%) !important; }
-.tkg-nav-item:nth-child(4){ transform: translate(calc(-50% + 52px), -50%) !important; }
-.tkg-nav-item:nth-child(5){ transform: translate(calc(-50% + 104px), -50%) !important; }
-.tkg-global-nav.scrolled .tkg-nav-item:nth-child(1){ transform: translate(calc(-50% - 36px), -50%) !important; }
-.tkg-global-nav.scrolled .tkg-nav-item:nth-child(2){ transform: translate(-50%, calc(-50% - 36px)) !important; }
-.tkg-global-nav.scrolled .tkg-nav-item:nth-child(3){ transform: translate(-50%, -50%) !important; }
-.tkg-global-nav.scrolled .tkg-nav-item:nth-child(4){ transform: translate(-50%, calc(-50% + 36px)) !important; }
-.tkg-global-nav.scrolled .tkg-nav-item:nth-child(5){ transform: translate(calc(-50% + 36px), -50%) !important; }
-.tkg-global-nav.scrolled .tkg-nav-item {
-  width: 30px !important;
-  height: 26px !important;
-}
-.tkg-nav-item svg {
-  width: 18px !important;
-  height: 18px !important;
-  stroke-width: 2 !important;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-.tkg-global-nav.scrolled .tkg-nav-item svg {
-  width: 14px !important;
-  height: 14px !important;
-}
-.tkg-nav-item.active {
-  color: #B8431D !important;
-  background: rgba(250, 198, 70, 0.25) !important;
-}
-[data-tkg-theme="dark"] .tkg-nav-item,
-.theme-dark .tkg-nav-item,
-body.dark-mode .tkg-nav-item {
-  color: rgba(255, 255, 255, 0.55) !important;
-}
-[data-tkg-theme="dark"] .tkg-nav-item.active,
-.theme-dark .tkg-nav-item.active,
-body.dark-mode .tkg-nav-item.active {
-  color: #FAC646 !important;
-  background: rgba(250, 198, 70, 0.22) !important;
-}
-.tkg-nav-hub {
-  width: 52px !important;
-  height: 44px !important;
-}
-.tkg-nav-hub .tkg-hub-badge-icon {
-  width: 34px !important;
-  height: 34px !important;
-  object-fit: contain !important;
-  filter: drop-shadow(0 0 4px rgba(250, 198, 70, 0.55));
-}
-.tkg-global-nav.scrolled .tkg-nav-hub .tkg-hub-badge-icon {
-  width: 34px !important;
-  height: 34px !important;
-}
-.tkg-moments-icon-stack {
-  position: relative;
-  width: 18px;
-  height: 18px;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.tkg-global-nav.scrolled .tkg-moments-icon-stack { width: 14px; height: 14px; }
-.tkg-moments-icon-stack svg {
-  position: absolute !important;
-  inset: 0;
-  width: 100% !important;
-  height: 100% !important;
-  stroke-width: 2 !important;
-  transition: opacity 0.5s ease !important;
-}
-.tkg-icon-camera { opacity: 1; }
-.tkg-icon-recorder { opacity: 0; }
-.tkg-nav-moments.tkg-swap .tkg-icon-camera { opacity: 0; }
-.tkg-nav-moments.tkg-swap .tkg-icon-recorder { opacity: 1; }
-</style>
-
-<script>
-// Same dark-mode detection every other TKG page uses (data-tkg-theme on
-// <html>). Note: fodo.html already has its own setAppViewportHeight_()
-// defined and running earlier in this file for --app-vh, so it is
-// intentionally NOT duplicated here.
-(function(){
-  try {
-    const stored = localStorage.getItem('tkg_theme');
-    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.setAttribute('data-tkg-theme', 'dark');
-    }
-  } catch(e){}
-})();
-
-// Same directional-pill-scroll behavior as khichiya-runner.html/index.html.
+/* Directional Pill Scroll from Runner */
 (function initDirectionalPillScroll() {
   const nav = document.getElementById('globalNav');
   if (!nav) return;
+
   let lastScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
   const DELTA_THRESHOLD = 6;
   const TOP_ZONE = 4;
+
   function compact() { nav.classList.add('scrolled'); }
   function normal() { nav.classList.remove('scrolled'); }
+
   window.addEventListener('scroll', () => {
     const current = window.scrollY || document.documentElement.scrollTop || 0;
     const delta = current - lastScrollTop;
-    if (current <= TOP_ZONE) normal();
-    else if (Math.abs(delta) > DELTA_THRESHOLD) { if (delta > 0) compact(); else normal(); }
+
+    if (current <= TOP_ZONE) {
+      normal();
+    } else if (Math.abs(delta) > DELTA_THRESHOLD) {
+      if (delta > 0) compact();
+      else normal();
+    }
     lastScrollTop = current;
   }, { passive: true });
 })();
 
-// Moments nav icon — camera/recorder identity crossfade, ~10s on load then
-// freezes on whichever icon is showing. One-shot per page load, not
-// continuous. Copied verbatim from khichiya-runner.html/index.html —
-// this was missing from game-console.html's nav copy, which is why the
-// camera and video icons showed stacked/both-visible instead of
-// crossfading like every other carrier page.
+/* Moments Camera/Recorder Cross-Fade from Runner */
 (function animateMomentsNavIcon(){
   const el = document.querySelector('.tkg-nav-moments');
   if(!el) return;
@@ -2823,36 +2893,28 @@ body.dark-mode .tkg-nav-item.active {
     if(toggles >= MAX_TOGGLES) clearInterval(iv);
   }, 2500);
 })();
-</script>
 
-<script>
-// ========== JOURNEY PROMPT — cross-surface Journey correction ==========
-// Shown only when this surface has no valid Journey context yet. Uses the
-// existing TKGShared.setJourneyContext()/getJourneyContext() — no new
-// storage key. Global Nav is hidden only for this first-run case and
-// restored the instant a choice is made; never blocks normal navigation
-// once a Journey exists. tkgActiveJourney is the global var already set
-// near the top of this file.
+/* Journey Prompt Handlers */
 var journeyPromptBackdrop = document.getElementById('journeyPromptBackdrop');
 var journeyPromptCard = document.getElementById('journeyPromptCard');
-var fodoGlobalNavForJourney = document.getElementById('globalNav');
+var fodoGlobalNav = document.getElementById('globalNav');
 
 function openJourneyPrompt(){
-  if(fodoGlobalNavForJourney) fodoGlobalNavForJourney.style.display = 'none';
+  if(fodoGlobalNav) fodoGlobalNav.style.display = 'none';
   journeyPromptBackdrop.classList.add('show');
 }
 
 function closeJourneyPrompt(){
   journeyPromptBackdrop.classList.remove('show');
-  if(fodoGlobalNavForJourney) fodoGlobalNavForJourney.style.display = '';
+  if(fodoGlobalNav) fodoGlobalNav.style.display = '';
 }
 
 document.querySelectorAll('.journey-prompt-choice').forEach(function(btn){
   btn.addEventListener('click', function(){
     var choice = btn.dataset.journeyChoice;
     if(window.TKGShared) TKGShared.setJourneyContext(choice);
-    if(window.TKGShared) TKGShared.setJourneyOriginIfUnset('FODO'); // write-once — first surface a Journey was picked on
-    if(window.TKGShared) TKGShared.recordJourneyEvent(choice, 'FODO'); // same Journey Analytics + location flow Menu uses
+    if(window.TKGShared) TKGShared.setJourneyOriginIfUnset('FODO');
+    if(window.TKGShared) TKGShared.recordJourneyEvent(choice, 'FODO');
     tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
     closeJourneyPrompt();
   });
@@ -2860,6 +2922,5 @@ document.querySelectorAll('.journey-prompt-choice').forEach(function(btn){
 
 if(!tkgActiveJourney) openJourneyPrompt();
 </script>
-
 </body>
 </html>
