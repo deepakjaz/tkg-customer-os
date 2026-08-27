@@ -81,6 +81,12 @@
     background-image: none;
   }
 
+  html[data-tkg-theme="light"] #board-wrapper {
+    background: radial-gradient(ellipse at 50% 35%, #FFFFFF 0%, #EDE4D3 100%);
+    border-color: rgba(201,139,61,0.45);
+    box-shadow: 0 10px 30px rgba(26,20,16,0.25), 0 0 24px rgba(201,139,61,0.15);
+  }
+
   #coal-canvas {
     position: fixed;
     inset: 0;
@@ -133,20 +139,9 @@
   .chaos-ref-icon {
     display: inline-block;
     font-size: 1.15rem;
-    animation: chaosRefMotion 2.4s ease-in-out infinite;
   }
   .chaos-ref-icon.is-blackhole {
     filter: grayscale(1) brightness(0.35) contrast(1.5);
-    animation: chaosRefBlackhole 2.4s ease-in-out infinite;
-  }
-  @keyframes chaosRefMotion {
-    0%   { transform: rotate(0deg) scale(1); }
-    50%  { transform: rotate(180deg) scale(1.12); }
-    100% { transform: rotate(360deg) scale(1); }
-  }
-  @keyframes chaosRefBlackhole {
-    0%, 100% { transform: scale(1); filter: grayscale(1) brightness(0.35) contrast(1.5); }
-    50%      { transform: scale(0.82); filter: grayscale(1) brightness(0.15) contrast(1.8); }
   }
 
   /* Setup Screen */
@@ -162,6 +157,17 @@
     flex-direction: column;
     gap: 12px;
     box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  }
+
+  /* Bug fix (not a style change): #stage-select had no CSS rule of its own,
+     so quitToMenu()/backAvatarStep() setting style.display='flex' inline
+     left flex-direction at its browser default of 'row', collapsing the
+     whole screen into one horizontal line on quit/back. This rule makes
+     column layout the permanent default regardless of what JS toggles. */
+  #stage-select {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .setup-stage-title {
@@ -257,6 +263,107 @@
     color: #FFF;
     padding: 3px 10px;
     border-radius: 999px;
+  }
+
+  /* ===== Glass UI reskin — Setup Screen ONLY (approved 2026-08-27) =====
+     Every rule below is scoped with #setup-screen so nothing outside
+     the setup flow (board, HUD, modals) is touched by this pass. */
+  #setup-screen {
+    border-color: rgba(250,198,70,0.35);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 0 40px rgba(250,198,70,0.04);
+  }
+  #setup-screen .setup-stage-title { color: var(--text-main); }
+
+  #setup-screen .player-count-card {
+    position: relative;
+    background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(6px);
+  }
+  #setup-screen .player-count-card::before {
+    content:"";
+    position:absolute; top:1px; left:8%; right:8%; height:34%;
+    background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0));
+    border-radius: 12px 12px 40% 40%;
+    pointer-events: none;
+  }
+  #setup-screen .player-count-card.active {
+    background: linear-gradient(180deg, rgba(250,198,70,0.16), rgba(0,0,0,0.35));
+    border-color: rgba(250,198,70,0.55);
+    box-shadow: 0 0 0 1px rgba(250,198,70,.25), 0 0 22px rgba(250,198,70,.35), inset 0 0 18px rgba(250,198,70,.08);
+    color: var(--text-main);
+  }
+
+  #setup-screen #tkg-fill-row {
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.14);
+  }
+
+  #setup-screen .player-setup-card {
+    position: relative;
+    background:
+      radial-gradient(120% 140% at 50% 10%, color-mix(in srgb, var(--pc, var(--tkg-gold)) 22%, transparent), transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.25));
+    border: 1px solid color-mix(in srgb, var(--pc, var(--tkg-gold)) 45%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--pc, var(--tkg-gold)) 30%, transparent), 0 0 18px color-mix(in srgb, var(--pc, var(--tkg-gold)) 22%, transparent);
+  }
+  #setup-screen .player-setup-card.p-red    { --pc: var(--ludo-red); }
+  #setup-screen .player-setup-card.p-green  { --pc: var(--ludo-green); }
+  #setup-screen .player-setup-card.p-blue   { --pc: var(--ludo-blue); }
+  #setup-screen .player-setup-card.p-yellow { --pc: var(--ludo-yellow); }
+
+  #setup-screen .avatar-preview-box {
+    border: none;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.25), rgba(255,255,255,0.02) 60%);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--pc, var(--tkg-gold)) 70%, transparent), 0 0 14px color-mix(in srgb, var(--pc, var(--tkg-gold)) 45%, transparent);
+  }
+
+  #setup-screen .player-name-input {
+    background: rgba(0,0,0,0.28);
+    border: 1px solid rgba(255,255,255,0.14);
+  }
+
+  #setup-screen .btn-start {
+    background: linear-gradient(180deg, #FFE9A8, var(--tkg-gold));
+    color: #1A0F0A;
+    box-shadow: 0 8px 22px rgba(250,198,70,.28), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  #setup-screen .mode-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: var(--text-dim);
+  }
+  /* ===== end Setup Screen glass reskin ===== */
+
+  /* ===== Setup Screen glass — light theme variant =====
+     Same white-tinted glass reads as invisible on a bright floor, so this
+     swaps the highlight/border tint to dark ink instead, mirroring the
+     board's light-mode fix. Nothing here changes layout or dark mode. */
+  html[data-tkg-theme="light"] #setup-screen {
+    border-color: rgba(201,139,61,0.35);
+    box-shadow: 0 12px 40px rgba(26,20,16,0.18), inset 0 0 40px rgba(201,139,61,0.05);
+  }
+  html[data-tkg-theme="light"] #setup-screen .player-count-card {
+    background: linear-gradient(180deg, rgba(26,20,16,0.05), rgba(26,20,16,0.012));
+    border: 1px solid rgba(26,20,16,0.14);
+  }
+  html[data-tkg-theme="light"] #setup-screen .player-count-card.active {
+    background: linear-gradient(180deg, rgba(201,139,61,0.18), rgba(26,20,16,0.06));
+    border-color: rgba(201,139,61,0.55);
+    box-shadow: 0 0 0 1px rgba(201,139,61,.3), 0 0 16px rgba(201,139,61,.3), inset 0 0 14px rgba(201,139,61,.1);
+  }
+  html[data-tkg-theme="light"] #setup-screen #tkg-fill-row {
+    background: linear-gradient(180deg, rgba(26,20,16,0.045), rgba(26,20,16,0.012));
+    border: 1px solid rgba(26,20,16,0.14);
+  }
+  html[data-tkg-theme="light"] #setup-screen .player-name-input {
+    background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(26,20,16,0.16);
+    color: var(--text-main);
+  }
+  html[data-tkg-theme="light"] #setup-screen .mode-btn {
+    background: rgba(26,20,16,0.03);
+    border: 1px solid rgba(26,20,16,0.14);
   }
 
   .btn-start {
@@ -481,10 +588,10 @@
   #board-wrapper {
     position: absolute;
     inset: 0;
-    background: #FFFFFF;
+    background: radial-gradient(ellipse at 50% 35%, #1A0F12 0%, #0A0508 60%, #050304 100%);
     border-radius: 12px;
-    border: 3.5px solid #1C120C;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    border: 2px solid rgba(250,198,70,0.4);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 24px rgba(250,198,70,0.12);
     overflow: hidden;
   }
   #board-canvas { width: 100%; height: 100%; display: block; }
@@ -591,6 +698,37 @@
     pointer-events: none;
     z-index: 15;
   }
+  /* Live hazard markers on the board itself — these SHOULD read as active/
+     alive (unlike the header chaos-ref icon, which is chrome and stays
+     still). Each type gets motion suited to what it actually is. */
+  .fodo-event-badge.is-blackhole {
+    animation: badgeSpin 3.2s linear infinite;
+  }
+  .fodo-event-badge.is-burger {
+    animation: badgeChomp 1.1s ease-in-out infinite;
+  }
+  .fodo-event-badge.is-noodle {
+    animation: badgeWobble 1.6s ease-in-out infinite;
+  }
+  .fodo-event-badge.is-magic {
+    animation: badgeTwinkle 1.4s ease-in-out infinite;
+  }
+  @keyframes badgeSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  @keyframes badgeChomp {
+    0%, 100% { transform: translate(-50%, -50%) scaleY(1); }
+    50%      { transform: translate(-50%, -50%) scaleY(0.72); }
+  }
+  @keyframes badgeWobble {
+    0%, 100% { transform: translate(-50%, -50%) rotate(-14deg); }
+    50%      { transform: translate(-50%, -50%) rotate(14deg); }
+  }
+  @keyframes badgeTwinkle {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    50%      { transform: translate(-50%, -50%) scale(1.25); opacity: 0.7; }
+  }
 
   .status-bar {
     font-size: 0.78rem;
@@ -633,6 +771,63 @@
     background: #000;
   }
   #cropCanvas { width: 100%; height: 100%; cursor: grab; }
+
+  /* ===== Winner celebration (2026-08-27) ===== */
+  #winnerConfettiCanvas {
+    position: fixed;
+    inset: 0;
+    z-index: 101; /* above the modal backdrop, below the card itself isn't needed — confetti falls behind the card naturally since card has its own stacking */
+    pointer-events: none;
+  }
+  .winner-modal-card { max-width: 340px; }
+
+  /* Winner's own tokens bounce/wiggle in place for a few seconds after the win */
+  .sticker-token.victory-dance {
+    animation: victoryDance 0.6s ease-in-out infinite;
+  }
+  @keyframes victoryDance {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25%      { transform: translateY(-10px) rotate(-8deg); }
+    75%      { transform: translateY(-10px) rotate(8deg); }
+  }
+
+  .winner-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 14px;
+    font-size: 0.72rem;
+  }
+  .winner-stats-table th, .winner-stats-table td {
+    padding: 5px 4px;
+    text-align: center;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .winner-stats-table th { color: var(--text-dim); font-weight: 700; }
+  .winner-stats-table td.player-name-cell { text-align: left; font-weight: 700; }
+  .winner-stats-table tr.is-winner td { color: var(--tkg-gold); }
+
+  .winner-save-section {
+    border-top: 1px solid var(--card-border);
+    padding-top: 12px;
+    margin-top: 4px;
+    text-align: left;
+  }
+  .winner-save-title { font-size: 0.8rem; font-weight: 800; margin-bottom: 8px; }
+  .winner-save-optin {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.75rem; color: var(--text-dim);
+    margin-bottom: 4px; cursor: pointer;
+  }
+  .winner-save-optin input { width: 16px; height: 16px; accent-color: var(--tkg-gold); }
+  .winner-save-status {
+    font-size: 0.7rem; margin-top: 6px; text-align: center; min-height: 14px;
+    color: var(--text-dim);
+  }
+  .winner-save-status.ok { color: #00B894; }
+  .winner-save-status.err { color: var(--tkg-ember); }
+  .winner-games-count {
+    font-size: 0.68rem; color: var(--text-dim); text-align: center; margin-top: 4px;
+  }
 
   #broadcast-banner {
     position: absolute;
@@ -777,13 +972,24 @@
     position: absolute;
     left: 50%;
     bottom: 34%;
-    width: 90px;
-    height: 90px;
+    width: 150px;
+    height: 52px;
     border-radius: 50%;
     transform: translate(-50%, 50%) scale(0);
-    background: conic-gradient(from 0deg, #3A1F5C, #0D0616, #3A1F5C, #0D0616, #3A1F5C);
+    background: radial-gradient(ellipse at 50% 40%, #000000 0%, #000000 58%, rgba(15,15,15,0.92) 74%, rgba(45,45,45,0.4) 88%, rgba(45,45,45,0) 100%);
+    box-shadow: inset 0 6px 14px rgba(0,0,0,0.95), 0 2px 8px rgba(0,0,0,0.5);
     opacity: 0;
     pointer-events: none;
+  }
+  .chaos-cinema-vortex::before {
+    /* subtle dark rim suggesting the tilted lip of the hole — kept dark/muted,
+       not the reference image's light grey, per "not the white part" */
+    content: "";
+    position: absolute;
+    inset: -6px -8px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 35%, rgba(70,70,70,0.35) 0%, rgba(70,70,70,0.12) 55%, rgba(70,70,70,0) 75%);
+    z-index: -1;
   }
   .chaos-cinema-vortex.show { animation: cinemaVortexForm 1.9s ease-in-out forwards; }
 
@@ -871,6 +1077,262 @@
     100% { transform: scale(1) translate(0,0); }
   }
 
+  /* ===== Board-Zoom Cinema (Black Hole) =====
+     Frame matches the board's own aspect ratio (1:1) since it's showing
+     a real snapshot of it. The scaler is what actually zooms — its
+     transform-origin is set per-trigger (in JS) to the exact tile's
+     percentage position on the 600x600 board coordinate system, so this
+     works at any display size without any hardcoded pixel math here. */
+  .chaos-boardzoom-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(5,3,4,0.82);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .chaos-boardzoom-overlay.show { opacity: 1; pointer-events: auto; }
+
+  .chaos-boardzoom-frame {
+    width: min(520px, 90vw);
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid var(--tkg-gold);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.75), 0 0 34px rgba(232,93,44,0.3);
+  }
+
+  .chaos-boardzoom-scaler {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    /* transform-origin set inline per-trigger via JS */
+  }
+
+  .chaos-boardzoom-snapshot {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Real dark hole, reusing the exact flat tilted-ellipse shape already
+     approved for the board — sized as a percentage of the frame so it
+     matches roughly one board tile regardless of display size. Position
+     (left/top) set inline per-trigger to the same point the scaler zooms
+     toward, so it opens exactly on top of the real token in the snapshot. */
+  .chaos-boardzoom-vortex {
+    position: absolute;
+    width: 5%;
+    aspect-ratio: 150 / 52;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: radial-gradient(ellipse at 50% 40%, #000000 0%, #000000 58%, rgba(15,15,15,0.92) 74%, rgba(45,45,45,0.4) 88%, rgba(45,45,45,0) 100%);
+    box-shadow: inset 0 6px 14px rgba(0,0,0,0.95), 0 2px 8px rgba(0,0,0,0.5);
+    opacity: 0;
+  }
+  .chaos-boardzoom-vortex.show {
+    animation: bzVortexForm 1.1s ease-in-out forwards;
+  }
+  @keyframes bzVortexForm {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+    30%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  }
+
+  /* Whip-in (fast) then slow-settle (the chaos effect plays during this
+     part), matching "camera moves fast and then it goes slow mo". */
+  .chaos-boardzoom-scaler.whip-in {
+    animation: bzWhipIn 0.32s cubic-bezier(0.15, 0.85, 0.25, 1) forwards;
+  }
+  .chaos-boardzoom-scaler.slow-settle {
+    animation: bzSlowSettle 2.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  .chaos-boardzoom-scaler.zoom-out {
+    animation: bzZoomOut 0.6s ease-in-out forwards;
+  }
+  @keyframes bzWhipIn {
+    from { transform: scale(1); }
+    to   { transform: scale(2.3); }
+  }
+  @keyframes bzSlowSettle {
+    from { transform: scale(2.3); }
+    to   { transform: scale(3.0); }
+  }
+  @keyframes bzZoomOut {
+    from { transform: scale(3.0); }
+    to   { transform: scale(1); }
+  }
+
+  /* ===== Token overlay — the real board is a frozen photo, so nothing in
+     it can move on its own. This sits exactly on top of the real token's
+     position (same logic as the vortex) and is what actually animates;
+     it visually replaces the real token for the duration of the popup.
+     Sized small (nested in the same zooming parent as the vortex, so it
+     inherits that scale too — same reasoning as the earlier hole-size fix). */
+  .chaos-boardzoom-token {
+    position: absolute;
+    width: 4.2%;
+    aspect-ratio: 1 / 1.7;
+    transform: translate(-50%, -66%);
+    opacity: 0;
+  }
+  .chaos-boardzoom-token.show { opacity: 1; }
+  .chaos-boardzoom-token-shape {
+    position: relative;
+    width: 100%; height: 100%;
+  }
+  .chaos-boardzoom-token-point {
+    position: absolute; left: 15%; top: 40%; width: 70%; height: 60%;
+    background: var(--bz-token-color, #E71D36);
+    clip-path: polygon(50% 100%, 0% 20%, 100% 20%);
+    border-radius: 0 0 50% 50%;
+  }
+  .chaos-boardzoom-token-head {
+    position: absolute; left: 10%; top: 0; width: 80%; aspect-ratio: 1/1;
+    border-radius: 50%;
+    background: var(--bz-token-color, #E71D36);
+    overflow: hidden;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+  }
+  .chaos-boardzoom-token-head img { width: 100%; height: 100%; object-fit: cover; }
+  .chaos-boardzoom-token-head .fallback-emoji {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+    font-size: 220%;
+  }
+
+  /* Black Hole — token spins, shrinks, and sinks into the hole */
+  .chaos-boardzoom-token.bz-spin-drop {
+    animation: bzSpinDrop 1.0s cubic-bezier(0.5,0,0.85,0) forwards;
+  }
+  @keyframes bzSpinDrop {
+    0%   { opacity: 1; transform: translate(-50%, -66%) rotate(0deg) scale(1); }
+    70%  { opacity: 1; transform: translate(-50%, -20%) rotate(430deg) scale(0.5); }
+    100% { opacity: 0; transform: translate(-50%, 30%) rotate(720deg) scale(0); }
+  }
+
+  /* Burger — a burger sits on the tile and eats the token */
+  .chaos-boardzoom-burger {
+    position: absolute;
+    width: 8%;
+    aspect-ratio: 1/1;
+    transform: translate(-50%, -40%) scale(0);
+    font-size: 260%;
+    display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.6));
+  }
+  .chaos-boardzoom-burger.show { animation: bzBurgerAppear 0.3s ease-out forwards; }
+  @keyframes bzBurgerAppear {
+    from { transform: translate(-50%, -40%) scale(0); }
+    to   { transform: translate(-50%, -40%) scale(1); }
+  }
+  .chaos-boardzoom-burger.chomp {
+    animation: bzBurgerChomp 0.9s ease-in-out 2 forwards;
+  }
+  @keyframes bzBurgerChomp {
+    0%, 100% { transform: translate(-50%, -40%) scale(1) rotate(0deg); }
+    50%      { transform: translate(-50%, -40%) scale(1.2) rotate(-8deg); }
+  }
+  .chaos-boardzoom-token.bz-eaten {
+    animation: bzEaten 0.6s ease-in forwards;
+  }
+  @keyframes bzEaten {
+    0%   { opacity: 1; transform: translate(-50%, -66%) scale(1); }
+    60%  { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+    100% { opacity: 0; transform: translate(-50%, -40%) scale(0); }
+  }
+
+  /* Noodle — wobbles and slips, but recovers (token stays on board) */
+  .chaos-boardzoom-token.bz-slip {
+    animation: bzSlip 1.3s ease-in-out forwards;
+  }
+  @keyframes bzSlip {
+    0%   { transform: translate(-50%, -66%) rotate(0deg); }
+    25%  { transform: translate(-70%, -55%) rotate(-22deg); }
+    50%  { transform: translate(-30%, -50%) rotate(18deg); }
+    75%  { transform: translate(-60%, -60%) rotate(-8deg); }
+    100% { transform: translate(-50%, -66%) rotate(0deg); }
+  }
+
+  /* Magic Star — freezes, shocks, pops into sparkle */
+  .chaos-boardzoom-starburst {
+    position: absolute;
+    width: 9%;
+    aspect-ratio: 1/1;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(250,198,70,0.7) 40%, rgba(250,198,70,0) 75%);
+    border-radius: 50%;
+  }
+  .chaos-boardzoom-starburst.show {
+    animation: bzStarburst 0.6s ease-out forwards;
+  }
+  @keyframes bzStarburst {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+    40%  { opacity: 1; transform: translate(-50%, -50%) scale(1.4); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); }
+  }
+  .chaos-boardzoom-token.bz-freeze { animation: bzFreeze 0.4s ease-in-out 2 alternate; }
+  @keyframes bzFreeze {
+    0%, 100% { transform: translate(-50%, -66%) rotate(0deg); }
+    50%      { transform: translate(-53%, -66%) rotate(-4deg); }
+  }
+  .chaos-boardzoom-token.bz-pop { animation: bzPop 0.5s ease-in forwards; }
+  @keyframes bzPop {
+    0%   { opacity: 1; transform: translate(-50%, -66%) scale(1); }
+    50%  { opacity: 1; transform: translate(-50%, -66%) scale(1.35); }
+    100% { opacity: 0; transform: translate(-50%, -66%) scale(0); }
+  }
+
+  /* Kill — attacker lunges in, victim recoils/chars/gets knocked off,
+     with a floating crying-or-laughing reaction */
+  .chaos-boardzoom-token--attacker { --bz-token-color: #E71D36; }
+  .chaos-boardzoom-token.bz-lunge-in {
+    animation: bzLungeIn 0.35s cubic-bezier(0.5,0,0.75,0) forwards;
+  }
+  @keyframes bzLungeIn {
+    0%   { opacity: 1; transform: translate(-90%, -80%) scale(0.9); }
+    100% { opacity: 1; transform: translate(-60%, -70%) scale(1.05); }
+  }
+  .chaos-boardzoom-token.bz-char .chaos-boardzoom-token-head,
+  .chaos-boardzoom-token.bz-char .chaos-boardzoom-token-point {
+    animation: bzChar 0.4s ease-in forwards;
+  }
+  @keyframes bzChar {
+    from { filter: brightness(1) saturate(1); }
+    to   { filter: brightness(0.35) saturate(0.3); }
+  }
+  .chaos-boardzoom-token.bz-knockback {
+    animation: bzKnockback 0.55s cubic-bezier(0.5,0,0.75,0) forwards;
+  }
+  @keyframes bzKnockback {
+    0%   { opacity: 1; transform: translate(-40%, -66%) rotate(0deg); }
+    100% { opacity: 0; transform: translate(20%, -140%) rotate(50deg); }
+  }
+  .chaos-boardzoom-reaction {
+    position: absolute;
+    font-size: 180%;
+    transform: translate(-50%, -100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .chaos-boardzoom-reaction.show { animation: bzReactionFloat 1.1s ease-out forwards; }
+  @keyframes bzReactionFloat {
+    0%   { opacity: 0; transform: translate(-50%, -100%) scale(0.7); }
+    25%  { opacity: 1; transform: translate(-50%, -160%) scale(1.1); }
+    100% { opacity: 0; transform: translate(-50%, -240%) scale(1); }
+  }
+
   /* --- Attacker performance --- */
   .chaos-cinema-pawn--attacker.crouch { animation: cinemaCrouch 0.35s ease-in-out forwards; }
   .chaos-cinema-pawn--attacker.lunge { animation: cinemaLunge 0.3s cubic-bezier(0.5,0,0.75,0) forwards; }
@@ -917,8 +1379,8 @@
   /* --- Black Hole prop + victim choreography --- */
   @keyframes cinemaVortexForm {
     0%   { opacity: 0; transform: translate(-50%, 50%) scale(0); }
-    30%  { opacity: 1; transform: translate(-50%, 50%) scale(1) rotate(0deg); }
-    100% { opacity: 1; transform: translate(-50%, 50%) scale(1.4) rotate(720deg); }
+    30%  { opacity: 1; transform: translate(-50%, 50%) scale(1); }
+    100% { opacity: 1; transform: translate(-50%, 50%) scale(1.4); }
   }
   .chaos-cinema-pawn--victim.bh-pull { animation: cinemaBlackholePull 0.5s ease-in-out forwards; }
   .chaos-cinema-pawn--victim.bh-orbit { animation: cinemaBlackholeOrbit 0.9s ease-in-out forwards; }
@@ -1257,6 +1719,7 @@
 <div class="geo-hint-toast" id="geoHintToast" aria-live="polite">Not stalking you 😄 — just helping TKG know where you're visiting from.</div>
 
 <script src="./tkg-shared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 var tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
 if (window.TKGShared) TKGShared.logEvent('FODO', 'opened');
@@ -1366,23 +1829,23 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
       <div class="avatar-step-indicator" id="avatar-step-indicator" style="font-size:0.75rem; font-weight:800; text-align:center; color:var(--text-dim);">Player 1 of 2</div>
 
       <div class="player-slots" id="player-slots">
-        <div class="player-setup-card" id="slot-p0">
-          <div class="avatar-slot-badge" style="background:#E71D36;">RED · TOP-LEFT</div>
+        <div class="player-setup-card p-red" id="slot-p0">
+          <div class="avatar-slot-badge" style="background:#E71D36;">RED</div>
           <div class="avatar-preview-box" id="avatar-btn-0" onclick="openCropper(0)">🤪</div>
           <input type="text" class="player-name-input" id="player-name-0" value="Red Face">
         </div>
-        <div class="player-setup-card" id="slot-p1">
-          <div class="avatar-slot-badge" style="background:#00B894;">GREEN · TOP-RIGHT</div>
+        <div class="player-setup-card p-green" id="slot-p1">
+          <div class="avatar-slot-badge" style="background:#00B894;">GREEN</div>
           <div class="avatar-preview-box" id="avatar-btn-1" onclick="openCropper(1)">🤖</div>
           <input type="text" class="player-name-input" id="player-name-1" value="Green Face">
         </div>
-        <div class="player-setup-card" id="slot-p2">
-          <div class="avatar-slot-badge" style="background:#0984E3;">BLUE · BOTTOM-RIGHT</div>
+        <div class="player-setup-card p-blue" id="slot-p2">
+          <div class="avatar-slot-badge" style="background:#0984E3;">BLUE</div>
           <div class="avatar-preview-box" id="avatar-btn-2" onclick="openCropper(2)">🤯</div>
           <input type="text" class="player-name-input" id="player-name-2" value="Blue Face">
         </div>
-        <div class="player-setup-card" id="slot-p3">
-          <div class="avatar-slot-badge" style="background:#FFB300;">YELLOW · BOTTOM-LEFT</div>
+        <div class="player-setup-card p-yellow" id="slot-p3">
+          <div class="avatar-slot-badge" style="background:#FFB300;">YELLOW</div>
           <div class="avatar-preview-box" id="avatar-btn-3" onclick="openCropper(3)">🥳</div>
           <input type="text" class="player-name-input" id="player-name-3" value="Yellow Face">
         </div>
@@ -1542,12 +2005,61 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
     </div>
   </div>
 
+  <!-- Board-Zoom Cinema (2026-08-27) — Black Hole only, for now. Real
+       board stays completely untouched underneath; this takes an actual
+       snapshot of it (html2canvas) and dramatizes it in the popup, per
+       the "3D chess piece-death cinematic" reference: whip-zoom toward
+       the exact tile, settle into slow motion, play the effect on top
+       of the real captured pixels, zoom back out, reveal the (by then
+       already-updated) real board again. Separate DOM/CSS from the
+       overlay above on purpose — doesn't touch burger/noodle/magic/kill,
+       which still use the old mini-stage until each is moved over too. -->
+  <div class="chaos-boardzoom-overlay" id="chaosBoardZoomOverlay">
+    <div class="chaos-boardzoom-frame" id="chaosBoardZoomFrame">
+      <div class="chaos-boardzoom-scaler" id="chaosBoardZoomScaler">
+        <img class="chaos-boardzoom-snapshot" id="chaosBoardZoomSnapshot" alt="">
+        <div class="chaos-boardzoom-vortex" id="chaosBoardZoomVortex"></div>
+        <div class="chaos-boardzoom-burger" id="chaosBoardZoomBurger">🍔</div>
+        <div class="chaos-boardzoom-starburst" id="chaosBoardZoomStarburst"></div>
+        <div class="chaos-boardzoom-token chaos-boardzoom-token--attacker" id="chaosBoardZoomAttacker">
+          <div class="chaos-boardzoom-token-shape">
+            <div class="chaos-boardzoom-token-point"></div>
+            <div class="chaos-boardzoom-token-head" id="chaosBoardZoomAttackerHead"></div>
+          </div>
+        </div>
+        <div class="chaos-boardzoom-token chaos-boardzoom-token--victim" id="chaosBoardZoomVictim">
+          <div class="chaos-boardzoom-token-shape">
+            <div class="chaos-boardzoom-token-point"></div>
+            <div class="chaos-boardzoom-token-head" id="chaosBoardZoomVictimHead"></div>
+          </div>
+        </div>
+        <div class="chaos-boardzoom-reaction" id="chaosBoardZoomReaction"></div>
+      </div>
+    </div>
+    <div class="chaos-cinema-tag" id="chaosBoardZoomTag"></div>
+  </div>
+
   <!-- Winner Modal -->
+  <canvas id="winnerConfettiCanvas"></canvas>
   <div class="overlay" id="winner-modal">
-    <div class="modal-card">
-      <div style="font-size:1.4rem; font-weight:900; color:var(--tkg-gold); margin-bottom:6px;">👑 VICTORY!</div>
-      <p id="winner-desc" style="font-size:0.85rem; margin-bottom:14px; color:var(--text-dim);">All 4 face stickers reached home!</p>
-      <button type="button" class="btn-start" style="width:100%;" onclick="quitToMenu()">PLAY AGAIN 🎲</button>
+    <div class="modal-card winner-modal-card">
+      <div style="font-size:1.4rem; font-weight:900; color:var(--tkg-gold); margin-bottom:6px;" id="winner-title">👑 VICTORY!</div>
+      <p id="winner-desc" style="font-size:0.85rem; margin-bottom:6px; color:var(--text-dim);">All 4 face stickers reached home!</p>
+
+      <table class="winner-stats-table" id="winnerStatsTable"></table>
+
+      <div class="winner-save-section" id="winnerSaveSection">
+        <div class="winner-save-title">Save this game?</div>
+        <label class="winner-save-optin">
+          <input type="checkbox" id="winnerLiveOptIn" checked>
+          Show my score on the FODO leaderboard
+        </label>
+        <button type="button" class="btn-start" id="winnerSaveBtn" style="width:100%; margin-top:8px;" onclick="saveFodoGameResult()">SAVE GAME 💾</button>
+        <div class="winner-save-status" id="winnerSaveStatus"></div>
+        <div class="winner-games-count" id="winnerGamesCount"></div>
+      </div>
+
+      <button type="button" class="btn-start" style="width:100%; margin-top:10px;" onclick="quitToMenu()">PLAY AGAIN 🎲</button>
     </div>
   </div>
 </div>
@@ -1812,14 +2324,12 @@ const TRAP_INFO = {
 let pendingTrapEffect_ = null;
 
 function maybeExplainTrap(type, runEffect) {
-  if (hasExplainedTrap[type]) { runEffect(); return; }
-  hasExplainedTrap[type] = true;
-  pendingTrapEffect_ = runEffect;
-  const info = TRAP_INFO[type];
-  document.getElementById('trap-explainer-icon').textContent = info.icon;
-  document.getElementById('trap-explainer-name').textContent = info.name;
-  document.getElementById('trap-explainer-desc').textContent = info.desc;
-  document.getElementById('trap-explainer-modal').classList.add('show');
+  // Was gated behind a "GOT IT" click the first time each trap type fired.
+  // Removed per explicit request: effects should run immediately, and the
+  // actual blocking now happens properly inside playTrapCinema/playKillCinema
+  // via isPaused, not through this modal (which never set isPaused at all —
+  // that's why the AI kept playing through it).
+  runEffect();
 }
 function dismissTrapExplainer() {
   document.getElementById('trap-explainer-modal').classList.remove('show');
@@ -1907,29 +2417,33 @@ const EVENT_TEMPLATES = [
   {
     type: 'blackhole', icon: '🌀', name: 'BLACK HOLE!',
     action: (pIdx, tIdx) => maybeExplainTrap('blackhole', () => {
+      gameStats[pIdx].blackhole++;
       broadcastHighlight('🔥 FODO EVENT!', 'BLACK HOLE!');
-      playTrapCinema('blackhole', pIdx, tIdx, () => stepBackToken(pIdx, tIdx, 3));
+      playBoardZoomCinema('blackhole', pIdx, tIdx, () => stepBackToken(pIdx, tIdx, 3));
     })
   },
   {
     type: 'burger', icon: '🍔', name: 'BURGER MONSTER!',
     action: (pIdx, tIdx) => maybeExplainTrap('burger', () => {
+      gameStats[pIdx].burger++;
       broadcastHighlight('🔥 FODO EVENT!', 'BURGER MONSTER!');
-      playTrapCinema('burger', pIdx, tIdx, () => sendTokenToYard(pIdx, tIdx));
+      playBoardZoomCinema('burger', pIdx, tIdx, () => sendTokenToYard(pIdx, tIdx));
     })
   },
   {
     type: 'noodle', icon: '🍜', name: 'NOODLE SLIP!',
     action: (pIdx, tIdx) => maybeExplainTrap('noodle', () => {
+      gameStats[pIdx].noodle++;
       broadcastHighlight('🔥 FODO EVENT!', 'NOODLE SLIP!');
-      playTrapCinema('noodle', pIdx, tIdx, () => stepBackToken(pIdx, tIdx, 4));
+      playBoardZoomCinema('noodle', pIdx, tIdx, () => stepBackToken(pIdx, tIdx, 4));
     })
   },
   {
     type: 'magic', icon: '⭐', name: 'MAGIC STAR KO!',
     action: (pIdx, tIdx) => maybeExplainTrap('magic', () => {
+      gameStats[pIdx].magic++;
       broadcastHighlight('🔥 FODO EVENT!', 'MAGIC STAR KO!');
-      playTrapCinema('magic', pIdx, tIdx, () => sendTokenToYard(pIdx, tIdx));
+      playBoardZoomCinema('magic', pIdx, tIdx, () => sendTokenToYard(pIdx, tIdx));
     })
   }
 ];
@@ -1970,7 +2484,7 @@ function renderFodoEventsDOM() {
     const ev = activeFodoEvents[tile];
     const cell = MAIN_CIRCUIT[tile];
     const el = document.createElement('div');
-    el.className = 'fodo-event-badge';
+    el.className = `fodo-event-badge is-${ev.type}`;
     el.textContent = ev.icon;
     el.style.left = ((cell[0] * S + S/2) * scale) + 'px';
     el.style.top = ((cell[1] * S + S/2) * scale) + 'px';
@@ -2061,6 +2575,10 @@ function playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone) {
   tagEl.textContent = KILL_PUNCHLINES[Math.floor(Math.random() * KILL_PUNCHLINES.length)];
 
   overlay.classList.add('show');
+  // Block all play — human input already checks isPaused, and this stops
+  // the AI's own turn timer from firing through the popup, which is the
+  // actual bug: the modal never did this, so the AI kept playing behind it.
+  isPaused = true;
 
   setTimeout(() => attackerEl.classList.add('crouch'), 100);
   setTimeout(() => {
@@ -2086,7 +2604,15 @@ function playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone) {
   }, 2050);
   setTimeout(() => tagEl.classList.add('show'), 1900);
   setTimeout(() => camera.classList.add('zoom-out'), 3300);
-  setTimeout(() => overlay.classList.remove('show'), 3900);
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    isPaused = false;
+    // Same re-arm pattern resumeGame() already uses — if it's still the
+    // AI's turn once the popup clears, let its timer fire again.
+    if (players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving) {
+      setTimeout(() => { if (!isPaused) onRollDice(currentTurn); }, 500);
+    }
+  }, 3900);
 }
 
 /* Chaos Trap Cinema (2026-08-27, Phase 2) — same shared mini-stage as
@@ -2130,6 +2656,16 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
   tagEl.textContent = TRAP_PUNCHLINES[type][Math.floor(Math.random() * TRAP_PUNCHLINES[type].length)];
 
   overlay.classList.add('show');
+  // Same fix as playKillCinema — block all play for the real duration of
+  // the popup, not just visually. This is what the old modal never did.
+  isPaused = true;
+  const unlockAfterCinema = () => {
+    overlay.classList.remove('show');
+    isPaused = false;
+    if (players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving) {
+      setTimeout(() => { if (!isPaused) onRollDice(currentTurn); }, 500);
+    }
+  };
 
   if (type === 'blackhole') {
     setTimeout(() => vortex.classList.add('show'), 100);
@@ -2139,7 +2675,7 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
     setTimeout(() => { if (onDone) onDone(); }, 2100);
     setTimeout(() => tagEl.classList.add('show'), 1900);
     setTimeout(() => camera.classList.add('zoom-out'), 3200);
-    setTimeout(() => overlay.classList.remove('show'), 3800);
+    setTimeout(unlockAfterCinema, 3800);
   } else if (type === 'burger') {
     setTimeout(() => burger.classList.add('show'), 150);
     setTimeout(() => { victimEl.classList.add('burger-lean'); camera.classList.add('zoom-in'); }, 300);
@@ -2149,7 +2685,7 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
     setTimeout(() => { if (onDone) onDone(); }, 1650);
     setTimeout(() => tagEl.classList.add('show'), 1700);
     setTimeout(() => camera.classList.add('zoom-out'), 3000);
-    setTimeout(() => overlay.classList.remove('show'), 3600);
+    setTimeout(unlockAfterCinema, 3600);
   } else if (type === 'noodle') {
     setTimeout(() => { victimEl.classList.add('noodle-slip'); camera.classList.add('zoom-in'); playSound('noodle'); }, 200);
     setTimeout(() => victimEl.classList.add('noodle-wobble'), 550);
@@ -2158,7 +2694,7 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
     setTimeout(() => { if (onDone) onDone(); }, 2200);
     setTimeout(() => tagEl.classList.add('show'), 2100);
     setTimeout(() => camera.classList.add('zoom-out'), 3300);
-    setTimeout(() => overlay.classList.remove('show'), 3900);
+    setTimeout(unlockAfterCinema, 3900);
   } else if (type === 'magic') {
     setTimeout(() => victimEl.classList.add('magic-freeze'), 200);
     setTimeout(() => { starburst.classList.add('show'); camera.classList.add('zoom-in'); playSound('magic'); }, 550);
@@ -2167,7 +2703,383 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
     setTimeout(() => { if (onDone) onDone(); }, 1350);
     setTimeout(() => tagEl.classList.add('show'), 1500);
     setTimeout(() => camera.classList.add('zoom-out'), 2900);
-    setTimeout(() => overlay.classList.remove('show'), 3500);
+    setTimeout(unlockAfterCinema, 3500);
+  }
+}
+
+/* Board-Zoom Cinema (2026-08-27, expanded) — now covers all 5 chaos
+   events, not just Black Hole. Captures the REAL board via html2canvas
+   (exact pixels — every token, every event badge), whip-zooms into the
+   exact tile, settles into ~2.9s of slow motion, and plays the actual
+   effect there — including an animated token overlay, since the real
+   board is a frozen photo and can't move on its own; this small overlay
+   sits exactly on top of the real token and does the actual moving/
+   spinning/vanishing, standing in for it for the duration of the popup.
+   Real board updates silently underneath via onDone, same as before.
+   Total sequence stretched to ~4.5s per explicit request (was ~3s) so
+   there's enough time to actually see and screenshot it. */
+function playBoardZoomCinema(type, victimPIdx, victimTIdx, onDone, attackerPIdx) {
+  const overlay = document.getElementById('chaosBoardZoomOverlay');
+  const scaler = document.getElementById('chaosBoardZoomScaler');
+  const snapshotImg = document.getElementById('chaosBoardZoomSnapshot');
+  const vortex = document.getElementById('chaosBoardZoomVortex');
+  const burger = document.getElementById('chaosBoardZoomBurger');
+  const starburst = document.getElementById('chaosBoardZoomStarburst');
+  const victimToken = document.getElementById('chaosBoardZoomVictim');
+  const victimHead = document.getElementById('chaosBoardZoomVictimHead');
+  const attackerToken = document.getElementById('chaosBoardZoomAttacker');
+  const attackerHead = document.getElementById('chaosBoardZoomAttackerHead');
+  const reaction = document.getElementById('chaosBoardZoomReaction');
+  const tagEl = document.getElementById('chaosBoardZoomTag');
+  const wrapper = document.getElementById('board-wrapper');
+
+  const fallback = () => {
+    // Never leave a chaos event silently doing nothing — fall back to
+    // the old mini-stage if html2canvas / any element is unavailable.
+    if (type === 'kill') playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone);
+    else playTrapCinema(type, victimPIdx, victimTIdx, onDone);
+  };
+
+  if (!overlay || !scaler || !snapshotImg || !wrapper || typeof html2canvas === 'undefined') {
+    fallback();
+    return;
+  }
+
+  const step = players[victimPIdx].tokens[victimTIdx].step;
+  const tile = getGlobalTrackIndex(victimPIdx, step);
+  const cell = tile >= 0 ? MAIN_CIRCUIT[tile] : [7, 7];
+  const S = 600 / 15;
+  const xPct = ((cell[0] * S + S / 2) / 600) * 100;
+  const yPct = ((cell[1] * S + S / 2) / 600) * 100;
+
+  // Reset every element from any previous playthrough.
+  scaler.className = 'chaos-boardzoom-scaler';
+  vortex.className = 'chaos-boardzoom-vortex';
+  burger.className = 'chaos-boardzoom-burger';
+  starburst.className = 'chaos-boardzoom-starburst';
+  victimToken.className = 'chaos-boardzoom-token chaos-boardzoom-token--victim';
+  attackerToken.className = 'chaos-boardzoom-token chaos-boardzoom-token--attacker';
+  reaction.className = 'chaos-boardzoom-reaction';
+  reaction.textContent = '';
+  tagEl.className = 'chaos-cinema-tag';
+
+  scaler.style.transformOrigin = `${xPct}% ${yPct}%`;
+  [vortex, burger, starburst, victimToken, attackerToken, reaction].forEach(el => {
+    el.style.left = `${xPct}%`;
+    el.style.top = `${yPct}%`;
+  });
+
+  const victim = players[victimPIdx];
+  victimToken.style.setProperty('--bz-token-color', PLAYER_CONFIG[victimPIdx].hex);
+  if (victim.avatar) victimHead.innerHTML = `<img src="${victim.avatar}">`;
+  else victimHead.innerHTML = `<div class="fallback-emoji">${PLAYER_CONFIG[victimPIdx].defaultEmoji}</div>`;
+
+  if (type === 'kill') {
+    const attacker = players[attackerPIdx];
+    attackerToken.style.setProperty('--bz-token-color', PLAYER_CONFIG[attackerPIdx].hex);
+    if (attacker.avatar) attackerHead.innerHTML = `<img src="${attacker.avatar}">`;
+    else attackerHead.innerHTML = `<div class="fallback-emoji">${PLAYER_CONFIG[attackerPIdx].defaultEmoji}</div>`;
+  }
+
+  const punchlineSet = type === 'kill' ? KILL_PUNCHLINES : TRAP_PUNCHLINES[type];
+  tagEl.textContent = punchlineSet[Math.floor(Math.random() * punchlineSet.length)];
+
+  html2canvas(wrapper, { backgroundColor: null, useCORS: true, scale: 1 }).then(canvas => {
+    snapshotImg.src = canvas.toDataURL('image/png');
+    overlay.classList.add('show');
+    isPaused = true;
+
+    // Beat 1: reveal the real board as-is, so it registers before anything moves.
+    setTimeout(() => { scaler.classList.add('whip-in'); }, 400);
+
+    // Beat 2: slow-motion settle — the actual effect plays during this window.
+    setTimeout(() => {
+      scaler.classList.add('slow-settle');
+      victimToken.classList.add('show');
+      if (type === 'kill') attackerToken.classList.add('show');
+
+      if (type === 'blackhole') {
+        vortex.classList.add('show');
+        playSound('blackhole');
+        setTimeout(() => victimToken.classList.add('bz-spin-drop'), 150);
+      } else if (type === 'burger') {
+        burger.classList.add('show');
+        setTimeout(() => { burger.classList.add('chomp'); playSound('burger'); }, 250);
+        setTimeout(() => victimToken.classList.add('bz-eaten'), 700);
+      } else if (type === 'noodle') {
+        playSound('noodle');
+        setTimeout(() => victimToken.classList.add('bz-slip'), 100);
+      } else if (type === 'magic') {
+        setTimeout(() => victimToken.classList.add('bz-freeze'), 100);
+        setTimeout(() => { starburst.classList.add('show'); playSound('magic'); }, 500);
+        setTimeout(() => victimToken.classList.add('bz-pop'), 550);
+      } else if (type === 'kill') {
+        setTimeout(() => attackerToken.classList.add('bz-lunge-in'), 100);
+        setTimeout(() => { playSound('cut'); victimToken.classList.add('bz-char'); }, 450);
+        setTimeout(() => {
+          victimToken.classList.add('bz-knockback');
+          reaction.textContent = Math.random() < 0.5 ? '😭' : '😂';
+          reaction.classList.add('show');
+        }, 750);
+      }
+    }, 730);
+
+    const onDoneDelay = (type === 'burger' || type === 'noodle') ? 2000
+      : type === 'kill' ? 2100
+      : 1900; // blackhole, magic
+    setTimeout(() => { if (onDone) onDone(); }, onDoneDelay);
+
+    setTimeout(() => tagEl.classList.add('show'), onDoneDelay + 150);
+    setTimeout(() => scaler.classList.add('zoom-out'), 3800);
+    setTimeout(() => {
+      overlay.classList.remove('show');
+      isPaused = false;
+      if (players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving) {
+        setTimeout(() => { if (!isPaused) onRollDice(currentTurn); }, 500);
+      }
+    }, 4500);
+  }).catch(fallback);
+}
+
+/* ===== Victory Celebration (2026-08-27) =====
+   Reuses the exact same board-zoom pan/zoom mechanics already confirmed
+   working for the chaos events (same scaler/whip-in/slow-settle classes),
+   panning toward the board center/home instead of a trap tile. Once it
+   finishes, hands off to showWinnerModalNow() for the stats + confetti +
+   dancing tokens + save/leaderboard prompt. */
+function playVictoryPan(pIdx) {
+  const overlay = document.getElementById('chaosBoardZoomOverlay');
+  const scaler = document.getElementById('chaosBoardZoomScaler');
+  const snapshotImg = document.getElementById('chaosBoardZoomSnapshot');
+  const starburst = document.getElementById('chaosBoardZoomStarburst');
+  const tagEl = document.getElementById('chaosBoardZoomTag');
+  const wrapper = document.getElementById('board-wrapper');
+
+  // Make sure no leftover trap-specific elements are visible from an
+  // earlier chaos event this game.
+  ['chaosBoardZoomVortex','chaosBoardZoomBurger','chaosBoardZoomVictim','chaosBoardZoomAttacker','chaosBoardZoomReaction'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = el.className.split(' ')[0];
+  });
+
+  if (!overlay || !scaler || !snapshotImg || !wrapper || typeof html2canvas === 'undefined') {
+    isPaused = false;
+    showWinnerModalNow(pIdx);
+    return;
+  }
+
+  scaler.className = 'chaos-boardzoom-scaler';
+  scaler.style.transformOrigin = `50% 50%`; // board center / home triangle
+  starburst.className = 'chaos-boardzoom-starburst';
+  starburst.style.left = '50%';
+  starburst.style.top = '50%';
+  tagEl.className = 'chaos-cinema-tag';
+  tagEl.textContent = `👑 ${players[pIdx].name} WINS!`;
+
+  html2canvas(wrapper, { backgroundColor: null, useCORS: true, scale: 1 }).then(canvas => {
+    snapshotImg.src = canvas.toDataURL('image/png');
+    overlay.classList.add('show');
+
+    setTimeout(() => { scaler.classList.add('whip-in'); }, 350);
+    setTimeout(() => {
+      scaler.classList.add('slow-settle');
+      starburst.classList.add('show');
+      playSound('magic');
+    }, 680);
+    setTimeout(() => tagEl.classList.add('show'), 1300);
+    setTimeout(() => scaler.classList.add('zoom-out'), 3100);
+    setTimeout(() => {
+      overlay.classList.remove('show');
+      isPaused = false;
+      showWinnerModalNow(pIdx);
+    }, 3700);
+  }).catch(() => {
+    isPaused = false;
+    showWinnerModalNow(pIdx);
+  });
+}
+
+function showWinnerModalNow(pIdx) {
+  document.getElementById('winner-title').textContent = `👑 ${players[pIdx].name} WINS!`;
+  renderWinnerStatsTable(pIdx);
+  document.getElementById('winner-modal').classList.add('show');
+  launchConfetti(PLAYER_CONFIG[pIdx].hex);
+  danceWinnerTokens(pIdx);
+  bumpLocalGamesPlayed(activePlayerCount); // every completed game counts, whether or not it's saved to the leaderboard
+  updateWinnerGamesCountDisplay();
+}
+
+function danceWinnerTokens(pIdx) {
+  const els = document.querySelectorAll(`.token-p${pIdx}`);
+  els.forEach(el => el.classList.add('victory-dance'));
+  setTimeout(() => els.forEach(el => el.classList.remove('victory-dance')), 4000);
+}
+
+function renderWinnerStatsTable(winnerPIdx) {
+  const table = document.getElementById('winnerStatsTable');
+  if (!table) return;
+  let html = `<tr><th>Player</th><th>🌀</th><th>🍔</th><th>🍜</th><th>⭐</th><th>Kills</th></tr>`;
+  activeSeatIndices.forEach(i => {
+    const s = gameStats[i];
+    html += `<tr class="${i === winnerPIdx ? 'is-winner' : ''}">
+      <td class="player-name-cell">${i === winnerPIdx ? '👑 ' : ''}${players[i].name}</td>
+      <td>${s.blackhole}</td><td>${s.burger}</td><td>${s.noodle}</td><td>${s.magic}</td><td>${s.kills}</td>
+    </tr>`;
+  });
+  table.innerHTML = html;
+}
+
+/* Simple canvas confetti burst — tinted to the winner's color plus
+   gold/white accents, no external library. ~2.5s then clears itself. */
+function launchConfetti(hexColor) {
+  const canvas = document.getElementById('winnerConfettiCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const colors = [hexColor, '#FAC646', '#FFFFFF'];
+  const particles = [];
+  const count = 110;
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: canvas.width / 2 + (Math.random() - 0.5) * 60,
+      y: canvas.height * 0.35,
+      vx: (Math.random() - 0.5) * 12,
+      vy: -Math.random() * 10 - 4,
+      size: 4 + Math.random() * 5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * Math.PI * 2,
+      vrot: (Math.random() - 0.5) * 0.3,
+      shape: Math.random() < 0.5 ? 'rect' : 'circle'
+    });
+  }
+
+  const gravity = 0.35;
+  const start = performance.now();
+  const duration = 2600;
+
+  function frame(now) {
+    const t = now - start;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.vy += gravity * 0.5;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vrot;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.shape === 'rect') ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
+      else { ctx.beginPath(); ctx.arc(0, 0, p.size/2, 0, Math.PI*2); ctx.fill(); }
+      ctx.restore();
+    });
+    if (t < duration) {
+      requestAnimationFrame(frame);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ===== Scoring & Leaderboard (2026-08-27) =====
+   Formula (mine, not copied from anywhere — designed for FODO's actual
+   mechanics, which end at the first finisher rather than tracking a full
+   4-way placement like some other Ludo apps):
+     10                              — participation
+     + 100                           — win bonus (0 if lost)
+     + kills * 15                    — landed kills
+     - timesKilled * 5               — small penalty, not harsh
+     + totalChaosHits * (won ? 8 : 2) — the "resilience" term: chaos hits
+       matter much more when combined with a win, since surviving heavy
+       chaos and still winning is the thing worth rewarding. Losers still
+       get a small amount so the number isn't zero-sum discouraging. */
+function computeFodoScore(pIdx, won) {
+  const s = gameStats[pIdx];
+  const chaosHits = totalChaosHits(pIdx);
+  let score = 10;
+  if (won) score += 100;
+  score += s.kills * 15;
+  score -= s.timesKilled * 5;
+  score += chaosHits * (won ? 8 : 2);
+  return Math.max(0, Math.round(score));
+}
+
+// Local (device-only) count of games played by mode — "how many games,
+// 1P/2P/3P/4P" — incremented every startGame(), independent of saving/
+// leaderboard, which is a separate opt-in action.
+function bumpLocalGamesPlayed(mode) {
+  try {
+    const key = 'fodo_games_played_v1';
+    const data = JSON.parse(localStorage.getItem(key) || '{}');
+    data[mode] = (data[mode] || 0) + 1;
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) { /* localStorage unavailable — not critical */ }
+}
+function getLocalGamesPlayed() {
+  try { return JSON.parse(localStorage.getItem('fodo_games_played_v1') || '{}'); }
+  catch (e) { return {}; }
+}
+function updateWinnerGamesCountDisplay() {
+  const el = document.getElementById('winnerGamesCount');
+  if (!el) return;
+  const data = getLocalGamesPlayed();
+  const parts = [1,2,3,4].map(m => `${m}P: ${data[m] || 0}`);
+  el.textContent = `Games played on this device — ${parts.join(' · ')}`;
+}
+
+// Submits this game's result to the same Apps Script deployment the rest
+// of TKG uses, via the shared submitToAppsScript() helper (same identity/
+// CORS-workaround pattern as submitRunnerScore). Requires the AppsScript.gs
+// 'submitFodoScore' action to exist server-side — see the handoff notes.
+async function saveFodoGameResult() {
+  const btn = document.getElementById('winnerSaveBtn');
+  const statusEl = document.getElementById('winnerSaveStatus');
+  const liveOptIn = document.getElementById('winnerLiveOptIn')?.checked;
+  const winnerPIdx = activeSeatIndices.find(i => players[i].tokens.every(tk => tk.step === 56));
+  if (winnerPIdx === undefined || !window.TKGShared) return;
+
+  if (btn) { btn.disabled = true; btn.textContent = 'SAVING…'; }
+  if (statusEl) { statusEl.textContent = ''; statusEl.className = 'winner-save-status'; }
+
+  const identity = TKGShared.getCustomerIdentity ? TKGShared.getCustomerIdentity() : null;
+  if (!identity) {
+    if (statusEl) {
+      statusEl.textContent = 'Add your name & mobile in the TKG menu first, then save.';
+      statusEl.className = 'winner-save-status err';
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'SAVE GAME 💾'; }
+    return;
+  }
+
+  const results = activeSeatIndices.map(i => ({
+    name: players[i].name,
+    won: i === winnerPIdx,
+    kills: gameStats[i].kills,
+    timesKilled: gameStats[i].timesKilled,
+    chaosHits: totalChaosHits(i),
+    score: computeFodoScore(i, i === winnerPIdx)
+  }));
+
+  const payload = {
+    mode: activePlayerCount,
+    winnerName: players[winnerPIdx].name,
+    score: computeFodoScore(winnerPIdx, true),
+    results: JSON.stringify(results),
+    liveOptIn: !!liveOptIn,
+    ts: new Date().toISOString()
+  };
+
+  const res = await TKGShared.submitToAppsScript('submitFodoScore', payload, { requireIdentity: true });
+
+  if (res.success) {
+    if (statusEl) { statusEl.textContent = 'Saved! Thanks for playing 🎉'; statusEl.className = 'winner-save-status ok'; }
+    if (btn) { btn.textContent = 'SAVED ✓'; }
+  } else {
+    if (statusEl) { statusEl.textContent = res.error?.message || 'Could not save — try again.'; statusEl.className = 'winner-save-status err'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'SAVE GAME 💾'; }
   }
 }
 
@@ -2184,6 +3096,14 @@ let players = [
 
 let currentTurn = 0;
 let lastDiceRoll = 1;
+
+// Per-player stats for THIS game only — reset in startGame(). Feeds the
+// winner-screen stats table and the leaderboard score calculation.
+let gameStats = [0,1,2,3].map(() => ({ blackhole: 0, burger: 0, noodle: 0, magic: 0, kills: 0, timesKilled: 0 }));
+function totalChaosHits(pIdx) {
+  const s = gameStats[pIdx];
+  return s.blackhole + s.burger + s.noodle + s.magic;
+}
 let isRolling = false;
 let isTokenMoving = false;
 let canSelectToken = false;
@@ -2370,37 +3290,79 @@ function drawBoard() {
   const ctx = canvas.getContext('2d');
   const S = 600 / 15;
 
-  ctx.fillStyle = "#FFFFFF";
+  // Same live theme-check pattern already used by animateEmbers() —
+  // read at draw-time so this always matches whatever's active, no
+  // separate "redraw on theme change" wiring needed.
+  const isLight = document.documentElement.getAttribute('data-tkg-theme') === 'light';
+  const inkColor = isLight ? '#2A1E17' : '#FFFFFF';
+
+  // rounded-rect path helper (glass tiles use soft corners, not sharp fillRect)
+  function rr(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // floor — dark mode: glass floats in dark void. light mode: a bright,
+  // evenly-lit floor (like stadium lights on the ground, not a literal
+  // light fixture) so glass still reads as glass, not washed out white-on-white.
+  if (isLight) {
+    const bgGrad = ctx.createRadialGradient(300, 230, 60, 300, 300, 480);
+    bgGrad.addColorStop(0, '#FFFFFF');
+    bgGrad.addColorStop(1, '#EDE4D3');
+    ctx.fillStyle = bgGrad;
+  } else {
+    const bgGrad = ctx.createRadialGradient(300, 210, 40, 300, 300, 480);
+    bgGrad.addColorStop(0, '#1A0F12');
+    bgGrad.addColorStop(1, '#050304');
+    ctx.fillStyle = bgGrad;
+  }
   ctx.fillRect(0, 0, 600, 600);
 
   const drawYard = (gx, gy, hex) => {
-    ctx.fillStyle = hex;
-    ctx.fillRect(gx * S, gy * S, 6 * S, 6 * S);
+    const x = gx * S, y = gy * S, w = 6 * S, h = 6 * S;
 
-    // Inner White Box
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect((gx + 0.8) * S, (gy + 0.8) * S, 4.4 * S, 4.4 * S);
+    // glass panel, glowing in this player's color — same footprint as before, rounded not sharp
+    const panelGrad = ctx.createRadialGradient(x + w/2, y + h/2, 10, x + w/2, y + h/2, w * 0.65);
+    panelGrad.addColorStop(0, hex + (isLight ? '2A' : '33'));
+    panelGrad.addColorStop(1, hex + (isLight ? '08' : '0D'));
+    rr(x + 4, y + 4, w - 8, h - 8, 18);
+    ctx.fillStyle = panelGrad;
+    ctx.fill();
 
-    ctx.strokeStyle = "#111111";
-    ctx.lineWidth = 2;
-    ctx.strokeRect((gx + 0.8) * S, (gy + 0.8) * S, 4.4 * S, 4.4 * S);
+    ctx.save();
+    ctx.shadowColor = hex;
+    ctx.shadowBlur = isLight ? 8 : 14;
+    ctx.strokeStyle = hex;
+    ctx.globalAlpha = isLight ? 0.65 : 0.8;
+    ctx.lineWidth = 1.4;
+    rr(x + 4, y + 4, w - 8, h - 8, 18);
+    ctx.stroke();
+    ctx.restore();
 
-    // Exact Symmetrical Yard Rings
+    // Idle-token anchor spots — EXACT same coordinates as before (also hardcoded in
+    // getTokenPixelCoords' baseOffsets, so these positions must never move) —
+    // only the material changed, from a flat filled circle to a glass glow disc.
     const spots = [
       [gx + 2.0, gy + 2.0], [gx + 4.0, gy + 2.0],
       [gx + 2.0, gy + 4.0], [gx + 4.0, gy + 4.0]
     ];
     spots.forEach(sp => {
       const cx = sp[0] * S, cy = sp[1] * S;
-      ctx.fillStyle = hex;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 18, 0, Math.PI * 2);
-      ctx.fill();
+      const dotGrad = ctx.createRadialGradient(cx, cy, 1, cx, cy, 20);
+      dotGrad.addColorStop(0, hex + '55');
+      dotGrad.addColorStop(1, hex + '00');
+      ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+      ctx.fillStyle = dotGrad; ctx.fill();
 
-      ctx.fillStyle = "#FFFFFF";
-      ctx.beginPath();
-      ctx.arc(cx, cy, 11, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, 13, 0, Math.PI * 2);
+      ctx.strokeStyle = hex; ctx.globalAlpha = 0.6; ctx.lineWidth = 1.4;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
     });
   };
 
@@ -2409,19 +3371,44 @@ function drawBoard() {
   drawYard(9, 9, PLAYER_CONFIG[2].hex); // Blue (Bottom Right)
   drawYard(0, 9, PLAYER_CONFIG[3].hex); // Yellow (Bottom Left)
 
-  // Main Track Cells
+  // Main Track Cells — neutral glass, EXCEPT the 4 start tiles which keep
+  // their player-color identity (an existing, separate design element — the
+  // entry point, not the "shared track" the white-only note was about)
   MAIN_CIRCUIT.forEach((cell, idx) => {
     const cx = cell[0] * S, cy = cell[1] * S;
-    ctx.strokeStyle = "#111111";
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(cx, cy, S, S);
+    const isStart = (idx === 0 || idx === 13 || idx === 26 || idx === 39);
+    const startHex = idx === 0 ? PLAYER_CONFIG[0].hex
+      : idx === 13 ? PLAYER_CONFIG[1].hex
+      : idx === 26 ? PLAYER_CONFIG[2].hex
+      : idx === 39 ? PLAYER_CONFIG[3].hex
+      : null;
 
-    if (idx === 0) { ctx.fillStyle = PLAYER_CONFIG[0].hex; ctx.fillRect(cx, cy, S, S); }
-    if (idx === 13) { ctx.fillStyle = PLAYER_CONFIG[1].hex; ctx.fillRect(cx, cy, S, S); }
-    if (idx === 26) { ctx.fillStyle = PLAYER_CONFIG[2].hex; ctx.fillRect(cx, cy, S, S); }
-    if (idx === 39) { ctx.fillStyle = PLAYER_CONFIG[3].hex; ctx.fillRect(cx, cy, S, S); }
+    const grad = ctx.createLinearGradient(cx, cy, cx, cy + S);
+    if (startHex) {
+      grad.addColorStop(0, startHex + 'CC');
+      grad.addColorStop(1, startHex + '66');
+    } else if (isLight) {
+      grad.addColorStop(0, 'rgba(26,20,16,0.06)');
+      grad.addColorStop(1, 'rgba(26,20,16,0.015)');
+    } else {
+      grad.addColorStop(0, 'rgba(255,255,255,0.14)');
+      grad.addColorStop(1, 'rgba(255,255,255,0.03)');
+    }
+    rr(cx + 1, cy + 1, S - 2, S - 2, 4);
+    ctx.fillStyle = grad;
+    ctx.fill();
 
-    if (idx === 0 || idx === 13 || idx === 26 || idx === 39) {
+    ctx.save();
+    ctx.shadowColor = startHex || inkColor;
+    ctx.shadowBlur = startHex ? 8 : (isLight ? 2 : 4);
+    ctx.strokeStyle = startHex || inkColor;
+    ctx.globalAlpha = startHex ? 0.95 : (isLight ? 0.3 : 0.55);
+    ctx.lineWidth = 1;
+    rr(cx + 1, cy + 1, S - 2, S - 2, 4);
+    ctx.stroke();
+    ctx.restore();
+
+    if (isStart) {
       ctx.fillStyle = "#FFFFFF";
       ctx.font = "bold 18px sans-serif";
       ctx.textAlign = "center";
@@ -2430,23 +3417,40 @@ function drawBoard() {
       ctx.fillText(arrow, cx + S/2, cy + S/2);
     }
 
-    if (SAFE_TILES.includes(idx) && idx !== 0 && idx !== 13 && idx !== 26 && idx !== 39) {
+    if (SAFE_TILES.includes(idx) && !isStart) {
+      ctx.save();
+      ctx.shadowColor = inkColor;
+      ctx.shadowBlur = isLight ? 3 : 6;
       ctx.font = "bold 20px sans-serif";
-      ctx.fillStyle = "#64748B";
+      ctx.fillStyle = isLight ? 'rgba(26,20,16,0.55)' : 'rgba(255,255,255,0.85)';
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("★", cx + S/2, cy + S/2);
+      ctx.restore();
     }
   });
 
-  // Home Runs
+  // Home Runs — darker base + brighter, more saturated glow per player color
+  // (the one place color is meant to stand out, per the approved appearance pass)
   const drawSolidHome = (cells, hex) => {
     cells.forEach(c => {
-      ctx.fillStyle = hex;
-      ctx.fillRect(c[0] * S, c[1] * S, S, S);
-      ctx.strokeStyle = "#111111";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(c[0] * S, c[1] * S, S, S);
+      const x = c[0] * S, y = c[1] * S;
+      const grad = ctx.createLinearGradient(x, y, x, y + S);
+      grad.addColorStop(0, hex + 'B3');
+      grad.addColorStop(1, isLight ? '#00000026' : '#00000066');
+      rr(x + 1, y + 1, S - 2, S - 2, 4);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.save();
+      ctx.shadowColor = hex;
+      ctx.shadowBlur = isLight ? 7 : 12;
+      ctx.strokeStyle = hex;
+      ctx.lineWidth = 1.6;
+      ctx.globalAlpha = 1;
+      rr(x + 1, y + 1, S - 2, S - 2, 4);
+      ctx.stroke();
+      ctx.restore();
     });
   };
   drawSolidHome(HOME_PATHS[0], PLAYER_CONFIG[0].hex);
@@ -2454,15 +3458,21 @@ function drawBoard() {
   drawSolidHome(HOME_PATHS[2], PLAYER_CONFIG[2].hex);
   drawSolidHome(HOME_PATHS[3], PLAYER_CONFIG[3].hex);
 
-  // Center Conic / Triangles
+  // Center Conic / Triangles — coloring/geometry unchanged (this is the actual
+  // finish zone from your approved mockup, not the "shared track"), glass rim
+  // instead of a flat black stroke — rim color follows theme ink color
   ctx.beginPath(); ctx.moveTo(6 * S, 6 * S); ctx.lineTo(9 * S, 6 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[1].hex; ctx.fill();
   ctx.beginPath(); ctx.moveTo(9 * S, 6 * S); ctx.lineTo(9 * S, 9 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[2].hex; ctx.fill();
   ctx.beginPath(); ctx.moveTo(9 * S, 9 * S); ctx.lineTo(6 * S, 9 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[3].hex; ctx.fill();
   ctx.beginPath(); ctx.moveTo(6 * S, 9 * S); ctx.lineTo(6 * S, 6 * S); ctx.lineTo(7.5 * S, 7.5 * S); ctx.fillStyle = PLAYER_CONFIG[0].hex; ctx.fill();
 
-  ctx.strokeStyle = "#111111";
+  ctx.save();
+  ctx.shadowColor = inkColor;
+  ctx.shadowBlur = isLight ? 4 : 10;
+  ctx.strokeStyle = isLight ? 'rgba(26,20,16,0.55)' : 'rgba(255,255,255,0.8)';
   ctx.lineWidth = 2;
   ctx.strokeRect(6 * S, 6 * S, 3 * S, 3 * S);
+  ctx.restore();
 }
 
 /* ---------------- TOKEN COORDINATES & RENDERING ---------------- */
@@ -2610,6 +3620,7 @@ function renderDicePips(playerIdx, value) {
 function startGame() {
   ensureAudio();
   activeSeatIndices = computeActiveSeatIndices(activePlayerCount, tkgFill);
+  gameStats = [0,1,2,3].map(() => ({ blackhole: 0, burger: 0, noodle: 0, magic: 0, kills: 0, timesKilled: 0 }));
 
   for (let i = 0; i < 4; i++) {
     const input = document.getElementById(`player-name-${i}`);
@@ -2766,8 +3777,8 @@ function handleArrivalLogic(pIdx, tIdx) {
   const t = players[pIdx].tokens[tIdx];
 
   if (players[pIdx].tokens.every(tk => tk.step === 56)) {
-    document.getElementById('winner-title').textContent = `👑 ${players[pIdx].name} WINS!`;
-    document.getElementById('winner-modal').classList.add('show');
+    isPaused = true; // block play through the victory pan, same as every chaos cinema
+    playVictoryPan(pIdx);
     return;
   }
 
@@ -2786,6 +3797,8 @@ function handleArrivalLogic(pIdx, tIdx) {
       });
       if (kills.length > 0) {
         killedOpponent = true;
+        gameStats[pIdx].kills += kills.length;
+        kills.forEach(k => { gameStats[k.oppIdx].timesKilled++; });
         // Cinema Kill Replay (2026-08-27) — the drama now lives entirely
         // in the mini-stage popup, not on the real board. The board's
         // own token state finalizes silently in onDone, once the victim
@@ -2795,10 +3808,10 @@ function handleArrivalLogic(pIdx, tIdx) {
         // opponent token was stacked on the same tile (rare), the
         // popup performs once using the first, and onDone finalizes
         // every kill collected, not just the one shown.
-        playKillCinema(pIdx, kills[0].oppIdx, kills[0].oppTIdx, () => {
+        playBoardZoomCinema('kill', kills[0].oppIdx, kills[0].oppTIdx, () => {
           kills.forEach(k => { k.oppT.step = -1; });
           renderAllTokensDOM();
-        });
+        }, pIdx);
       }
     } else if (gTile !== 0 && gTile !== 13 && gTile !== 26 && gTile !== 39) {
       // Landed safely on a genuine star tile (not one of the 4 colored
