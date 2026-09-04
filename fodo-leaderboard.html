@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>TKG — Khichiya Runner Leaderboard</title>
+<title>TKG — FODO Leaderboard</title>
 <meta name="theme-color" content="#F6F6F5">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
@@ -17,7 +17,7 @@
      instead of flashing back to light. The page background (marble)
      and global ink colors now respond to this attribute too — see the
      [data-tkg-theme="dark"] block in the styles below. -->
-<meta name="description" content="Khichiya Runner — see who's on top right now">
+<meta name="description" content="FODO — see who's on top right now">
 <script>
 (function(){
   try{
@@ -593,11 +593,15 @@ body.dark-mode .tkg-nav-item.active {
 
   <div class="lb-header">
     <div class="lb-header-badge-wrap">
-      <img src="./tkr-runner-icon.png" alt="" class="lb-header-badge" aria-hidden="true">
+      <!-- No dedicated FODO icon asset exists yet (only tkr-runner-icon.png
+           for Runner) — using the same dice emoji Game Console already
+           shows for FODO rather than a broken image link. Swap in a real
+           PNG here later if one gets made, same pattern as Runner's badge. -->
+      <span class="lb-header-badge" style="display:flex;align-items:center;justify-content:center;font-size:28px;" aria-hidden="true">🎲</span>
     </div>
     <div>
-      <div class="lb-title">Khichiya Runner Leaderboard</div>
-      <div class="lb-sub">One continuous leaderboard — the top score holds the crown until someone beats it.</div>
+      <div class="lb-title">FODO Leaderboard</div>
+      <div class="lb-sub">Chaos hits and wins both count — resilience scores higher than a clean win.</div>
     </div>
   </div>
 
@@ -610,7 +614,6 @@ body.dark-mode .tkg-nav-item.active {
       <div class="champion-crown">👑</div>
       <div class="champion-name" id="championName">—</div>
       <div class="champion-score" id="championScore">0</div>
-      <div class="champion-claimed-badge" id="championClaimedBadge" style="display:none;">✓ Reward claimed</div>
     </div>
 
     <div class="section-label">Top scores</div>
@@ -620,14 +623,16 @@ body.dark-mode .tkg-nav-item.active {
     <div class="rank-list live-feed-list" id="liveFeedList" style="display:none;"></div>
   </div>
 
-  <!-- Play CTA — the global nav's 4 slots don't include the game itself
-       (khichiya-runner.html), so this stays the direct, prominent route in —
-       the game is never orphaned even though it's not a nav slot. -->
-  <a href="khichiya-runner.html" class="play-runner-cta">Play Khichiya Runner →</a>
+  <!-- Play CTA — FODO isn't its own global-nav slot either (same as
+       khichiya-runner.html), so this stays the direct route back into
+       the game. -->
+  <a href="fodo.html" class="play-runner-cta">Play FODO →</a>
 
 </div>
 
-<!-- TKG GLOBAL NAV — Leaderboard is the active slot on this page. -->
+<!-- TKG GLOBAL NAV — Games is the active slot here (same convention
+     fodo.html/khichiya-runner.html use — the game itself isn't a nav
+     slot, so its nearest parent lights up instead). -->
 <nav class="tkg-global-nav" id="globalNav" aria-label="Main Navigation">
   <a href="./index.html" class="tkg-nav-item" aria-label="Menu" title="Menu">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -641,10 +646,10 @@ body.dark-mode .tkg-nav-item.active {
   <a href="./moments_hub.html" class="tkg-nav-item tkg-nav-hub" aria-label="TKG Hub" title="Hub">
     <img src="./tkg-hub-nav.png" alt="" class="tkg-hub-badge-icon" aria-hidden="true">
   </a>
-  <a href="./game-console.html" class="tkg-nav-item" aria-label="Game Console" title="Games">
+  <a href="./game-console.html" class="tkg-nav-item active" aria-label="Game Console" title="Games" aria-current="page">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="11" r="1"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
   </a>
-  <a href="./leaderboard.html" class="tkg-nav-item active" aria-label="Leaderboard" title="Leaderboard" aria-current="page">
+  <a href="./leaderboard.html" class="tkg-nav-item" aria-label="Leaderboard" title="Leaderboard">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
   </a>
 </nav>
@@ -659,12 +664,12 @@ body.dark-mode .tkg-nav-item.active {
 // this page never writes tkg_journey_context. logEvent() below already
 // attaches this same state to the 'opened' entry automatically.
 var tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
-if (window.TKGShared) TKGShared.logEvent('leaderboard', 'opened');
+if (window.TKGShared) TKGShared.logEvent('fodo-leaderboard', 'opened');
 
 // Sprint B — 200m Proximity Nudge (2026-08-15). Silent no-op unless
 // it's Fri/Sat/Sun, location permission is already granted, and the
 // device is within 200m of TKG. Never auto-selects a Journey.
-if (window.TKGShared) TKGShared.checkProximityNudge('Leaderboard', function(){ openJourneyPrompt(); });
+if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJourneyPrompt(); });
 
 // ========== JOURNEY PROMPT — Sprint B (2026-08-15) ==========
 // leaderboard.html's own Journey UI, added for the first time this
@@ -690,8 +695,8 @@ document.querySelectorAll('.journey-prompt-choice').forEach(function(btn){
   btn.addEventListener('click', function(){
     var choice = btn.dataset.journeyChoice;
     if(window.TKGShared) TKGShared.setJourneyContext(choice);
-    if(window.TKGShared) TKGShared.setJourneyOriginIfUnset('Leaderboard'); // write-once — first surface a Journey was picked on
-    if(window.TKGShared) TKGShared.recordJourneyEvent(choice, 'Leaderboard'); // same Journey Analytics + location flow Menu uses
+    if(window.TKGShared) TKGShared.setJourneyOriginIfUnset('FODO'); // write-once — first surface a Journey was picked on
+    if(window.TKGShared) TKGShared.recordJourneyEvent(choice, 'FODO'); // same Journey Analytics + location flow Menu uses
     tkgActiveJourney = window.TKGShared ? TKGShared.getJourneyContext() : null;
     closeJourneyPrompt();
   });
@@ -700,27 +705,29 @@ document.querySelectorAll('.journey-prompt-choice').forEach(function(btn){
 
 <script>
 // ---------------------------------------------------------------------------
-// Standalone, customer-facing Leaderboard page — no PIN. Reads the same
-// "Khichiya Runner Scores" sheet the game writes to and the Owner Dashboard
-// claims from (via doGet?action=runnerScores), but never writes anything —
-// this page is read-only by design.
+// Standalone, customer-facing FODO Leaderboard page — no PIN. Built as a
+// direct copy of leaderboard.html (Runner's page), same raw mechanism,
+// pointed at the "FODO Scores" sheet instead (via doGet?action=fodoScores).
+// Never writes anything — read-only by design, same as Runner's page.
+//
+// No claim/Dashboard-claiming concept exists for FODO scores (Runner-only
+// feature) — the champion card here has no claimed badge.
 //
 // Ranking: best score per player (deduped by normalized mobile, since a
 // player can submit multiple times), sorted descending, top 10 shown. The
 // champion card highlights whoever currently holds the single highest
-// score overall — same continuous-leaderboard model as the game/Dashboard,
-// no weekly/daily reset.
+// score overall — same continuous-leaderboard model as Runner, no
+// weekly/daily reset.
 //
 // Live Feed (below the Top 10): anonymous, opt-in only. A player chooses
-// at submit time (on the game's own submit form) whether their score may
-// also show here — no name, ever. Same best-per-player dedupe as the Top
-// 10, just restricted to the opt-in subset, so beating your own score
-// updates your one entry instead of adding a second.
+// at submit time (on FODO's own winner-screen save prompt) whether their
+// score may also show here — no name, ever. Same best-per-player dedupe as
+// the Top 10, just restricted to the opt-in subset, so beating your own
+// score updates your one entry instead of adding a second.
 //
-// Privacy note: mobile numbers are staff-only information (visible on the
-// Owner Dashboard for verifying a claim) and are deliberately never shown
-// on this public page — only the name the player typed in (Top 10) or
-// nothing at all (Live Feed), plus their score.
+// Privacy note: mobile numbers are staff-only information and are
+// deliberately never shown on this public page — only the name the player
+// typed in (Top 10) or nothing at all (Live Feed), plus their score.
 // ---------------------------------------------------------------------------
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyftcQEeDkU1sf2MJy4Zwj12C9J8z4UVWTY1-ny5HM9HhJ0azlkMt5Gvp-nJXDgtLnLA/exec';
 
@@ -741,7 +748,7 @@ function escapeHtml_(str){
 // immediately after and overwrites the DOM (including the champion/
 // claimed badge) the moment it resolves — so a cached render is never
 // left uncorrected. Entirely separate from tkg_customer/tkg_my_identity.
-const LEADERBOARD_CACHE_KEY = 'tkg_leaderboard_cache';
+const LEADERBOARD_CACHE_KEY = 'tkg_fodo_leaderboard_cache';
 
 function loadLeaderboardCache() {
   try {
@@ -782,8 +789,6 @@ function renderLeaderboard(scores) {
 
   document.getElementById('championName').textContent = champion.name || 'Unknown';
   document.getElementById('championScore').textContent = champion.score;
-  const claimedBadge = document.getElementById('championClaimedBadge');
-  claimedBadge.style.display = champion.claimed ? '' : 'none';
 
   const rankListEl = document.getElementById('rankList');
   rankListEl.innerHTML = top10.map((row, i) => {
@@ -854,7 +859,7 @@ async function loadLeaderboard(){
   }
 
   try{
-    const res = await fetch(APP_SCRIPT_URL + '?action=runnerScores');
+    const res = await fetch(APP_SCRIPT_URL + '?action=fodoScores');
     if(!res.ok) throw new Error('Request failed: ' + res.status);
     const data = await res.json();
     if(!data || data.status !== 'ok' || !Array.isArray(data.scores)) throw new Error('Unexpected response');

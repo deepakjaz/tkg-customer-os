@@ -2060,6 +2060,13 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
       </div>
 
       <button type="button" class="btn-start" style="width:100%; margin-top:10px;" onclick="quitToMenu()">PLAY AGAIN 🎲</button>
+
+      <!-- In-game leaderboard access — FODO had no way to view scores
+           from inside the game itself before this, only submit to them
+           (via the save section above). Same idea as Runner's game-over
+           screen having a View Leaderboard link, reusing the same
+           ?from=game context param pattern. -->
+      <a href="fodo-leaderboard.html?from=game" style="display:block; text-align:center; margin-top:12px; font-size:0.8rem; font-weight:700; color:var(--text-dim); text-decoration:none;">View FODO Leaderboard →</a>
     </div>
   </div>
 </div>
@@ -2085,7 +2092,7 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
       <svg class="tkg-icon-recorder" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
     </span>
   </a>
-  <a href="./moments_hub.html" class="tkg-nav-item tkg-nav-hub" aria-label="Moments Hub" title="Hub">
+  <a href="./moments_hub.html" class="tkg-nav-item tkg-nav-hub" aria-label="TKG Hub" title="Hub">
     <img src="./tkg-hub-nav.png" alt="" class="tkg-hub-badge-icon" aria-hidden="true">
   </a>
   <a href="./game-console.html" class="tkg-nav-item active" aria-label="Game Console" title="Games" aria-current="page">

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>TKG Moments Hub — The Khichiya Gravy</title>
+<title>TKG Hub — The Khichiya Gravy</title>
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
@@ -75,6 +75,8 @@ if (window.TKGShared) TKGShared.checkProximityNudge('Hub', function(){ openJourn
   --card-bg: #000000;
   --card-text: #FFFFFF;
   --card-text-soft: rgba(255,255,255,0.8);
+  --card-bg-soft: rgba(255,255,255,0.06);
+  --card-bg-hover: rgba(255,255,255,0.12);
   --accent-bg: #1A1A1A;
   --accent-fg: #FFFFFF;
   --border-crisp: rgba(0,0,0,0.12);
@@ -95,9 +97,16 @@ html[data-tkg-theme="dark"] {
   --text-primary: #FFFFFF;
   --text-secondary: #CCCCCC;
   --text-tertiary: #888888;
-  --card-bg: #1A1A1A;
-  --card-text: #FFFFFF;
-  --card-text-soft: rgba(255,255,255,0.7);
+  /* Locked theme rule (dark page -> WHITE marble card) was never actually
+     wired here — card-bg stayed near-black in dark mode. Fixed 2026-09-03,
+     whole-Hub theme audit: card now genuinely inverts to white, text to
+     black, matching the same rule light theme already followed (light
+     page -> black card). */
+  --card-bg: #FFFFFF;
+  --card-text: #000000;
+  --card-text-soft: rgba(0,0,0,0.65);
+  --card-bg-soft: rgba(0,0,0,0.05);
+  --card-bg-hover: rgba(0,0,0,0.08);
   --accent-bg: #2A2A2A;
   --accent-fg: #FFFFFF;
   --divider: rgba(255, 255, 255, 0.06);
@@ -390,7 +399,9 @@ body {
 
 .review-card:active { transform: scale(0.97); }
 
-html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
+/* Was a no-op override (#FFFFFF -> #FFFFFF) — the accent stripe would have
+   vanished (white-on-white) now that dark theme's card is white too. */
+html[data-tkg-theme="dark"] .review-card { border-left-color: #000000; }
 
 .review-rating {
   display: flex;
@@ -412,7 +423,11 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
 
 .review-author {
   font-size: 12px;
-  color: var(--text-tertiary);
+  /* Was --text-tertiary (a PAGE-level variable) — only looked right by
+     coincidence while the card stayed dark on both themes. Switched to
+     the card-scoped variable so it tracks the card's own contrast, not
+     the page's. */
+  color: var(--card-text-soft);
   font-weight: 500;
 }
 
@@ -422,7 +437,7 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   font-size: 10px;
   font-weight: 600;
   color: var(--card-text-soft);
-  background: rgba(255,255,255,0.08);
+  background: var(--card-bg-soft);
   padding: 3px 9px;
   border-radius: 999px;
   display: inline-flex;
@@ -488,7 +503,7 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   height: 30px;
   border-radius: 50%;
   border: none;
-  background: rgba(255,255,255,0.12);
+  background: var(--card-bg-hover);
   color: var(--card-text);
   font-size: 18px;
   line-height: 1;
@@ -611,7 +626,7 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   font-size: 11px;
   font-weight: 600;
   color: var(--card-text-soft);
-  background: rgba(255,255,255,0.08);
+  background: var(--card-bg-soft);
   padding: 4px 10px;
   border-radius: 999px;
   display: inline-flex;
@@ -696,7 +711,8 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: var(--text-tertiary);
+  /* was --text-tertiary (page-level) — same fix as .review-author above */
+  color: var(--card-text-soft);
   font-weight: 700;
 }
 
@@ -711,7 +727,7 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   align-items: center;
   gap: 10px;
   padding: 7px 10px;
-  background: rgba(255,255,255,0.06);
+  background: var(--card-bg-soft);
   border-radius: var(--radius-md);
 }
 
@@ -757,7 +773,8 @@ html[data-tkg-theme="dark"] .review-card { border-left-color: #FFFFFF; }
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: var(--text-tertiary);
+  /* was --text-tertiary (page-level) — same fix as .review-author above */
+  color: var(--card-text-soft);
   font-weight: 700;
 }
 
@@ -795,6 +812,79 @@ html[data-tkg-theme="dark"] .leaderboard-cta{
   background: #FFFFFF;
   color: #000000;
 }
+
+/* ============================================================
+   GAME SWITCHER + COLLAPSE — added 2026-09-04 so one Leaderboard
+   card can hold both games instead of splitting into two cards.
+   Colors reused verbatim from game-console.html's own tile accents
+   (Runner green / FODO amber) — not new colors invented here.
+   Approved first as a standalone mockup before landing here.
+   ============================================================ */
+.game-switcher {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: var(--card-bg-soft);
+  border-radius: 999px;
+}
+.game-switcher-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--card-text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.game-switcher-btn .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+.game-switcher-btn[data-active="true"] { color: var(--card-text); }
+.game-switcher-btn[data-game="runner"][data-active="true"] {
+  background: rgba(0,184,148,0.22);
+  box-shadow: inset 0 0 0 1px rgba(0,184,148,0.4);
+}
+.game-switcher-btn[data-game="fodo"][data-active="true"] {
+  background: rgba(232,93,44,0.22);
+  box-shadow: inset 0 0 0 1px rgba(232,93,44,0.4);
+}
+
+.lb-body { display: flex; flex-direction: column; gap: 10px; }
+.lb-extra {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s ease;
+}
+.lb-extra > div { overflow: hidden; }
+.lb-extra.open { grid-template-rows: 1fr; }
+.lb-extra-inner { display: flex; flex-direction: column; gap: 10px; padding-top: 2px; }
+
+.show-more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--card-text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px;
+  cursor: pointer;
+}
+.show-more-btn .chev { transition: transform 0.25s ease; display: inline-block; }
+.show-more-btn[data-open="true"] .chev { transform: rotate(180deg); }
 
 /* ===== ANNOUNCEMENTS SECTION ===== */
 .announcements-card {
@@ -1172,33 +1262,53 @@ body.dark-mode .tkg-nav-item.active {
       <!-- LEADERBOARD SECTION -->
       <div class="leaderboard-card">
         <div class="leaderboard-header">
-          <h3 class="leaderboard-title">🏆 Khichiya Runner Leaderboard</h3>
-          <p class="leaderboard-subtitle">One continuous leaderboard — the top score holds the crown until someone beats it.</p>
+          <h3 class="leaderboard-title" id="leaderboardTitle">🏆 Khichiya Runner Leaderboard</h3>
+          <p class="leaderboard-subtitle" id="leaderboardSubtitle">One continuous leaderboard — the top score holds the crown until someone beats it.</p>
         </div>
 
-        <div class="champion-hero" id="championHero">
-          <div class="champion-crown">👑</div>
-          <div class="champion-name" id="championName">Loading...</div>
-          <div class="champion-score" id="championScore">0</div>
+        <div class="game-switcher">
+          <button class="game-switcher-btn" id="gameSwitchRunner" data-game="runner" data-active="true" type="button">
+            <span class="dot"></span> Khichiya Runner
+          </button>
+          <button class="game-switcher-btn" id="gameSwitchFodo" data-game="fodo" data-active="false" type="button">
+            <span class="dot"></span> FODO
+          </button>
         </div>
 
-        <div class="top-scores-label">Top Scores</div>
-        <div class="leaderboard-list" id="leaderboardList">
-          <div class="leaderboard-item">
-            <div class="leaderboard-rank">1</div>
-            <div class="leaderboard-info">
-              <div class="leaderboard-name">Loading...</div>
-              <div class="leaderboard-score">0 points</div>
+        <div class="lb-body">
+          <div class="champion-hero" id="championHero">
+            <div class="champion-crown">👑</div>
+            <div class="champion-name" id="championName">Loading...</div>
+            <div class="champion-score" id="championScore">0</div>
+          </div>
+
+          <div class="top-scores-label">Top Scores</div>
+          <div class="leaderboard-list" id="leaderboardListTop">
+            <div class="leaderboard-item">
+              <div class="leaderboard-rank">1</div>
+              <div class="leaderboard-info">
+                <div class="leaderboard-name">Loading...</div>
+                <div class="leaderboard-score">0 points</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="live-now-label" id="liveNowLabel" style="display:none;">
-          <span class="live-dot"></span> Live Right Now
-        </div>
-        <div class="leaderboard-list" id="liveNowList"></div>
+          <div class="lb-extra" id="lbExtra">
+            <div>
+              <div class="lb-extra-inner">
+                <div class="leaderboard-list" id="leaderboardListRest"></div>
+                <div class="live-now-label" id="liveNowLabel" style="display:none;">
+                  <span class="live-dot"></span> Live Right Now
+                </div>
+                <div class="leaderboard-list" id="liveNowList"></div>
+              </div>
+            </div>
+          </div>
 
-        <button class="leaderboard-cta" id="leaderboardCta">Play & Beat High Score →</button>
+          <button class="show-more-btn" id="showMoreBtn" data-open="false" type="button">Show more <span class="chev">▾</span></button>
+
+          <button class="leaderboard-cta" id="leaderboardCta">Play & Beat High Score →</button>
+        </div>
       </div>
 
       <!-- ANNOUNCEMENTS -->
@@ -1273,7 +1383,7 @@ body.dark-mode .tkg-nav-item.active {
         <svg class="tkg-icon-recorder" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       </span>
     </a>
-    <a href="./moments_hub.html" class="tkg-nav-item tkg-nav-hub active" aria-label="Moments Hub" title="Hub" aria-current="page">
+    <a href="./moments_hub.html" class="tkg-nav-item tkg-nav-hub active" aria-label="TKG Hub" title="Hub" aria-current="page">
       <img src="./tkg-hub-nav.png" alt="" class="tkg-hub-badge-icon" aria-hidden="true">
     </a>
     <a href="./game-console.html" class="tkg-nav-item" aria-label="Game Console" title="Games">
@@ -1354,9 +1464,9 @@ document.getElementById('heroMoments').addEventListener('click', () => {
   window.location.href = './moments.html';
 });
 
-document.getElementById('leaderboardCta').addEventListener('click', () => {
-  window.location.href = './khichiya-runner.html';
-});
+// leaderboardCta click handler moved below — now needs to know which
+// game (Runner/FODO) is currently active, wired alongside the rest of
+// the two-game leaderboard logic.
 
 // ========== HUB CACHE (Stale-While-Revalidate) ==========
 // tkg_hub_cache mirrors moments.html's tkg_moments_feed_cache blueprint
@@ -1454,51 +1564,139 @@ async function fetchFeaturedReviews() {
 }
 
 // ========== FETCH LEADERBOARD (via tkg-shared.js) ==========
-const LEADERBOARD_LIST = document.getElementById('leaderboardList');
+// Two-game version (2026-09-04) — one card, a switcher between Khichiya
+// Runner and FODO, same render/collapse pipeline for both. Runner's own
+// fetch/cache/render behavior is unchanged in substance, just no longer
+// the only consumer of it.
 const CHAMPION_HERO = document.getElementById('championHero');
+const LEADERBOARD_LIST_TOP = document.getElementById('leaderboardListTop');
+const LEADERBOARD_LIST_REST = document.getElementById('leaderboardListRest');
+const LB_EXTRA = document.getElementById('lbExtra');
+const SHOW_MORE_BTN = document.getElementById('showMoreBtn');
+const LEADERBOARD_TITLE_EL = document.getElementById('leaderboardTitle');
+const LEADERBOARD_SUBTITLE_EL = document.getElementById('leaderboardSubtitle');
+const LEADERBOARD_CTA_EL = document.getElementById('leaderboardCta');
 
-function renderHubLeaderboard(scores) {
-  if (!Array.isArray(scores) || scores.length === 0) {
-    LEADERBOARD_LIST.innerHTML = '<div class="reviews-loading">Leaderboard loading...</div>';
-    CHAMPION_HERO.style.display = 'none';
-    return;
+const GAME_META = {
+  runner: {
+    title: '🏆 Khichiya Runner Leaderboard',
+    subtitle: 'One continuous leaderboard — the top score holds the crown until someone beats it.',
+    cta: 'Play & Beat High Score →',
+    playHref: './khichiya-runner.html'
+  },
+  fodo: {
+    title: '🎲 FODO Leaderboard',
+    subtitle: 'Chaos hits and wins both count — resilience scores higher than a clean win.',
+    cta: 'Play FODO & Beat High Score →',
+    playHref: './fodo.html'
   }
+};
 
-  const topScores = [...scores]
-    .sort((a, b) => (b.score || 0) - (a.score || 0))
-    .slice(0, 6);
+// Holds whatever's already been fetched/loaded for each game so switching
+// tabs never needs a refetch — same data, different view.
+const LEADERBOARD_DATA = { runner: null, fodo: null };
+let currentLeaderboardGame = 'runner';
 
-  // Crown Champion hero — rank #1
-  const champion = topScores[0];
-  CHAMPION_HERO.style.display = '';
-  document.getElementById('championName').textContent = champion.name || 'Anonymous';
-  document.getElementById('championScore').textContent = Math.round(champion.score || 0);
-
-  LEADERBOARD_LIST.innerHTML = '';
-
-  topScores.forEach((player, idx) => {
-    const { name, score } = player;
-    const rank = idx + 1;
-    const displayName = escapeHtml(name || 'Anonymous') + (rank === 1 ? ' 👑' : '');
-
-    const item = document.createElement('div');
-    item.className = 'leaderboard-item';
-    item.innerHTML = `
+function leaderboardItemHtml(rank, name, score) {
+  const displayName = escapeHtml(name || 'Anonymous') + (rank === 1 ? ' 👑' : '');
+  return `
+    <div class="leaderboard-item">
       <div class="leaderboard-rank">${rank}</div>
       <div class="leaderboard-info">
         <div class="leaderboard-name">${displayName}</div>
         <div class="leaderboard-score">${Math.round(score || 0)} points</div>
       </div>
-    `;
-    LEADERBOARD_LIST.appendChild(item);
-  });
+    </div>
+  `;
 }
+
+function renderHubLeaderboard(scores) {
+  const meta = GAME_META[currentLeaderboardGame];
+  LEADERBOARD_TITLE_EL.textContent = meta.title;
+  LEADERBOARD_SUBTITLE_EL.textContent = meta.subtitle;
+  LEADERBOARD_CTA_EL.textContent = meta.cta;
+
+  if (!Array.isArray(scores) || scores.length === 0) {
+    LEADERBOARD_LIST_TOP.innerHTML = '<div class="reviews-loading">Leaderboard loading...</div>';
+    LEADERBOARD_LIST_REST.innerHTML = '';
+    document.getElementById('liveNowLabel').style.display = 'none';
+    document.getElementById('liveNowList').innerHTML = '';
+    CHAMPION_HERO.style.display = 'none';
+    return;
+  }
+
+  const ranked = [...scores].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 10);
+
+  // Crown Champion hero — rank #1
+  const champion = ranked[0];
+  CHAMPION_HERO.style.display = '';
+  document.getElementById('championName').textContent = champion.name || 'Anonymous';
+  document.getElementById('championScore').textContent = Math.round(champion.score || 0);
+
+  // Top 3 always visible, 4-10 behind "Show more" — the shape approved in
+  // the standalone mockup before this landed here.
+  LEADERBOARD_LIST_TOP.innerHTML = ranked.slice(0, 3).map((p, i) => leaderboardItemHtml(i + 1, p.name, p.score)).join('');
+  LEADERBOARD_LIST_REST.innerHTML = ranked.slice(3).map((p, i) => leaderboardItemHtml(i + 4, p.name, p.score)).join('');
+
+  // Live Right Now — anonymous, opt-in subset. Generalized to work for
+  // either game (FODO's fodoScores carries the same liveOptIn field
+  // Runner's always has), not hardcoded to Runner like before.
+  const liveScores = scores.filter((row) => row.liveOptIn);
+  const liveNowLabel = document.getElementById('liveNowLabel');
+  const liveNowList = document.getElementById('liveNowList');
+  if (liveScores.length > 0) {
+    liveNowList.innerHTML = liveScores
+      .sort((a, b) => (b.score || 0) - (a.score || 0))
+      .slice(0, 4)
+      .map((row) => leaderboardItemHtml('•', 'Anonymous player', row.score))
+      .join('');
+    liveNowLabel.style.display = 'flex';
+  } else {
+    liveNowLabel.style.display = 'none';
+    liveNowList.innerHTML = '';
+  }
+}
+
+function switchLeaderboardGame(game) {
+  if (game === currentLeaderboardGame) return;
+  currentLeaderboardGame = game;
+
+  document.querySelectorAll('.game-switcher-btn').forEach((btn) => {
+    btn.dataset.active = (btn.dataset.game === game) ? 'true' : 'false';
+  });
+
+  renderHubLeaderboard(Array.isArray(LEADERBOARD_DATA[game]) ? LEADERBOARD_DATA[game] : []);
+}
+
+document.getElementById('gameSwitchRunner').addEventListener('click', () => switchLeaderboardGame('runner'));
+document.getElementById('gameSwitchFodo').addEventListener('click', () => switchLeaderboardGame('fodo'));
+
+let leaderboardExpanded = false;
+SHOW_MORE_BTN.addEventListener('click', () => {
+  leaderboardExpanded = !leaderboardExpanded;
+  LB_EXTRA.classList.toggle('open', leaderboardExpanded);
+  SHOW_MORE_BTN.dataset.open = leaderboardExpanded ? 'true' : 'false';
+  SHOW_MORE_BTN.firstChild.textContent = leaderboardExpanded ? 'Show less ' : 'Show more ';
+});
+
+LEADERBOARD_CTA_EL.addEventListener('click', () => {
+  window.location.href = GAME_META[currentLeaderboardGame].playHref;
+});
 
 function loadLeaderboardFromCache() {
   const cached = loadHubCache();
-  if (!cached || !Array.isArray(cached.scores) || cached.scores.length === 0) return false;
-  renderHubLeaderboard(cached.scores);
-  return true;
+  if (!cached) return false;
+  let any = false;
+  if (Array.isArray(cached.scores) && cached.scores.length > 0) {
+    LEADERBOARD_DATA.runner = cached.scores;
+    any = true;
+  }
+  if (Array.isArray(cached.fodoScores) && cached.fodoScores.length > 0) {
+    LEADERBOARD_DATA.fodo = cached.fodoScores;
+    any = true;
+  }
+  if (any) renderHubLeaderboard(LEADERBOARD_DATA[currentLeaderboardGame] || []);
+  return any;
 }
 
 async function fetchLeaderboard() {
@@ -1507,13 +1705,32 @@ async function fetchLeaderboard() {
   if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.scores) || result.data.scores.length === 0) {
     // Same rule as reviews: don't stomp a cached render just because this
     // particular refresh came back empty/failed.
-    const cached = loadHubCache();
-    if (!cached || !Array.isArray(cached.scores) || cached.scores.length === 0) renderHubLeaderboard([]);
+    if (!Array.isArray(LEADERBOARD_DATA.runner) || LEADERBOARD_DATA.runner.length === 0) {
+      LEADERBOARD_DATA.runner = [];
+      if (currentLeaderboardGame === 'runner') renderHubLeaderboard([]);
+    }
     return;
   }
 
-  renderHubLeaderboard(result.data.scores);
+  LEADERBOARD_DATA.runner = result.data.scores;
   saveHubCache({ scores: result.data.scores });
+  if (currentLeaderboardGame === 'runner') renderHubLeaderboard(result.data.scores);
+}
+
+async function fetchFodoLeaderboard() {
+  const result = await window.TKGShared.fetchFromAppsScript('fodoScores');
+
+  if (!result.success || !result.data || result.data.status !== 'ok' || !Array.isArray(result.data.scores) || result.data.scores.length === 0) {
+    if (!Array.isArray(LEADERBOARD_DATA.fodo) || LEADERBOARD_DATA.fodo.length === 0) {
+      LEADERBOARD_DATA.fodo = [];
+      if (currentLeaderboardGame === 'fodo') renderHubLeaderboard([]);
+    }
+    return;
+  }
+
+  LEADERBOARD_DATA.fodo = result.data.scores;
+  saveHubCache({ fodoScores: result.data.scores });
+  if (currentLeaderboardGame === 'fodo') renderHubLeaderboard(result.data.scores);
 }
 
 function escapeHtml(text) {
@@ -1762,6 +1979,7 @@ loadHeroPreviewFromCache();
 
 fetchFeaturedReviews();
 fetchLeaderboard();
+fetchFodoLeaderboard();
 fetchHeroPreview();
 </script>
 
