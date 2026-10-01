@@ -649,13 +649,12 @@
     content: '';
     position: absolute;
     left: 50%;
-    top: 18%;
-    width: calc(42% * var(--token-scale));
-    height: calc(20% * var(--token-scale));
+    top: 50%;
+    width: calc(14px * var(--token-scale));
+    height: calc(14px * var(--token-scale));
     transform: translateX(-50%);
-    border-radius: 999px;
-    background: rgba(255,255,255,.22);
-    pointer-events: none;
+    background: var(--pawn-color, #E71D36);
+    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
   }
 
   .sticker-token.can-move {
@@ -1427,12 +1426,11 @@
   }
   .chaos-boardzoom-token .token-body::after {
     content: '';
-    position: absolute; left: 50%; top: 18%;
-    width: 42%; height: 20%;
+    position: absolute; left: 50%; top: 50%;
+    width: 78%; height: 78%;
     transform: translateX(-50%);
-    border-radius: 999px;
-    background: rgba(255,255,255,.22);
-    pointer-events: none;
+    background: var(--pawn-color);
+    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
   }
 
   /* Black Hole — token spins, shrinks, and sinks into the hole */
@@ -2034,10 +2032,14 @@
 
   /* Chaos V3 glass icon material — visual only */
   .fodo-event-badge .chaos-glass-icon{width:100%;height:100%;display:block;transform-origin:50% 50%;}
-  .fodo-event-badge .glass-shell{fill:rgba(18,14,11,.92);stroke:rgba(255,255,255,.92);stroke-width:1.35;}
-  .fodo-event-badge .glass-shine{fill:rgba(255,255,255,.12);}
-  .fodo-event-badge .icon-core{stroke:rgba(255,255,255,.98);fill:none;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}
-  .fodo-event-badge .icon-fill{fill:rgba(255,255,255,.96);}
+  .fodo-event-badge .chaos-glass-icon{opacity:1;filter:none;}
+  .fodo-event-badge .glass-shell{fill:#17120F;stroke:#FFFFFF;stroke-width:1.5;}
+  .fodo-event-badge .glass-shine{fill:rgba(255,255,255,.16);}
+  .fodo-event-badge .icon-core{stroke:#FFFFFF;fill:none;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}
+  .fodo-event-badge .icon-fill{fill:#FFFFFF;}
+  html[data-tkg-theme="light"] .fodo-event-badge .glass-shell{fill:#17120F;stroke:#FFFFFF;}
+  html[data-tkg-theme="light"] .fodo-event-badge .icon-core{stroke:#FFFFFF;}
+  html[data-tkg-theme="light"] .fodo-event-badge .icon-fill{fill:#FFFFFF;}
   .fodo-event-badge.is-blackhole .chaos-glass-icon{animation:fodoBH 2.4s ease-in-out infinite;}
   .fodo-event-badge.is-burger .chaos-glass-icon{animation:fodoBurger 1.05s cubic-bezier(.34,1.3,.64,1) infinite;}
   .fodo-event-badge.is-noodle .chaos-glass-icon{animation:fodoNoodle 1.35s ease-in-out infinite;}
@@ -3100,7 +3102,6 @@ const SAFE_TILES = [0, 8, 13, 21, 26, 34, 39, 47];
 
 /* Dynamic Events */
 let activeFodoEvents = {};
-let chaosInProgress = false;
 // Restored (2026-08-26) — tracks which trap types this player has already
 // seen the one-time explainer for, keyed by trap type string.
 let hasExplainedTrap = {};
@@ -3163,7 +3164,7 @@ function applyRandomChaos_(pIdx,tIdx){
 
 const EVENT_TEMPLATES = CHAOS_WORLD_TYPES.map(type=>({
   type, icon:CHAOS_WORLD_META[type].icon, name:CHAOS_WORLD_META[type].name+'!',
-  action:(pIdx,tIdx,resume)=>{
+  action:(pIdx,tIdx)=>{
     gameStats[pIdx][type]=(gameStats[pIdx][type]||0)+1;
     broadcastHighlight('🔥 FUDO CHAOS!',CHAOS_WORLD_META[type].name);
     let swapTarget=null;
@@ -3184,9 +3185,9 @@ const EVENT_TEMPLATES = CHAOS_WORLD_TYPES.map(type=>({
     };
     if(type==='kill'){
       // Kill is a Chaos World event: no attacker is invented. It kicks the landed token home.
-      playBoardZoomCinema('kill',pIdx,tIdx,()=>{sendTokenToYard(pIdx,tIdx);if(typeof resume==='function')resume();});
+      playBoardZoomCinema('kill',pIdx,tIdx,()=>sendTokenToYard(pIdx,tIdx));
     } else {
-      playBoardZoomCinema(type,pIdx,tIdx,()=>{apply();if(typeof resume==='function')resume();});
+      playBoardZoomCinema(type,pIdx,tIdx,apply);
     }
   }
 }));
@@ -4401,7 +4402,7 @@ function startGame() {
   ensureAudio();
   activeSeatIndices = computeActiveSeatIndices(activePlayerCount, tkgFill);
   gameStats = [0,1,2,3].map(() => ({ blackhole: 0, burger: 0, noodle: 0, magic: 0, dice: 0, freeze: 0, reverse: 0, swap: 0, bomb: 0, protection: 0, random: 0, kill: 0, king: 0, invisible: 0, kills: 0, timesKilled: 0 }));
-  chaosBonusRolls=[0,0,0,0]; chaosFreezeTurns=[0,0,0,0]; chaosProtectionTurns=[0,0,0,0]; chaosInvisibleTurns=[0,0,0,0]; chaosBag=[]; chaosInProgress=false;
+  chaosBonusRolls=[0,0,0,0]; chaosFreezeTurns=[0,0,0,0]; chaosProtectionTurns=[0,0,0,0]; chaosInvisibleTurns=[0,0,0,0]; chaosBag=[];
 
   for (let i = 0; i < 4; i++) {
     const input = document.getElementById(`player-name-${i}`);
@@ -4605,21 +4606,9 @@ function handleArrivalLogic(pIdx, tIdx) {
     if (activeFodoEvents[gTile]) {
       const ev = activeFodoEvents[gTile];
       delete activeFodoEvents[gTile];
-      chaosInProgress = true;
-      ev.onLand(pIdx, tIdx, () => {
-        chaosInProgress = false;
-        finishTurnAfterMove_(pIdx, tIdx, killedOpponent);
-      });
-      return;
+      ev.onLand(pIdx, tIdx);
     }
   }
-
-  finishTurnAfterMove_(pIdx, tIdx, killedOpponent);
-}
-
-function finishTurnAfterMove_(pIdx, tIdx, killedOpponent) {
-  const t = players[pIdx].tokens[tIdx];
-  if (isPaused || players[pIdx].tokens.every(tk => tk.step === 56)) return;
 
   if (lastDiceRoll === 6 || killedOpponent || t.step === 56 || chaosBonusRolls[pIdx] > 0) {
     if(chaosBonusRolls[pIdx]>0) chaosBonusRolls[pIdx]--;
@@ -4657,7 +4646,6 @@ function sendTokenToYard(pIdx, tIdx) {
 }
 
 function nextTurn() {
-  if (chaosInProgress) return;
   spawnRandomFodoEvents();
   // Effects last for one future turn. Remove visual invisibility when it expires.
   activeSeatIndices.forEach(i=>{
@@ -5133,7 +5121,16 @@ window.playBoardZoomCinema=function(type,victimPIdx,victimTIdx,onDone,attackerPI
 
     setTimeout(()=>{onDone&&onDone();},4100);
     setTimeout(()=>{scaler.classList.add('v17-camera-out');flavorBg.classList.add('fade-out');pullRope.classList.add('fade-out');},4300);
-    setTimeout(()=>{overlay.classList.remove('show');isPaused=false;fodoV18StopAudio();[impact,sfx].forEach(el=>el.className=el.className.split(' ')[0]);if(players[currentTurn]&&players[currentTurn].isAI&&!isRolling&&!isTokenMoving)setTimeout(()=>{if(!isPaused)onRollDice(currentTurn)},180)},5100);
+    setTimeout(()=>{
+      overlay.classList.remove('show');
+      isPaused=false;
+      fodoV18StopAudio();
+      [impact,sfx].forEach(el=>el.className=el.className.split(' ')[0]);
+      const resumeChaosTurn = pendingChaosFinish;
+      pendingChaosFinish = null;
+      if(resumeChaosTurn) setTimeout(resumeChaosTurn,0);
+      else if(players[currentTurn]&&players[currentTurn].isAI&&!isRolling&&!isTokenMoving) setTimeout(()=>{if(!isPaused)onRollDice(currentTurn)},180);
+    },5100);
   }).catch(()=>{fodoV18StopAudio();if(type==='kill'&&typeof playKillCinema==='function')playKillCinema(attackerPIdx,victimPIdx,victimTIdx,onDone);else if(typeof playTrapCinema==='function')playTrapCinema(type,victimPIdx,victimTIdx,onDone);});
 };
 
