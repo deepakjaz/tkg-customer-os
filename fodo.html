@@ -26,9 +26,11 @@
   :root {
     --bg-page: #0F0E0C;
     --card-bg: rgba(28, 20, 16, 0.88);
-    --card-border: rgba(250, 198, 70, 0.3);
+    --card-border: rgba(var(--tkg-gold-rgb), 0.22);
     --tkg-ember: #E85D2C;
-    --tkg-gold: #FAC646;
+    --tkg-gold: #EDEAE2;
+    --tkg-gold-rgb: 237, 234, 226;
+    --tkg-gold-contrast: #1A0F0A;
     --tkg-coal: #1C120C;
     --text-main: #FFFFFF;
     --text-dim: #A89F91;
@@ -48,7 +50,9 @@
     --bg-page: #F4EDE2;
     --card-bg: #FFFFFF;
     --card-border: rgba(26, 20, 16, 0.18);
-    --tkg-gold: #C98B3D;
+    --tkg-gold: #332A22;
+    --tkg-gold-rgb: 51, 42, 34;
+    --tkg-gold-contrast: #FFFFFF;
     --text-main: #1A1410;
     --text-dim: #6B5F52;
     --input-bg: rgba(26, 20, 16, 0.06);
@@ -198,9 +202,9 @@
   }
   .player-count-card.active {
     border-color: var(--tkg-gold);
-    background: rgba(250, 198, 70, 0.18);
+    background: rgba(var(--tkg-gold-rgb), 0.18);
     color: var(--text-main);
-    box-shadow: 0 0 12px rgba(250, 198, 70, 0.35);
+    box-shadow: 0 0 12px rgba(var(--tkg-gold-rgb), 0.35);
   }
 
   #tkg-fill-row {
@@ -269,8 +273,8 @@
      Every rule below is scoped with #setup-screen so nothing outside
      the setup flow (board, HUD, modals) is touched by this pass. */
   #setup-screen {
-    border-color: rgba(250,198,70,0.35);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 0 40px rgba(250,198,70,0.04);
+    border-color: rgba(var(--tkg-gold-rgb), 0.35);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 0 40px rgba(var(--tkg-gold-rgb), 0.04);
   }
   #setup-screen .setup-stage-title { color: var(--text-main); }
 
@@ -288,9 +292,9 @@
     pointer-events: none;
   }
   #setup-screen .player-count-card.active {
-    background: linear-gradient(180deg, rgba(250,198,70,0.16), rgba(0,0,0,0.35));
-    border-color: rgba(250,198,70,0.55);
-    box-shadow: 0 0 0 1px rgba(250,198,70,.25), 0 0 22px rgba(250,198,70,.35), inset 0 0 18px rgba(250,198,70,.08);
+    background: linear-gradient(180deg, rgba(var(--tkg-gold-rgb),0.16), rgba(0,0,0,0.35));
+    border-color: rgba(var(--tkg-gold-rgb),0.55);
+    box-shadow: 0 0 0 1px rgba(var(--tkg-gold-rgb),.25), 0 0 22px rgba(var(--tkg-gold-rgb),.35), inset 0 0 18px rgba(var(--tkg-gold-rgb),.08);
     color: var(--text-main);
   }
 
@@ -324,9 +328,9 @@
   }
 
   #setup-screen .btn-start {
-    background: linear-gradient(180deg, #FFE9A8, var(--tkg-gold));
-    color: #1A0F0A;
-    box-shadow: 0 8px 22px rgba(250,198,70,.28), inset 0 1px 0 rgba(255,255,255,.6);
+    background: linear-gradient(180deg, rgba(var(--tkg-gold-rgb),0.82), var(--tkg-gold));
+    color: var(--tkg-gold-contrast);
+    box-shadow: 0 8px 22px rgba(var(--tkg-gold-rgb),.28), inset 0 1px 0 rgba(255,255,255,.6);
   }
   #setup-screen .mode-btn {
     background: rgba(255,255,255,0.04);
@@ -441,7 +445,7 @@
     opacity: 1;
     transform: scale(1.02);
     border-color: var(--tkg-gold);
-    box-shadow: 0 0 16px rgba(250, 198, 70, 0.6);
+    box-shadow: 0 0 16px rgba(var(--tkg-gold-rgb), 0.6);
   }
 
   .card-top-strip {
@@ -525,7 +529,7 @@
     border-top: 10px solid var(--tkg-gold);
     opacity: 0;
     pointer-events: none;
-    filter: drop-shadow(0 0 5px rgba(250, 198, 70, 0.8));
+    filter: drop-shadow(0 0 5px rgba(var(--tkg-gold-rgb), 0.8));
     z-index: 10;
   }
   .turn-arrow.show {
@@ -590,8 +594,8 @@
     inset: 0;
     background: radial-gradient(ellipse at 50% 35%, #1A0F12 0%, #0A0508 60%, #050304 100%);
     border-radius: 12px;
-    border: 2px solid rgba(250,198,70,0.4);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 24px rgba(250,198,70,0.12);
+    border: 2px solid rgba(var(--tkg-gold-rgb),0.4);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 24px rgba(var(--tkg-gold-rgb),0.12);
     overflow: hidden;
   }
   #board-canvas { width: 100%; height: 100%; display: block; }
@@ -645,12 +649,13 @@
     content: '';
     position: absolute;
     left: 50%;
-    top: 50%;
-    width: calc(14px * var(--token-scale));
-    height: calc(14px * var(--token-scale));
+    top: 18%;
+    width: calc(42% * var(--token-scale));
+    height: calc(20% * var(--token-scale));
     transform: translateX(-50%);
-    background: var(--pawn-color, #E71D36);
-    clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+    border-radius: 999px;
+    background: rgba(255,255,255,.22);
+    pointer-events: none;
   }
 
   .sticker-token.can-move {
@@ -1050,19 +1055,79 @@
     animation: cinemaImpactRing 0.4s ease-out;
   }
 
+  /* Chat-bubble pop (rebuilt) — now a real speech-bubble shape (white
+     card + tail) instead of plain floating text, with a bouncy pop-in
+     instead of a fade. Lives inside the scaler now (positioned at the
+     tile via left/top like the token), not as a caption below the
+     frame — so it visibly pops up FROM the token, not detached below
+     the board. Dark text on a solid light bubble now, since it's no
+     longer sitting directly on the cinema's dark photo backdrop. */
   .chaos-cinema-tag {
+    position: absolute;
     font-weight: 900;
-    font-size: 1.15rem;
-    color: var(--tkg-gold);
-    text-transform: uppercase;
-    text-shadow: 0 2px 4px #000;
+    font-size: 0.95rem;
+    line-height: 1.3;
+    color: #2A1A10;
+    text-transform: none;
     text-align: center;
+    /* Wrap safety — belt-and-suspenders on top of the position fix
+       below, so no line, however long, can force single-line overflow. */
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 42%;
+    padding: 9px 13px;
+    border-radius: 14px;
+    background: #FFFFFF;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
     opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    max-width: 240px;
+    /* --tag-ty / --tag-origin let .flip-below (below) change direction
+       without duplicating the whole animation — see that class and the
+       keyframes further down. */
+    --tag-ty: -170%;
+    --tag-origin: 50% 100%;
+    transform: translate(-50%, var(--tag-ty)) scale(0);
+    transform-origin: var(--tag-origin);
+    z-index: 5;
   }
-  .chaos-cinema-tag.show { opacity: 1; transform: translateY(0); }
+  /* The actual fix: the frame this bubble lives in clips anything
+     outside it (overflow: hidden). Floating a fixed distance above the
+     token was the bug — for any token near the TOP of the board, that
+     pushed the bubble above the visible frame and it got cut off. When
+     JS detects that case, it adds this class to flip the bubble BELOW
+     the token instead, so it always stays inside the visible frame. */
+  .chaos-cinema-tag.flip-below {
+    --tag-ty: 70%;
+    --tag-origin: 50% 0%;
+  }
+  .chaos-cinema-tag::after {
+    content: '';
+    position: absolute;
+    left: 50%; bottom: -7px;
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid #FFFFFF;
+  }
+  .chaos-cinema-tag.flip-below::after {
+    bottom: auto; top: -7px;
+    border-top: none;
+    border-bottom: 7px solid #FFFFFF;
+  }
+  .chaos-cinema-tag.show {
+    animation: bzBubblePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  .chaos-cinema-tag.fade-out {
+    animation: bzBubbleOut 0.3s ease-in forwards;
+  }
+  @keyframes bzBubblePop {
+    0%   { opacity: 0; transform: translate(-50%, var(--tag-ty)) scale(0); }
+    70%  { opacity: 1; transform: translate(-50%, var(--tag-ty)) scale(1.08); }
+    100% { opacity: 1; transform: translate(-50%, var(--tag-ty)) scale(1); }
+  }
+  @keyframes bzBubbleOut {
+    to { opacity: 0; transform: translate(-50%, var(--tag-ty)) scale(0.85); }
+  }
 
   /* --- Camera moves (applied to .chaos-cinema-camera's own transform,
          never anything board-related) --- */
@@ -1150,13 +1215,16 @@
     100% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
   }
 
-  /* Whip-in (fast) then slow-settle (the chaos effect plays during this
-     part), matching "camera moves fast and then it goes slow mo". */
+  /* Whip-in (fast), then a SHORT decisive settle — camera locks onto the
+     tile and stops moving. The chaos reveal (comic burst / flavor
+     background / reaction) fires only AFTER this finishes, not while
+     the camera is still moving — this was the actual sequencing fix
+     requested: pan-and-settle first, THEN the chaos moment. */
   .chaos-boardzoom-scaler.whip-in {
     animation: bzWhipIn 0.32s cubic-bezier(0.15, 0.85, 0.25, 1) forwards;
   }
   .chaos-boardzoom-scaler.slow-settle {
-    animation: bzSlowSettle 2.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: bzSlowSettle 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
   .chaos-boardzoom-scaler.zoom-out {
     animation: bzZoomOut 0.6s ease-in-out forwards;
@@ -1167,11 +1235,139 @@
   }
   @keyframes bzSlowSettle {
     from { transform: scale(2.3); }
-    to   { transform: scale(3.0); }
+    to   { transform: scale(2.75); }
   }
   @keyframes bzZoomOut {
-    from { transform: scale(3.0); }
+    from { transform: scale(2.75); }
     to   { transform: scale(1); }
+  }
+
+  /* ===== Comic-book impact burst (added) — thick radiating "sun ray"
+     lines behind the reveal moment, like a POW/BAM comic panel. Shared
+     shape, colour set per chaos type via --burst-color. Sits inside the
+     scaler so it zooms/holds together with the token and board. ===== */
+  .chaos-comic-burst {
+    position: absolute;
+    width: 50%;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    opacity: 0;
+    background: repeating-conic-gradient(from 0deg,
+      var(--burst-color, #FFE8A3) 0deg 8deg,
+      transparent 8deg 20deg);
+    /* Hollow centre (the actual fix) — a clear round space is kept open
+       in the middle so the token/vortex/burger/starburst underneath
+       stay fully visible. The rays only occupy the outer ring, not the
+       whole disc. */
+    -webkit-mask-image: radial-gradient(circle, transparent 0%, transparent 38%, black 46%, black 100%);
+    mask-image: radial-gradient(circle, transparent 0%, transparent 38%, black 46%, black 100%);
+    filter: drop-shadow(0 0 12px var(--burst-color, #FFE8A3));
+    pointer-events: none;
+    /* No z-index (was 4) — that was the other half of the bug: a
+       positive z-index always paints above the token/vortex/starburst
+       below, which have no z-index of their own, regardless of DOM
+       order. Leaving this at auto and keeping the element early in the
+       markup (right after the flavour wash, before the token/props)
+       is what actually keeps it behind them. */
+  }
+  .chaos-comic-burst.show {
+    animation: bzComicBurst 0.55s cubic-bezier(0.2, 1.5, 0.4, 1) forwards;
+  }
+  .chaos-comic-burst.fade-out {
+    animation: bzComicBurstOut 0.45s ease-in forwards;
+  }
+  @keyframes bzComicBurst {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(0deg); }
+    55%  { opacity: 1; transform: translate(-50%, -50%) scale(1.15) rotate(8deg); }
+    100% { opacity: 0.9; transform: translate(-50%, -50%) scale(1) rotate(5deg); }
+  }
+  @keyframes bzComicBurstOut {
+    to { opacity: 0; transform: translate(-50%, -50%) scale(0.8) rotate(5deg); }
+  }
+
+  /* ===== FODO CHAOS V11 — small, local, readable reactions ===== */
+  .chaos-modal-icon{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;}
+  .chaos-modal-icon .chaos-glass-icon{width:32px;height:32px;}
+
+  /* The comic hit is deliberately tiny and local. One pulse, then gone. */
+  .chaos-comic-burst{width:15%;filter:drop-shadow(0 0 7px var(--burst-color,#FFE8A3));}
+  .chaos-comic-burst.show{animation:bzComicBurstSmall .38s cubic-bezier(.2,1.5,.4,1) forwards;}
+  .chaos-comic-burst.fade-out{animation:bzComicBurstSmallOut .22s ease-in forwards;}
+  @keyframes bzComicBurstSmall{0%{opacity:0;transform:translate(-50%,-50%) scale(.15) rotate(-10deg)}55%{opacity:1;transform:translate(-50%,-50%) scale(1.16) rotate(7deg)}100%{opacity:.88;transform:translate(-50%,-50%) scale(1) rotate(4deg)}}
+  @keyframes bzComicBurstSmallOut{to{opacity:0;transform:translate(-50%,-50%) scale(.72) rotate(4deg)}}
+
+  .chaos-near-impact{position:absolute;width:9%;aspect-ratio:1;transform:translate(-50%,-50%) scale(.2);opacity:0;pointer-events:none;z-index:9;}
+  .chaos-near-impact::before,.chaos-near-impact::after{content:"";position:absolute;inset:18%;border:2px solid rgba(255,255,255,.92);border-radius:2px;transform:rotate(45deg);}
+  .chaos-near-impact::after{transform:rotate(-45deg);border-color:rgba(255,196,92,.9);}
+  .chaos-near-impact.show{animation:nearImpactOnce .42s ease-out forwards;}
+  @keyframes nearImpactOnce{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(0)}35%{opacity:1;transform:translate(-50%,-50%) scale(1.2) rotate(8deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.65) rotate(18deg)}}
+
+  /* A small physical pull line, anchored to the token rather than the frame. */
+  .chaos-pull-rope{position:absolute;width:13%;height:9%;transform:translate(-50%,-50%);opacity:0;pointer-events:none;z-index:8;}
+  .chaos-pull-rope::before{content:"";position:absolute;left:0;top:50%;width:78%;height:2px;background:linear-gradient(90deg,rgba(255,255,255,.15),rgba(255,204,92,.95));box-shadow:0 0 5px rgba(255,196,70,.55);transform-origin:left center;transform:rotate(-10deg);border-radius:99px;}
+  .chaos-pull-rope .rope-hook{position:absolute;right:10%;top:36%;width:18%;height:28%;border:2px solid rgba(255,255,255,.92);border-left:0;border-radius:0 80% 80% 0;transform:rotate(-18deg);}
+  .chaos-pull-rope.show{animation:pullRopeIn .35s ease-out forwards;}
+  .chaos-pull-rope.fade-out{animation:pullRopeOut .28s ease-in forwards;}
+  @keyframes pullRopeIn{from{opacity:0;transform:translate(-50%,-50%) scaleX(.2)}to{opacity:.9;transform:translate(-50%,-50%) scaleX(1)}}
+  @keyframes pullRopeOut{to{opacity:0;transform:translate(-50%,-50%) scaleX(.25)}}
+
+  /* Tiny cartoon limbs make the pawn read as physical without changing the uploaded face. */
+  .chaos-boardzoom-token{overflow:visible;}
+  .chaos-limb{position:absolute;display:block;width:13%;height:6%;background:var(--bz-token-color,#E71D36);border-radius:999px;box-shadow:0 1px 2px rgba(0,0,0,.4);opacity:0;z-index:0;}
+  .chaos-limb.arm-left{left:0;top:53%;transform:rotate(28deg);transform-origin:right center;}
+  .chaos-limb.arm-right{right:0;top:53%;transform:rotate(-28deg);transform-origin:left center;}
+  .chaos-limb.leg-left{left:25%;bottom:-3%;transform:rotate(70deg);transform-origin:top center;}
+  .chaos-limb.leg-right{right:25%;bottom:-3%;transform:rotate(-70deg);transform-origin:top center;}
+  .chaos-boardzoom-token.physical .chaos-limb{opacity:1;}
+  .chaos-boardzoom-token.physical .arm-left{animation:armLeftWiggle .5s ease-in-out 2;}
+  .chaos-boardzoom-token.physical .arm-right{animation:armRightWiggle .5s ease-in-out 2;}
+  .chaos-boardzoom-token.physical .leg-left{animation:legLeftWiggle .5s ease-in-out 2;}
+  .chaos-boardzoom-token.physical .leg-right{animation:legRightWiggle .5s ease-in-out 2;}
+  @keyframes armLeftWiggle{50%{transform:rotate(-18deg) translate(-2px,-2px)}}
+  @keyframes armRightWiggle{50%{transform:rotate(18deg) translate(2px,-2px)}}
+  @keyframes legLeftWiggle{50%{transform:rotate(35deg) translate(-1px,2px)}}
+  @keyframes legRightWiggle{50%{transform:rotate(-35deg) translate(1px,2px)}}
+
+  /* Make the hold feel like a beat instead of a wall of effects. */
+  .chaos-boardzoom-frame{transition:box-shadow .35s ease;}
+  .chaos-boardzoom-frame.impact-hit{animation:frameImpact .26s ease-out;}
+  @keyframes frameImpact{0%,100%{transform:translate(0,0)}25%{transform:translate(2px,-1px)}50%{transform:translate(-2px,1px)}75%{transform:translate(1px,1px)}}
+
+  /* ===== Per-type flavour background (added) — "everything turns to X"
+     wash across the whole zoomed frame, behind the burst/tokens/tag but
+     above the real board snapshot. Noodle gets an actual tiled noodle
+     pattern per the specific ask; the rest get a themed colour wash. */
+  .chaos-flavor-bg {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .chaos-flavor-bg.show { animation: bzFlavorIn 0.4s ease-out forwards; }
+  .chaos-flavor-bg.fade-out { animation: bzFlavorOut 0.5s ease-in forwards; }
+  @keyframes bzFlavorIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes bzFlavorOut { to { opacity: 0; } }
+
+  .chaos-flavor-bg.flavor-blackhole {
+    background: radial-gradient(circle at 50% 50%, rgba(20,8,32,0.88) 0%, rgba(6,2,12,0.72) 55%, transparent 100%);
+  }
+  .chaos-flavor-bg.flavor-burger {
+    background: radial-gradient(circle at 50% 50%, rgba(255,107,53,0.32) 0%, transparent 68%);
+  }
+  .chaos-flavor-bg.flavor-magic {
+    background: radial-gradient(circle at 50% 50%, rgba(255,232,163,0.4) 0%, transparent 68%);
+  }
+  .chaos-flavor-bg.flavor-kill {
+    background:
+      repeating-linear-gradient(115deg, rgba(231,29,54,0.32) 0 6px, transparent 6px 18px),
+      radial-gradient(circle at 50% 50%, rgba(231,29,54,0.18) 0%, transparent 70%);
+  }
+  .chaos-flavor-bg.flavor-noodle {
+    background-color: rgba(244,200,70,0.14);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='60'%3E%3Cpath d='M-10 10 Q 15 -5 40 10 T 90 10 T 140 10' stroke='%23E8A93C' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M-10 30 Q 15 15 40 30 T 90 30 T 140 30' stroke='%23F4C86B' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M-10 48 Q 15 33 40 48 T 90 48 T 140 48' stroke='%23D9922B' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-size: 90px 54px;
   }
 
   /* ===== Token overlay — the real board is a frozen photo, so nothing in
@@ -1188,27 +1384,55 @@
     opacity: 0;
   }
   .chaos-boardzoom-token.show { opacity: 1; }
-  .chaos-boardzoom-token-shape {
-    position: relative;
+  /* Reuses the REAL pawn's own markup/classes (sticker-token/token-head/
+     token-body — same ones spawnTokensDOM() builds for the live board)
+     instead of a separately-styled shape, so the animation token can
+     never visually drift from the actual in-game pawn again. Sized as
+     percentages of this wrapper (not the live token's fixed px sizes)
+     so it fills the same footprint the old custom shape used, matching
+     the real pawn's proportions, gradient and border exactly.
+     --pawn-color is bridged from --bz-token-color (set by JS below)
+     without touching the live board's own --pawn-color/.token-* rules
+     at all — those stay exactly as they are for the live board. */
+  .chaos-boardzoom-token .sticker-token {
+    position: static;
     width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    transform: none; transition: none; cursor: default; pointer-events: none;
+    --pawn-color: var(--bz-token-color, #E71D36);
   }
-  .chaos-boardzoom-token-point {
-    position: absolute; left: 15%; top: 40%; width: 70%; height: 60%;
-    background: var(--bz-token-color, #E71D36);
-    clip-path: polygon(50% 100%, 0% 20%, 100% 20%);
-    border-radius: 0 0 50% 50%;
-  }
-  .chaos-boardzoom-token-head {
-    position: absolute; left: 10%; top: 0; width: 80%; aspect-ratio: 1/1;
+  .chaos-boardzoom-token .token-head {
+    width: 82%; aspect-ratio: 1/1; height: auto;
     border-radius: 50%;
-    background: var(--bz-token-color, #E71D36);
+    border: 2px solid #FFFFFF;
+    background: #2A1E17;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.8);
+    display: flex; align-items: center; justify-content: center;
     overflow: hidden;
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+    font-size: 240%;
+    z-index: 2;
   }
-  .chaos-boardzoom-token-head img { width: 100%; height: 100%; object-fit: cover; }
-  .chaos-boardzoom-token-head .fallback-emoji {
+  .chaos-boardzoom-token .token-head img { width: 100%; height: 100%; object-fit: cover; }
+  .chaos-boardzoom-token .token-head .fallback-emoji {
     width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-    font-size: 220%;
+  }
+  .chaos-boardzoom-token .token-body {
+    position: relative;
+    width: 62%; aspect-ratio: 1/1; height: auto;
+    margin-top: -24%;
+    border-radius: 50%;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--pawn-color) 70%, white) 0%, var(--pawn-color) 55%, color-mix(in srgb, var(--pawn-color) 75%, black) 100%);
+    box-shadow: inset 0 2px 2px rgba(255,255,255,0.5), 0 3px 6px rgba(0,0,0,0.45);
+    z-index: 1;
+  }
+  .chaos-boardzoom-token .token-body::after {
+    content: '';
+    position: absolute; left: 50%; top: 18%;
+    width: 42%; height: 20%;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: rgba(255,255,255,.22);
+    pointer-events: none;
   }
 
   /* Black Hole — token spins, shrinks, and sinks into the hole */
@@ -1294,6 +1518,31 @@
     100% { opacity: 0; transform: translate(-50%, -66%) scale(0); }
   }
 
+  /* FODO KILL — fast Road-Runner-style physical comedy. The player's
+     uploaded face remains untouched; only body/legs and motion sell the joke. */
+  .chaos-runner-speed-lines{
+    position:absolute; left:-95%; top:40%; width:95%; height:32%; opacity:0; pointer-events:none;
+    background:repeating-linear-gradient(170deg,transparent 0 12%,rgba(255,255,255,.82) 13% 16%,transparent 17% 27%);
+    filter:drop-shadow(0 0 4px rgba(255,196,72,.45));
+    transform:skewX(-18deg); z-index:0;
+  }
+  .chaos-boardzoom-token.bz-runner{ animation:bzRunnerSprint .72s cubic-bezier(.15,.8,.2,1) forwards; }
+  .chaos-boardzoom-token.bz-runner .chaos-runner-speed-lines{ opacity:1; animation:bzSpeedLines .18s linear infinite; }
+  .chaos-boardzoom-token.bz-runner .leg-left{ opacity:1; animation:bzRunLegA .13s linear infinite alternate; transform-origin:top center; }
+  .chaos-boardzoom-token.bz-runner .leg-right{ opacity:1; animation:bzRunLegB .13s linear infinite alternate; transform-origin:top center; }
+  .chaos-boardzoom-token.bz-kick{ animation:bzKickPose .24s cubic-bezier(.2,.9,.2,1) forwards; }
+  .chaos-boardzoom-token.bz-kick .leg-right{ opacity:1; width:23%; height:8%; animation:bzBigKick .24s ease-out forwards; transform-origin:left center; }
+  @keyframes bzRunnerSprint{0%{opacity:1;transform:translate(-125%,-72%) scale(.78) skewX(-5deg)}65%{opacity:1;transform:translate(-52%,-70%) scale(1.08) skewX(-2deg)}100%{opacity:1;transform:translate(-38%,-68%) scale(1.02) skewX(0)}}
+  @keyframes bzSpeedLines{0%{transform:translateX(0) skewX(-18deg)}100%{transform:translateX(-18%) skewX(-18deg)}}
+  @keyframes bzRunLegA{from{transform:rotate(58deg)}to{transform:rotate(112deg)}}
+  @keyframes bzRunLegB{from{transform:rotate(-112deg)}to{transform:rotate(-58deg)}}
+  @keyframes bzKickPose{0%{transform:translate(-38%,-68%) scale(1.02)}100%{transform:translate(-26%,-69%) scale(1.08)}}
+  @keyframes bzBigKick{0%{transform:rotate(-65deg) scaleX(1)}100%{transform:rotate(-8deg) scaleX(1.45)}}
+  .chaos-boardzoom-token.bz-kick-off{ transition:left .72s cubic-bezier(.12,.7,.18,1),top .72s cubic-bezier(.1,.75,.2,1),transform .72s cubic-bezier(.12,.7,.18,1),opacity .72s ease; transform:translate(-50%,-66%) rotate(-18deg) scale(1.05); }
+
+  /* Typed dialogue: readable, compact, never clipped. */
+  .chaos-cinema-tag.typing{ overflow:visible; white-space:normal; }
+
   /* Kill — attacker lunges in, victim recoils/chars/gets knocked off,
      with a floating crying-or-laughing reaction */
   .chaos-boardzoom-token--attacker { --bz-token-color: #E71D36; }
@@ -1304,8 +1553,8 @@
     0%   { opacity: 1; transform: translate(-90%, -80%) scale(0.9); }
     100% { opacity: 1; transform: translate(-60%, -70%) scale(1.05); }
   }
-  .chaos-boardzoom-token.bz-char .chaos-boardzoom-token-head,
-  .chaos-boardzoom-token.bz-char .chaos-boardzoom-token-point {
+  .chaos-boardzoom-token.bz-char .token-head,
+  .chaos-boardzoom-token.bz-char .token-body {
     animation: bzChar 0.4s ease-in forwards;
   }
   @keyframes bzChar {
@@ -1477,6 +1726,50 @@
     60%  { transform: translateX(-50%) scale(1.3); opacity: 1; }
     100% { transform: translateX(-50%) scale(0.05); opacity: 0; }
   }
+
+
+  /* ===== FODO V18: continuous physical comedy ===== */
+  .chaos-boardzoom-token.v17-alive{opacity:1;animation:v17Idle .55s ease-in-out infinite alternate}
+  @keyframes v17Idle{from{transform:translate(-50%,-66%) rotate(-1deg)}to{transform:translate(-50%,-69%) rotate(1deg)}}
+  .chaos-boardzoom-token.v17-run{opacity:1;animation:v17Run .62s cubic-bezier(.08,.82,.16,1) forwards}
+  .chaos-boardzoom-token.v17-run .leg-left,.chaos-boardzoom-token.v17-run .leg-right{opacity:1;animation:v17Leg .105s linear infinite alternate}
+  @keyframes v17Run{0%{transform:translate(-135%,-70%) scale(.72) skewX(-8deg)}45%{transform:translate(-75%,-69%) scale(1.05) skewX(-5deg)}100%{transform:translate(-38%,-66%) scale(1.08) skewX(0)}}
+  @keyframes v17Leg{from{transform:rotate(72deg)}to{transform:rotate(-62deg)}}
+  .chaos-boardzoom-token.v17-kick{opacity:1;animation:v17Kick .32s cubic-bezier(.15,.9,.2,1) forwards}
+  .chaos-boardzoom-token.v17-kick .leg-right{opacity:1!important;width:48%!important;height:11%!important;right:-35%!important;bottom:0!important;transform-origin:left center!important;animation:v17BigLeg .32s cubic-bezier(.1,.9,.2,1) forwards!important}
+  @keyframes v17Kick{0%{transform:translate(-38%,-66%) scale(1.08)}45%{transform:translate(-27%,-68%) scale(1.15)}100%{transform:translate(-18%,-66%) scale(1.1)}}
+  @keyframes v17BigLeg{0%{transform:rotate(-70deg) scaleX(.8)}35%{transform:rotate(-25deg) scaleX(1.15)}100%{transform:rotate(8deg) scaleX(2.2)}}
+  .chaos-boardzoom-token.v17-exit{animation:v17Exit .48s cubic-bezier(.15,.8,.2,1) forwards}
+  @keyframes v17Exit{to{transform:translate(125%,-68%) scale(.72) skewX(-8deg);opacity:0}}
+  .chaos-boardzoom-token.v17-flight{opacity:1;transition:left .92s cubic-bezier(.1,.82,.18,1),top .92s cubic-bezier(.1,.82,.18,1),transform .92s cubic-bezier(.1,.82,.18,1);transform:translate(-50%,-66%) rotate(-18deg) scale(1.02)}
+  .chaos-boardzoom-token.v17-flight .leg-left,.chaos-boardzoom-token.v17-flight .leg-right,.chaos-boardzoom-token.v17-flight .arm-left,.chaos-boardzoom-token.v17-flight .arm-right{opacity:1;animation:v17Flail .14s linear infinite alternate}
+  @keyframes v17Flail{from{transform:rotate(-55deg)}to{transform:rotate(55deg)}}
+  .chaos-boardzoom-token.v17-tension{opacity:1;animation:v17Tension .5s ease-in-out 2}
+  @keyframes v17Tension{0%,100%{transform:translate(-50%,-66%) scale(1)}50%{transform:translate(-50%,-67%) scale(1.08) rotate(-3deg)}}
+  .chaos-boardzoom-token.v17-pull{animation:v17Pull .45s cubic-bezier(.2,.9,.15,1) forwards}
+  @keyframes v17Pull{0%{transform:translate(-50%,-66%) scale(1)}100%{transform:translate(-62%,-70%) scale(.88) rotate(-12deg)}}
+  .chaos-boardzoom-token.v17-stepback{transition:left .22s cubic-bezier(.15,.8,.2,1),top .22s cubic-bezier(.15,.8,.2,1);animation:v17StepWobble .22s ease-in-out}
+  @keyframes v17StepWobble{50%{transform:translate(-50%,-72%) rotate(-8deg) scale(.94)}}
+  .chaos-boardzoom-token.v17-slip{animation:v17Slip .72s cubic-bezier(.15,.9,.2,1) forwards}
+  @keyframes v17Slip{0%{transform:translate(-50%,-66%) rotate(0)}20%{transform:translate(-57%,-58%) rotate(-18deg)}42%{transform:translate(-43%,-62%) rotate(22deg)}65%{transform:translate(-55%,-66%) rotate(-14deg)}100%{transform:translate(-50%,-70%) rotate(7deg)}}
+  .chaos-boardzoom-token.v17-bounce{animation:v17Bounce .55s ease-in-out 2}
+  @keyframes v17Bounce{0%,100%{transform:translate(-50%,-66%) scale(1)}35%{transform:translate(-50%,-74%) scale(.9,1.12)}60%{transform:translate(-50%,-62%) scale(1.08,.9)}}
+  .chaos-v17-streak{display:none!important;position:absolute;width:28%;height:14%;transform:translate(-50%,-50%);opacity:0;pointer-events:none;z-index:1;background:repeating-linear-gradient(170deg,transparent 0 12%,rgba(255,255,255,.85) 13% 17%,transparent 18% 30%);filter:drop-shadow(0 0 5px rgba(255,196,72,.5));skewX(-18deg)}
+  .chaos-v17-streak.show{opacity:1;animation:v17Streak .18s linear infinite}
+  @keyframes v17Streak{to{transform:translate(-65%,-50%) skewX(-18deg)}}
+  .chaos-v17-impact{position:absolute;width:7%;aspect-ratio:1;border:4px solid rgba(255,245,205,.95);border-radius:50%;transform:translate(-50%,-50%) scale(.2);opacity:0;pointer-events:none;z-index:25}
+  .chaos-v17-impact.show{animation:v17Impact .34s cubic-bezier(.1,.8,.2,1) forwards}
+  @keyframes v17Impact{0%{opacity:1;transform:translate(-50%,-50%) scale(.15)}45%{opacity:1;transform:translate(-50%,-50%) scale(1.8)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.7)}}
+  .chaos-v17-sfx{position:absolute;transform:translate(-50%,-50%) scale(.55) rotate(-5deg);padding:7px 12px;border-radius:9px;background:#101014;color:#fff;font-weight:1000;font-size:clamp(1rem,3vw,1.7rem);letter-spacing:1px;border:2px solid rgba(255,255,255,.7);text-shadow:0 3px 0 rgba(0,0,0,.65);opacity:0;pointer-events:none;z-index:40;white-space:nowrap}
+  .chaos-v17-sfx.show{animation:v17Sfx .65s cubic-bezier(.15,.9,.2,1) forwards}
+  @keyframes v17Sfx{0%{opacity:0;transform:translate(-50%,-50%) scale(.45) rotate(-8deg)}20%{opacity:1;transform:translate(-50%,-62%) scale(1.15) rotate(-4deg)}75%{opacity:1;transform:translate(-50%,-72%) scale(1) rotate(-2deg)}100%{opacity:0;transform:translate(-50%,-90%) scale(.92) rotate(0)}}
+  .chaos-boardzoom-token.v17-flight + *{}
+  .chaos-boardzoom-overlay .chaos-cinema-tag{z-index:50;max-width:min(72%,520px)!important;width:min(72%,520px)!important;overflow:visible!important;white-space:normal!important;overflow-wrap:normal!important;word-break:normal!important}
+  .chaos-boardzoom-overlay .chaos-cinema-tag.typing{min-height:2.3em;height:auto;max-height:24%;overflow:visible!important}
+  .chaos-boardzoom-scaler.v17-camera-in{animation:v17CameraIn .55s cubic-bezier(.18,.9,.22,1) forwards}
+  .chaos-boardzoom-scaler.v17-camera-out{animation:v17CameraOut .72s cubic-bezier(.25,.8,.35,1) forwards}
+  @keyframes v17CameraIn{0%{transform:scale(1.02)}100%{transform:scale(1.9)}}
+  @keyframes v17CameraOut{0%{transform:scale(1.9)}100%{transform:scale(1)}}
 
   /* ============================================================
      TKG FLOATING GLASS PILL NAVIGATION (VERBATIM FROM RUNNER)
@@ -1710,6 +2003,247 @@
     transition:opacity 0.25s ease, transform 0.25s ease;
   }
   .geo-hint-toast.show{ opacity:1; transform:translate(-50%, 0); }
+
+  /* FODO CHAOS V3 — presentation layer only. No gameplay state or rules. */
+  .chaos-boardzoom-overlay{background:radial-gradient(circle at 50% 48%,rgba(255,255,255,.04),rgba(2,3,6,.9) 76%);backdrop-filter:blur(6px) saturate(1.08);-webkit-backdrop-filter:blur(6px) saturate(1.08);}
+  .chaos-boardzoom-frame{border:1px solid rgba(255,255,255,.24);box-shadow:0 30px 100px rgba(0,0,0,.78),inset 0 1px 0 rgba(255,255,255,.28);}
+  .chaos-boardzoom-frame::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(115deg,rgba(255,255,255,.12),transparent 22%,transparent 76%,rgba(255,255,255,.04));mix-blend-mode:screen;z-index:30;}
+  .chaos-boardzoom-scaler.slow-settle{animation:bzSlowSettleReal .55s cubic-bezier(.22,1,.36,1) forwards;}
+  @keyframes bzSlowSettleReal{0%{transform:scale(2.3)}65%{transform:scale(2.78) translate(0,0)}78%{transform:scale(2.70) translate(0,0)}100%{transform:scale(2.75)}}
+  .chaos-boardzoom-token{filter:drop-shadow(0 10px 13px rgba(0,0,0,.58));}
+  .chaos-boardzoom-token.bz-spin-drop{animation:bzSpinDropReal 1s cubic-bezier(.5,0,.85,0) forwards;}
+  @keyframes bzSpinDropReal{0%{opacity:1;transform:translate(-50%,-66%) rotate(0) scale(1)}20%{transform:translate(-50%,-66%) rotate(-12deg) scale(1.08)}55%{transform:translate(-50%,-32%) rotate(260deg) scale(.72)}100%{opacity:0;transform:translate(-50%,28%) rotate(720deg) scale(0)}}
+  .chaos-boardzoom-burger{filter:drop-shadow(0 8px 14px rgba(0,0,0,.58));}
+  .chaos-boardzoom-burger.chomp{animation:bzBurgerChompReal .9s cubic-bezier(.2,1.3,.4,1) 2 forwards;}
+  @keyframes bzBurgerChompReal{0%,100%{transform:translate(-50%,-40%) scale(1) rotate(0)}35%{transform:translate(-50%,-46%) scale(1.14,.86) rotate(-7deg)}55%{transform:translate(-50%,-34%) scale(.88,1.12) rotate(5deg)}75%{transform:translate(-50%,-40%) scale(1.08,.94) rotate(-2deg)}}
+  .chaos-boardzoom-token.bz-slip{animation:bzSlipReal 1.3s cubic-bezier(.2,.8,.3,1) forwards;}
+  @keyframes bzSlipReal{0%{transform:translate(-50%,-66%) rotate(0)}18%{transform:translate(-63%,-61%) rotate(-12deg)}35%{transform:translate(-38%,-51%) rotate(17deg)}52%{transform:translate(-62%,-45%) rotate(-14deg)}70%{transform:translate(-42%,-59%) rotate(8deg)}100%{transform:translate(-50%,-66%) rotate(0)}}
+  .chaos-boardzoom-token.bz-lunge-in{animation:bzLungeReal .45s cubic-bezier(.15,.9,.2,1) forwards;}
+  @keyframes bzLungeReal{0%{transform:translate(-50%,-66%) scale(1)}60%{transform:translate(-30%,-66%) scale(1.18)}100%{transform:translate(-50%,-66%) scale(1)}}
+  .chaos-boardzoom-token.bz-char{animation:bzHitFlash .24s ease-out 1;}
+  @keyframes bzHitFlash{0%{filter:brightness(1)}45%{filter:brightness(2.2)}100%{filter:brightness(1)}}
+  .chaos-boardzoom-token.bz-knockback{animation:bzKnockReal .62s cubic-bezier(.18,.8,.22,1) forwards;}
+  @keyframes bzKnockReal{0%{opacity:1;transform:translate(-50%,-66%) scale(1)}20%{transform:translate(-43%,-82%) rotate(-12deg) scale(1.08)}100%{opacity:0;transform:translate(22%,-120%) rotate(38deg) scale(.58)}}
+  .chaos-comic-burst{filter:drop-shadow(0 0 16px var(--burst-color,#ffe8a3)) drop-shadow(0 8px 20px rgba(0,0,0,.5));}
+  .chaos-comic-burst.show{animation:bzImpactReal .55s cubic-bezier(.2,1.5,.4,1) forwards;}
+  @keyframes bzImpactReal{0%{opacity:0;transform:translate(-50%,-50%) scale(.05) rotate(-18deg)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.28) rotate(8deg)}52%{opacity:1;transform:translate(-50%,-50%) scale(.92) rotate(3deg)}100%{opacity:.9;transform:translate(-50%,-50%) scale(1) rotate(5deg)}}
+  .chaos-boardzoom-reaction{filter:drop-shadow(0 10px 18px rgba(0,0,0,.55));}
+  .chaos-cinema-tag{width:min(72%,500px);max-width:72%;line-height:1.22;overflow:hidden;filter:drop-shadow(0 10px 20px rgba(0,0,0,.5));}
+
+  .chaos-boardzoom-token.bz-stepback-replay{opacity:1;transition:left .14s cubic-bezier(.22,1,.36,1),top .14s cubic-bezier(.22,1,.36,1),transform .14s cubic-bezier(.22,1,.36,1);}
+
+  /* Chaos V3 glass icon material — visual only */
+  .fodo-event-badge .chaos-glass-icon{width:100%;height:100%;display:block;transform-origin:50% 50%;}
+  .fodo-event-badge .glass-shell{fill:rgba(18,14,11,.92);stroke:rgba(255,255,255,.92);stroke-width:1.35;}
+  .fodo-event-badge .glass-shine{fill:rgba(255,255,255,.12);}
+  .fodo-event-badge .icon-core{stroke:rgba(255,255,255,.98);fill:none;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}
+  .fodo-event-badge .icon-fill{fill:rgba(255,255,255,.96);}
+  .fodo-event-badge.is-blackhole .chaos-glass-icon{animation:fodoBH 2.4s ease-in-out infinite;}
+  .fodo-event-badge.is-burger .chaos-glass-icon{animation:fodoBurger 1.05s cubic-bezier(.34,1.3,.64,1) infinite;}
+  .fodo-event-badge.is-noodle .chaos-glass-icon{animation:fodoNoodle 1.35s ease-in-out infinite;}
+  .fodo-event-badge.is-magic .chaos-glass-icon{animation:fodoMagic 1.35s ease-in-out infinite;}
+  .fodo-event-badge{width:34px;height:34px;font-size:1rem;filter:drop-shadow(0 4px 8px rgba(0,0,0,.55));}
+  .fodo-event-badge.is-dice .chaos-glass-icon{animation:fodoDice .9s ease-in-out infinite;}
+  .fodo-event-badge.is-freeze .chaos-glass-icon{animation:fodoFreeze 1.3s ease-in-out infinite;}
+  .fodo-event-badge.is-reverse .chaos-glass-icon{animation:fodoReverse 1.2s ease-in-out infinite;}
+  .fodo-event-badge.is-swap .chaos-glass-icon{animation:fodoSwap 1.15s ease-in-out infinite;}
+  .fodo-event-badge.is-bomb .chaos-glass-icon{animation:fodoBomb .9s ease-in-out infinite;}
+  .fodo-event-badge.is-protection .chaos-glass-icon{animation:fodoShield 1.5s ease-in-out infinite;}
+  .fodo-event-badge.is-random .chaos-glass-icon{animation:fodoRandom 1.05s ease-in-out infinite;}
+  .fodo-event-badge.is-kill .chaos-glass-icon{animation:fodoKill 1.0s ease-in-out infinite;}
+  .fodo-event-badge.is-king .chaos-glass-icon{animation:fodoKing 1.15s ease-in-out infinite;}
+  .fodo-event-badge.is-invisible .chaos-glass-icon{animation:fodoInvisible 1.3s ease-in-out infinite;}
+  @keyframes fodoDice{0%,100%{transform:rotate(-8deg) scale(.94)}50%{transform:rotate(10deg) scale(1.08)}}
+  @keyframes fodoFreeze{0%,100%{transform:scale(.95) rotate(0)}50%{transform:scale(1.08) rotate(45deg)}}
+  @keyframes fodoReverse{0%,100%{transform:translateX(0)}50%{transform:translateX(-3px) rotate(-10deg)}}
+  @keyframes fodoSwap{0%,100%{transform:scale(1)}50%{transform:scale(1.08) translateX(2px)}}
+  @keyframes fodoBomb{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(-2px) scale(1.1)}65%{transform:translateY(1px) scale(.95)}}
+  @keyframes fodoShield{0%,100%{transform:scale(.95);opacity:.8}50%{transform:scale(1.1);opacity:1}}
+  @keyframes fodoRandom{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(18deg) scale(1.12)}}
+  @keyframes fodoKill{0%,100%{transform:translateX(0)}50%{transform:translateX(4px) rotate(8deg)}}
+  @keyframes fodoKing{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px) scale(1.06)}}
+  @keyframes fodoInvisible{0%,100%{opacity:.9;transform:scale(1)}50%{opacity:.35;transform:scale(1.12)}}
+  .sticker-token.chaos-invisible{opacity:.12;filter:grayscale(.5) blur(.4px);}
+  .chaos-boardzoom-token.bz-chaos-wobble{animation:bzChaosWobble .65s ease-in-out 2;}
+  .chaos-boardzoom-token.bz-chaos-freeze{filter:saturate(.45) brightness(1.25);animation:bzChaosFreeze 1.2s ease-in-out 1;}
+  .chaos-boardzoom-token.bz-chaos-vanish{animation:bzChaosVanish .8s ease-in-out 1 forwards;}
+  .chaos-boardzoom-token.bz-chaos-knock{animation:bzChaosKnock .85s cubic-bezier(.18,.8,.22,1) 1 forwards;}
+  .chaos-boardzoom-token.bz-chaos-crown{animation:bzChaosCrown .8s cubic-bezier(.2,1.4,.4,1) 1;}
+  @keyframes bzChaosWobble{0%,100%{transform:translate(-50%,-66%) rotate(0)}25%{transform:translate(-56%,-62%) rotate(-12deg)}50%{transform:translate(-44%,-54%) rotate(14deg)}75%{transform:translate(-54%,-60%) rotate(-8deg)}}
+  @keyframes bzChaosFreeze{0%{transform:translate(-50%,-66%) scale(1)}45%{transform:translate(-50%,-66%) scale(1.08)}100%{transform:translate(-50%,-66%) scale(.98)}}
+  @keyframes bzChaosVanish{0%{opacity:1;transform:translate(-50%,-66%) scale(1)}55%{opacity:.25;transform:translate(-50%,-66%) scale(.7)}100%{opacity:0;transform:translate(-50%,-66%) scale(.2)}}
+  @keyframes bzChaosKnock{0%{transform:translate(-50%,-66%) rotate(0)}25%{transform:translate(-40%,-85%) rotate(-15deg) scale(1.08)}100%{opacity:.15;transform:translate(35%,-125%) rotate(35deg) scale(.65)}}
+  @keyframes bzChaosCrown{0%{transform:translate(-50%,-66%) scale(.9)}45%{transform:translate(-50%,-74%) scale(1.16) rotate(-4deg)}100%{transform:translate(-50%,-66%) scale(1)}}
+
+  @keyframes fodoBH{0%,100%{transform:scale(.94) rotate(0)}50%{transform:scale(1.08) rotate(180deg)}}
+  @keyframes fodoBurger{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(-3px) scale(1.07,.92)}60%{transform:translateY(2px) scale(.94,1.06)}}
+  @keyframes fodoNoodle{0%,100%{transform:translateX(0) rotate(-6deg)}30%{transform:translateX(-3px) rotate(9deg)}65%{transform:translateX(4px) rotate(-10deg)}}
+  @keyframes fodoMagic{0%,100%{transform:scale(.92) rotate(-8deg);opacity:.84}45%{transform:scale(1.1) rotate(8deg);opacity:1}70%{transform:scale(1) rotate(0);opacity:.95}}
+  .chaos-ref-icon .chaos-glass-icon{width:34px;height:34px;display:block;}
+  .chaos-ref-icon .glass-shell{fill:rgba(255,255,255,.12);stroke:rgba(255,255,255,.82);stroke-width:1.35;}
+  .chaos-ref-icon .glass-shine{fill:rgba(255,255,255,.28);}
+  .chaos-ref-icon .icon-core{stroke:rgba(255,255,255,.96);fill:none;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}
+  .chaos-ref-icon .icon-fill{fill:rgba(255,255,255,.92);}
+</style>
+<style id="fodo-v11-final-tuning">
+.chaos-flavor-bg.show{opacity:.07!important;}
+.chaos-flavor-bg.flavor-blackhole{background:radial-gradient(circle at 50% 50%,rgba(20,8,32,.16),transparent 58%);}
+.chaos-flavor-bg.flavor-burger{background:radial-gradient(circle at 50% 50%,rgba(255,107,53,.06),transparent 58%);}
+.chaos-flavor-bg.flavor-magic{background:radial-gradient(circle at 50% 50%,rgba(255,232,163,.08),transparent 58%);}
+.chaos-flavor-bg.flavor-noodle{background-color:rgba(244,200,70,.02);}
+.chaos-flavor-bg.flavor-kill{background:radial-gradient(circle at 50% 50%,rgba(231,29,54,.06),transparent 60%);}
+</style>
+
+<style id="fodo-v14-chaos-css">
+/* FODO V14 — Chaos World physical-comedy layer. Presentation only. */
+.chaos-flavor-bg{opacity:0!important}
+.chaos-flavor-bg.show{opacity:.10!important}
+.chaos-boardzoom-frame{overflow:hidden}
+.chaos-comic-burst{
+  width:auto!important; min-width:0; max-width:34%;
+  padding:5px 10px; border-radius:10px;
+  background:rgba(10,10,12,.72); border:1px solid rgba(255,255,255,.35);
+  color:#fff; font-weight:1000; font-size:clamp(.9rem,2.2vw,1.35rem);
+  line-height:1; letter-spacing:.8px; text-transform:uppercase;
+  text-shadow:0 2px 0 rgba(0,0,0,.8);
+  white-space:nowrap; z-index:20;
+}
+.chaos-cinema-tag{
+  width:min(72%,460px)!important; max-width:72%!important;
+  max-height:none!important; overflow:visible!important;
+  min-height:2.2em; box-sizing:border-box;
+  padding:9px 14px!important;
+  line-height:1.22!important;
+  white-space:normal!important; overflow-wrap:anywhere!important;
+  word-break:normal!important; hyphens:none!important;
+  text-align:center;
+}
+.chaos-cinema-tag.typing{overflow:visible!important}
+.chaos-boardzoom-token .chaos-limb{background:var(--bz-token-color,#E71D36)}
+.chaos-boardzoom-token.v14-running .leg-left,
+.chaos-boardzoom-token.v14-running .leg-right{opacity:1}
+.chaos-boardzoom-token.v14-running .leg-left{animation:v14RunL .13s linear infinite}
+.chaos-boardzoom-token.v14-running .leg-right{animation:v14RunR .13s linear infinite}
+@keyframes v14RunL{0%,100%{transform:rotate(75deg) translateY(0)}50%{transform:rotate(25deg) translateY(-5px)}}
+@keyframes v14RunR{0%,100%{transform:rotate(-25deg) translateY(-5px)}50%{transform:rotate(-75deg) translateY(0)}}
+.chaos-boardzoom-token.v14-kick .leg-right{
+  opacity:1!important; width:30%!important; height:8%!important;
+  right:-18%!important; bottom:4%!important;
+  transform-origin:left center!important;
+  animation:v14BigKick .42s cubic-bezier(.15,.9,.25,1) forwards!important;
+}
+@keyframes v14BigKick{
+  0%{transform:rotate(-35deg) scaleX(.8)}
+  35%{transform:rotate(-8deg) scaleX(1.15)}
+  100%{transform:rotate(18deg) scaleX(1.8)}
+}
+.chaos-boardzoom-token.v14-victim-flight{
+  animation:v14VictimFlight .85s cubic-bezier(.12,.82,.2,1) forwards;
+}
+@keyframes v14VictimFlight{
+  0%{transform:translate(-50%,-50%) rotate(0) scale(1)}
+  25%{transform:translate(-50%,-50%) rotate(-18deg) scale(1.06)}
+  100%{transform:translate(-50%,-50%) rotate(28deg) scale(.86)}
+}
+.chaos-boardzoom-token.v14-shake{
+  animation:v14Shake .42s ease-in-out;
+}
+@keyframes v14Shake{
+  0%,100%{transform:translate(-50%,-50%)}
+  25%{transform:translate(calc(-50% - 3px),calc(-50% + 2px))}
+  50%{transform:translate(calc(-50% + 3px),calc(-50% - 2px))}
+  75%{transform:translate(calc(-50% - 2px),calc(-50% - 1px))}
+}
+.chaos-boardzoom-token.v14-pull{
+  animation:v14Pull .65s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes v14Pull{
+  0%{transform:translate(-50%,-50%) scale(1)}
+  35%{transform:translate(-50%,-50%) scale(.94) rotate(-4deg)}
+  70%{transform:translate(-50%,-50%) scale(1.04) rotate(4deg)}
+  100%{transform:translate(-50%,-50%) scale(.9)}
+}
+.v14-prop{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  pointer-events:none;z-index:18;opacity:0;
+  font-weight:1000;text-align:center;
+}
+.v14-prop.show{opacity:1}
+.v14-magnet{width:34%;height:18%}
+.v14-magnet::before{
+  content:"";position:absolute;left:5%;top:42%;width:90%;height:7px;
+  border-radius:99px;background:linear-gradient(90deg,#8bd8ff,#fff,#ff8b68);
+  box-shadow:0 0 10px rgba(120,190,255,.7);
+  transform:rotate(-8deg);
+}
+.v14-magnet::after{
+  content:"TKG PULL";position:absolute;left:35%;top:5%;font-size:10px;color:#fff;
+  background:rgba(10,10,12,.7);padding:3px 6px;border-radius:5px;
+}
+.v14-ice{
+  width:25%;aspect-ratio:1;border-radius:18px;
+  border:2px solid rgba(190,235,255,.9);
+  background:linear-gradient(135deg,rgba(110,210,255,.35),rgba(255,255,255,.08));
+  box-shadow:inset 0 0 18px rgba(160,230,255,.35),0 0 18px rgba(80,190,255,.3);
+  transform:translate(-50%,-50%) scale(.2) rotate(0);
+}
+.v14-ice.show{animation:v14Ice .9s ease-out forwards}
+@keyframes v14Ice{to{transform:translate(-50%,-50%) scale(1) rotate(8deg)}}
+.v14-arrows{font-size:clamp(2rem,7vw,4rem);color:#ff4e4e;text-shadow:0 0 10px rgba(255,70,70,.7);white-space:nowrap}
+.v14-swap{font-size:clamp(2rem,6vw,3.5rem);color:#5fc8ff;text-shadow:0 0 10px rgba(90,200,255,.6)}
+.v14-bomb{width:17%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#555,#111 60%,#000);border:2px solid #ff7a2f;box-shadow:0 0 16px rgba(255,80,20,.45)}
+.v14-bomb::before{content:"";position:absolute;right:5%;top:-18%;width:25%;height:30%;border-top:3px solid #ffb14a;transform:rotate(25deg)}
+.v14-bomb.show{animation:v14Bomb .75s ease-in-out forwards}
+@keyframes v14Bomb{0%{transform:translate(-50%,-50%) scale(.2)}55%{transform:translate(-50%,-50%) scale(1.1)}100%{transform:translate(-50%,-50%) scale(1)}}
+.v14-shield{width:28%;aspect-ratio:.82;border-radius:45% 45% 55% 55%;border:3px solid #6ecfff;background:rgba(60,180,255,.16);box-shadow:0 0 18px rgba(70,190,255,.5)}
+.v14-question{font-size:clamp(3rem,9vw,5rem);color:#c38cff;text-shadow:0 0 14px rgba(180,100,255,.8)}
+.v14-crown{font-size:clamp(2.5rem,7vw,4rem);color:#ffd45c;text-shadow:0 0 14px rgba(255,190,60,.7)}
+.v14-ghost{width:20%;aspect-ratio:.78;border-radius:50% 50% 30% 30%;border:2px solid rgba(220,235,255,.8);background:rgba(220,235,255,.12);backdrop-filter:blur(5px)}
+.v14-ghost.show{animation:v14Ghost .9s ease-in-out forwards}
+@keyframes v14Ghost{0%,100%{opacity:.15;transform:translate(-50%,-50%) scale(.9)}50%{opacity:.85;transform:translate(-50%,-50%) scale(1.08)}}
+.v14-dice{font-size:clamp(2rem,6vw,3.6rem);filter:drop-shadow(0 0 10px rgba(100,190,255,.65))}
+.v14-kick-mark{font-size:clamp(1.5rem,5vw,3rem);font-weight:1000;color:#ff4b2f;text-shadow:3px 3px 0 #111;white-space:nowrap}
+#fodoChaosWorldModal .fodo-chaos-grid{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 12px;
+}
+#fodoChaosWorldModal .fodo-chaos-card{
+ display:flex;align-items:center;gap:7px;text-align:left;padding:7px;
+ border:1px solid rgba(255,255,255,.15);border-radius:10px;
+ background:rgba(255,255,255,.05);color:var(--text-main);cursor:pointer;
+}
+#fodoChaosWorldModal .fodo-chaos-card:hover{background:rgba(255,255,255,.09)}
+#fodoChaosWorldModal .fodo-chaos-card .chaos-modal-icon{width:30px;height:30px;flex:0 0 30px}
+#fodoChaosWorldModal .fodo-chaos-card b{font-size:.65rem;color:var(--tkg-gold);display:block}
+#fodoChaosWorldModal .fodo-chaos-card span{font-size:.55rem;color:var(--text-dim);display:block;line-height:1.15}
+@media(max-width:520px){
+ #fodoChaosWorldModal .fodo-chaos-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* ===== FODO V15 CHAOS MOTION LANGUAGE ===== */
+.chaos-boardzoom-scaler.v15-camera-in{animation:v15CamIn .48s cubic-bezier(.12,.82,.18,1) forwards}
+.chaos-boardzoom-scaler.v15-camera-hold{transform:scale(2.12)!important}
+.chaos-boardzoom-scaler.v15-camera-out{animation:v15CamOut .72s cubic-bezier(.22,.72,.25,1) forwards}
+@keyframes v15CamIn{0%{transform:scale(1)}65%{transform:scale(2.22)}100%{transform:scale(2.12)}}
+@keyframes v15CamOut{0%{transform:scale(2.12)}100%{transform:scale(1)}}
+.chaos-boardzoom-token.v15-alert{animation:v15Alert .42s ease-in-out 2}
+@keyframes v15Alert{0%,100%{transform:translate(-50%,-50%)}35%{transform:translate(calc(-50% - 3px),calc(-50% - 2px)) rotate(-4deg)}70%{transform:translate(calc(-50% + 3px),calc(-50% + 2px)) rotate(4deg)}}
+.chaos-boardzoom-token.v15-kickrun{animation:v15KickRun .48s cubic-bezier(.2,.9,.2,1) forwards}
+@keyframes v15KickRun{0%{transform:translate(-50%,-50%) translateX(-12px) scaleX(.92)}55%{transform:translate(-50%,-50%) translateX(12px) scaleX(1.05)}100%{transform:translate(-50%,-50%) translateX(26px) scaleX(1)}}
+.chaos-boardzoom-token.v15-kick{animation:v15Kick .34s cubic-bezier(.15,.85,.25,1) forwards}
+@keyframes v15Kick{0%{transform:translate(-50%,-50%) rotate(0)}45%{transform:translate(-50%,-50%) rotate(-5deg) scale(1.03)}100%{transform:translate(-50%,-50%) rotate(7deg) scale(1)}}
+.chaos-boardzoom-token.v15-flight{animation:v15Flight .78s cubic-bezier(.12,.72,.2,1) forwards}
+@keyframes v15Flight{0%{transform:translate(-50%,-50%) rotate(0) scale(1)}25%{transform:translate(-50%,-50%) rotate(-18deg) scale(1.05)}70%{transform:translate(-50%,-50%) rotate(26deg) scale(.92)}100%{transform:translate(-50%,-50%) rotate(18deg) scale(.86)}}
+.chaos-boardzoom-token.v15-pull{animation:v15Pull .7s cubic-bezier(.12,.82,.18,1) forwards}
+@keyframes v15Pull{0%{transform:translate(-50%,-50%) scale(1)}35%{transform:translate(-50%,-50%) scale(.94) rotate(-5deg)}68%{transform:translate(-50%,-50%) scale(1.05) rotate(5deg)}100%{transform:translate(-50%,-50%) scale(.88)}}
+.chaos-v15-streak{position:absolute;width:28%;height:3px;border-radius:999px;transform:translate(-50%,-50%) scaleX(0);opacity:0;pointer-events:none;z-index:16;background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),var(--v15-streak,#f7a623));box-shadow:0 0 8px var(--v15-streak,#f7a623)}
+.chaos-v15-streak.show{animation:v15Streak .38s ease-out forwards}
+@keyframes v15Streak{0%{opacity:0;transform:translate(-50%,-50%) scaleX(0)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scaleX(1)}}
+.chaos-v15-impact{position:absolute;width:13%;height:13%;border-radius:50%;transform:translate(-50%,-50%) scale(.2);opacity:0;pointer-events:none;z-index:21;border:3px solid rgba(255,255,255,.92);box-shadow:0 0 0 5px rgba(255,167,45,.55),0 0 24px rgba(255,110,30,.65)}
+.chaos-v15-impact.show{animation:v15Impact .38s ease-out forwards}
+@keyframes v15Impact{0%{opacity:1;transform:translate(-50%,-50%) scale(.2)}70%{opacity:.95;transform:translate(-50%,-50%) scale(1.35)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.8)}}
+.chaos-v15-sfx{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.6) rotate(-5deg);opacity:0;z-index:24;pointer-events:none;font-weight:1000;font-style:italic;font-size:clamp(1.2rem,4vw,2.2rem);color:#fff;text-shadow:3px 3px 0 #111,0 0 10px rgba(255,180,50,.8);letter-spacing:.5px}
+.chaos-v15-sfx.show{animation:v15Sfx .55s cubic-bezier(.1,.8,.2,1) forwards}
+@keyframes v15Sfx{0%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-5deg)}25%{opacity:1;transform:translate(-50%,-58%) scale(1.08) rotate(2deg)}100%{opacity:0;transform:translate(-50%,-82%) scale(1) rotate(0)}}
 </style>
 </head>
 <body>
@@ -1733,19 +2267,19 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
     <div style="font-size:1.3rem; font-weight:900; color:var(--tkg-gold); margin-bottom:12px;">CHAOS TRAPS</div>
 
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; text-align:left;">
-      <div style="font-size:1.4rem;">🌀</div>
+      <div class="chaos-modal-icon" data-chaos-modal-icon="blackhole"></div>
       <div><div style="font-weight:800; font-size:0.8rem; color:var(--tkg-gold);">BLACK HOLE</div><div style="font-size:0.7rem; color:var(--text-dim);">Sucks you back 3 steps</div></div>
     </div>
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; text-align:left;">
-      <div style="font-size:1.4rem;">🍔</div>
+      <div class="chaos-modal-icon" data-chaos-modal-icon="burger"></div>
       <div><div style="font-weight:800; font-size:0.8rem; color:var(--tkg-gold);">BURGER MONSTER</div><div style="font-size:0.7rem; color:var(--text-dim);">Chomp! Back to yard</div></div>
     </div>
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; text-align:left;">
-      <div style="font-size:1.4rem;">🍜</div>
+      <div class="chaos-modal-icon" data-chaos-modal-icon="noodle"></div>
       <div><div style="font-weight:800; font-size:0.8rem; color:var(--tkg-gold);">NOODLE SLIP</div><div style="font-size:0.7rem; color:var(--text-dim);">Slip! 4 steps back</div></div>
     </div>
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; text-align:left;">
-      <div style="font-size:1.4rem;">⭐</div>
+      <div class="chaos-modal-icon" data-chaos-modal-icon="magic"></div>
       <div><div style="font-weight:800; font-size:0.8rem; color:var(--tkg-gold);">MAGIC STAR</div><div style="font-size:0.7rem; color:var(--text-dim);">Land here = Instant KO</div></div>
     </div>
 
@@ -2018,25 +2552,34 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
     <div class="chaos-boardzoom-frame" id="chaosBoardZoomFrame">
       <div class="chaos-boardzoom-scaler" id="chaosBoardZoomScaler">
         <img class="chaos-boardzoom-snapshot" id="chaosBoardZoomSnapshot" alt="">
+        <div class="chaos-flavor-bg" id="chaosFlavorBg"></div>
+        <div class="chaos-comic-burst" id="chaosComicBurst"></div>
         <div class="chaos-boardzoom-vortex" id="chaosBoardZoomVortex"></div>
         <div class="chaos-boardzoom-burger" id="chaosBoardZoomBurger">🍔</div>
         <div class="chaos-boardzoom-starburst" id="chaosBoardZoomStarburst"></div>
+        <div class="chaos-near-impact" id="chaosNearImpact" aria-hidden="true"></div>
+        <div class="chaos-pull-rope" id="chaosPullRope" aria-hidden="true"><span class="rope-hook"></span></div>
         <div class="chaos-boardzoom-token chaos-boardzoom-token--attacker" id="chaosBoardZoomAttacker">
-          <div class="chaos-boardzoom-token-shape">
-            <div class="chaos-boardzoom-token-point"></div>
-            <div class="chaos-boardzoom-token-head" id="chaosBoardZoomAttackerHead"></div>
+          <div class="chaos-runner-speed-lines" id="chaosRunnerSpeedLines" aria-hidden="true"></div>
+          <div class="sticker-token">
+            <div class="token-head" id="chaosBoardZoomAttackerHead"></div>
+            <div class="token-body"></div>
+            <span class="chaos-limb arm-left"></span><span class="chaos-limb arm-right"></span>
+            <span class="chaos-limb leg-left"></span><span class="chaos-limb leg-right"></span>
           </div>
         </div>
         <div class="chaos-boardzoom-token chaos-boardzoom-token--victim" id="chaosBoardZoomVictim">
-          <div class="chaos-boardzoom-token-shape">
-            <div class="chaos-boardzoom-token-point"></div>
-            <div class="chaos-boardzoom-token-head" id="chaosBoardZoomVictimHead"></div>
+          <div class="sticker-token">
+            <div class="token-head" id="chaosBoardZoomVictimHead"></div>
+            <div class="token-body"></div>
+            <span class="chaos-limb arm-left"></span><span class="chaos-limb arm-right"></span>
+            <span class="chaos-limb leg-left"></span><span class="chaos-limb leg-right"></span>
           </div>
         </div>
         <div class="chaos-boardzoom-reaction" id="chaosBoardZoomReaction"></div>
+        <div class="chaos-cinema-tag" id="chaosBoardZoomTag"></div>
       </div>
     </div>
-    <div class="chaos-cinema-tag" id="chaosBoardZoomTag"></div>
   </div>
 
   <!-- Winner Modal -->
@@ -2099,7 +2642,7 @@ if (window.TKGShared) TKGShared.checkProximityNudge('FODO', function(){ openJour
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="11" r="1"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
   </a>
   <a href="./leaderboard.html" class="tkg-nav-item" aria-label="Leaderboard" title="Leaderboard">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V18c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V18c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
   </a>
 </nav>
 
@@ -2159,10 +2702,100 @@ function toggleAudio() {
   document.getElementById('audioToggleBtn').textContent = isAudioMuted ? '🔇' : '🔊';
 }
 
+/* iPhone/Safari fix (2026-09-19): creates the audio engine if needed and
+   kicks off resume(), but — unlike before — does NOT assume resume() has
+   finished by the time this returns. resume() is async; Safari is much
+   stricter than Android about honouring sound scheduled before it
+   actually settles, which is the real reason sound was unreliable on
+   iPhone specifically while every other phone was fine. Callers should
+   use playSound() below, which now waits properly instead of guessing. */
 function ensureAudio() {
-  if (!audioCtx) audioCtx = new AudioCtx();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (!audioCtx) {
+    try { audioCtx = new AudioCtx(); } catch (e) { return null; }
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
 }
+
+/* Earliest-possible wake-up: the very first tap/touch anywhere in the
+   whole game (setup screens included, not just "BEGIN") gives Safari
+   its best chance to fully wake the audio engine well before any sound
+   is actually needed. Harmless no-op on repeat taps and on Android,
+   where this was never an issue. Runs once total, then removes itself
+   from both event types. Also primes the browser's speech engine
+   (speechSynthesis) the same way — iOS requires its first use to
+   happen inside a real tap too, same restriction as WebAudio. */
+function primeAudioOnce_() {
+  ensureAudio();
+  if ('speechSynthesis' in window) {
+    try { window.speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch (e) {}
+  }
+  window.removeEventListener('touchend', primeAudioOnce_);
+  window.removeEventListener('click', primeAudioOnce_);
+}
+window.addEventListener('touchend', primeAudioOnce_);
+window.addEventListener('click', primeAudioOnce_);
+
+/* Voice reading (added) — reads a dialogue line aloud using the
+   device's own built-in text-to-speech, NOT a recording. This is a
+   real, honest trade-off: it uses whatever Hindi/English voice is
+   already on the phone, so it won't sound like a performed voice —
+   but it needs no hosting, no files, and no copyright concern, since
+   it's just reading our own original lines aloud rather than playing
+   back any real recording. Shares the same mute toggle as every other
+   sound in the game. Silently does nothing if the browser has no
+   speech engine, or if speaking throws for any reason — a missing
+   voice must never break the game.
+
+   onStart (added) — the actual sync fix. Speech engines have real
+   startup latency (the device has to spin up its voice before the
+   first word is audible), while the text bubble pops in instantly —
+   that gap was the "audio doesn't match the text" bug. Instead of
+   firing both at once and hoping, the caller now waits for THIS
+   callback (fired the moment speech genuinely starts, via the
+   browser's own onstart event) before showing the bubble. If speech
+   is muted/unsupported/fails, onStart still fires (after a short
+   safety delay) so the bubble is never left waiting forever. */
+function speakLine(text, onStart) {
+  const proceed = () => { if (onStart) onStart(); };
+  if (isAudioMuted || !text || !("speechSynthesis" in window)) { proceed(); return; }
+  try {
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+    const hindiVoices = voices.filter(v => /hi[-_]?IN/i.test(v.lang || ""));
+    const preferred = hindiVoices.find(v => /Google|Swara|Kalpana|Ravi|Hindi/i.test(v.name || "")) || hindiVoices[0];
+    if (preferred) utter.voice = preferred;
+    utter.lang = preferred ? preferred.lang : 'hi-IN';
+    utter.rate = 0.90 + Math.random() * 0.07;
+    utter.pitch = 0.96 + Math.random() * 0.10;
+    utter.volume = 0.88;
+    let started = false;
+    utter.onstart = () => { started = true; proceed(); };
+    utter.onerror = () => { if (!started) { started = true; proceed(); } };
+    window.speechSynthesis.speak(utter);
+    setTimeout(() => { if (!started) { started = true; proceed(); } }, 500);
+  } catch (e) { proceed(); }
+}
+
+function typeDialogue(el, text, done) {
+  if (!el) { if (done) done(); return; }
+  el.classList.add('typing');
+  el.textContent = '';
+  const chars = Array.from(String(text || ''));
+  let i = 0;
+  const tick = () => {
+    if (i >= chars.length) { if (done) done(); return; }
+    el.textContent += chars[i++];
+    const c = chars[i - 1];
+    const delay = /[.!?]/.test(c) ? 150 : /[,;…]/.test(c) ? 85 : 34;
+    setTimeout(tick, delay);
+  };
+  tick();
+}
+
 
 /* Genuine WebAudio noise-burst texture (restored) — combined with the
    tonal "clack" below for a more physical dice-roll feel than a pure
@@ -2194,8 +2827,16 @@ function playNoiseBurst_(ctx, startTime, duration, volume, filterFreq) {
 function playSound(type) {
   if (isAudioMuted) return;
   try {
-    ensureAudio();
-    const ctx = audioCtx;
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    // The actual iPhone fix: if the engine isn't confirmed running yet,
+    // wait for resume() to genuinely finish and then replay this exact
+    // call — instead of the old behaviour of scheduling the sound
+    // immediately and hoping Safari had already caught up.
+    if (ctx.state !== 'running') {
+      ctx.resume().then(() => { if (!isAudioMuted) playSound(type); }).catch(() => {});
+      return;
+    }
     const now = ctx.currentTime;
 
     if (type === 'roll') {
@@ -2266,6 +2907,33 @@ function playSound(type) {
       return;
     }
 
+    if (type === 'hold') {
+      const osc=ctx.createOscillator(), gain=ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination); osc.type='sine';
+      osc.frequency.setValueAtTime(150,now); osc.frequency.exponentialRampToValueAtTime(95,now+0.9);
+      gain.gain.setValueAtTime(0.001,now); gain.gain.linearRampToValueAtTime(0.07,now+0.12); gain.gain.exponentialRampToValueAtTime(0.001,now+0.95);
+      osc.start(now); osc.stop(now+0.95); return;
+    }
+    if (type === 'pull') {
+      const osc=ctx.createOscillator(), gain=ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination); osc.type='triangle';
+      osc.frequency.setValueAtTime(240,now); osc.frequency.exponentialRampToValueAtTime(520,now+0.22);
+      gain.gain.setValueAtTime(0.001,now); gain.gain.linearRampToValueAtTime(0.16,now+0.04); gain.gain.exponentialRampToValueAtTime(0.001,now+0.25);
+      osc.start(now); osc.stop(now+0.25); return;
+    }
+    if (type === 'drop') {
+      const osc=ctx.createOscillator(), gain=ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination); osc.type='sine';
+      osc.frequency.setValueAtTime(520,now); osc.frequency.exponentialRampToValueAtTime(95,now+0.38);
+      gain.gain.setValueAtTime(0.18,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.4);
+      osc.start(now); osc.stop(now+0.4); return;
+    }
+    if (type === 'impact') {
+      playNoiseBurst_(ctx,now,0.11,0.22,650);
+      const osc=ctx.createOscillator(), gain=ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.type='square';
+      osc.frequency.setValueAtTime(110,now); osc.frequency.exponentialRampToValueAtTime(55,now+0.16); gain.gain.setValueAtTime(0.18,now); gain.gain.exponentialRampToValueAtTime(0.001,now+0.18); osc.start(now); osc.stop(now+0.18); return;
+    }
+
     if (type === 'star') {
       [660, 880].forEach((freq, i) => {
         const t = now + i * 0.09;
@@ -2303,18 +2971,34 @@ function playSound(type) {
   } catch(e){}
 }
 
+/* FODO CHAOS V3 ICON FAMILY — visual layer only */
+const CHAOS_ICON_SVG = {
+ blackhole:`<svg class="chaos-glass-icon" viewBox="0 0 48 48" aria-hidden="true"><circle class="glass-shell" cx="24" cy="24" r="20"/><ellipse class="glass-shine" cx="17" cy="12" rx="8" ry="3" transform="rotate(-25 17 12)"/><circle cx="24" cy="24" r="8.5" fill="rgba(5,4,10,.96)"/><path class="icon-core" d="M9 25c2.4-7.8 8.2-12 15-12 6.8 0 12.1 4.3 14.8 10.8M39 23c-2.5 7.6-7.6 11.5-14.5 11.5-6.7 0-12.2-3.9-15-10.1"/></svg>`,
+ burger:`<svg class="chaos-glass-icon" viewBox="0 0 48 48" aria-hidden="true"><circle class="glass-shell" cx="24" cy="24" r="20"/><ellipse class="glass-shine" cx="17" cy="12" rx="8" ry="3" transform="rotate(-25 17 12)"/><path class="icon-fill" d="M11 22c.8-7 6.1-11 13-11s12.2 4 13 11H11Z"/><path class="icon-core" d="M11 23h26M12 28h24M14 33h20M15 25h18"/></svg>`,
+ noodle:`<svg class="chaos-glass-icon" viewBox="0 0 48 48" aria-hidden="true"><circle class="glass-shell" cx="24" cy="24" r="20"/><ellipse class="glass-shine" cx="17" cy="12" rx="8" ry="3" transform="rotate(-25 17 12)"/><path class="icon-core" d="M12 17c8 5-4 8 5 12s13-3 19 3M12 23c8 5-3 8 5 12s13-2 19 2M14 14c5 3 4 6 0 8"/></svg>`,
+ magic:`<svg class="chaos-glass-icon" viewBox="0 0 48 48" aria-hidden="true"><circle class="glass-shell" cx="24" cy="24" r="20"/><ellipse class="glass-shine" cx="17" cy="12" rx="8" ry="3" transform="rotate(-25 17 12)"/><path class="icon-fill" d="m24 9 3.2 10.2L38 22.5l-10.8 3.3L24 37l-3.2-11.2L10 22.5l10.8-3.3L24 9Z"/><path class="icon-core" d="M12 35l4-4M35 13l3-3M35 34h4M10 15h3"/></svg>`
+};
+function chaosIconHTML(type){return CHAOS_ICON_SVG[type]||CHAOS_ICON_SVG.magic;}
+function hydrateChaosModalIcons_(){
+  document.querySelectorAll('[data-chaos-modal-icon]').forEach(el=>{
+    el.innerHTML=chaosIconHTML(el.getAttribute('data-chaos-modal-icon'));
+  });
+}
+
 /* Chaos Button Cycling */
-const CHAOS_REF_ICONS = ['🌀', '🍔', '🍜', '⭐'];
+const CHAOS_REF_ICONS = ['dice','freeze','reverse','swap','bomb','protection','random','kill','king','invisible','blackhole','burger'];
 let chaosRefIconIdx = 0;
 function cycleChaosRefIcon() {
   const el = document.getElementById('chaosRefIcon');
   if (!el) return;
   chaosRefIconIdx = (chaosRefIconIdx + 1) % CHAOS_REF_ICONS.length;
   const icon = CHAOS_REF_ICONS[chaosRefIconIdx];
-  el.textContent = icon;
-  el.classList.toggle('is-blackhole', icon === '🌀');
+  el.innerHTML = chaosIconHTML(icon);
+  el.classList.add('chaos-ref-icon');
+  el.classList.toggle('is-blackhole', icon === 'blackhole');
 }
 setInterval(cycleChaosRefIcon, 2000);
+hydrateChaosModalIcons_();
 
 function openChaosReference() { document.getElementById('legend-modal').classList.add('show'); }
 function dismissLegend() { document.getElementById('legend-modal').classList.remove('show'); }
@@ -2323,10 +3007,10 @@ function dismissLegend() { document.getElementById('legend-modal').classList.rem
    descriptions already written for the Chaos Reference legend above,
    rather than duplicating fresh copy. */
 const TRAP_INFO = {
-  blackhole: { icon: '🌀', name: 'BLACK HOLE', desc: 'Sucks you back 3 steps' },
-  burger:    { icon: '🍔', name: 'BURGER MONSTER', desc: 'Chomp! Back to yard' },
-  noodle:    { icon: '🍜', name: 'NOODLE SLIP', desc: 'Slip! 4 steps back' },
-  magic:     { icon: '⭐', name: 'MAGIC STAR', desc: 'Land here = Instant KO' },
+  blackhole: { icon: 'blackhole', name: 'BLACK HOLE', desc: 'Sucks you back 3 steps' },
+  burger:    { icon: 'burger', name: 'BURGER MONSTER', desc: 'Chomp! Back to yard' },
+  noodle:    { icon: 'noodle', name: 'NOODLE SLIP', desc: 'Slip! 4 steps back' },
+  magic:     { icon: 'magic', name: 'MAGIC STAR', desc: 'Land here = Instant KO' },
 };
 let pendingTrapEffect_ = null;
 
@@ -2416,65 +3100,112 @@ const SAFE_TILES = [0, 8, 13, 21, 26, 34, 39, 47];
 
 /* Dynamic Events */
 let activeFodoEvents = {};
+let chaosInProgress = false;
 // Restored (2026-08-26) — tracks which trap types this player has already
 // seen the one-time explainer for, keyed by trap type string.
 let hasExplainedTrap = {};
 
-const EVENT_TEMPLATES = [
-  {
-    type: 'blackhole', icon: '🌀', name: 'BLACK HOLE!',
-    action: (pIdx, tIdx) => maybeExplainTrap('blackhole', () => {
-      gameStats[pIdx].blackhole++;
-      broadcastHighlight('🔥 FODO EVENT!', 'BLACK HOLE!');
-      playBoardZoomCinema('blackhole', pIdx, tIdx, () => stepBackToken(pIdx, tIdx, 3));
-    })
-  },
-  {
-    type: 'burger', icon: '🍔', name: 'BURGER MONSTER!',
-    action: (pIdx, tIdx) => maybeExplainTrap('burger', () => {
-      gameStats[pIdx].burger++;
-      broadcastHighlight('🔥 FODO EVENT!', 'BURGER MONSTER!');
-      playBoardZoomCinema('burger', pIdx, tIdx, () => sendTokenToYard(pIdx, tIdx));
-    })
-  },
-  {
-    type: 'noodle', icon: '🍜', name: 'NOODLE SLIP!',
-    action: (pIdx, tIdx) => maybeExplainTrap('noodle', () => {
-      gameStats[pIdx].noodle++;
-      broadcastHighlight('🔥 FODO EVENT!', 'NOODLE SLIP!');
-      playBoardZoomCinema('noodle', pIdx, tIdx, () => stepBackToken(pIdx, tIdx, 4));
-    })
-  },
-  {
-    type: 'magic', icon: '⭐', name: 'MAGIC STAR KO!',
-    action: (pIdx, tIdx) => maybeExplainTrap('magic', () => {
-      gameStats[pIdx].magic++;
-      broadcastHighlight('🔥 FODO EVENT!', 'MAGIC STAR KO!');
-      playBoardZoomCinema('magic', pIdx, tIdx, () => sendTokenToYard(pIdx, tIdx));
-    })
-  }
-];
+const CHAOS_WORLD_TYPES = ['dice','freeze','reverse','swap','bomb','protection','random','kill','king','invisible','blackhole','burger'];
+const CHAOS_WORLD_META = {
+  dice:{icon:'dice',name:'DOUBLE DICE',desc:'Bonus roll'},
+  freeze:{icon:'freeze',name:'FREEZE',desc:'Lose your next turn'},
+  reverse:{icon:'reverse',name:'REVERSE',desc:'Go back 6 spaces'},
+  swap:{icon:'swap',name:'SWAP',desc:'Switch places'},
+  bomb:{icon:'bomb',name:'BOMB',desc:'Blast back 8 spaces'},
+  protection:{icon:'protection',name:'PROTECTION',desc:'Block the next hit'},
+  random:{icon:'random',name:'RANDOM CHAOS',desc:'Anything can happen'},
+  kill:{icon:'kill',name:'KILL',desc:'Kick the token home'},
+  king:{icon:'king',name:'KING MOVE',desc:'Charge ahead 6 spaces'},
+  invisible:{icon:'invisible',name:'INVISIBLE',desc:'Disappear for a turn'},
+  blackhole:{icon:'blackhole',name:'BLACK HOLE',desc:'Pull back 3 spaces'},
+  burger:{icon:'burger',name:'BURGER MONSTER',desc:'Chomp! Back to yard'}
+};
 
-function spawnRandomFodoEvents() {
-  for (let tile in activeFodoEvents) {
-    activeFodoEvents[tile].turnsLeft--;
-    if (activeFodoEvents[tile].turnsLeft <= 0) delete activeFodoEvents[tile];
+function shuffleChaosBag_(){
+  chaosBag=[...CHAOS_WORLD_TYPES];
+  for(let i=chaosBag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[chaosBag[i],chaosBag[j]]=[chaosBag[j],chaosBag[i]];}
+}
+function countRemainingTokens_(){
+  return activeSeatIndices.map(i=>players[i].tokens.filter(t=>t.step!==56).length);
+}
+function chaosEndgame_(){
+  const counts=countRemainingTokens_();
+  return counts.length>0 && counts.every(n=>n<=1);
+}
+function nextChaosType_(){
+  if(!chaosBag.length) shuffleChaosBag_();
+  const activeTypes=new Set(Object.values(activeFodoEvents).map(e=>e.type));
+  let idx=chaosBag.findIndex(t=>!activeTypes.has(t));
+  if(idx<0){shuffleChaosBag_();idx=chaosBag.findIndex(t=>!activeTypes.has(t));}
+  return chaosBag.splice(idx<0?0:idx,1)[0];
+}
+function chaosMoveForward_(pIdx,tIdx,steps){
+  const t=players[pIdx].tokens[tIdx]; let n=Math.max(0,Math.min(steps,56-t.step));
+  if(t.step<0)return;
+  const hop=()=>{if(n<=0){renderAllTokensDOM();if(t.step===56&&players[pIdx].tokens.every(tk=>tk.step===56)){isPaused=true;playVictoryPan(pIdx);}return;} t.step++;n--;spawnTokenTrail_(pIdx,tIdx);playSound('step');renderAllTokensDOM();setTimeout(hop,115);}; hop();
+}
+function randomOpponentToken_(pIdx){
+  const candidates=[];
+  activeSeatIndices.forEach(oppIdx=>{if(oppIdx===pIdx)return;players[oppIdx].tokens.forEach((t,tIdx)=>{if(t.step>=0&&t.step<56)candidates.push({pIdx:oppIdx,tIdx});});});
+  return candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;
+}
+function applyRandomChaos_(pIdx,tIdx){
+  const choices=['dice','freeze','reverse','bomb','protection'];
+  const chosen=choices[Math.floor(Math.random()*choices.length)];
+  const t=players[pIdx].tokens[tIdx];
+  if(chosen==='dice') chaosBonusRolls[pIdx]++;
+  if(chosen==='freeze') chaosFreezeTurns[pIdx]++;
+  if(chosen==='reverse') stepBackToken(pIdx,tIdx,6);
+  if(chosen==='bomb') stepBackToken(pIdx,tIdx,8);
+  if(chosen==='protection') chaosProtectionTurns[pIdx]=2;
+  return chosen;
+}
+
+const EVENT_TEMPLATES = CHAOS_WORLD_TYPES.map(type=>({
+  type, icon:CHAOS_WORLD_META[type].icon, name:CHAOS_WORLD_META[type].name+'!',
+  action:(pIdx,tIdx,resume)=>{
+    gameStats[pIdx][type]=(gameStats[pIdx][type]||0)+1;
+    broadcastHighlight('🔥 FUDO CHAOS!',CHAOS_WORLD_META[type].name);
+    let swapTarget=null;
+    if(type==='swap') swapTarget=randomOpponentToken_(pIdx);
+    if(type==='random') swapTarget=null;
+    const apply=()=>{
+      if(type==='dice') chaosBonusRolls[pIdx]++;
+      else if(type==='freeze') chaosFreezeTurns[pIdx]++;
+      else if(type==='reverse') stepBackToken(pIdx,tIdx,6);
+      else if(type==='swap' && swapTarget){const a=players[pIdx].tokens[tIdx],b=players[swapTarget.pIdx].tokens[swapTarget.tIdx]; const tmp=a.step;a.step=b.step;b.step=tmp;renderAllTokensDOM();}
+      else if(type==='bomb') stepBackToken(pIdx,tIdx,8);
+      else if(type==='protection') chaosProtectionTurns[pIdx]=2;
+      else if(type==='random') applyRandomChaos_(pIdx,tIdx);
+      else if(type==='king') chaosMoveForward_(pIdx,tIdx,6);
+      else if(type==='invisible'){chaosInvisibleTurns[pIdx]=1;document.getElementById(`token-${pIdx}-${tIdx}`)?.classList.add('chaos-invisible');}
+      else if(type==='blackhole') stepBackToken(pIdx,tIdx,3);
+      else if(type==='burger') sendTokenToYard(pIdx,tIdx);
+    };
+    if(type==='kill'){
+      // Kill is a Chaos World event: no attacker is invented. It kicks the landed token home.
+      playBoardZoomCinema('kill',pIdx,tIdx,()=>{sendTokenToYard(pIdx,tIdx);if(typeof resume==='function')resume();});
+    } else {
+      playBoardZoomCinema(type,pIdx,tIdx,()=>{apply();if(typeof resume==='function')resume();});
+    }
   }
-  const currentCount = Object.keys(activeFodoEvents).length;
-  if (currentCount < 3 && Math.random() < 0.6) {
-    const available = [];
-    for (let i = 0; i < 52; i++) {
-      if (!activeFodoEvents[i] && !SAFE_TILES.includes(i)) available.push(i);
-    }
-    if (available.length) {
-      const randomTile = available[Math.floor(Math.random() * available.length)];
-      const template = EVENT_TEMPLATES[Math.floor(Math.random() * EVENT_TEMPLATES.length)];
-      activeFodoEvents[randomTile] = {
-        type: template.type, icon: template.icon, name: template.name,
-        turnsLeft: Math.floor(Math.random() * 2) + 2,
-        onLand: template.action
-      };
-    }
+}));
+
+function spawnRandomFodoEvents(){
+  for(const tile in activeFodoEvents){
+    activeFodoEvents[tile].turnsLeft--;
+    if(activeFodoEvents[tile].turnsLeft<=0) delete activeFodoEvents[tile];
+  }
+  const maxActive=chaosEndgame_()?12:5;
+  if(!chaosBag.length)shuffleChaosBag_();
+  const available=[];
+  for(let i=0;i<52;i++) if(!activeFodoEvents[i]&&!SAFE_TILES.includes(i)) available.push(i);
+  // Normal play: keep a readable field of 4–5 Chaos icons. Endgame: all 12 may be live.
+  const target=chaosEndgame_()?12:(Math.random()<0.45?5:4);
+  while(Object.keys(activeFodoEvents).length<Math.min(target,maxActive)&&available.length&&chaosBag.length){
+    const ai=Math.floor(Math.random()*available.length); const randomTile=available.splice(ai,1)[0];
+    const type=nextChaosType_(), meta=CHAOS_WORLD_META[type];
+    activeFodoEvents[randomTile]={type,icon:meta.icon,name:meta.name+'!',turnsLeft:Math.floor(Math.random()*3)+3,onLand:EVENT_TEMPLATES.find(e=>e.type===type).action};
   }
   renderFodoEventsDOM();
 }
@@ -2492,7 +3223,8 @@ function renderFodoEventsDOM() {
     const cell = MAIN_CIRCUIT[tile];
     const el = document.createElement('div');
     el.className = `fodo-event-badge is-${ev.type}`;
-    el.textContent = ev.icon;
+    el.innerHTML = chaosIconHTML(ev.type);
+    el.setAttribute('aria-label', ev.name || ev.type);
     el.style.left = ((cell[0] * S + S/2) * scale) + 'px';
     el.style.top = ((cell[1] * S + S/2) * scale) + 'px';
     layer.appendChild(el);
@@ -2567,6 +3299,11 @@ function playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone) {
   if (victim.avatar) victimHead.innerHTML = `<img src="${victim.avatar}">`;
   else victimHead.textContent = PLAYER_CONFIG[victimPIdx].defaultEmoji;
 
+  // Fixed anchor point for the tag bubble in this fallback stage (the
+  // live board-zoom cinema below positions it per-tile instead).
+  tagEl.style.left = '50%';
+  tagEl.style.top = '78%';
+
   // Reset every animation class from any previous playthrough, and hide
   // the trap-only props (this is a kill, not a Chaos trap).
   [camera, attackerEl, victimEl, ring, tagEl].forEach(el => {
@@ -2609,7 +3346,7 @@ function playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone) {
     // state now, silently, underneath this still-open popup.
     if (onDone) onDone();
   }, 2050);
-  setTimeout(() => tagEl.classList.add('show'), 1900);
+  setTimeout(() => { speakLine(tagEl.textContent, () => tagEl.classList.add('show')); }, 1900);
   setTimeout(() => camera.classList.add('zoom-out'), 3300);
   setTimeout(() => {
     overlay.classList.remove('show');
@@ -2651,6 +3388,9 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
   if (victim.avatar) victimHead.innerHTML = `<img src="${victim.avatar}">`;
   else victimHead.textContent = PLAYER_CONFIG[pIdx].defaultEmoji;
 
+  tagEl.style.left = '50%';
+  tagEl.style.top = '78%';
+
   // Reset state from any previous playthrough — no attacker in a trap
   // sequence, so it's hidden entirely rather than just unanimated.
   camera.className = 'chaos-cinema-camera';
@@ -2680,7 +3420,7 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
     setTimeout(() => { victimEl.classList.add('bh-orbit'); camera.classList.add('zoom-in'); playSound('blackhole'); }, 700);
     setTimeout(() => victimEl.classList.add('bh-vanish'), 1600);
     setTimeout(() => { if (onDone) onDone(); }, 2100);
-    setTimeout(() => tagEl.classList.add('show'), 1900);
+    setTimeout(() => { speakLine(tagEl.textContent, () => tagEl.classList.add('show')); }, 1900);
     setTimeout(() => camera.classList.add('zoom-out'), 3200);
     setTimeout(unlockAfterCinema, 3800);
   } else if (type === 'burger') {
@@ -2690,7 +3430,7 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
     setTimeout(() => victimEl.classList.add('burger-chomp2'), 950);
     setTimeout(() => victimEl.classList.add('burger-gone'), 1250);
     setTimeout(() => { if (onDone) onDone(); }, 1650);
-    setTimeout(() => tagEl.classList.add('show'), 1700);
+    setTimeout(() => { speakLine(tagEl.textContent, () => tagEl.classList.add('show')); }, 1700);
     setTimeout(() => camera.classList.add('zoom-out'), 3000);
     setTimeout(unlockAfterCinema, 3600);
   } else if (type === 'noodle') {
@@ -2699,7 +3439,7 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
     setTimeout(() => victimEl.classList.add('noodle-slide'), 1150);
     setTimeout(() => victimEl.classList.add('noodle-recover'), 1900);
     setTimeout(() => { if (onDone) onDone(); }, 2200);
-    setTimeout(() => tagEl.classList.add('show'), 2100);
+    setTimeout(() => { speakLine(tagEl.textContent, () => tagEl.classList.add('show')); }, 2100);
     setTimeout(() => camera.classList.add('zoom-out'), 3300);
     setTimeout(unlockAfterCinema, 3900);
   } else if (type === 'magic') {
@@ -2708,7 +3448,7 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
     setTimeout(() => victimEl.classList.add('magic-shock'), 650);
     setTimeout(() => victimEl.classList.add('magic-pop'), 950);
     setTimeout(() => { if (onDone) onDone(); }, 1350);
-    setTimeout(() => tagEl.classList.add('show'), 1500);
+    setTimeout(() => { speakLine(tagEl.textContent, () => tagEl.classList.add('show')); }, 1500);
     setTimeout(() => camera.classList.add('zoom-out'), 2900);
     setTimeout(unlockAfterCinema, 3500);
   }
@@ -2723,128 +3463,151 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
    sits exactly on top of the real token and does the actual moving/
    spinning/vanishing, standing in for it for the duration of the popup.
    Real board updates silently underneath via onDone, same as before.
-   Total sequence stretched to ~4.5s per explicit request (was ~3s) so
-   there's enough time to actually see and screenshot it. */
+
+   Timeline rebuilt (2026-09-19): the camera now does a SHORT, decisive
+   settle (0.55s, was 2.9s) and fully stops before anything chaos-related
+   fires — previously the burst/reaction started firing while the camera
+   was still slowly zooming, which read as messy rather than "pan, land,
+   then chaos happens". Once settled: a comic-book impact burst (thick
+   radiating rays, colour per type) pops behind everything, a per-type
+   flavour wash floods the frame (an actual noodle pattern for Noodle,
+   themed colour washes for the rest), and the reaction line pops in as
+   a real speech bubble with a bounce — all together, right on top of
+   the token, not as a separate caption below the board. Total sequence
+   still ~4.5-4.7s, just re-paced: less time spent waiting on the camera,
+   more time spent on the actual chaos moment being read/enjoyed. */
 function playBoardZoomCinema(type, victimPIdx, victimTIdx, onDone, attackerPIdx) {
-  const overlay = document.getElementById('chaosBoardZoomOverlay');
-  const scaler = document.getElementById('chaosBoardZoomScaler');
-  const snapshotImg = document.getElementById('chaosBoardZoomSnapshot');
-  const vortex = document.getElementById('chaosBoardZoomVortex');
-  const burger = document.getElementById('chaosBoardZoomBurger');
-  const starburst = document.getElementById('chaosBoardZoomStarburst');
-  const victimToken = document.getElementById('chaosBoardZoomVictim');
-  const victimHead = document.getElementById('chaosBoardZoomVictimHead');
-  const attackerToken = document.getElementById('chaosBoardZoomAttacker');
-  const attackerHead = document.getElementById('chaosBoardZoomAttackerHead');
-  const reaction = document.getElementById('chaosBoardZoomReaction');
-  const tagEl = document.getElementById('chaosBoardZoomTag');
-  const wrapper = document.getElementById('board-wrapper');
+  const overlay=document.getElementById('chaosBoardZoomOverlay');
+  const scaler=document.getElementById('chaosBoardZoomScaler');
+  const snapshotImg=document.getElementById('chaosBoardZoomSnapshot');
+  const flavorBg=document.getElementById('chaosFlavorBg');
+  const comicBurst=document.getElementById('chaosComicBurst');
+  const nearImpact=document.getElementById('chaosNearImpact');
+  const pullRope=document.getElementById('chaosPullRope');
+  const vortex=document.getElementById('chaosBoardZoomVortex');
+  const burger=document.getElementById('chaosBoardZoomBurger');
+  const starburst=document.getElementById('chaosBoardZoomStarburst');
+  const victimToken=document.getElementById('chaosBoardZoomVictim');
+  const victimHead=document.getElementById('chaosBoardZoomVictimHead');
+  const attackerToken=document.getElementById('chaosBoardZoomAttacker');
+  const attackerHead=document.getElementById('chaosBoardZoomAttackerHead');
+  const reaction=document.getElementById('chaosBoardZoomReaction');
+  const tagEl=document.getElementById('chaosBoardZoomTag');
+  const frame=document.getElementById('chaosBoardZoomFrame');
+  const wrapper=document.getElementById('board-wrapper');
 
-  const fallback = () => {
-    // Never leave a chaos event silently doing nothing — fall back to
-    // the old mini-stage if html2canvas / any element is unavailable.
-    if (type === 'kill') playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone);
-    else playTrapCinema(type, victimPIdx, victimTIdx, onDone);
-  };
+  const fallback=()=>{ if(type==='kill') playKillCinema(attackerPIdx,victimPIdx,victimTIdx,onDone); else playTrapCinema(type,victimPIdx,victimTIdx,onDone); };
+  if(!overlay||!scaler||!snapshotImg||!wrapper||typeof html2canvas==='undefined'){fallback();return;}
 
-  if (!overlay || !scaler || !snapshotImg || !wrapper || typeof html2canvas === 'undefined') {
-    fallback();
-    return;
-  }
+  const step=players[victimPIdx].tokens[victimTIdx].step;
+  const replayStartStep=step;
+  const replayBackSteps=(type==='blackhole'||type==='noodle') ? Math.min(type==='blackhole'?3:4,Math.max(0,step)) : 0;
+  const tile=getGlobalTrackIndex(victimPIdx,step);
+  const cell=tile>=0?MAIN_CIRCUIT[tile]:[7,7];
+  const S=600/15;
+  const xPct=((cell[0]*S+S/2)/600)*100;
+  const yPct=((cell[1]*S+S/2)/600)*100;
 
-  const step = players[victimPIdx].tokens[victimTIdx].step;
-  const tile = getGlobalTrackIndex(victimPIdx, step);
-  const cell = tile >= 0 ? MAIN_CIRCUIT[tile] : [7, 7];
-  const S = 600 / 15;
-  const xPct = ((cell[0] * S + S / 2) / 600) * 100;
-  const yPct = ((cell[1] * S + S / 2) / 600) * 100;
+  scaler.className='chaos-boardzoom-scaler';
+  flavorBg.className='chaos-flavor-bg';
+  comicBurst.className='chaos-comic-burst';
+  nearImpact.className='chaos-near-impact';
+  pullRope.className='chaos-pull-rope';
+  vortex.className='chaos-boardzoom-vortex';
+  burger.className='chaos-boardzoom-burger';
+  starburst.className='chaos-boardzoom-starburst';
+  victimToken.className='chaos-boardzoom-token chaos-boardzoom-token--victim';
+  attackerToken.className='chaos-boardzoom-token chaos-boardzoom-token--attacker';
+  reaction.className='chaos-boardzoom-reaction'; reaction.textContent='';
+  tagEl.className='chaos-cinema-tag';
+  frame.classList.remove('impact-hit');
+  scaler.style.transformOrigin=`${xPct}% ${yPct}%`;
+  [vortex,burger,starburst,nearImpact,pullRope,victimToken,attackerToken,reaction,comicBurst].forEach(el=>{el.style.left=`${xPct}%`;el.style.top=`${yPct}%`;});
+  const tagXPct=Math.min(78,Math.max(22,xPct)); tagEl.style.left=`${tagXPct}%`; tagEl.style.top=`${yPct}%`; tagEl.classList.toggle('flip-below',yPct<32);
 
-  // Reset every element from any previous playthrough.
-  scaler.className = 'chaos-boardzoom-scaler';
-  vortex.className = 'chaos-boardzoom-vortex';
-  burger.className = 'chaos-boardzoom-burger';
-  starburst.className = 'chaos-boardzoom-starburst';
-  victimToken.className = 'chaos-boardzoom-token chaos-boardzoom-token--victim';
-  attackerToken.className = 'chaos-boardzoom-token chaos-boardzoom-token--attacker';
-  reaction.className = 'chaos-boardzoom-reaction';
-  reaction.textContent = '';
-  tagEl.className = 'chaos-cinema-tag';
+  const BURST_COLORS={blackhole:'#C9A6FF',burger:'#FF6B35',noodle:'#E8A93C',magic:'#FFF3C4',kill:'#FF3B30'};
+  comicBurst.style.setProperty('--burst-color',BURST_COLORS[type]||'#FFE8A3'); flavorBg.classList.add('flavor-'+type);
+  const victim=players[victimPIdx]; victimToken.style.setProperty('--bz-token-color',PLAYER_CONFIG[victimPIdx].hex);
+  if(victim.avatar) victimHead.innerHTML=`<img src="${victim.avatar}">`; else victimHead.innerHTML=`<div class="fallback-emoji">${PLAYER_CONFIG[victimPIdx].defaultEmoji}</div>`;
+  if(type==='kill'){const attacker=players[attackerPIdx]; attackerToken.style.setProperty('--bz-token-color',PLAYER_CONFIG[attackerPIdx].hex); if(attacker.avatar) attackerHead.innerHTML=`<img src="${attacker.avatar}">`; else attackerHead.innerHTML=`<div class="fallback-emoji">${PLAYER_CONFIG[attackerPIdx].defaultEmoji}</div>`;}
+  const punchlineSet=type==='kill'?KILL_PUNCHLINES:TRAP_PUNCHLINES[type]; tagEl.textContent=punchlineSet[Math.floor(Math.random()*punchlineSet.length)];
 
-  scaler.style.transformOrigin = `${xPct}% ${yPct}%`;
-  [vortex, burger, starburst, victimToken, attackerToken, reaction].forEach(el => {
-    el.style.left = `${xPct}%`;
-    el.style.top = `${yPct}%`;
-  });
+  html2canvas(wrapper,{backgroundColor:null,useCORS:true,scale:1}).then(canvas=>{
+    snapshotImg.src=canvas.toDataURL('image/png'); overlay.classList.add('show'); isPaused=true;
+    setTimeout(()=>scaler.classList.add('whip-in'),250);
+    setTimeout(()=>scaler.classList.add('slow-settle'),620);
 
-  const victim = players[victimPIdx];
-  victimToken.style.setProperty('--bz-token-color', PLAYER_CONFIG[victimPIdx].hex);
-  if (victim.avatar) victimHead.innerHTML = `<img src="${victim.avatar}">`;
-  else victimHead.innerHTML = `<div class="fallback-emoji">${PLAYER_CONFIG[victimPIdx].defaultEmoji}</div>`;
+    /* Standard FODO timing: ~6.8s total. One clear event, not a pile of effects. */
+    const REVEAL_AT=1250;
+    setTimeout(()=>{
+      victimToken.classList.add('show','physical');
+      if(type==='kill') attackerToken.classList.add('show','physical');
+      comicBurst.classList.add('show');
+      nearImpact.classList.add('show');
+      frame.classList.add('impact-hit');
+      playSound('impact');
+      const dialogueText = tagEl.textContent;
+      speakLine(dialogueText,()=>{ tagEl.classList.add('show'); typeDialogue(tagEl, dialogueText); });
 
-  if (type === 'kill') {
-    const attacker = players[attackerPIdx];
-    attackerToken.style.setProperty('--bz-token-color', PLAYER_CONFIG[attackerPIdx].hex);
-    if (attacker.avatar) attackerHead.innerHTML = `<img src="${attacker.avatar}">`;
-    else attackerHead.innerHTML = `<div class="fallback-emoji">${PLAYER_CONFIG[attackerPIdx].defaultEmoji}</div>`;
-  }
-
-  const punchlineSet = type === 'kill' ? KILL_PUNCHLINES : TRAP_PUNCHLINES[type];
-  tagEl.textContent = punchlineSet[Math.floor(Math.random() * punchlineSet.length)];
-
-  html2canvas(wrapper, { backgroundColor: null, useCORS: true, scale: 1 }).then(canvas => {
-    snapshotImg.src = canvas.toDataURL('image/png');
-    overlay.classList.add('show');
-    isPaused = true;
-
-    // Beat 1: reveal the real board as-is, so it registers before anything moves.
-    setTimeout(() => { scaler.classList.add('whip-in'); }, 400);
-
-    // Beat 2: slow-motion settle — the actual effect plays during this window.
-    setTimeout(() => {
-      scaler.classList.add('slow-settle');
-      victimToken.classList.add('show');
-      if (type === 'kill') attackerToken.classList.add('show');
-
-      if (type === 'blackhole') {
-        vortex.classList.add('show');
-        playSound('blackhole');
-        setTimeout(() => victimToken.classList.add('bz-spin-drop'), 150);
-      } else if (type === 'burger') {
+      if(type==='blackhole'){
+        vortex.classList.add('show'); pullRope.classList.add('show');
+        playSound('hold');
+        setTimeout(()=>playSound('pull'),550);
+        setTimeout(()=>victimToken.classList.add('bz-spin-drop'),1250);
+        setTimeout(()=>playSound('drop'),1850);
+      } else if(type==='burger'){
         burger.classList.add('show');
-        setTimeout(() => { burger.classList.add('chomp'); playSound('burger'); }, 250);
-        setTimeout(() => victimToken.classList.add('bz-eaten'), 700);
-      } else if (type === 'noodle') {
-        playSound('noodle');
-        setTimeout(() => victimToken.classList.add('bz-slip'), 100);
-      } else if (type === 'magic') {
-        setTimeout(() => victimToken.classList.add('bz-freeze'), 100);
-        setTimeout(() => { starburst.classList.add('show'); playSound('magic'); }, 500);
-        setTimeout(() => victimToken.classList.add('bz-pop'), 550);
-      } else if (type === 'kill') {
-        setTimeout(() => attackerToken.classList.add('bz-lunge-in'), 100);
-        setTimeout(() => { playSound('cut'); victimToken.classList.add('bz-char'); }, 450);
-        setTimeout(() => {
-          victimToken.classList.add('bz-knockback');
-          reaction.textContent = Math.random() < 0.5 ? '😭' : '😂';
-          reaction.classList.add('show');
-        }, 750);
+        setTimeout(()=>{burger.classList.add('chomp');playSound('impact');},450);
+        setTimeout(()=>victimToken.classList.add('bz-eaten'),1150);
+        setTimeout(()=>playSound('drop'),1500);
+      } else if(type==='noodle'){
+        setTimeout(()=>{victimToken.classList.add('bz-slip');playSound('noodle');},250);
+      } else if(type==='magic'){
+        setTimeout(()=>victimToken.classList.add('bz-freeze'),180);
+        setTimeout(()=>{starburst.classList.add('show');playSound('magic');},700);
+        setTimeout(()=>victimToken.classList.add('bz-pop'),1050);
+        setTimeout(()=>playSound('drop'),1250);
+      } else if(type==='kill'){
+        // Signature FODO kill: Road-Runner sprint -> one big kick -> victim flies
+        // toward the victim's actual yard corner. Gameplay state is still applied
+        // only by onDone; this is presentation only.
+        const homeCenters = { 0:[13,13], 1:[87,13], 2:[87,87], 3:[13,87] };
+        const [hx,hy] = homeCenters[victimPIdx] || [50,50];
+        setTimeout(()=>{ attackerToken.classList.add('bz-runner'); playSound('cut'); },120);
+        setTimeout(()=>{ attackerToken.classList.remove('bz-runner'); attackerToken.classList.add('bz-kick'); playSound('impact'); frame.classList.add('impact-hit'); },760);
+        setTimeout(()=>{
+          victimToken.classList.add('bz-char','bz-kick-off');
+          reaction.textContent=''; reaction.classList.add('show');
+          victimToken.style.left=`${hx}%`; victimToken.style.top=`${hy}%`;
+          playSound('drop');
+        },930);
+        setTimeout(()=>{ attackerToken.classList.remove('bz-kick'); attackerToken.classList.add('bz-runner'); },1020);
       }
-    }, 730);
+    },REVEAL_AT);
 
-    const onDoneDelay = (type === 'burger' || type === 'noodle') ? 2000
-      : type === 'kill' ? 2100
-      : 1900; // blackhole, magic
-    setTimeout(() => { if (onDone) onDone(); }, onDoneDelay);
+    /* Step-back events: the rope is the readable action cue, then the same face stays on the pawn while the pawn travels backwards. */
+    if(replayBackSteps>0){
+      const replayAt=REVEAL_AT+2450;
+      setTimeout(()=>{
+        if(type==='blackhole'){pullRope.classList.add('show');playSound('pull');}
+        victimToken.classList.remove('bz-slip'); victimToken.classList.add('physical','bz-stepback-replay');
+        for(let i=1;i<=replayBackSteps;i++){
+          setTimeout(()=>{
+            const rs=replayStartStep-i,rt=getGlobalTrackIndex(victimPIdx,rs); if(rt<0)return;
+            const rc=MAIN_CIRCUIT[rt]; victimToken.style.left=`${((rc[0]*S+S/2)/600)*100}%`; victimToken.style.top=`${((rc[1]*S+S/2)/600)*100}%`;
+            playSound('step');
+            if(i===replayBackSteps) setTimeout(()=>pullRope.classList.add('fade-out'),180);
+          },i*260);
+        }
+      },replayAt);
+    }
 
-    setTimeout(() => tagEl.classList.add('show'), onDoneDelay + 150);
-    setTimeout(() => scaler.classList.add('zoom-out'), 3800);
-    setTimeout(() => {
-      overlay.classList.remove('show');
-      isPaused = false;
-      if (players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving) {
-        setTimeout(() => { if (!isPaused) onRollDice(currentTurn); }, 500);
-      }
-    }, 4500);
+    const stateApplyAt=REVEAL_AT+5200;
+    setTimeout(()=>{if(onDone)onDone();},stateApplyAt);
+    const FADE_AT=REVEAL_AT+5600;
+    setTimeout(()=>{comicBurst.classList.add('fade-out');nearImpact.classList.remove('show');flavorBg.classList.add('fade-out');tagEl.classList.add('fade-out');pullRope.classList.add('fade-out');},FADE_AT);
+    setTimeout(()=>scaler.classList.add('zoom-out'),REVEAL_AT+5850);
+    setTimeout(()=>{overlay.classList.remove('show');isPaused=false;if(players[currentTurn]&&players[currentTurn].isAI&&!isRolling&&!isTokenMoving){setTimeout(()=>{if(!isPaused)onRollDice(currentTurn);},500);}},REVEAL_AT+6250);
   }).catch(fallback);
 }
 
@@ -2864,7 +3627,7 @@ function playVictoryPan(pIdx) {
 
   // Make sure no leftover trap-specific elements are visible from an
   // earlier chaos event this game.
-  ['chaosBoardZoomVortex','chaosBoardZoomBurger','chaosBoardZoomVictim','chaosBoardZoomAttacker','chaosBoardZoomReaction'].forEach(id => {
+  ['chaosBoardZoomVortex','chaosBoardZoomBurger','chaosBoardZoomVictim','chaosBoardZoomAttacker','chaosBoardZoomReaction','chaosComicBurst','chaosFlavorBg'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.className = el.className.split(' ')[0];
   });
@@ -2881,6 +3644,11 @@ function playVictoryPan(pIdx) {
   starburst.style.left = '50%';
   starburst.style.top = '50%';
   tagEl.className = 'chaos-cinema-tag';
+  // Tag now lives inside the scaler (anchored like the token/props in
+  // the chaos cinema above), so it needs its own left/top here too —
+  // it no longer sits in normal document flow below the frame.
+  tagEl.style.left = '50%';
+  tagEl.style.top = '50%';
   tagEl.textContent = `👑 ${players[pIdx].name} WINS!`;
 
   html2canvas(wrapper, { backgroundColor: null, useCORS: true, scale: 1 }).then(canvas => {
@@ -2893,7 +3661,7 @@ function playVictoryPan(pIdx) {
       starburst.classList.add('show');
       playSound('magic');
     }, 680);
-    setTimeout(() => tagEl.classList.add('show'), 1300);
+    setTimeout(() => { speakLine(`${players[pIdx].name} wins!`, () => tagEl.classList.add('show')); }, 1300);
     setTimeout(() => scaler.classList.add('zoom-out'), 3100);
     setTimeout(() => {
       overlay.classList.remove('show');
@@ -3106,10 +3874,15 @@ let lastDiceRoll = 1;
 
 // Per-player stats for THIS game only — reset in startGame(). Feeds the
 // winner-screen stats table and the leaderboard score calculation.
-let gameStats = [0,1,2,3].map(() => ({ blackhole: 0, burger: 0, noodle: 0, magic: 0, kills: 0, timesKilled: 0 }));
+let gameStats = [0,1,2,3].map(() => ({ blackhole: 0, burger: 0, noodle: 0, magic: 0, dice: 0, freeze: 0, reverse: 0, swap: 0, bomb: 0, protection: 0, random: 0, kill: 0, king: 0, invisible: 0, kills: 0, timesKilled: 0 }));
+let chaosBonusRolls = [0,0,0,0];
+let chaosFreezeTurns = [0,0,0,0];
+let chaosProtectionTurns = [0,0,0,0];
+let chaosInvisibleTurns = [0,0,0,0];
+let chaosBag = [];
 function totalChaosHits(pIdx) {
   const s = gameStats[pIdx];
-  return s.blackhole + s.burger + s.noodle + s.magic;
+  return s.blackhole + s.burger + s.noodle + s.magic + s.dice + s.freeze + s.reverse + s.swap + s.bomb + s.protection + s.random + s.kill + s.king + s.invisible;
 }
 let isRolling = false;
 let isTokenMoving = false;
@@ -3627,7 +4400,8 @@ function renderDicePips(playerIdx, value) {
 function startGame() {
   ensureAudio();
   activeSeatIndices = computeActiveSeatIndices(activePlayerCount, tkgFill);
-  gameStats = [0,1,2,3].map(() => ({ blackhole: 0, burger: 0, noodle: 0, magic: 0, kills: 0, timesKilled: 0 }));
+  gameStats = [0,1,2,3].map(() => ({ blackhole: 0, burger: 0, noodle: 0, magic: 0, dice: 0, freeze: 0, reverse: 0, swap: 0, bomb: 0, protection: 0, random: 0, kill: 0, king: 0, invisible: 0, kills: 0, timesKilled: 0 }));
+  chaosBonusRolls=[0,0,0,0]; chaosFreezeTurns=[0,0,0,0]; chaosProtectionTurns=[0,0,0,0]; chaosInvisibleTurns=[0,0,0,0]; chaosBag=[]; chaosInProgress=false;
 
   for (let i = 0; i < 4; i++) {
     const input = document.getElementById(`player-name-${i}`);
@@ -3655,6 +4429,7 @@ function startGame() {
   
   drawBoard();
   spawnTokensDOM();
+  spawnRandomFodoEvents();
   updateTurnUI();
 }
 
@@ -3797,7 +4572,7 @@ function handleArrivalLogic(pIdx, tIdx) {
       players.forEach((opp, oppIdx) => {
         if (oppIdx === pIdx || !activeSeatIndices.includes(oppIdx)) return;
         opp.tokens.forEach((oppT, oppTIdx) => {
-          if (oppT.step >= 0 && oppT.step <= 50 && getGlobalTrackIndex(oppIdx, oppT.step) === gTile) {
+          if (oppT.step >= 0 && oppT.step <= 50 && getGlobalTrackIndex(oppIdx, oppT.step) === gTile && chaosProtectionTurns[oppIdx] <= 0 && chaosInvisibleTurns[oppIdx] <= 0) {
             kills.push({ oppIdx, oppTIdx, oppT });
           }
         });
@@ -3830,11 +4605,24 @@ function handleArrivalLogic(pIdx, tIdx) {
     if (activeFodoEvents[gTile]) {
       const ev = activeFodoEvents[gTile];
       delete activeFodoEvents[gTile];
-      ev.onLand(pIdx, tIdx);
+      chaosInProgress = true;
+      ev.onLand(pIdx, tIdx, () => {
+        chaosInProgress = false;
+        finishTurnAfterMove_(pIdx, tIdx, killedOpponent);
+      });
+      return;
     }
   }
 
-  if (lastDiceRoll === 6 || killedOpponent || t.step === 56) {
+  finishTurnAfterMove_(pIdx, tIdx, killedOpponent);
+}
+
+function finishTurnAfterMove_(pIdx, tIdx, killedOpponent) {
+  const t = players[pIdx].tokens[tIdx];
+  if (isPaused || players[pIdx].tokens.every(tk => tk.step === 56)) return;
+
+  if (lastDiceRoll === 6 || killedOpponent || t.step === 56 || chaosBonusRolls[pIdx] > 0) {
+    if(chaosBonusRolls[pIdx]>0) chaosBonusRolls[pIdx]--;
     document.getElementById('game-status-text').textContent = "Roll again!";
     isRolling = false;
     if (players[currentTurn].isAI) {
@@ -3869,9 +4657,28 @@ function sendTokenToYard(pIdx, tIdx) {
 }
 
 function nextTurn() {
+  if (chaosInProgress) return;
   spawnRandomFodoEvents();
-  const pos = activeSeatIndices.indexOf(currentTurn);
-  currentTurn = activeSeatIndices[(pos + 1) % activeSeatIndices.length];
+  // Effects last for one future turn. Remove visual invisibility when it expires.
+  activeSeatIndices.forEach(i=>{
+    if(chaosProtectionTurns[i]>0) chaosProtectionTurns[i]--;
+    if(chaosInvisibleTurns[i]>0){
+      chaosInvisibleTurns[i]--;
+      if(chaosInvisibleTurns[i]===0) players[i].tokens.forEach((_,ti)=>document.getElementById(`token-${i}-${ti}`)?.classList.remove('chaos-invisible'));
+    }
+  });
+  let guard=0;
+  do {
+    const pos=activeSeatIndices.indexOf(currentTurn);
+    currentTurn=activeSeatIndices[(pos+1)%activeSeatIndices.length];
+    guard++;
+  } while(chaosFreezeTurns[currentTurn]>0 && guard<=activeSeatIndices.length);
+  if(chaosFreezeTurns[currentTurn]>0){
+    chaosFreezeTurns[currentTurn]--;
+    document.getElementById('game-status-text').textContent='FROZEN! Turn skipped.';
+    setTimeout(()=>nextTurn(),650);
+    return;
+  }
   updateTurnUI();
 }
 
@@ -3941,6 +4748,463 @@ document.querySelectorAll('.journey-prompt-choice').forEach(function(btn){
 });
 
 if(!tkgActiveJourney) openJourneyPrompt();
+</script>
+
+<script id="fodo-v14-chaos-js">
+(function(){
+  /* ================= FODO V14: CHAOS WORLD =================
+     Presentation layer only. Existing game state/rules remain untouched.
+     Reference video language used: real board + cartoon actor body +
+     large local prop + fast physical reaction + comic label + return.
+  ============================================================ */
+
+  const V14_DIALOGUE = {
+    blackhole:["Arre bhai, kheench liya!","Chal, peeche chal!","Oho... andar gaya!"],
+    burger:["Bhai, mat kha na!","Arre! Burger ne pakad liya!","Chal, ghar ja!"],
+    noodle:["Arre sambhal!","Pair fisla, bhai!","Chal, peeche chal!"],
+    magic:["Arre wah... seedha KO!","Bachke!","Oho, star ne pakad liya!"],
+    kill:["Nikal! Ghar ja!","Chal bhai, peeche!","Pakad liya!"]
+  };
+
+  const V14_COMIC = {
+    blackhole:"WHOOSH!",
+    burger:"CHOMP!",
+    noodle:"SLIPP!",
+    magic:"ZAP!",
+    kill:"KICK!",
+    dice:"ROLL!",
+    freeze:"BRRR!",
+    reverse:"SWITCH!",
+    swap:"SWAP!",
+    bomb:"BOOM!",
+    protection:"SAFE!",
+    random:"WHAT?!",
+    king:"GO!",
+    invisible:"POOF!"
+  };
+
+  /* Clean, human-readable Hinglish. Do not feed emojis or decorative
+     punctuation to browser TTS; that was the source of the gibberish feel. */
+  /* V16: real recorded voices will be supplied later. Keep dialogue visual-only for now. */
+  window.speakLine = function(text,onStart){ if(onStart) onStart(); };
+
+  window.typeDialogue = function(el,text,done){
+    if(!el){if(done)done();return;}
+    el.classList.add("typing");
+    el.textContent="";
+    const chars=Array.from(String(text||""));
+    let i=0;
+    const tick=()=>{
+      if(i>=chars.length){if(done)done();return;}
+      const c=chars[i++];
+      el.textContent+=c;
+      let d=30;
+      if(/[.!?]/.test(c))d=170;
+      else if(/[,;]/.test(c))d=90;
+      else if(c==="…")d=120;
+      setTimeout(tick,d);
+    };
+    tick();
+  };
+
+  function cleanLine(type){
+    const a=V14_DIALOGUE[type]||V14_DIALOGUE.blackhole;
+    return a[Math.floor(Math.random()*a.length)];
+  }
+  function comic(comicEl,type){
+    comicEl.textContent=V14_COMIC[type]||"CHAOS!";
+    comicEl.classList.remove("show","fade-out");
+    void comicEl.offsetWidth;
+    comicEl.classList.add("show");
+  }
+
+  /* Add the remaining Chaos World glass icons. These are visual/reference
+     icons only; they do NOT add or change gameplay events. */
+  Object.assign(CHAOS_ICON_SVG,{
+    dice:`<svg class="chaos-glass-icon" viewBox="0 0 48 48" aria-hidden="true"><circle class="glass-shell" cx="24" cy="24" r="20"/><rect class="icon-fill" x="10" y="10" width="19" height="19" rx="4" transform="rotate(-12 19 19)"/><rect class="icon-fill" x="20" y="19" width="19" height="19" rx="4" transform="rotate(12 29 29)" opacity=".85"/><circle class="icon-core" cx="17" cy="17" r="2"/><circle class="icon-core" cx="25" cy="25" r="2"/><circle class="icon-core" cx="33" cy="33" r="2"/></svg>`,
+    freeze:`<svg class="chaos-glass-icon" viewBox="0 0 48 48"><circle class="glass-shell" cx="24" cy="24" r="20"/><path class="icon-fill" d="M24 10v28M10 24h28M14 14l20 20M34 14L14 34" stroke="#63c9ff" stroke-width="3"/><circle cx="24" cy="24" r="6" fill="rgba(100,205,255,.35)"/></svg>`,
+    reverse:`<svg class="chaos-glass-icon" viewBox="0 0 48 48"><circle class="glass-shell" cx="24" cy="24" r="20"/><path class="icon-fill" d="M14 19a12 12 0 0 1 20-4l3 3M34 29a12 12 0 0 1-20 4l-3-3" fill="none" stroke="#ff5c5c" stroke-width="4"/><path class="icon-core" d="m13 13 1 7 7-1M35 35l-1-7-7 1" fill="none" stroke-width="2"/></svg>`,
+    swap:`<svg class="chaos-glass-icon" viewBox="0 0 48 48"><circle class="glass-shell" cx="24" cy="24" r="20"/><circle cx="17" cy="24" r="7" fill="#5fc8ff"/><circle cx="31" cy="24" r="7" fill="#ff5b67"/><path d="M20 19h8M28 29h-8" stroke="#fff" stroke-width="3"/><path d="m27 16 4 3-4 3M21 26l-4 3 4 3" fill="none" stroke="#fff" stroke-width="2"/></svg>`,
+    bomb:`<svg class="chaos-glass-icon" viewBox="0 0 48 48"><circle class="glass-shell" cx="24" cy="24" r="20"/><circle cx="23" cy="27" r="10" fill="#222" stroke="#ff7933" stroke-width="3"/><path d="M29 16c4-5 7-4 8-1" fill="none" stroke="#ffb54d" stroke-width="3"/><path class="icon-core" d="M36 10l2 2m-5-4 1 3" stroke-width="2"/></svg>`,
+    protection:`<svg class="chaos-glass-icon" viewBox="0 0 48 48"><circle class="glass-shell" cx="24" cy="24" r="20"/><path d="M24 10l13 5v9c0 8-5 13-13 16-8-3-13-8-13-16v-9l13-5Z" fill="rgba(75,190,255,.2)" stroke="#66d1ff" stroke-width="3"/><path d="m17 24 5 5 10-11" fill="none" stroke="#fff" stroke-width="3"/></svg>`,
+    random:`<svg class="chaos-glass-icon" viewBox="0 0 48 48"><circle class="glass-shell" cx="24" cy="24" r="20"/><text x="24" y="33" text-anchor="middle" font-size="25" font-weight="900" fill="#c78cff">?</text></svg>`,
+    kill:`<svg class="chaos-glass-icon" viewBox="0 0 48 48"><circle class="glass-shell" cx="24" cy="24" r="20"/><path d="M11 29h25" stroke="#ff4b3d" stroke-width="4"/><path d="m25 17 8 7-8 7" fill="none" stroke="#fff" stroke-width="3"/><path d="M10 20l6-6" stroke="#ff4b3d" stroke-width="3"/></svg>`,
+    king:`<svg class="chaos-glass-icon" viewBox="0 0 48 48"><circle class="glass-shell" cx="24" cy="24" r="20"/><path d="M13 33h22l-3-16-8 7-8-7-3 16Z" fill="#ffd45c"/><path d="M16 37h16" stroke="#fff" stroke-width="3"/></svg>`,
+    invisible:`<svg class="chaos-glass-icon" viewBox="0 0 48 48"><circle class="glass-shell" cx="24" cy="24" r="20"/><path d="M24 11c7 0 12 6 12 13s-5 13-12 13-12-6-12-13 5-13 12-13Z" fill="rgba(210,230,255,.12)" stroke="#d6e8ff" stroke-width="2"/><path d="M14 34 34 14" stroke="#fff" stroke-width="3"/></svg>`
+  });
+
+  const extra=[
+    ["dice","DOUBLE DICE","Bonus roll"],
+    ["freeze","FREEZE","Freeze the moment"],
+    ["reverse","REVERSE","Change direction"],
+    ["swap","SWAP","Switch places"],
+    ["bomb","BOMB","Random chaos"],
+    ["protection","PROTECTION","Block the next hit"],
+    ["random","RANDOM","Surprise!"],
+    ["kill","KILL","Kick to yard"],
+    ["king","KING MOVE","Speed move"],
+    ["invisible","INVISIBLE","Poof — gone"],
+    ["blackhole","BLACK HOLE","Pull back"],
+    ["burger","BURGER MONSTER","Chomp!"]
+  ];
+
+  function buildChaosWorldModal(){
+    if(document.getElementById("fodoChaosWorldModal"))return;
+    const modal=document.createElement("div");
+    modal.id="fodoChaosWorldModal";
+    modal.className="overlay";
+    modal.innerHTML=`<div class="modal-card" style="width:min(560px,94vw);max-height:88vh;overflow:auto">
+      <div style="font-size:.7rem;font-weight:900;color:var(--text-dim)">FUDO • TKG</div>
+      <div style="font-size:1.25rem;font-weight:1000;color:var(--tkg-gold);margin:3px 0">CHAOS WORLD</div>
+      <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:6px">The board stays real. TKG makes the chaos.</div>
+      <div class="fodo-chaos-grid"></div>
+      <button type="button" class="btn-start" style="width:100%" id="fodoChaosWorldClose">BACK TO GAME</button>
+    </div>`;
+    document.body.appendChild(modal);
+    const grid=modal.querySelector(".fodo-chaos-grid");
+    extra.forEach(([type,name,desc])=>{
+      const b=document.createElement("button"); b.type="button"; b.className="fodo-chaos-card";
+      b.innerHTML=`<div class="chaos-modal-icon">${chaosIconHTML(type)}</div><div><b>${name}</b><span>${desc}</span></div>`;
+      b.addEventListener("click",()=>{modal.classList.remove("show"); previewChaosV14(type);});
+      grid.appendChild(b);
+    });
+    modal.querySelector("#fodoChaosWorldClose").addEventListener("click",()=>modal.classList.remove("show"));
+  }
+
+  window.openFodoChaosWorld=function(){
+    buildChaosWorldModal();
+    document.getElementById("legend-modal")?.classList.remove("show");
+    document.getElementById("fodoChaosWorldModal").classList.add("show");
+  };
+
+  /* Add one explicit route to the 12-event visual world without changing
+     the existing reference content or gameplay. */
+  const legend=document.getElementById("legend-modal");
+  if(legend && !legend.querySelector("#fodoChaosWorldBtn")){
+    const btn=document.createElement("button");
+    btn.id="fodoChaosWorldBtn"; btn.type="button"; btn.className="mode-btn";
+    btn.style.cssText="width:100%;margin-top:8px;border-color:rgba(201,162,75,.55);color:var(--tkg-gold)";
+    btn.textContent="WATCH CHAOS WORLD • 12";
+    btn.addEventListener("click",openFodoChaosWorld);
+    legend.querySelector(".modal-card")?.appendChild(btn);
+  }
+
+  function setFace(el,playerIdx){
+    const p=players[playerIdx];
+    if(!el)return;
+    if(p && p.avatar)el.innerHTML=`<img src="${p.avatar}">`;
+    else el.innerHTML=`<div class="fallback-emoji">${PLAYER_CONFIG[playerIdx]?.defaultEmoji||"●"}</div>`;
+  }
+
+  
+/* ===== V16 LOCAL SOUND PACK =====
+   Prototype integration only. Audio files are external local assets in sound/.
+   Rights/license status is intentionally NOT assumed by this game. */
+const FODO_PACK_SOUNDS = {
+  blackhole: 'sound/dexter.mp3',
+  burger: 'sound/heheheheh.mp3',
+  noodle: 'sound/wiiiiiiiii.mp3',
+  magic: 'sound/ramayan_notification.mp3',
+  dice: 'sound/maza_aya.mp3',
+  freeze: 'sound/eh.mp3',
+  reverse: 'sound/aabe_saale.mp3',
+  swap: 'sound/cat.mp3',
+  bomb: 'sound/boom.mp3',
+  protection: 'sound/enemy_spotted.mp3',
+  random: 'sound/among_us.mp3',
+  kill: 'sound/spider_man_32.mp3',
+  impact: 'sound/boom.mp3',
+  drop: 'sound/ab_tu_gya_beta.mp3',
+  reaction: 'sound/waah_kya_scene_hai.mp3'
+};
+let fodoPackAudio = null;
+function playFodoPackSound(type, volume=0.7){
+  if(typeof isAudioMuted!=='undefined' && isAudioMuted) return;
+  const src=FODO_PACK_SOUNDS[type]; if(!src) return;
+  try{
+    if(fodoPackAudio){ try{fodoPackAudio.pause(); fodoPackAudio.currentTime=0;}catch(e){} }
+    const a=new Audio(src); fodoPackAudio=a; a.volume=Math.max(0,Math.min(1,volume));
+    a.play().catch(()=>{});
+  }catch(e){}
+}
+function stopFodoPackSound(){ try{if(fodoPackAudio){fodoPackAudio.pause();fodoPackAudio.currentTime=0;}}catch(e){} }
+
+/* ===== V15 ORIGINAL CINEMATIC AUDIO BED =====
+   Inspired by fast arrow-clash/action scoring, but synthesized locally so
+   no copyrighted YouTube recording is embedded in the game. */
+let fodoChaosAudioCtx=null, fodoChaosAudioNodes=[];
+function stopFodoChaosBed(){
+  fodoChaosAudioNodes.forEach(n=>{try{n.stop?.()}catch(e){} try{n.disconnect?.()}catch(e){}});
+  fodoChaosAudioNodes=[];
+}
+function startFodoChaosBed(type){
+  stopFodoChaosBed();
+  if(typeof isAudioMuted!=='undefined' && isAudioMuted)return;
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return;
+    fodoChaosAudioCtx=fodoChaosAudioCtx||new AC();
+    if(fodoChaosAudioCtx.state==='suspended')fodoChaosAudioCtx.resume();
+    const ctx=fodoChaosAudioCtx, now=ctx.currentTime;
+    const master=ctx.createGain(); master.gain.setValueAtTime(.0001,now); master.gain.linearRampToValueAtTime(.055,now+.16); master.gain.linearRampToValueAtTime(.035,now+3.7); master.gain.exponentialRampToValueAtTime(.0001,now+4.65); master.connect(ctx.destination);
+    const osc=ctx.createOscillator(); const g=ctx.createGain(); osc.type='sine'; osc.frequency.setValueAtTime(type==='blackhole'?72:86,now); osc.frequency.exponentialRampToValueAtTime(48,now+3.8); g.gain.setValueAtTime(.5,now); g.gain.exponentialRampToValueAtTime(.001,now+4.6); osc.connect(g);g.connect(master);osc.start(now);osc.stop(now+4.7);fodoChaosAudioNodes.push(osc,g,master);
+    // light action pulses: whoosh -> tension -> arrow-like clash -> resolve
+    const pulse=(t,f,amp,dur=.14)=>{const o=ctx.createOscillator(),pg=ctx.createGain();o.type='triangle';o.frequency.setValueAtTime(f,now+t);o.frequency.exponentialRampToValueAtTime(Math.max(70,f*.45),now+t+dur);pg.gain.setValueAtTime(.0001,now+t);pg.gain.linearRampToValueAtTime(amp,now+t+.012);pg.gain.exponentialRampToValueAtTime(.0001,now+t+dur);o.connect(pg);pg.connect(master);o.start(now+t);o.stop(now+t+dur+.02);fodoChaosAudioNodes.push(o,pg)};
+    pulse(.62,180,.45,.22); pulse(1.05,260,.34,.16); pulse(1.55,760,.55,.11); pulse(1.62,1240,.32,.08); pulse(2.25,320,.28,.18); pulse(3.18,180,.2,.24);
+    if(type==='kill'||type==='magic'){pulse(1.48,1450,.7,.09);pulse(1.52,780,.42,.22)}
+    if(type==='blackhole'||type==='noodle'){pulse(1.15,110,.32,.35);pulse(2.0,90,.28,.28)}
+  }catch(e){}
+}
+function fodoArrowClash(){
+  if(!fodoChaosAudioCtx)return; try{const ctx=fodoChaosAudioCtx,now=ctx.currentTime,master=ctx.destination;
+    const o=ctx.createOscillator(),g=ctx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(1800,now);o.frequency.exponentialRampToValueAtTime(220,now+.22);g.gain.setValueAtTime(.0001,now);g.gain.linearRampToValueAtTime(.13,now+.01);g.gain.exponentialRampToValueAtTime(.0001,now+.28);o.connect(g);g.connect(master);o.start(now);o.stop(now+.3);fodoChaosAudioNodes.push(o,g);
+    const c=ctx.createOscillator(),cg=ctx.createGain();c.type='triangle';c.frequency.setValueAtTime(1550,now);c.frequency.exponentialRampToValueAtTime(520,now+.12);cg.gain.setValueAtTime(.18,now);cg.gain.exponentialRampToValueAtTime(.0001,now+.18);c.connect(cg);cg.connect(master);c.start(now);c.stop(now+.2);fodoChaosAudioNodes.push(c,cg);
+  }catch(e){}
+}
+
+/* V14 board cinema. Same game callbacks; no state mutation here. */
+/* ===== FODO V18 CLEAR CHAOS ENGINE =====
+   Continuous 4.6s presentation layer. Gameplay callbacks remain untouched.
+   The player's face stays on the token; motion/props carry the comedy.
+   Uses the supplied local sound pack as the actual Chaos audio bed + hits.
+*/
+const FODO_V18_DIALOGUE = {
+  kill:{text:'Nikal! Ghar ja!',audio:'sound/it_was_at_this_moment.mp3'}, blackhole:{text:'Ab tu gaya beta!',audio:'sound/ab_tu_gya_beta.mp3'}, burger:{text:'Kya gunda banega re tu!',audio:'sound/kya_gunda_banega_re_tu.mp3'}, noodle:{text:'Jaldi waha se hato!',audio:'sound/jaldi_waha_sa_hato.mp3'}, magic:{text:'Waah! Kya scene hai!',audio:'sound/waah_kya_scene_hai.mp3'},
+  dice:{text:'Ek aur chance!',audio:'sound/maza_aya.mp3'}, freeze:{text:'Ab jam gaya!',audio:'sound/eh.mp3'}, reverse:{text:'Oho! Ab ulta!',audio:'sound/aabe_saale.mp3'}, swap:{text:'Jagah badal!',audio:'sound/cat.mp3'}, bomb:{text:'Arey baap re!',audio:'sound/boom.mp3'}, protection:{text:'Ab nahi!',audio:'sound/enemy_spotted.mp3'}, random:{text:'Ab kya hoga?!',audio:'sound/among_us.mp3'}, king:{text:'Chal! Seedha aage!',audio:'sound/maza_aya.mp3'}, invisible:{text:'Poof... gayab!',audio:'sound/among_us.mp3'}
+};
+const FODO_V18_COMIC = {kill:'KICK!',blackhole:'WHOOSH!',burger:'CHOMP!',noodle:'SLIPP!',magic:'ZAP!',dice:'ROLL!',freeze:'BRRR!',reverse:'BACK!',swap:'SWAP!',bomb:'BOOM!',protection:'SAFE!',random:'WHAT?!',king:'GO!',invisible:'POOF!'};
+const FODO_V18_BED = {
+  kill:'sound/spider_man_32.mp3',
+  blackhole:'sound/dexter.mp3',
+  burger:'sound/helicopter_helicopter.mp3',
+  noodle:'sound/uia.mp3',
+  magic:'sound/ramayan_notification.mp3',
+  dice:'sound/maza_aya.mp3', freeze:'sound/eh.mp3', reverse:'sound/aabe_saale.mp3', swap:'sound/cat.mp3', bomb:'sound/boom.mp3', protection:'sound/enemy_spotted.mp3', random:'sound/among_us.mp3', king:'sound/maza_aya.mp3', invisible:'sound/among_us.mp3'
+};
+const FODO_V18_HIT = {
+  kill:'sound/boom.mp3',
+  blackhole:'sound/ab_tu_gya_beta.mp3',
+  burger:'sound/heheheheh.mp3',
+  noodle:'sound/wiiiiiiiii.mp3',
+  magic:'sound/ramayan_notification.mp3',
+  dice:'sound/maza_aya.mp3', freeze:'sound/eh.mp3', reverse:'sound/aabe_saale.mp3', swap:'sound/cat.mp3', bomb:'sound/boom.mp3', protection:'sound/enemy_spotted.mp3', random:'sound/among_us.mp3', king:'sound/maza_aya.mp3', invisible:'sound/among_us.mp3'
+};
+let fodoV18Bed = null;
+let fodoV18Hits = [];
+function fodoV18Play(src, volume=0.62, loop=false){
+  if(typeof isAudioMuted!=='undefined' && isAudioMuted) return null;
+  try{
+    const a=new Audio(src); a.volume=Math.max(0,Math.min(1,volume)); a.loop=loop;
+    a.play().catch(()=>{});
+    if(loop) fodoV18Bed=a; else fodoV18Hits.push(a);
+    return a;
+  }catch(e){ return null; }
+}
+function fodoV18StartAudio(type){
+  fodoV18StopAudio();
+  const bed=FODO_V18_BED[type]; if(bed) fodoV18Play(bed, type==='kill'?.38:.30, true);
+}
+function fodoV18Hit(type, volume=.65){
+  const src=FODO_V18_HIT[type]; if(src) fodoV18Play(src,volume,false);
+}
+function fodoV18StopAudio(){
+  try{ if(fodoV18Bed){fodoV18Bed.pause();fodoV18Bed.currentTime=0;fodoV18Bed=null;} }catch(e){}
+  fodoV18Hits.forEach(a=>{try{a.pause();a.currentTime=0}catch(e){}}); fodoV18Hits=[];
+}
+function fodoV18Line(type){
+  return FODO_V18_DIALOGUE[type] || {text:"Arre yaar!",audio:null};
+}
+
+window.playBoardZoomCinema=function(type,victimPIdx,victimTIdx,onDone,attackerPIdx){
+  const overlay=document.getElementById('chaosBoardZoomOverlay'),scaler=document.getElementById('chaosBoardZoomScaler'),snapshotImg=document.getElementById('chaosBoardZoomSnapshot'),frame=document.getElementById('chaosBoardZoomFrame'),wrapper=document.getElementById('board-wrapper');
+  const flavorBg=document.getElementById('chaosFlavorBg'),comicBurst=document.getElementById('chaosComicBurst'),nearImpact=document.getElementById('chaosNearImpact'),pullRope=document.getElementById('pullRope')||document.getElementById('chaosPullRope'),vortex=document.getElementById('chaosBoardZoomVortex'),burger=document.getElementById('chaosBoardZoomBurger'),starburst=document.getElementById('chaosBoardZoomStarburst'),victimToken=document.getElementById('chaosBoardZoomVictim'),victimHead=document.getElementById('chaosBoardZoomVictimHead'),attackerToken=document.getElementById('chaosBoardZoomAttacker'),attackerHead=document.getElementById('chaosBoardZoomAttackerHead'),reaction=document.getElementById('chaosBoardZoomReaction'),tagEl=document.getElementById('chaosBoardZoomTag');
+  if(!overlay||!scaler||!snapshotImg||!wrapper||typeof html2canvas==='undefined'){
+    if(type==='kill'&&typeof playKillCinema==='function')playKillCinema(attackerPIdx,victimPIdx,victimTIdx,onDone);
+    else if(typeof playTrapCinema==='function')playTrapCinema(type,victimPIdx,victimTIdx,onDone);
+    return;
+  }
+  const step=players[victimPIdx]?.tokens?.[victimTIdx]?.step??0;
+  const replayStartStep=step;
+  const replayBackSteps=(type==='blackhole'||type==='noodle')?Math.min(type==='blackhole'?3:4,Math.max(0,step)):0;
+  const tile=getGlobalTrackIndex(victimPIdx,step),cell=tile>=0?MAIN_CIRCUIT[tile]:[7,7],S=600/15;
+  const xPct=((cell[0]*S+S/2)/600)*100,yPct=((cell[1]*S+S/2)/600)*100;
+  const homeCenters={0:[13,13],1:[87,13],2:[87,87],3:[13,87]};
+  const clean=(el)=>{if(!el)return;el.className=el.className.split(' ').filter(c=>!/^v1[457]-/.test(c)&&!['show','fade-out','impact-hit','physical','bz-chaos-wobble','bz-chaos-freeze','bz-chaos-vanish','bz-chaos-knock','bz-chaos-crown'].includes(c)).join(' ')};
+  [scaler,flavorBg,comicBurst,nearImpact,pullRope,vortex,burger,starburst,victimToken,attackerToken,reaction,tagEl].forEach(clean); frame.classList.remove('impact-hit');
+  scaler.className='chaos-boardzoom-scaler'; scaler.style.transformOrigin=`${xPct}% ${yPct}%`;
+  [vortex,burger,starburst,nearImpact,pullRope,victimToken,attackerToken,reaction,comicBurst].forEach(el=>{if(el){el.style.left=`${xPct}%`;el.style.top=`${yPct}%`}});
+  tagEl.style.left=`${Math.min(76,Math.max(24,xPct))}%`;tagEl.style.top=`${yPct<35?Math.min(76,yPct+24):Math.max(24,yPct-24)}%`;
+  const victim=players[victimPIdx]; victimToken.style.setProperty('--bz-token-color',PLAYER_CONFIG[victimPIdx].hex); setFace(victimHead,victimPIdx); victimToken.style.left=`${xPct}%`; victimToken.style.top=`${yPct}%`;
+  if(type==='kill' && attackerPIdx!=null){const attacker=players[attackerPIdx];attackerToken.style.setProperty('--bz-token-color',PLAYER_CONFIG[attackerPIdx].hex);setFace(attackerHead,attackerPIdx);attackerToken.style.left=`${Math.max(7,xPct-25)}%`;attackerToken.style.top=`${yPct}%`;}
+
+  // V18: no speed-line layer. The token, action prop and camera are the story.
+  let impact=document.getElementById('fodoV18Impact');if(!impact){impact=document.createElement('div');impact.id='fodoV18Impact';impact.className='chaos-v18-impact';frame.appendChild(impact)}
+  let sfx=document.getElementById('fodoV18Sfx');if(!sfx){sfx=document.createElement('div');sfx.id='fodoV18Sfx';sfx.className='chaos-v18-sfx';frame.appendChild(sfx)}
+  [impact,sfx].forEach(el=>{el.className=el.className.split(' ')[0];el.style.left=`${xPct}%`;el.style.top=`${yPct}%`;el.textContent=''});
+  const dialogue=fodoV18Line(type),comicText=FODO_V18_COMIC[type]||'CHAOS!';
+
+  html2canvas(wrapper,{backgroundColor:null,useCORS:true,scale:1}).then(canvas=>{
+    snapshotImg.src=canvas.toDataURL('image/png'); overlay.classList.add('show'); isPaused=true; fodoV18StartAudio(type);
+    requestAnimationFrame(()=>scaler.classList.add('v17-camera-in'));
+    setTimeout(()=>{
+      victimToken.classList.add('show','physical','v17-alive');
+      if(type==='kill') attackerToken.classList.add('show','physical');
+      flavorBg.classList.add('show');
+    },250);
+
+    // Clear action choreography: anticipation → action → impact → consequence → dialogue.
+    setTimeout(()=>{
+      if(type==='kill'){
+        if(attackerPIdx!=null){
+          attackerToken.classList.add('v17-run');
+          setTimeout(()=>{
+            attackerToken.classList.remove('v17-run'); attackerToken.classList.add('v17-kick');
+            impact.classList.add('show'); sfx.textContent=comicText; sfx.classList.add('show'); frame.classList.add('impact-hit'); fodoV18Hit('kill',.78);
+          },700);
+          setTimeout(()=>{attackerToken.classList.remove('v17-kick');attackerToken.classList.add('v17-exit');},1450);
+        } else {
+          // Chaos-board Kill has no invented second player. Show the kick as a direct comic hit.
+          setTimeout(()=>{impact.classList.add('show');sfx.textContent=comicText;sfx.classList.add('show');victimToken.classList.add('bz-chaos-knock');frame.classList.add('impact-hit');fodoV18Hit('kill',.78);},700);
+        }
+        setTimeout(()=>{
+          const [hx,hy]=homeCenters[victimPIdx]||[50,50];
+          victimToken.classList.add('v17-flight'); victimToken.style.left=`${hx}%`; victimToken.style.top=`${hy}%`;
+          sfx.classList.remove('show'); fodoV18Hit('kill',.42);
+        },1150);
+      } else if(type==='blackhole'){
+        vortex.classList.add('show'); pullRope.classList.add('show'); fodoV18Hit('blackhole',.42);
+        setTimeout(()=>victimToken.classList.add('v17-tension'),420);
+        setTimeout(()=>{victimToken.classList.add('v17-pull');fodoV18Hit('blackhole',.28);},900);
+        setTimeout(()=>{
+          victimToken.classList.add('v17-stepback');
+          for(let n=1;n<=replayBackSteps;n++) setTimeout(()=>{
+            const rs=replayStartStep-n,rt=getGlobalTrackIndex(victimPIdx,rs);if(rt<0)return;const rc=MAIN_CIRCUIT[rt];
+            victimToken.style.left=`${((rc[0]*S+S/2)/600)*100}%`; victimToken.style.top=`${((rc[1]*S+S/2)/600)*100}%`;
+          },(n-1)*330);
+        },1450);
+        setTimeout(()=>{sfx.textContent=comicText;sfx.classList.add('show');},2650);
+      } else if(type==='burger'){
+        burger.classList.add('show'); fodoV18Hit('burger',.55);
+        setTimeout(()=>{burger.classList.add('chomp');impact.classList.add('show');sfx.textContent=comicText;sfx.classList.add('show');fodoV18Hit('burger',.5);},650);
+        setTimeout(()=>victimToken.classList.add('v17-bounce'),1050);
+        setTimeout(()=>{victimToken.classList.add('v17-flight');victimToken.style.left='14%';victimToken.style.top='14%';fodoV18Hit('burger',.25);},1550);
+      } else if(type==='noodle'){
+        pullRope.classList.add('show'); victimToken.classList.add('v17-slip'); fodoV18Hit('noodle',.55); sfx.textContent=comicText; sfx.classList.add('show');
+        setTimeout(()=>{
+          victimToken.classList.add('v17-stepback');
+          for(let n=1;n<=replayBackSteps;n++) setTimeout(()=>{
+            const rs=replayStartStep-n,rt=getGlobalTrackIndex(victimPIdx,rs);if(rt<0)return;const rc=MAIN_CIRCUIT[rt];
+            victimToken.style.left=`${((rc[0]*S+S/2)/600)*100}%`; victimToken.style.top=`${((rc[1]*S+S/2)/600)*100}%`;
+          },(n-1)*330);
+        },1000);
+      } else if(type==='magic'){
+        victimToken.classList.add('v17-tension'); fodoV18Hit('magic',.42);
+        setTimeout(()=>{starburst.classList.add('show');impact.classList.add('show');sfx.textContent=comicText;sfx.classList.add('show');frame.classList.add('impact-hit');fodoV18Hit('magic',.55);},700);
+        setTimeout(()=>{victimToken.classList.add('v17-flight');victimToken.style.left='86%';victimToken.style.top='14%';},1250);
+      }
+      else if(type==='dice'){
+        starburst.classList.add('show'); impact.classList.add('show'); sfx.textContent=comicText; sfx.classList.add('show'); victimToken.classList.add('bz-chaos-wobble'); fodoV18Hit('dice',.5);
+      } else if(type==='freeze'){
+        victimToken.classList.add('bz-chaos-freeze'); sfx.textContent=comicText; sfx.classList.add('show'); fodoV18Hit('freeze',.5);
+      } else if(type==='reverse'){
+        victimToken.classList.add('bz-chaos-wobble'); pullRope.classList.add('show'); sfx.textContent=comicText; sfx.classList.add('show'); fodoV18Hit('reverse',.5);
+      } else if(type==='swap'){
+        victimToken.classList.add('bz-chaos-wobble'); starburst.classList.add('show'); sfx.textContent=comicText; sfx.classList.add('show'); fodoV18Hit('swap',.5);
+      } else if(type==='bomb'){
+        impact.classList.add('show'); victimToken.classList.add('bz-chaos-knock'); sfx.textContent=comicText; sfx.classList.add('show'); fodoV18Hit('bomb',.7);
+      } else if(type==='protection'){
+        starburst.classList.add('show'); victimToken.classList.add('bz-chaos-crown'); sfx.textContent=comicText; sfx.classList.add('show'); fodoV18Hit('protection',.5);
+      } else if(type==='random'){
+        victimToken.classList.add('bz-chaos-wobble'); impact.classList.add('show'); sfx.textContent=comicText; sfx.classList.add('show'); fodoV18Hit('random',.55);
+      } else if(type==='king'){
+        starburst.classList.add('show'); victimToken.classList.add('bz-chaos-crown'); sfx.textContent=comicText; sfx.classList.add('show'); fodoV18Hit('king',.5);
+      } else if(type==='invisible'){
+        victimToken.classList.add('bz-chaos-vanish'); sfx.textContent=comicText; sfx.classList.add('show'); fodoV18Hit('invisible',.5);
+      }
+    },600);
+
+    // Real dialogue recording from the supplied sound-pack filename, with the exact visible text.
+    setTimeout(()=>{
+      if(dialogue.audio && !isAudioMuted){
+        try{ const voice=new Audio(dialogue.audio); voice.volume=.78; voice.play().catch(()=>{}); }catch(e){}
+      }
+      tagEl.textContent=dialogue.text;
+      tagEl.classList.add('show');
+    },3300);
+
+    setTimeout(()=>{onDone&&onDone();},4100);
+    setTimeout(()=>{scaler.classList.add('v17-camera-out');flavorBg.classList.add('fade-out');pullRope.classList.add('fade-out');},4300);
+    setTimeout(()=>{overlay.classList.remove('show');isPaused=false;fodoV18StopAudio();[impact,sfx].forEach(el=>el.className=el.className.split(' ')[0]);if(players[currentTurn]&&players[currentTurn].isAI&&!isRolling&&!isTokenMoving)setTimeout(()=>{if(!isPaused)onRollDice(currentTurn)},180)},5100);
+  }).catch(()=>{fodoV18StopAudio();if(type==='kill'&&typeof playKillCinema==='function')playKillCinema(attackerPIdx,victimPIdx,victimTIdx,onDone);else if(typeof playTrapCinema==='function')playTrapCinema(type,victimPIdx,victimTIdx,onDone);});
+};
+
+  window.previewChaosV14=function(type){
+    const wrapper=document.getElementById("board-wrapper");
+    const overlay=document.getElementById("chaosBoardZoomOverlay");
+    const scaler=document.getElementById("chaosBoardZoomScaler");
+    const snapshot=document.getElementById("chaosBoardZoomSnapshot");
+    const frame=document.getElementById("chaosBoardZoomFrame");
+    const victim=document.getElementById("chaosBoardZoomVictim");
+    const head=document.getElementById("chaosBoardZoomVictimHead");
+    const tag=document.getElementById("chaosBoardZoomTag");
+    const comicEl=document.getElementById("chaosComicBurst");
+    const near=document.getElementById("chaosNearImpact");
+    if(!wrapper||!overlay||typeof html2canvas==="undefined")return;
+
+    let pIdx=players[currentTurn]?.tokens?.some(t=>t.step>=0)?currentTurn:activeSeatIndices.find(i=>players[i]?.tokens?.some(t=>t.step>=0));
+    if(pIdx==null)pIdx=0;
+    let tIdx=players[pIdx].tokens.findIndex(t=>t.step>=0); if(tIdx<0)tIdx=0;
+    const step=Math.max(0,players[pIdx].tokens[tIdx]?.step||0);
+    const tile=getGlobalTrackIndex(pIdx,step),cell=tile>=0?MAIN_CIRCUIT[tile]:[7,7],S=40;
+    const x=((cell[0]*S+S/2)/600)*100,y=((cell[1]*S+S/2)/600)*100;
+    scaler.className="chaos-boardzoom-scaler";frame.classList.remove("impact-hit");
+    scaler.style.transformOrigin=`${x}% ${y}%`;
+    document.getElementById("chaosBoardZoomVortex").className="chaos-boardzoom-vortex";
+    document.getElementById("chaosBoardZoomBurger").className="chaos-boardzoom-burger";
+    document.getElementById("chaosBoardZoomStarburst").className="chaos-boardzoom-starburst";
+    document.getElementById("chaosPullRope").className="chaos-pull-rope";
+    comicEl.className="chaos-comic-burst";comicEl.textContent=V14_COMIC[type]||"CHAOS!";
+    near.className="chaos-near-impact";
+    victim.className="chaos-boardzoom-token chaos-boardzoom-token--victim physical";
+    victim.style.left=`${x}%`;victim.style.top=`${y}%`;
+    victim.style.setProperty("--bz-token-color",PLAYER_CONFIG[pIdx].hex);setFace(head,pIdx);
+    tag.className="chaos-cinema-tag show";tag.textContent="";
+    const previewText={
+      dice:"Ek aur chance!",freeze:"Ab jam gaya!",reverse:"Oho! Ab ulta!",swap:"Chal bhai, jagah badalte hain!",bomb:"Arey baap re!",protection:"Ab koi kuch nahi kar sakta!",random:"Ab kya hoga?!",king:"Chal! Seedha aage!",invisible:"Poof... gayab!",blackhole:"Chal, peeche chal!",burger:"Bhai, mat kha na!"
+    }[type]||"Chaos!";
+    html2canvas(wrapper,{backgroundColor:null,useCORS:true,scale:1}).then(c=>{
+      snapshot.src=c.toDataURL("image/png");overlay.classList.add("show");isPaused=true;
+      setTimeout(()=>scaler.classList.add("whip-in"),100);setTimeout(()=>scaler.classList.add("slow-settle"),520);
+      setTimeout(()=>{
+        comic(comicEl,type);setTimeout(()=>comicEl.classList.add("fade-out"),500);
+        tag.textContent=previewText;typeDialogue(tag,previewText);speakLine(previewText);
+        const prop=document.createElement("div");prop.className="v14-prop";prop.id="v14PreviewProp";
+        if(type==="dice"){prop.classList.add("v14-dice");prop.textContent="⚄  ⚅";}
+        else if(type==="freeze"){prop.classList.add("v14-ice");}
+        else if(type==="reverse"){prop.classList.add("v14-arrows");prop.textContent="↺   ↻";}
+        else if(type==="swap"){prop.classList.add("v14-swap");prop.textContent="⇄";}
+        else if(type==="bomb"){prop.classList.add("v14-bomb");}
+        else if(type==="protection"){prop.classList.add("v14-shield");}
+        else if(type==="random"){prop.classList.add("v14-question");prop.textContent="?";}
+        else if(type==="king"){prop.classList.add("v14-crown");prop.textContent="♛";}
+        else if(type==="invisible"){prop.classList.add("v14-ghost");}
+        else if(type==="blackhole"){prop.classList.add("v14-magnet");}
+        else if(type==="burger"){prop.textContent="CHOMP";prop.style.cssText+="font-size:clamp(1.5rem,6vw,3rem);color:#ff9b45";}
+        else {prop.classList.add("v14-kick-mark");prop.textContent="KICK!";}
+        scaler.appendChild(prop);
+        prop.style.left=`${x}%`;prop.style.top=`${y}%`;void prop.offsetWidth;prop.classList.add("show");
+        setTimeout(()=>near.classList.add("show"),520);
+        setTimeout(()=>victim.classList.add("v14-shake"),650);
+        setTimeout(()=>{prop.remove();near.classList.remove("show")},1800);
+        setTimeout(()=>tag.classList.add("fade-out"),2300);
+        setTimeout(()=>scaler.classList.add("zoom-out"),2500);
+        setTimeout(()=>{overlay.classList.remove("show");isPaused=false},2850);
+      },1200);
+    });
+  };
+
+  buildChaosWorldModal();
+  if(typeof hydrateChaosModalIcons_==="function")hydrateChaosModalIcons_();
+})();
 </script>
 </body>
 </html>
