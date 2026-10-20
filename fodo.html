@@ -2032,14 +2032,10 @@
 
   /* Chaos V3 glass icon material — visual only */
   .fodo-event-badge .chaos-glass-icon{width:100%;height:100%;display:block;transform-origin:50% 50%;}
-  .fodo-event-badge .chaos-glass-icon{opacity:1;filter:none;}
-  .fodo-event-badge .glass-shell{fill:#17120F;stroke:#FFFFFF;stroke-width:1.5;}
-  .fodo-event-badge .glass-shine{fill:rgba(255,255,255,.16);}
-  .fodo-event-badge .icon-core{stroke:#FFFFFF;fill:none;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}
-  .fodo-event-badge .icon-fill{fill:#FFFFFF;}
-  html[data-tkg-theme="light"] .fodo-event-badge .glass-shell{fill:#17120F;stroke:#FFFFFF;}
-  html[data-tkg-theme="light"] .fodo-event-badge .icon-core{stroke:#FFFFFF;}
-  html[data-tkg-theme="light"] .fodo-event-badge .icon-fill{fill:#FFFFFF;}
+  .fodo-event-badge .glass-shell{fill:rgba(255,255,255,.12);stroke:rgba(255,255,255,.82);stroke-width:1.35;}
+  .fodo-event-badge .glass-shine{fill:rgba(255,255,255,.28);}
+  .fodo-event-badge .icon-core{stroke:rgba(255,255,255,.96);fill:none;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}
+  .fodo-event-badge .icon-fill{fill:rgba(255,255,255,.92);}
   .fodo-event-badge.is-blackhole .chaos-glass-icon{animation:fodoBH 2.4s ease-in-out infinite;}
   .fodo-event-badge.is-burger .chaos-glass-icon{animation:fodoBurger 1.05s cubic-bezier(.34,1.3,.64,1) infinite;}
   .fodo-event-badge.is-noodle .chaos-glass-icon{animation:fodoNoodle 1.35s ease-in-out infinite;}
@@ -3033,17 +3029,64 @@ function dismissTrapExplainer() {
 
 /* Pause System */
 let isPaused = false;
+
+/* ===== V20 STABILIZATION (Session 1) — match lifecycle + terminal state =====
+   matchId   : bumped every time a match starts or is abandoned. Every delayed
+               callback created through later_()/afterDelay_() captures the id and
+               becomes inert if the match it belongs to is gone (quit / restart).
+   gameOver  : terminal. Set exactly once when a player finishes all tokens; after
+               that no callback may unlock play, advance the turn or roll for an AI.
+   pendingAction_ : a single continuation that fired while the player had the game
+               paused; it is held (not dropped) and run on resume, so pausing at the
+               wrong moment can no longer strand the turn. */
+let matchId = 0;
+let gameOver = false;
+let pendingAction_ = null;
+function later_(fn, ms) {
+  const mid = matchId;
+  return setTimeout(() => { if (mid === matchId) fn(); }, ms);
+}
+function afterDelay_(fn, ms) {
+  later_(() => {
+    if (gameOver) return;
+    if (isPaused) { pendingAction_ = fn; return; }
+    fn();
+  }, ms);
+}
 function pauseGame() {
-  if (isPaused) return;
+  if (isPaused || gameOver) return;
   isPaused = true;
   document.getElementById('pause-modal').classList.add('show');
 }
 function resumeGame() {
   isPaused = false;
   document.getElementById('pause-modal').classList.remove('show');
-  if (players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving) {
-    setTimeout(() => { if (!isPaused) onRollDice(currentTurn); }, 500);
-  }
+  if (gameOver) return;
+  if (pendingAction_) { const f = pendingAction_; pendingAction_ = null; later_(f, 300); return; }
+  if (!chaosSequenceActive && players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving && !canSelectToken) scheduleAITurn_(500);
+}
+
+/* Closes every cinema overlay and silences every cinema sound. Safe to call at any time. */
+function abortCinemaOverlays_() {
+  ['chaosBoardZoomOverlay', 'chaosCinemaOverlay'].forEach(id => document.getElementById(id)?.classList.remove('show'));
+  try { if (typeof window.__fodoStopAllAudio === 'function') window.__fodoStopAllAudio(); } catch (e) {}
+}
+
+/* One reset used by BOTH startGame() and quitToMenu(): cancels timers, invalidates
+   every pending callback of the old match (matchId / chaosSequenceToken), and clears
+   all per-match flags and Chaos state. */
+function resetMatchState_() {
+  matchId++;
+  clearAITurnTimer_();
+  chaosSequenceActive = false;
+  chaosSequenceToken++;
+  isPaused = false; isRolling = false; isTokenMoving = false; canSelectToken = false;
+  consecutiveSixes = 0; lastDiceRoll = 1; pendingAction_ = null; gameOver = false;
+  activeFodoEvents = {};
+  chaosBonusRolls = [0,0,0,0]; chaosFreezeTurns = [0,0,0,0]; chaosProtectionTurns = [0,0,0,0]; chaosInvisibleTurns = [0,0,0,0]; chaosInvisibleToken = [-1,-1,-1,-1]; chaosBag = [];
+  document.getElementById('pause-modal')?.classList.remove('show');
+  document.getElementById('winner-modal')?.classList.remove('show');
+  abortCinemaOverlays_();
 }
 
 /* Restored (2026-08-26) — was replaced with location.reload(), which
@@ -3053,13 +3096,7 @@ function resumeGame() {
    bar init) for no real reason, when all that's actually needed is
    clearing the active game's state and showing the setup screen again. */
 function quitToMenu() {
-  isPaused = false;
-  isRolling = false;
-  isTokenMoving = false;
-  consecutiveSixes = 0;
-  activeFodoEvents = {};
-  document.getElementById('pause-modal').classList.remove('show');
-  document.getElementById('winner-modal').classList.remove('show');
+  resetMatchState_();
   document.getElementById('game-screen').style.display = 'none';
   document.getElementById('pauseToggleBtn').style.display = 'none';
   document.getElementById('setup-screen').style.display = 'flex';
@@ -3140,55 +3177,109 @@ function nextChaosType_(){
   if(idx<0){shuffleChaosBag_();idx=chaosBag.findIndex(t=>!activeTypes.has(t));}
   return chaosBag.splice(idx<0?0:idx,1)[0];
 }
-function chaosMoveForward_(pIdx,tIdx,steps){
+/* V20: every movement effect takes a completion callback and reports back only when its
+   last hop has been rendered. The turn is resolved from those callbacks (see the Chaos
+   event resolver below), never from a guessed timeout. Hops are match-guarded (later_). */
+function chaosMoveForward_(pIdx,tIdx,steps,done){
   const t=players[pIdx].tokens[tIdx]; let n=Math.max(0,Math.min(steps,56-t.step));
-  if(t.step<0)return;
-  const hop=()=>{if(n<=0){renderAllTokensDOM();if(t.step===56&&players[pIdx].tokens.every(tk=>tk.step===56)){isPaused=true;playVictoryPan(pIdx);}return;} t.step++;n--;spawnTokenTrail_(pIdx,tIdx);playSound('step');renderAllTokensDOM();setTimeout(hop,115);}; hop();
+  if(t.step<0){ if(done) done(); return; }
+  const hop=()=>{
+    if(n<=0){ renderAllTokensDOM(); if(done) done(); return; }
+    t.step++; n--; spawnTokenTrail_(pIdx,tIdx); playSound('step'); renderAllTokensDOM();
+    later_(hop,115);
+  };
+  hop();
 }
-function randomOpponentToken_(pIdx){
-  const candidates=[];
-  activeSeatIndices.forEach(oppIdx=>{if(oppIdx===pIdx)return;players[oppIdx].tokens.forEach((t,tIdx)=>{if(t.step>=0&&t.step<56)candidates.push({pIdx:oppIdx,tIdx});});});
-  return candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:null;
+/* V20 Swap = exchange of real BOARD positions, not of per-player step numbers.
+   A step is relative to the owner's own start tile, so swapping raw step values moved both
+   tokens to the wrong tiles. A pairing is eligible only if both tokens are on the shared
+   track (step 0-50) and each token's new tile is reachable on its owner's own path
+   (new step <= 50). Yard, home-column and finished tokens are never swapped. */
+function swapCandidates_(pIdx,tIdx){
+  const a=players[pIdx].tokens[tIdx];
+  if(a.step<0||a.step>50) return [];
+  const gA=getGlobalTrackIndex(pIdx,a.step), out=[];
+  activeSeatIndices.forEach(q=>{
+    if(q===pIdx) return;
+    players[q].tokens.forEach((b,bi)=>{
+      if(b.step<0||b.step>50) return;
+      const gB=getGlobalTrackIndex(q,b.step);
+      const newA=(gB-PLAYER_CONFIG[pIdx].startTile+52)%52;
+      const newB=(gA-PLAYER_CONFIG[q].startTile+52)%52;
+      if(newA>50||newB>50) return;
+      out.push({pIdx:q,tIdx:bi,newA,newB});
+    });
+  });
+  return out;
 }
-function applyRandomChaos_(pIdx,tIdx){
+function performSwap_(pIdx,tIdx){
+  const c=swapCandidates_(pIdx,tIdx);
+  if(!c.length) return false;
+  const pick=c[Math.floor(Math.random()*c.length)];
+  players[pIdx].tokens[tIdx].step=pick.newA;
+  players[pick.pIdx].tokens[pick.tIdx].step=pick.newB;
+  renderAllTokensDOM();
+  return true;
+}
+function applyRandomChaos_(pIdx,tIdx,done){
   const choices=['dice','freeze','reverse','bomb','protection'];
   const chosen=choices[Math.floor(Math.random()*choices.length)];
-  const t=players[pIdx].tokens[tIdx];
-  if(chosen==='dice') chaosBonusRolls[pIdx]++;
-  if(chosen==='freeze') chaosFreezeTurns[pIdx]++;
-  if(chosen==='reverse') stepBackToken(pIdx,tIdx,6);
-  if(chosen==='bomb') stepBackToken(pIdx,tIdx,8);
-  if(chosen==='protection') chaosProtectionTurns[pIdx]=2;
+  if(chosen==='dice'){ chaosBonusRolls[pIdx]++; if(done) done(); }
+  else if(chosen==='freeze'){ chaosFreezeTurns[pIdx]++; if(done) done(); }
+  else if(chosen==='reverse') stepBackToken(pIdx,tIdx,6,done);
+  else if(chosen==='bomb') stepBackToken(pIdx,tIdx,8,done);
+  else { chaosProtectionTurns[pIdx]=2; if(done) done(); }
   return chosen;
 }
 
+/* ===== V20 SINGLE CHAOS RESOLVER =====
+   One Chaos landing = one presentation + one effect + ONE turn resolution:
+     1. presentationBegin_()  takes the turn lock (AI timer cleared, token issued)
+     2. runChaosPresentation_ plays the cinema; the board effect is applied once, when the
+        cinema says the victim has visually resolved (apply) — or at finish if it never did
+     3. the turn is resolved (finishTurn_) only when BOTH the cinema has closed AND the
+        effect's last hop has completed, and only if this match/token is still current.
+   Presentation code never unlocks the board or schedules an AI roll itself. */
 const EVENT_TEMPLATES = CHAOS_WORLD_TYPES.map(type=>({
   type, icon:CHAOS_WORLD_META[type].icon, name:CHAOS_WORLD_META[type].name+'!',
-  action:(pIdx,tIdx)=>{
+  action:(pIdx,tIdx,killedOpponent)=>{
+    if(gameOver) return;
     gameStats[pIdx][type]=(gameStats[pIdx][type]||0)+1;
     broadcastHighlight('🔥 FUDO CHAOS!',CHAOS_WORLD_META[type].name);
-    let swapTarget=null;
-    if(type==='swap') swapTarget=randomOpponentToken_(pIdx);
-    if(type==='random') swapTarget=null;
-    const apply=()=>{
-      if(type==='dice') chaosBonusRolls[pIdx]++;
-      else if(type==='freeze') chaosFreezeTurns[pIdx]++;
-      else if(type==='reverse') stepBackToken(pIdx,tIdx,6);
-      else if(type==='swap' && swapTarget){const a=players[pIdx].tokens[tIdx],b=players[swapTarget.pIdx].tokens[swapTarget.tIdx]; const tmp=a.step;a.step=b.step;b.step=tmp;renderAllTokensDOM();}
-      else if(type==='bomb') stepBackToken(pIdx,tIdx,8);
-      else if(type==='protection') chaosProtectionTurns[pIdx]=2;
-      else if(type==='random') applyRandomChaos_(pIdx,tIdx);
-      else if(type==='king') chaosMoveForward_(pIdx,tIdx,6);
-      else if(type==='invisible'){chaosInvisibleTurns[pIdx]=1;document.getElementById(`token-${pIdx}-${tIdx}`)?.classList.add('chaos-invisible');}
-      else if(type==='blackhole') stepBackToken(pIdx,tIdx,3);
-      else if(type==='burger') sendTokenToYard(pIdx,tIdx);
+    const token=presentationBegin_();
+    let effectDone=false, presentationDone=false, resolved=false;
+    const tryResolve=()=>{
+      if(resolved||!effectDone||!presentationDone||token!==chaosSequenceToken) return;
+      resolved=true;
+      presentationEnd_(token);
+      finishTurn_(pIdx,tIdx,!!killedOpponent);
     };
-    if(type==='kill'){
-      // Kill is a Chaos World event: no attacker is invented. It kicks the landed token home.
-      playBoardZoomCinema('kill',pIdx,tIdx,()=>sendTokenToYard(pIdx,tIdx));
-    } else {
-      playBoardZoomCinema(type,pIdx,tIdx,apply);
-    }
+    const applyEffect=()=>{
+      const fin=()=>{ effectDone=true; tryResolve(); };
+      try{
+        switch(type){
+          case 'dice': chaosBonusRolls[pIdx]++; fin(); break;
+          case 'freeze': chaosFreezeTurns[pIdx]++; fin(); break;
+          case 'reverse': stepBackToken(pIdx,tIdx,6,fin); break;
+          case 'swap': performSwap_(pIdx,tIdx); fin(); break;   // no eligible opponent -> no effect, turn still resolves
+          case 'bomb': stepBackToken(pIdx,tIdx,8,fin); break;
+          case 'protection': chaosProtectionTurns[pIdx]=2; fin(); break;
+          case 'random': applyRandomChaos_(pIdx,tIdx,fin); break;
+          case 'kill': sendTokenToYard(pIdx,tIdx); fin(); break;   // Kill tile: the landing token is sent home (unchanged rule; see release notes)
+          case 'king': chaosMoveForward_(pIdx,tIdx,6,fin); break;
+          case 'invisible':
+            // Duration 2 turn-changes (was 1, which expired in the very same nextTurn() that ended the owner's turn, before any
+            // opponent moved). Scope: this one pawn — it is both faded and immune to capture; other pawns of the player are normal.
+            if(chaosInvisibleToken[pIdx]>=0 && chaosInvisibleToken[pIdx]!==tIdx) document.getElementById(`token-${pIdx}-${chaosInvisibleToken[pIdx]}`)?.classList.remove('chaos-invisible');
+            chaosInvisibleTurns[pIdx]=2; chaosInvisibleToken[pIdx]=tIdx;
+            document.getElementById(`token-${pIdx}-${tIdx}`)?.classList.add('chaos-invisible'); fin(); break;
+          case 'blackhole': stepBackToken(pIdx,tIdx,3,fin); break;
+          case 'burger': sendTokenToYard(pIdx,tIdx); fin(); break;
+          default: fin();
+        }
+      }catch(e){ console.error('[FODO] chaos effect failed',type,e); fin(); }
+    };
+    runChaosPresentation_(type,pIdx,tIdx,null,applyEffect,()=>{ presentationDone=true; tryResolve(); });
   }
 }));
 
@@ -3203,7 +3294,9 @@ function spawnRandomFodoEvents(){
   for(let i=0;i<52;i++) if(!activeFodoEvents[i]&&!SAFE_TILES.includes(i)) available.push(i);
   // Normal play: keep a readable field of 4–5 Chaos icons. Endgame: all 12 may be live.
   const target=chaosEndgame_()?12:(Math.random()<0.45?5:4);
-  while(Object.keys(activeFodoEvents).length<Math.min(target,maxActive)&&available.length&&chaosBag.length){
+  // V20: no `&&chaosBag.length` here — nextChaosType_() refills the bag itself. The old guard stopped the fill early
+  // whenever the bag ran dry, leaving 3 icons in normal play and 11 (not 12) in the endgame.
+  while(Object.keys(activeFodoEvents).length<Math.min(target,maxActive)&&available.length){
     const ai=Math.floor(Math.random()*available.length); const randomTile=available.splice(ai,1)[0];
     const type=nextChaosType_(), meta=CHAOS_WORLD_META[type];
     activeFodoEvents[randomTile]={type,icon:meta.icon,name:meta.name+'!',turnsLeft:Math.floor(Math.random()*3)+3,onLand:EVENT_TEMPLATES.find(e=>e.type===type).action};
@@ -3279,7 +3372,11 @@ const KILL_PUNCHLINES = [
   "Mil gaya! 😂",
 ];
 
-function playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone) {
+function playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone, onFinish) {
+  // V20: a Kill *tile* has no attacker. Only a collision kill does. Never dereference a missing attacker.
+  if (attackerPIdx == null || !players[attackerPIdx]) { playTrapCinema('kill', victimPIdx, victimTIdx, onDone, onFinish); return; }
+  const tok = chaosSequenceToken, mid = matchId;
+  const setTimeout = (fn, ms) => window.setTimeout(() => { if (tok === chaosSequenceToken && mid === matchId) fn(); }, ms);
   const overlay = document.getElementById('chaosCinemaOverlay');
   const camera = document.getElementById('chaosCinemaCamera');
   const backdrop = document.getElementById('chaosCinemaBackdrop');
@@ -3320,10 +3417,8 @@ function playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone) {
   tagEl.textContent = KILL_PUNCHLINES[Math.floor(Math.random() * KILL_PUNCHLINES.length)];
 
   overlay.classList.add('show');
-  // Block all play — human input already checks isPaused, and this stops
-  // the AI's own turn timer from firing through the popup, which is the
-  // actual bug: the modal never did this, so the AI kept playing behind it.
-  isPaused = true;
+  // V20: the turn lock is owned by the turn controller (presentationBegin_/End_);
+  // this presentation no longer touches isPaused or the AI timer.
 
   setTimeout(() => attackerEl.classList.add('crouch'), 100);
   setTimeout(() => {
@@ -3351,12 +3446,7 @@ function playKillCinema(attackerPIdx, victimPIdx, victimTIdx, onDone) {
   setTimeout(() => camera.classList.add('zoom-out'), 3300);
   setTimeout(() => {
     overlay.classList.remove('show');
-    isPaused = false;
-    // Same re-arm pattern resumeGame() already uses — if it's still the
-    // AI's turn once the popup clears, let its timer fire again.
-    if (players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving) {
-      setTimeout(() => { if (!isPaused) onRollDice(currentTurn); }, 500);
-    }
+    if (onFinish) onFinish();
   }, 3900);
 }
 
@@ -3372,7 +3462,18 @@ const TRAP_PUNCHLINES = {
   magic: ["Taara mila, luck nahi.", "⭐ Kismat ne bola: NOPE.", "Arre wah... KO!", "Star ne seedha reject kar diya."],
 };
 
-function playTrapCinema(type, pIdx, tIdx, onDone) {
+/* V20: dialogue for ANY event type without inventing text: legacy punchline sets where they
+   exist, otherwise the already-authored V18 line for that type. Never indexes a missing set. */
+function trapLine_(type) {
+  const set = TRAP_PUNCHLINES[type];
+  if (set && set.length) return set[Math.floor(Math.random() * set.length)];
+  const l = (typeof window.fodoV18Line === 'function') ? window.fodoV18Line(type) : null;
+  return (l && l.text) || 'Arre yaar!';
+}
+
+function playTrapCinema(type, pIdx, tIdx, onDone, onFinish) {
+  const tok = chaosSequenceToken, mid = matchId;
+  const setTimeout = (fn, ms) => window.setTimeout(() => { if (tok === chaosSequenceToken && mid === matchId) fn(); }, ms);
   const overlay = document.getElementById('chaosCinemaOverlay');
   const camera = document.getElementById('chaosCinemaCamera');
   const backdrop = document.getElementById('chaosCinemaBackdrop');
@@ -3401,18 +3502,14 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
   [vortex, burger, starburst].forEach(el => el.className = el.className.split(' ')[0]);
   attackerEl.style.display = 'none';
   backdrop.className = `chaos-cinema-backdrop chaos-cinema-backdrop--${type}`;
-  tagEl.textContent = TRAP_PUNCHLINES[type][Math.floor(Math.random() * TRAP_PUNCHLINES[type].length)];
+  tagEl.textContent = trapLine_(type);
 
   overlay.classList.add('show');
-  // Same fix as playKillCinema — block all play for the real duration of
-  // the popup, not just visually. This is what the old modal never did.
-  isPaused = true;
+  // V20: turn lock/unlock belongs to the turn controller; this only closes its own overlay
+  // and then reports back exactly once via onFinish.
   const unlockAfterCinema = () => {
     overlay.classList.remove('show');
-    isPaused = false;
-    if (players[currentTurn] && players[currentTurn].isAI && !isRolling && !isTokenMoving) {
-      setTimeout(() => { if (!isPaused) onRollDice(currentTurn); }, 500);
-    }
+    if (onFinish) onFinish();
   };
 
   if (type === 'blackhole') {
@@ -3452,165 +3549,23 @@ function playTrapCinema(type, pIdx, tIdx, onDone) {
     setTimeout(() => { speakLine(tagEl.textContent, () => tagEl.classList.add('show')); }, 1500);
     setTimeout(() => camera.classList.add('zoom-out'), 2900);
     setTimeout(unlockAfterCinema, 3500);
+  } else {
+    // V20: generic presentation for the 8 event types that had no legacy branch
+    // (dice, freeze, reverse, swap, bomb, protection, random, king, invisible, kill tile):
+    // the face-token reacts, the existing line shows, the board effect is applied, then it closes.
+    setTimeout(() => { camera.classList.add('zoom-in'); victimEl.classList.add(type === 'kill' ? 'burger-gone' : 'magic-shock'); playSound('impact'); }, 200);
+    setTimeout(() => { if (onDone) onDone(); }, 1400);
+    setTimeout(() => { speakLine(tagEl.textContent, () => tagEl.classList.add('show')); }, 1500);
+    setTimeout(() => camera.classList.add('zoom-out'), 2900);
+    setTimeout(unlockAfterCinema, 3500);
   }
 }
 
-/* Board-Zoom Cinema (2026-08-27, expanded) — now covers all 5 chaos
-   events, not just Black Hole. Captures the REAL board via html2canvas
-   (exact pixels — every token, every event badge), whip-zooms into the
-   exact tile, settles into ~2.9s of slow motion, and plays the actual
-   effect there — including an animated token overlay, since the real
-   board is a frozen photo and can't move on its own; this small overlay
-   sits exactly on top of the real token and does the actual moving/
-   spinning/vanishing, standing in for it for the duration of the popup.
-   Real board updates silently underneath via onDone, same as before.
-
-   Timeline rebuilt (2026-09-19): the camera now does a SHORT, decisive
-   settle (0.55s, was 2.9s) and fully stops before anything chaos-related
-   fires — previously the burst/reaction started firing while the camera
-   was still slowly zooming, which read as messy rather than "pan, land,
-   then chaos happens". Once settled: a comic-book impact burst (thick
-   radiating rays, colour per type) pops behind everything, a per-type
-   flavour wash floods the frame (an actual noodle pattern for Noodle,
-   themed colour washes for the rest), and the reaction line pops in as
-   a real speech bubble with a bounce — all together, right on top of
-   the token, not as a separate caption below the board. Total sequence
-   still ~4.5-4.7s, just re-paced: less time spent waiting on the camera,
-   more time spent on the actual chaos moment being read/enjoyed. */
-function playBoardZoomCinema(type, victimPIdx, victimTIdx, onDone, attackerPIdx) {
-  const overlay=document.getElementById('chaosBoardZoomOverlay');
-  const scaler=document.getElementById('chaosBoardZoomScaler');
-  const snapshotImg=document.getElementById('chaosBoardZoomSnapshot');
-  const flavorBg=document.getElementById('chaosFlavorBg');
-  const comicBurst=document.getElementById('chaosComicBurst');
-  const nearImpact=document.getElementById('chaosNearImpact');
-  const pullRope=document.getElementById('chaosPullRope');
-  const vortex=document.getElementById('chaosBoardZoomVortex');
-  const burger=document.getElementById('chaosBoardZoomBurger');
-  const starburst=document.getElementById('chaosBoardZoomStarburst');
-  const victimToken=document.getElementById('chaosBoardZoomVictim');
-  const victimHead=document.getElementById('chaosBoardZoomVictimHead');
-  const attackerToken=document.getElementById('chaosBoardZoomAttacker');
-  const attackerHead=document.getElementById('chaosBoardZoomAttackerHead');
-  const reaction=document.getElementById('chaosBoardZoomReaction');
-  const tagEl=document.getElementById('chaosBoardZoomTag');
-  const frame=document.getElementById('chaosBoardZoomFrame');
-  const wrapper=document.getElementById('board-wrapper');
-
-  const fallback=()=>{ if(type==='kill') playKillCinema(attackerPIdx,victimPIdx,victimTIdx,onDone); else playTrapCinema(type,victimPIdx,victimTIdx,onDone); };
-  if(!overlay||!scaler||!snapshotImg||!wrapper||typeof html2canvas==='undefined'){fallback();return;}
-
-  const step=players[victimPIdx].tokens[victimTIdx].step;
-  const replayStartStep=step;
-  const replayBackSteps=(type==='blackhole'||type==='noodle') ? Math.min(type==='blackhole'?3:4,Math.max(0,step)) : 0;
-  const tile=getGlobalTrackIndex(victimPIdx,step);
-  const cell=tile>=0?MAIN_CIRCUIT[tile]:[7,7];
-  const S=600/15;
-  const xPct=((cell[0]*S+S/2)/600)*100;
-  const yPct=((cell[1]*S+S/2)/600)*100;
-
-  scaler.className='chaos-boardzoom-scaler';
-  flavorBg.className='chaos-flavor-bg';
-  comicBurst.className='chaos-comic-burst';
-  nearImpact.className='chaos-near-impact';
-  pullRope.className='chaos-pull-rope';
-  vortex.className='chaos-boardzoom-vortex';
-  burger.className='chaos-boardzoom-burger';
-  starburst.className='chaos-boardzoom-starburst';
-  victimToken.className='chaos-boardzoom-token chaos-boardzoom-token--victim';
-  attackerToken.className='chaos-boardzoom-token chaos-boardzoom-token--attacker';
-  reaction.className='chaos-boardzoom-reaction'; reaction.textContent='';
-  tagEl.className='chaos-cinema-tag';
-  frame.classList.remove('impact-hit');
-  scaler.style.transformOrigin=`${xPct}% ${yPct}%`;
-  [vortex,burger,starburst,nearImpact,pullRope,victimToken,attackerToken,reaction,comicBurst].forEach(el=>{el.style.left=`${xPct}%`;el.style.top=`${yPct}%`;});
-  const tagXPct=Math.min(78,Math.max(22,xPct)); tagEl.style.left=`${tagXPct}%`; tagEl.style.top=`${yPct}%`; tagEl.classList.toggle('flip-below',yPct<32);
-
-  const BURST_COLORS={blackhole:'#C9A6FF',burger:'#FF6B35',noodle:'#E8A93C',magic:'#FFF3C4',kill:'#FF3B30'};
-  comicBurst.style.setProperty('--burst-color',BURST_COLORS[type]||'#FFE8A3'); flavorBg.classList.add('flavor-'+type);
-  const victim=players[victimPIdx]; victimToken.style.setProperty('--bz-token-color',PLAYER_CONFIG[victimPIdx].hex);
-  if(victim.avatar) victimHead.innerHTML=`<img src="${victim.avatar}">`; else victimHead.innerHTML=`<div class="fallback-emoji">${PLAYER_CONFIG[victimPIdx].defaultEmoji}</div>`;
-  if(type==='kill'){const attacker=players[attackerPIdx]; attackerToken.style.setProperty('--bz-token-color',PLAYER_CONFIG[attackerPIdx].hex); if(attacker.avatar) attackerHead.innerHTML=`<img src="${attacker.avatar}">`; else attackerHead.innerHTML=`<div class="fallback-emoji">${PLAYER_CONFIG[attackerPIdx].defaultEmoji}</div>`;}
-  const punchlineSet=type==='kill'?KILL_PUNCHLINES:TRAP_PUNCHLINES[type]; tagEl.textContent=punchlineSet[Math.floor(Math.random()*punchlineSet.length)];
-
-  html2canvas(wrapper,{backgroundColor:null,useCORS:true,scale:1}).then(canvas=>{
-    snapshotImg.src=canvas.toDataURL('image/png'); overlay.classList.add('show'); isPaused=true;
-    setTimeout(()=>scaler.classList.add('whip-in'),250);
-    setTimeout(()=>scaler.classList.add('slow-settle'),620);
-
-    /* Standard FODO timing: ~6.8s total. One clear event, not a pile of effects. */
-    const REVEAL_AT=1250;
-    setTimeout(()=>{
-      victimToken.classList.add('show','physical');
-      if(type==='kill') attackerToken.classList.add('show','physical');
-      comicBurst.classList.add('show');
-      nearImpact.classList.add('show');
-      frame.classList.add('impact-hit');
-      playSound('impact');
-      const dialogueText = tagEl.textContent;
-      speakLine(dialogueText,()=>{ tagEl.classList.add('show'); typeDialogue(tagEl, dialogueText); });
-
-      if(type==='blackhole'){
-        vortex.classList.add('show'); pullRope.classList.add('show');
-        playSound('hold');
-        setTimeout(()=>playSound('pull'),550);
-        setTimeout(()=>victimToken.classList.add('bz-spin-drop'),1250);
-        setTimeout(()=>playSound('drop'),1850);
-      } else if(type==='burger'){
-        burger.classList.add('show');
-        setTimeout(()=>{burger.classList.add('chomp');playSound('impact');},450);
-        setTimeout(()=>victimToken.classList.add('bz-eaten'),1150);
-        setTimeout(()=>playSound('drop'),1500);
-      } else if(type==='noodle'){
-        setTimeout(()=>{victimToken.classList.add('bz-slip');playSound('noodle');},250);
-      } else if(type==='magic'){
-        setTimeout(()=>victimToken.classList.add('bz-freeze'),180);
-        setTimeout(()=>{starburst.classList.add('show');playSound('magic');},700);
-        setTimeout(()=>victimToken.classList.add('bz-pop'),1050);
-        setTimeout(()=>playSound('drop'),1250);
-      } else if(type==='kill'){
-        // Signature FODO kill: Road-Runner sprint -> one big kick -> victim flies
-        // toward the victim's actual yard corner. Gameplay state is still applied
-        // only by onDone; this is presentation only.
-        const homeCenters = { 0:[13,13], 1:[87,13], 2:[87,87], 3:[13,87] };
-        const [hx,hy] = homeCenters[victimPIdx] || [50,50];
-        setTimeout(()=>{ attackerToken.classList.add('bz-runner'); playSound('cut'); },120);
-        setTimeout(()=>{ attackerToken.classList.remove('bz-runner'); attackerToken.classList.add('bz-kick'); playSound('impact'); frame.classList.add('impact-hit'); },760);
-        setTimeout(()=>{
-          victimToken.classList.add('bz-char','bz-kick-off');
-          reaction.textContent=''; reaction.classList.add('show');
-          victimToken.style.left=`${hx}%`; victimToken.style.top=`${hy}%`;
-          playSound('drop');
-        },930);
-        setTimeout(()=>{ attackerToken.classList.remove('bz-kick'); attackerToken.classList.add('bz-runner'); },1020);
-      }
-    },REVEAL_AT);
-
-    /* Step-back events: the rope is the readable action cue, then the same face stays on the pawn while the pawn travels backwards. */
-    if(replayBackSteps>0){
-      const replayAt=REVEAL_AT+2450;
-      setTimeout(()=>{
-        if(type==='blackhole'){pullRope.classList.add('show');playSound('pull');}
-        victimToken.classList.remove('bz-slip'); victimToken.classList.add('physical','bz-stepback-replay');
-        for(let i=1;i<=replayBackSteps;i++){
-          setTimeout(()=>{
-            const rs=replayStartStep-i,rt=getGlobalTrackIndex(victimPIdx,rs); if(rt<0)return;
-            const rc=MAIN_CIRCUIT[rt]; victimToken.style.left=`${((rc[0]*S+S/2)/600)*100}%`; victimToken.style.top=`${((rc[1]*S+S/2)/600)*100}%`;
-            playSound('step');
-            if(i===replayBackSteps) setTimeout(()=>pullRope.classList.add('fade-out'),180);
-          },i*260);
-        }
-      },replayAt);
-    }
-
-    const stateApplyAt=REVEAL_AT+5200;
-    setTimeout(()=>{if(onDone)onDone();},stateApplyAt);
-    const FADE_AT=REVEAL_AT+5600;
-    setTimeout(()=>{comicBurst.classList.add('fade-out');nearImpact.classList.remove('show');flavorBg.classList.add('fade-out');tagEl.classList.add('fade-out');pullRope.classList.add('fade-out');},FADE_AT);
-    setTimeout(()=>scaler.classList.add('zoom-out'),REVEAL_AT+5850);
-    setTimeout(()=>{overlay.classList.remove('show');isPaused=false;if(players[currentTurn]&&players[currentTurn].isAI&&!isRolling&&!isTokenMoving){setTimeout(()=>{if(!isPaused)onRollDice(currentTurn);},500);}},REVEAL_AT+6250);
-  }).catch(fallback);
-}
+/* V20 NOTE: the legacy playBoardZoomCinema that used to live here was dead code — it was
+   replaced at load time by `window.playBoardZoomCinema` (V18/V20, in the fodo-v14-chaos-js
+   block at the end of this file). It also carried the TRAP_PUNCHLINES-only dialogue and its own
+   isPaused/AI-roll unlocking, which is exactly the duplicated turn-ownership the audit flagged.
+   It has been removed; the single active implementation is the one below. */
 
 /* ===== Victory Celebration (2026-08-27) =====
    Reuses the exact same board-zoom pan/zoom mechanics already confirmed
@@ -3619,6 +3574,8 @@ function playBoardZoomCinema(type, victimPIdx, victimTIdx, onDone, attackerPIdx)
    finishes, hands off to showWinnerModalNow() for the stats + confetti +
    dancing tokens + save/leaderboard prompt. */
 function playVictoryPan(pIdx) {
+  const vmid = matchId;
+  const setTimeout = (fn, ms) => window.setTimeout(() => { if (vmid === matchId) fn(); }, ms);
   const overlay = document.getElementById('chaosBoardZoomOverlay');
   const scaler = document.getElementById('chaosBoardZoomScaler');
   const snapshotImg = document.getElementById('chaosBoardZoomSnapshot');
@@ -3873,6 +3830,66 @@ let players = [
 let currentTurn = 0;
 let lastDiceRoll = 1;
 
+// V20: one authoritative AI timer + one authoritative Chaos presentation lock.
+let aiTurnTimer = null;
+let chaosSequenceActive = false;
+let chaosSequenceToken = 0;
+function clearAITurnTimer_(){ if(aiTurnTimer){ clearTimeout(aiTurnTimer); aiTurnTimer=null; } }
+function scheduleAITurn_(delay=700){
+  clearAITurnTimer_();
+  if(chaosSequenceActive || isPaused || isRolling || isTokenMoving) return;
+  const expected=currentTurn;
+  aiTurnTimer=setTimeout(()=>{
+    aiTurnTimer=null;
+    if(!chaosSequenceActive && !isPaused && expected===currentTurn && players[currentTurn]?.isAI && !isRolling && !isTokenMoving) onRollDice(currentTurn);
+  },delay);
+}
+/* ===== V20 TURN CONTROLLER =====
+   presentationBegin_  takes the one-and-only presentation lock and returns its token.
+   presentationEnd_    releases it (only if the token is still current).
+   runChaosPresentation_ plays ONE cinema; guarantees (a) the effect callback runs at most once,
+                       (b) the finish callback runs at most once, (c) it ALWAYS runs eventually
+                       (watchdog), even if the cinema throws, html2canvas hangs or audio never ends.
+   finishTurn_         the single place a landing is turned into "roll again / next turn / victory". */
+const CHAOS_PRESENTATION_MAX_MS = 16000;   // longest supplied dialogue clip is 7.6 s; cinema adds ~3.2 s
+function presentationBegin_(){ clearAITurnTimer_(); chaosSequenceActive=true; return ++chaosSequenceToken; }
+function presentationEnd_(token){ if(token!==chaosSequenceToken) return false; chaosSequenceActive=false; return true; }
+function runChaosPresentation_(type,victimP,victimT,attackerP,applyFn,finishFn){
+  const token=chaosSequenceToken, mid=matchId;
+  let applied=false, finished=false, wd=null;
+  const live=()=>token===chaosSequenceToken && mid===matchId;
+  const apply=()=>{ if(applied||!live()) return; applied=true; try{ if(applyFn) applyFn(); }catch(e){ console.error('[FODO] chaos apply failed',e); } };
+  const finish=()=>{
+    if(finished||!live()) return;
+    finished=true; clearTimeout(wd);
+    apply();
+    abortCinemaOverlays_();
+    try{ if(finishFn) finishFn(); }catch(e){ console.error('[FODO] chaos finish failed',e); }
+  };
+  wd=setTimeout(()=>{ if(!finished) console.warn('[FODO] presentation watchdog fired for',type); finish(); },CHAOS_PRESENTATION_MAX_MS);
+  try{ playBoardZoomCinema(type,victimP,victimT,apply,attackerP,finish); }
+  catch(e){ console.error('[FODO] cinema threw, resolving without it',type,e); finish(); }
+}
+function declareVictory_(pIdx){
+  if(gameOver) return;
+  gameOver=true; isPaused=true; canSelectToken=false; pendingAction_=null; clearAITurnTimer_();
+  playVictoryPan(pIdx);
+}
+function finishTurn_(pIdx,tIdx,killedOpponent){
+  if(gameOver) return;
+  const t=players[pIdx].tokens[tIdx];
+  if(players[pIdx].tokens.every(tk=>tk.step===56)){ declareVictory_(pIdx); return; }
+  if(lastDiceRoll===6 || killedOpponent || t.step===56 || chaosBonusRolls[pIdx]>0){
+    if(chaosBonusRolls[pIdx]>0) chaosBonusRolls[pIdx]--;
+    document.getElementById('game-status-text').textContent='Roll again!';
+    isRolling=false;
+    if(players[currentTurn]?.isAI) scheduleAITurn_(350);
+    else document.getElementById(`turn-arrow-${currentTurn}`)?.classList.add('show');
+  } else {
+    afterDelay_(nextTurn,600);
+  }
+}
+
 // Per-player stats for THIS game only — reset in startGame(). Feeds the
 // winner-screen stats table and the leaderboard score calculation.
 let gameStats = [0,1,2,3].map(() => ({ blackhole: 0, burger: 0, noodle: 0, magic: 0, dice: 0, freeze: 0, reverse: 0, swap: 0, bomb: 0, protection: 0, random: 0, kill: 0, king: 0, invisible: 0, kills: 0, timesKilled: 0 }));
@@ -3880,6 +3897,9 @@ let chaosBonusRolls = [0,0,0,0];
 let chaosFreezeTurns = [0,0,0,0];
 let chaosProtectionTurns = [0,0,0,0];
 let chaosInvisibleTurns = [0,0,0,0];
+/* V20 RC2: Invisible is PER TOKEN. chaosInvisibleToken[p] = index of the one pawn that is faded AND immune to capture
+   (-1 = none). Before, the fade was drawn on the landing pawn only but immunity covered all four of the player's pawns. */
+let chaosInvisibleToken = [-1,-1,-1,-1];
 let chaosBag = [];
 function totalChaosHits(pIdx) {
   const s = gameStats[pIdx];
@@ -3890,11 +3910,17 @@ let isTokenMoving = false;
 let canSelectToken = false;
 let consecutiveSixes = 0;
 
+/* V20 seating. HUMAN seats per mode (cross-board for 2P so the two humans face each other):
+     1P -> [0]   2P -> [0,2]   3P -> [0,1,2]   4P -> [0,1,2,3]
+   Active seats = the humans, plus TKG/AI seats: with "fill" every other seat is an AI;
+   1P without fill still plays exactly 1 human vs 1 TKG on the OPPOSITE seat ([0,2]). */
+function humanSeatsForMode_(mode) {
+  return mode === 1 ? [0] : mode === 2 ? [0,2] : mode === 3 ? [0,1,2] : [0,1,2,3];
+}
 function computeActiveSeatIndices(mode, fillWithTkg) {
-  if (mode === 1) return fillWithTkg ? [0,1,2,3] : [0,2];
   if (mode === 4) return [0,1,2,3];
-  const seats = Array.from({length: mode}, (_, i) => i);
-  return fillWithTkg ? [0,1,2,3] : seats;
+  if (fillWithTkg) return [0,1,2,3];
+  return mode === 1 ? [0,2] : humanSeatsForMode_(mode).slice();
 }
 
 function setGameMode(mode) {
@@ -3920,7 +3946,7 @@ let currentAvatarStepPos = 0;
 let avatarStepSeats = [0, 2];
 
 function goToAvatarStage() {
-  avatarStepSeats = activePlayerCount === 1 ? [0] : Array.from({length: activePlayerCount}, (_, i) => i);
+  avatarStepSeats = humanSeatsForMode_(activePlayerCount);
   currentAvatarStepPos = 0;
   document.getElementById('stage-select').style.display = 'none';
   document.getElementById('stage-avatar').style.display = 'flex';
@@ -4348,7 +4374,7 @@ function spawnTokensDOM() {
 
       el.appendChild(head);
       el.appendChild(body);
-      el.onclick = () => onSelectToken(pIdx, tIdx);
+      el.onclick = () => { if (canSelectToken) onSelectToken(pIdx, tIdx); };   // V20: no moves with a stale roll
       layer.appendChild(el);
     });
   });
@@ -4399,15 +4425,15 @@ function renderDicePips(playerIdx, value) {
 }
 
 function startGame() {
+  resetMatchState_();   // V20: full reset — timers, flags, tokens of any previous match are inert
   ensureAudio();
   activeSeatIndices = computeActiveSeatIndices(activePlayerCount, tkgFill);
   gameStats = [0,1,2,3].map(() => ({ blackhole: 0, burger: 0, noodle: 0, magic: 0, dice: 0, freeze: 0, reverse: 0, swap: 0, bomb: 0, protection: 0, random: 0, kill: 0, king: 0, invisible: 0, kills: 0, timesKilled: 0 }));
-  chaosBonusRolls=[0,0,0,0]; chaosFreezeTurns=[0,0,0,0]; chaosProtectionTurns=[0,0,0,0]; chaosInvisibleTurns=[0,0,0,0]; chaosBag=[];
 
   for (let i = 0; i < 4; i++) {
     const input = document.getElementById(`player-name-${i}`);
     players[i].name = input?.value || PLAYER_CONFIG[i].color;
-    players[i].isAI = (activePlayerCount === 1 && i > 0) || (tkgFill && activePlayerCount < 4 && i >= activePlayerCount);
+    players[i].isAI = activeSeatIndices.includes(i) && !humanSeatsForMode_(activePlayerCount).includes(i);
 
     const hudImg = document.getElementById(`hud-img-${i}`);
     if (players[i].avatar) hudImg.innerHTML = `<img src="${players[i].avatar}">`;
@@ -4452,13 +4478,11 @@ function updateTurnUI() {
     if (arrow) arrow.classList.toggle('show', i === currentTurn && !p.isAI);
   }
 
-  if (p.isAI) {
-    setTimeout(() => onRollDice(currentTurn), 700);
-  }
+  if (p.isAI) scheduleAITurn_(700);
 }
 
 function onRollDice(playerIdx) {
-  if (isPaused || playerIdx !== currentTurn || isRolling || isTokenMoving || canSelectToken) return;
+  if (gameOver || chaosSequenceActive || isPaused || playerIdx !== currentTurn || isRolling || isTokenMoving || canSelectToken) return;
   isRolling = true;
   document.getElementById(`turn-arrow-${playerIdx}`)?.classList.remove('show');
   playSound('roll');
@@ -4466,13 +4490,14 @@ function onRollDice(playerIdx) {
   lastDiceRoll = Math.floor(Math.random() * 6) + 1;
   renderDicePips(playerIdx, lastDiceRoll);
 
-  setTimeout(() => {
+  later_(() => {
     isRolling = false;
     evaluateLegalMoves();
   }, 620);
 }
 
 function evaluateLegalMoves() {
+  if (gameOver) return;
   const p = players[currentTurn];
   const legalTokens = [];
 
@@ -4481,7 +4506,7 @@ function evaluateLegalMoves() {
     if (consecutiveSixes === 3) {
       consecutiveSixes = 0;
       document.getElementById('game-status-text').textContent = "3 Sixes! Turn forfeited!";
-      setTimeout(nextTurn, 1000);
+      afterDelay_(nextTurn, 1000);
       return;
     }
   } else {
@@ -4495,10 +4520,11 @@ function evaluateLegalMoves() {
 
   if (legalTokens.length === 0) {
     document.getElementById('game-status-text').textContent = "No legal moves!";
-    setTimeout(nextTurn, 800);
+    afterDelay_(nextTurn, 800);
   } else if (p.isAI) {
     const choice = legalTokens[Math.floor(Math.random() * legalTokens.length)];
-    setTimeout(() => onSelectToken(currentTurn, choice), 500);
+    const expected = currentTurn;
+    afterDelay_(() => { if (expected === currentTurn) onSelectToken(currentTurn, choice); }, 500);
   } else if (legalTokens.length === 1) {
     onSelectToken(currentTurn, legalTokens[0]);
   } else {
@@ -4511,7 +4537,7 @@ function evaluateLegalMoves() {
 }
 
 function onSelectToken(pIdx, tIdx) {
-  if (isPaused || pIdx !== currentTurn || (!canSelectToken && isRolling && !players[pIdx].isAI) || isTokenMoving) return;
+  if (gameOver || chaosSequenceActive || isPaused || pIdx !== currentTurn || isTokenMoving) return;
   const t = players[pIdx].tokens[tIdx];
 
   if (t.step === -1 && lastDiceRoll !== 6) return;
@@ -4528,7 +4554,7 @@ function onSelectToken(pIdx, tIdx) {
     t.step = 0;
     playSound('step');
     renderAllTokensDOM();
-    setTimeout(() => {
+    later_(() => {
       tokenEl?.classList.remove('walking');
       isTokenMoving = false;
       handleArrivalLogic(pIdx, tIdx);
@@ -4551,90 +4577,76 @@ function onSelectToken(pIdx, tIdx) {
     playSound('step');
     renderAllTokensDOM();
 
-    setTimeout(walkOneStep, 170);
+    later_(walkOneStep, 170);
   }
   walkOneStep();
 }
 
+/* V20 arrival: collision kill -> (then) Chaos tile -> one turn resolution, strictly in sequence.
+   Exactly one presentation is ever on screen; the collision replay hands the lock back before a
+   Chaos event on the same landing tile is allowed to start its own. */
 function handleArrivalLogic(pIdx, tIdx) {
+  if (gameOver) return;
   const t = players[pIdx].tokens[tIdx];
 
-  if (players[pIdx].tokens.every(tk => tk.step === 56)) {
-    isPaused = true; // block play through the victory pan, same as every chaos cinema
-    playVictoryPan(pIdx);
-    return;
-  }
+  if (players[pIdx].tokens.every(tk => tk.step === 56)) { declareVictory_(pIdx); return; }
 
-  let killedOpponent = false;
+  const kills = [];
+  let gTile = -1;
   if (t.step >= 0 && t.step <= 50) {
-    const gTile = getGlobalTrackIndex(pIdx, t.step);
+    gTile = getGlobalTrackIndex(pIdx, t.step);
     if (!SAFE_TILES.includes(gTile)) {
-      const kills = [];
       players.forEach((opp, oppIdx) => {
         if (oppIdx === pIdx || !activeSeatIndices.includes(oppIdx)) return;
         opp.tokens.forEach((oppT, oppTIdx) => {
-          if (oppT.step >= 0 && oppT.step <= 50 && getGlobalTrackIndex(oppIdx, oppT.step) === gTile && chaosProtectionTurns[oppIdx] <= 0 && chaosInvisibleTurns[oppIdx] <= 0) {
+          if (oppT.step >= 0 && oppT.step <= 50 && getGlobalTrackIndex(oppIdx, oppT.step) === gTile && chaosProtectionTurns[oppIdx] <= 0 && !(chaosInvisibleTurns[oppIdx] > 0 && chaosInvisibleToken[oppIdx] === oppTIdx)) {
             kills.push({ oppIdx, oppTIdx, oppT });
           }
         });
       });
-      if (kills.length > 0) {
-        killedOpponent = true;
-        gameStats[pIdx].kills += kills.length;
-        kills.forEach(k => { gameStats[k.oppIdx].timesKilled++; });
-        // Cinema Kill Replay (2026-08-27) — the drama now lives entirely
-        // in the mini-stage popup, not on the real board. The board's
-        // own token state finalizes silently in onDone, once the victim
-        // has visually left the popup's stage — the real board is
-        // hidden behind the popup the whole time anyway, so there's
-        // nothing to see there until this resolves. If more than one
-        // opponent token was stacked on the same tile (rare), the
-        // popup performs once using the first, and onDone finalizes
-        // every kill collected, not just the one shown.
-        playBoardZoomCinema('kill', kills[0].oppIdx, kills[0].oppTIdx, () => {
-          kills.forEach(k => { k.oppT.step = -1; });
-          renderAllTokensDOM();
-        }, pIdx);
-      }
     } else if (gTile !== 0 && gTile !== 13 && gTile !== 26 && gTile !== 39) {
-      // Landed safely on a genuine star tile (not one of the 4 colored
-      // start tiles, which are also in SAFE_TILES but aren't "stars") —
-      // restored chime that was missing from this version.
+      // Landed safely on a genuine star tile (not one of the 4 colored start tiles).
       playSound('star');
     }
+  }
+  const killedOpponent = kills.length > 0;
 
-    if (activeFodoEvents[gTile]) {
+  const resolveLanding = () => {
+    if (gameOver) return;
+    if (gTile >= 0 && activeFodoEvents[gTile]) {
       const ev = activeFodoEvents[gTile];
       delete activeFodoEvents[gTile];
-      ev.onLand(pIdx, tIdx);
+      ev.onLand(pIdx, tIdx, killedOpponent);   // Chaos owns the rest of this turn
+      return;
     }
-  }
+    finishTurn_(pIdx, tIdx, killedOpponent);
+  };
 
-  if (lastDiceRoll === 6 || killedOpponent || t.step === 56 || chaosBonusRolls[pIdx] > 0) {
-    if(chaosBonusRolls[pIdx]>0) chaosBonusRolls[pIdx]--;
-    document.getElementById('game-status-text').textContent = "Roll again!";
-    isRolling = false;
-    if (players[currentTurn].isAI) {
-      setTimeout(() => onRollDice(currentTurn), 700);
-    } else {
-      document.getElementById(`turn-arrow-${currentTurn}`)?.classList.add('show');
-    }
-  } else {
-    setTimeout(nextTurn, 600);
-  }
+  if (!killedOpponent) { resolveLanding(); return; }
+
+  gameStats[pIdx].kills += kills.length;
+  kills.forEach(k => { gameStats[k.oppIdx].timesKilled++; });
+  // If several opponent tokens were stacked on the tile, the replay shows the first;
+  // the board state of every collected kill is finalized once, when the replay says so.
+  const token = presentationBegin_();
+  const finalizeKills = () => { kills.forEach(k => { k.oppT.step = -1; }); renderAllTokensDOM(); };
+  runChaosPresentation_('kill', kills[0].oppIdx, kills[0].oppTIdx, pIdx, finalizeKills, () => {
+    if (!presentationEnd_(token)) return;
+    resolveLanding();
+  });
 }
 
-function stepBackToken(pIdx, tIdx, steps) {
+function stepBackToken(pIdx, tIdx, steps, done) {
   const t = players[pIdx].tokens[tIdx];
-  let remaining = Math.min(steps, t.step);
+  let remaining = Math.max(0, Math.min(steps, t.step));
   function hopBack() {
-    if (remaining <= 0) { renderAllTokensDOM(); return; }
+    if (remaining <= 0) { renderAllTokensDOM(); if (done) done(); return; }
     spawnTokenTrail_(pIdx, tIdx);
     t.step = Math.max(0, t.step - 1);
     remaining--;
     playSound('step');
     renderAllTokensDOM();
-    if (remaining > 0) setTimeout(hopBack, 140);
+    later_(hopBack, 140);
   }
   hopBack();
 }
@@ -4646,27 +4658,27 @@ function sendTokenToYard(pIdx, tIdx) {
 }
 
 function nextTurn() {
+  if(gameOver || chaosSequenceActive || isPaused || isRolling || isTokenMoving) return;
+  clearAITurnTimer_();
   spawnRandomFodoEvents();
-  // Effects last for one future turn. Remove visual invisibility when it expires.
+  // Effects last for a limited number of turn changes. Remove visual invisibility when it expires.
   activeSeatIndices.forEach(i=>{
     if(chaosProtectionTurns[i]>0) chaosProtectionTurns[i]--;
     if(chaosInvisibleTurns[i]>0){
       chaosInvisibleTurns[i]--;
-      if(chaosInvisibleTurns[i]===0) players[i].tokens.forEach((_,ti)=>document.getElementById(`token-${i}-${ti}`)?.classList.remove('chaos-invisible'));
+      if(chaosInvisibleTurns[i]===0){ players[i].tokens.forEach((_,ti)=>document.getElementById(`token-${i}-${ti}`)?.classList.remove('chaos-invisible')); chaosInvisibleToken[i]=-1; }
     }
   });
-  let guard=0;
-  do {
+  // V20 Freeze: a frozen seat CONSUMES one freeze each time its turn is skipped. (Before, the
+  // counter was only consumed when every seat was frozen, so a single frozen player was skipped forever.)
+  const skipped=[];
+  for(let guard=0; guard<64; guard++){
     const pos=activeSeatIndices.indexOf(currentTurn);
     currentTurn=activeSeatIndices[(pos+1)%activeSeatIndices.length];
-    guard++;
-  } while(chaosFreezeTurns[currentTurn]>0 && guard<=activeSeatIndices.length);
-  if(chaosFreezeTurns[currentTurn]>0){
-    chaosFreezeTurns[currentTurn]--;
-    document.getElementById('game-status-text').textContent='FROZEN! Turn skipped.';
-    setTimeout(()=>nextTurn(),650);
-    return;
+    if(chaosFreezeTurns[currentTurn]>0){ chaosFreezeTurns[currentTurn]--; skipped.push(currentTurn); continue; }
+    break;
   }
+  if(skipped.length) broadcastHighlight('❄️ FROZEN!', skipped.map(i=>players[i].isAI?'AI BOT':players[i].name).join(', ')+' skip'+(skipped.length>1?'':'s')+' a turn');
   updateTurnUI();
 }
 
@@ -5001,15 +5013,33 @@ function fodoV18StopAudio(){
 function fodoV18Line(type){
   return FODO_V18_DIALOGUE[type] || {text:"Arre yaar!",audio:null};
 }
+// V20: the main script (match reset, fallback cinemas) reaches these through window.
+window.fodoV18Line=fodoV18Line;
+window.__fodoStopAllAudio=function(){
+  try{fodoV18StopAudio();}catch(e){}
+  try{stopFodoPackSound();}catch(e){}
+  try{stopFodoChaosBed();}catch(e){}
+};
 
-window.playBoardZoomCinema=function(type,victimPIdx,victimTIdx,onDone,attackerPIdx){
+window.playBoardZoomCinema=function(type,victimPIdx,victimTIdx,onDone,attackerPIdx,onFinish){
+  /* V20 contract: onDone = "apply the board effect now" (called once, mid-presentation);
+     onFinish = "overlay is closed" (called once). This function never touches isPaused, the AI
+     timer or the turn — the turn controller owns all of that. Every timer below is inert once the
+     match (matchId) or the presentation token has changed (quit / restart / watchdog). */
+  const tok=chaosSequenceToken, mid=matchId;
+  const setTimeout=(fn,ms)=>window.setTimeout(()=>{ if(tok===chaosSequenceToken&&mid===matchId) fn(); },ms);
+  let phase=0, finishedOnce=false;   // phase: 0 = waiting for snapshot, 1 = snapshot cinema running, 2 = fallback running
+  const fireFinish=()=>{ if(finishedOnce) return; finishedOnce=true; if(onFinish) onFinish(); };
+  const startFallback=()=>{
+    if(phase!==0) return; phase=2;
+    try{fodoV18StopAudio();}catch(e){}
+    if(type==='kill'&&attackerPIdx!=null&&typeof playKillCinema==='function') playKillCinema(attackerPIdx,victimPIdx,victimTIdx,onDone,fireFinish);
+    else if(typeof playTrapCinema==='function') playTrapCinema(type,victimPIdx,victimTIdx,onDone,fireFinish);
+    else { if(onDone) onDone(); fireFinish(); }
+  };
   const overlay=document.getElementById('chaosBoardZoomOverlay'),scaler=document.getElementById('chaosBoardZoomScaler'),snapshotImg=document.getElementById('chaosBoardZoomSnapshot'),frame=document.getElementById('chaosBoardZoomFrame'),wrapper=document.getElementById('board-wrapper');
   const flavorBg=document.getElementById('chaosFlavorBg'),comicBurst=document.getElementById('chaosComicBurst'),nearImpact=document.getElementById('chaosNearImpact'),pullRope=document.getElementById('pullRope')||document.getElementById('chaosPullRope'),vortex=document.getElementById('chaosBoardZoomVortex'),burger=document.getElementById('chaosBoardZoomBurger'),starburst=document.getElementById('chaosBoardZoomStarburst'),victimToken=document.getElementById('chaosBoardZoomVictim'),victimHead=document.getElementById('chaosBoardZoomVictimHead'),attackerToken=document.getElementById('chaosBoardZoomAttacker'),attackerHead=document.getElementById('chaosBoardZoomAttackerHead'),reaction=document.getElementById('chaosBoardZoomReaction'),tagEl=document.getElementById('chaosBoardZoomTag');
-  if(!overlay||!scaler||!snapshotImg||!wrapper||typeof html2canvas==='undefined'){
-    if(type==='kill'&&typeof playKillCinema==='function')playKillCinema(attackerPIdx,victimPIdx,victimTIdx,onDone);
-    else if(typeof playTrapCinema==='function')playTrapCinema(type,victimPIdx,victimTIdx,onDone);
-    return;
-  }
+  if(!overlay||!scaler||!snapshotImg||!wrapper||typeof html2canvas==='undefined'){ startFallback(); return; }
   const step=players[victimPIdx]?.tokens?.[victimTIdx]?.step??0;
   const replayStartStep=step;
   const replayBackSteps=(type==='blackhole'||type==='noodle')?Math.min(type==='blackhole'?3:4,Math.max(0,step)):0;
@@ -5030,12 +5060,14 @@ window.playBoardZoomCinema=function(type,victimPIdx,victimTIdx,onDone,attackerPI
   [impact,sfx].forEach(el=>{el.className=el.className.split(' ')[0];el.style.left=`${xPct}%`;el.style.top=`${yPct}%`;el.textContent=''});
   const dialogue=fodoV18Line(type),comicText=FODO_V18_COMIC[type]||'CHAOS!';
 
+  setTimeout(()=>{ if(phase===0) startFallback(); },4000);
   html2canvas(wrapper,{backgroundColor:null,useCORS:true,scale:1}).then(canvas=>{
-    snapshotImg.src=canvas.toDataURL('image/png'); overlay.classList.add('show'); isPaused=true; fodoV18StartAudio(type);
+    if(phase!==0) return; phase=1;
+    snapshotImg.src=canvas.toDataURL('image/png'); overlay.classList.add('show'); fodoV18StartAudio(type);
     requestAnimationFrame(()=>scaler.classList.add('v17-camera-in'));
     setTimeout(()=>{
       victimToken.classList.add('show','physical','v17-alive');
-      if(type==='kill') attackerToken.classList.add('show','physical');
+      if(type==='kill'&&attackerPIdx!=null) attackerToken.classList.add('show','physical');
       flavorBg.classList.add('show');
     },250);
 
@@ -5110,28 +5142,50 @@ window.playBoardZoomCinema=function(type,victimPIdx,victimTIdx,onDone,attackerPI
       }
     },600);
 
-    // Real dialogue recording from the supplied sound-pack filename, with the exact visible text.
+    // V20: the supplied recording is the timing authority for the dialogue.
+    // The visible line is shown at the same moment the recording starts and the
+    // presentation cannot resolve until BOTH the visual sequence and audio finish.
+    const dialogueAudio = dialogue.audio && !isAudioMuted ? new Audio(dialogue.audio) : null;
+    if(dialogueAudio) fodoV18Hits.push(dialogueAudio);
+    let dialogueDone=false, visualDone=false, resolved=false;
+    const resolvePresentation=()=>{
+      if(resolved || !dialogueDone || !visualDone) return;
+      resolved=true;
+      onDone&&onDone();
+      scaler.classList.add('v17-camera-out');
+      flavorBg.classList.add('fade-out');
+      pullRope.classList.add('fade-out');
+      setTimeout(()=>{
+        overlay.classList.remove('show');
+        fodoV18StopAudio();
+        [impact,sfx].forEach(el=>el.className=el.className.split(' ')[0]);
+        fireFinish();   // V20: overlay closed -> tell the turn controller (it alone unlocks/advances)
+      },650);
+    };
     setTimeout(()=>{
-      if(dialogue.audio && !isAudioMuted){
-        try{ const voice=new Audio(dialogue.audio); voice.volume=.78; voice.play().catch(()=>{}); }catch(e){}
-      }
       tagEl.textContent=dialogue.text;
       tagEl.classList.add('show');
-    },3300);
-
-    setTimeout(()=>{onDone&&onDone();},4100);
-    setTimeout(()=>{scaler.classList.add('v17-camera-out');flavorBg.classList.add('fade-out');pullRope.classList.add('fade-out');},4300);
-    setTimeout(()=>{
-      overlay.classList.remove('show');
-      isPaused=false;
-      fodoV18StopAudio();
-      [impact,sfx].forEach(el=>el.className=el.className.split(' ')[0]);
-      const resumeChaosTurn = pendingChaosFinish;
-      pendingChaosFinish = null;
-      if(resumeChaosTurn) setTimeout(resumeChaosTurn,0);
-      else if(players[currentTurn]&&players[currentTurn].isAI&&!isRolling&&!isTokenMoving) setTimeout(()=>{if(!isPaused)onRollDice(currentTurn)},180);
-    },5100);
-  }).catch(()=>{fodoV18StopAudio();if(type==='kill'&&typeof playKillCinema==='function')playKillCinema(attackerPIdx,victimPIdx,victimTIdx,onDone);else if(typeof playTrapCinema==='function')playTrapCinema(type,victimPIdx,victimTIdx,onDone);});
+      if(dialogueAudio){
+        dialogueAudio.volume=.78;
+        const done=()=>{dialogueDone=true;resolvePresentation();};
+        dialogueAudio.addEventListener('ended',done,{once:true});
+        dialogueAudio.addEventListener('error',done,{once:true});
+        dialogueAudio.play().catch(done);
+        setTimeout(done,9000);   // V20 cap: longest supplied clip is 7.6 s
+      } else {
+        setTimeout(()=>{dialogueDone=true;resolvePresentation();},1400);
+      }
+    },2500);
+    // Keep the cinematic alive through the minimum visual action window.
+    setTimeout(()=>{visualDone=true;resolvePresentation();},3600);
+  }).catch(err=>{
+    if(phase===0){ startFallback(); return; }
+    // the snapshot cinema had already started and then threw: resolve cleanly instead of hanging
+    console.error('[FODO] cinema error after start',err);
+    try{overlay.classList.remove('show');fodoV18StopAudio();}catch(e){}
+    if(onDone) onDone();
+    fireFinish();
+  });
 };
 
   window.previewChaosV14=function(type){
